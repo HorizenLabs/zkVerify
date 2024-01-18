@@ -1,0 +1,88 @@
+[workspace.package]
+authors = ["Horizen Labs <admin@horizenlabs.io>"]
+edition = "2021"
+repository = "https://github.com/HorizenLabs/NH-core"
+
+[workspace]
+resolver = "2"
+
+members = [
+    "node",
+    "runtime",
+]
+
+[workspace.dependencies]
+clap = { version = "4.4.10", features = ["derive"] }
+futures = { version = "0.3.21", features = ["thread-pool"] }
+jsonrpsee = { version = "0.16.2", features = ["server"] }
+
+sc-cli = { version = "0.35.0" }
+sc-executor = { version = "0.31.0" }
+sc-network = { version = "0.33.0" }
+sc-service = { version = "0.34.0" }
+sc-telemetry = { version = "14.0.0" }
+sc-transaction-pool = { version = "27.0.0" }
+sc-transaction-pool-api = { version = "27.0.0" }
+sc-offchain = { version = "28.0.0" }
+sc-consensus-aura = { version = "0.33.0" }
+sc-consensus = { version = "0.32.0" }
+sc-consensus-grandpa = { version = "0.18.0" }
+sc-client-api = { version = "27.0.0" }
+
+pallet-transaction-payment = { default-features = false, version = "27.0.0" }
+
+sp-io = { version = "29.0.0" }
+sp-timestamp = { version = "25.0.0" }
+sp-keyring = { version = "30.0.0" }
+
+# These dependencies are used for the node template's RPCs
+sc-rpc-api = { version = "0.32.0"}
+sp-blockchain = { version = "27.0.0"}
+sc-basic-authorship = { version = "0.33.0"}
+substrate-frame-rpc-system = { version = "27.0.0"}
+pallet-transaction-payment-rpc = { version = "29.0.0"}
+frame-benchmarking-cli = { version = "31.0.0"}
+nh-runtime = { path = "runtime", version = "0.1.0" }
+
+# CLI-specific dependencies
+try-runtime-cli = { version = "0.37.0" }
+
+codec = { package = "parity-scale-codec", version = "3.6.1", default-features = false, features = ["derive"] }
+scale-info = { version = "2.10.0", default-features = false, features = ["derive", "serde"] }
+
+pallet-aura = { default-features = false, version = "26.0.0" }
+pallet-balances = { default-features = false, version = "27.0.0" }
+frame-support = { default-features = false, version = "27.0.0" }
+pallet-grandpa = { default-features = false, version = "27.0.0" }
+pallet-sudo = { default-features = false, version = "27.0.0" }
+frame-system = { default-features = false, version = "27.0.0" }
+frame-try-runtime = { default-features = false, version = "0.33.0" }
+pallet-timestamp = { default-features = false, version = "26.0.0" }
+frame-executive = { default-features = false, version = "27.0.0" }
+sp-api = { default-features = false, version = "25.0.0" }
+sp-block-builder = { default-features = false, version = "25.0.0" }
+sp-consensus-aura = { default-features = false, features = ["serde"], version = "0.31.0" }
+sp-consensus-grandpa = { default-features = false, features = ["serde"], version = "12.0.0" }
+sp-core = { default-features = false, features = ["serde"], version = "27.0.0" }
+sp-inherents = { default-features = false, version = "25.0.0" }
+sp-offchain = { default-features = false, version = "25.0.0" }
+sp-runtime = { default-features = false, features = ["serde"], version = "30.0.1" }
+sp-session = { default-features = false, version = "26.0.0" }
+sp-std = { default-features = false, version = "13.0.0" }
+sp-storage = { default-features = false, version = "18.0.0" }
+sp-transaction-pool = { default-features = false, version = "25.0.0" }
+sp-version = { default-features = false, features = ["serde"], version = "28.0.0" }
+serde_json = { version = "1.0.108", default-features = false, features = ["alloc"] }
+sp-genesis-builder = { default-features = false, version = "0.6.0" }
+
+# Used for the node template's RPCs
+frame-system-rpc-runtime-api = { default-features = false, version = "25.0.0" }
+pallet-transaction-payment-rpc-runtime-api = { default-features = false, version = "27.0.0" }
+
+# Used for runtime benchmarking
+frame-benchmarking = { default-features = false, version = "27.0.0" }
+frame-system-benchmarking = { default-features = false, version = "27.0.0" }
+
+substrate-wasm-builder = { version = "16.0.0" }
+substrate-build-script-utils = { version = "10.0.0" }
+

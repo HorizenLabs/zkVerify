@@ -1,0 +1,115 @@
+[package]
+name = "nh-runtime"
+version = "0.1.0"
+description = "New Horizen Mainchain Runtime."
+authors.workspace = true
+homepage = "https://github.com/HorizenLabs/NH-core"
+edition.workspace = true
+publish = false
+repository.workspace = true
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+codec = { workspace = true, default-features = false, features = ["derive"] }
+scale-info = { workspace = true, default-features = false, features = ["derive", "serde"] }
+
+pallet-aura = { workspace = true, default-features = false }
+pallet-balances = { workspace = true, default-features = false }
+frame-support = { workspace = true, default-features = false }
+pallet-grandpa = { workspace = true, default-features = false }
+pallet-sudo = { workspace = true, default-features = false }
+frame-system = { workspace = true, default-features = false }
+frame-try-runtime = { workspace = true, default-features = false, optional = true }
+pallet-timestamp = { workspace = true, default-features = false }
+pallet-transaction-payment = { workspace = true, default-features = false }
+frame-executive = { workspace = true, default-features = false }
+sp-api = { workspace = true, default-features = false }
+sp-block-builder = { workspace = true, default-features = false }
+sp-consensus-aura = { workspace = true, default-features = false, features = ["serde"] }
+sp-consensus-grandpa = { workspace = true, default-features = false, features = ["serde"] }
+sp-core = { workspace = true, default-features = false, features = ["serde"] }
+sp-inherents = { workspace = true, default-features = false }
+sp-offchain = { workspace = true, default-features = false }
+sp-runtime = { workspace = true, default-features = false, features = ["serde"] }
+sp-session = { workspace = true, default-features = false }
+sp-std = { workspace = true, default-features = false }
+sp-storage = { workspace = true, default-features = false }
+sp-transaction-pool = { workspace = true, default-features = false }
+sp-version = { workspace = true, default-features = false, features = ["serde"] }
+serde_json = { workspace = true, default-features = false, features = ["alloc"] }
+sp-genesis-builder = { default-features = false, workspace = true }
+
+# Used for the node template's RPCs
+frame-system-rpc-runtime-api = { workspace = true, default-features = false }
+pallet-transaction-payment-rpc-runtime-api = { workspace = true, default-features = false }
+
+# Used for runtime benchmarking
+frame-benchmarking = { workspace = true, default-features = false, optional = true }
+frame-system-benchmarking = { workspace = true, default-features = false, optional = true }
+
+[build-dependencies]
+substrate-wasm-builder = { workspace = true, optional = true }
+
+[features]
+default = ["std"]
+std = [
+	"codec/std",
+	"frame-benchmarking?/std",
+	"frame-executive/std",
+	"frame-support/std",
+	"frame-system-benchmarking?/std",
+	"frame-system-rpc-runtime-api/std",
+	"frame-system/std",
+	"frame-try-runtime?/std",
+	"pallet-aura/std",
+	"pallet-balances/std",
+	"pallet-grandpa/std",
+	"pallet-sudo/std",
+	"pallet-timestamp/std",
+	"pallet-transaction-payment-rpc-runtime-api/std",
+	"pallet-transaction-payment/std",
+	"scale-info/std",
+	"serde_json/std",
+	"sp-api/std",
+	"sp-block-builder/std",
+	"sp-consensus-aura/std",
+	"sp-consensus-grandpa/std",
+	"sp-core/std",
+	"sp-genesis-builder/std",
+	"sp-inherents/std",
+	"sp-offchain/std",
+	"sp-runtime/std",
+	"sp-session/std",
+	"sp-std/std",
+	"sp-storage/std",
+	"sp-transaction-pool/std",
+	"sp-version/std",
+	"substrate-wasm-builder",
+]
+runtime-benchmarks = [
+	"frame-benchmarking/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
+	"frame-system-benchmarking/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-grandpa/runtime-benchmarks",
+	"pallet-sudo/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+]
+try-runtime = [
+	"frame-executive/try-runtime",
+	"frame-support/try-runtime",
+	"frame-system/try-runtime",
+	"frame-try-runtime/try-runtime",
+	"pallet-aura/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-grandpa/try-runtime",
+	"pallet-sudo/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"pallet-transaction-payment/try-runtime",
+	"sp-runtime/try-runtime",
+]
+experimental = ["pallet-aura/experimental"]
