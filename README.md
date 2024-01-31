@@ -1,1 +1,1 @@
-# NH-core
+# NH stands for New Horizen

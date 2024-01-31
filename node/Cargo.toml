@@ -1,0 +1,84 @@
+[package]
+name = "mainchain"
+version = "0.1.0"
+description = "New Horizen Mainchain."
+authors.workspace = true
+homepage = "https://github.com/HorizenLabs/NH-core"
+edition.workspace = true
+publish = false
+repository.workspace = true
+build = "build.rs"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[[bin]]
+name = "nh-node"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true, features = ["derive"] }
+futures = { workspace = true, features = ["thread-pool"] }
+serde_json = { workspace = true}
+sc-cli = { workspace = true}
+sp-core = { workspace = true}
+sc-executor = { workspace = true}
+sc-network = { workspace = true}
+sc-service = { workspace = true}
+sc-telemetry = { workspace = true}
+sc-transaction-pool = { workspace = true}
+sc-transaction-pool-api = { workspace = true}
+sc-offchain = { workspace = true}
+sc-consensus-aura = { workspace = true}
+sp-consensus-aura = { workspace = true}
+sc-consensus = { workspace = true}
+sc-consensus-grandpa = { workspace = true}
+sp-consensus-grandpa = { workspace = true}
+sc-client-api = { workspace = true}
+sp-runtime = { workspace = true}
+sp-io = { workspace = true}
+sp-timestamp = { workspace = true}
+sp-inherents = { workspace = true}
+sp-keyring = { workspace = true}
+frame-system = { workspace = true}
+pallet-transaction-payment = { workspace = true, default-features = false }
+
+# These dependencies are used for the node template's RPCs
+jsonrpsee = { workspace = true, features = ["server"] }
+sp-api = { workspace = true}
+sc-rpc-api = { workspace = true}
+sp-blockchain = { workspace = true}
+sp-block-builder = { workspace = true}
+sc-basic-authorship = { workspace = true}
+substrate-frame-rpc-system = { workspace = true}
+pallet-transaction-payment-rpc = { workspace = true}
+frame-benchmarking = { workspace = true}
+frame-benchmarking-cli = { workspace = true}
+nh-runtime = { workspace = true}
+
+# CLI-specific dependencies
+try-runtime-cli = { workspace = true, optional = true }
+
+[build-dependencies]
+substrate-build-script-utils = { workspace = true}
+
+[features]
+default = []
+# Dependencies that are only required if runtime benchmarking should be build.
+runtime-benchmarks = [
+	"frame-benchmarking-cli/runtime-benchmarks",
+	"frame-benchmarking/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"nh-runtime/runtime-benchmarks",
+	"sc-service/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+]
+# Enable features that allow the runtime to be tried and debugged. Name might be subject to change
+# in the near future.
+try-runtime = [
+	"frame-system/try-runtime",
+	"nh-runtime/try-runtime",
+	"pallet-transaction-payment/try-runtime",
+	"sp-runtime/try-runtime",
+	"try-runtime-cli/try-runtime",
+]
