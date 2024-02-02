@@ -1,0 +1,6 @@
+doc
+**/target/
+.gitignore
+.git
+.dockerignore
+docker/dockerfiles
