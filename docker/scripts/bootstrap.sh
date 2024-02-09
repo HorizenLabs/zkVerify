@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=SC2086
+set -e
 
 PROJECT_ROOT=${PROJECT_ROOT:-$(git rev-parse --show-toplevel)}
 SCRIPTS=${PROJECT_ROOT}/docker/scripts
@@ -19,4 +19,4 @@ ${CARGO} build --release
 # Create node image
 echo "----------------------------------------------------------"
 echo "Building node image"
-${SCRIPTS}/build-chain-image-injected.sh
+"${SCRIPTS}/build-chain-image-injected.sh"
