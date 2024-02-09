@@ -5,8 +5,9 @@
 # host's user folder. It also maps the .git-credential user file from the user in order
 # to download dependencies from private repos.
 # ${HOME}/.git-credentials should contain the following directive:
-# https://<doesnt_mater>:<github-tocken>@github.com
-# example https://aaaa:ghp_juippNBMadlkfkalk2082792LKjl3432@github.com
+# https://<doesnt_mater>:<your-github-token>@github.com
+#
+# for example: https://aaaa:ghp_juippNBMadlkfkalk2082792LKjl3432@github.com
 
 docker run --rm -ti \
     -v "${HOME}/.cargo:/usr/local/cargo" \
