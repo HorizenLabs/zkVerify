@@ -1,11 +1,9 @@
 FROM rust:1-buster as builder
 
-COPY /docker/resources/protoc-22.0-linux-x86_64.zip /
-
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    protobuf-compiler \
     clang && \
-    unzip protoc-22.0-linux-x86_64.zip -d /usr/local/ && \
     rustup target add wasm32-unknown-unknown && \
     rustup component add rust-src && \
     # apt cleanup
