@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-#shellcheck disable=SC2124
 set -e
 
 
@@ -49,7 +48,7 @@ echo "ARTIFACTS_FOLDER=$ARTIFACTS_FOLDER"
 echo "CONTEXT=$CONTEXT"
 
 # We need all binaries and resources available in the Container build "CONTEXT"
-mkdir -p ${CONTEXT}/bin
+mkdir -p "${CONTEXT}/bin"
 for bin in "${BINARIES[@]}"
 do
   echo "Copying $ARTIFACTS_FOLDER/$bin to context: $CONTEXT/bin"
@@ -61,6 +60,7 @@ cp "$PROJECT_ROOT/docker/scripts/entrypoint.sh" "${CONTEXT}"
 
 echo "Building image: ${IMAGE}"
 
+#shellcheck disable=SC2124
 TAGS=${TAGS[@]:-latest}
 IFS=',' read -r -a TAG_ARRAY <<< "$TAGS"
 TAG_ARGS=" "
@@ -73,6 +73,7 @@ done
 echo "TAG_ARGS: $TAG_ARGS"
 
 # time \
+# shellcheck disable=SC2086
 $ENGINE build \
     ${ENGINE_FLAGS} \
     --build-arg VCS_REF="${VCS_REF}" \
@@ -82,7 +83,7 @@ $ENGINE build \
     --build-arg DESCRIPTION="${DESCRIPTION}" \
     ${TAG_ARGS} \
     -f "${PROJECT_ROOT}/${DOCKERFILE}" \
-    ${CONTEXT}
+    "${CONTEXT}"
 
 echo "Your Container image for ${IMAGE} is ready"
 $ENGINE images
