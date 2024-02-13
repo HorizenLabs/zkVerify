@@ -1,0 +1,12 @@
+Description: Test of a simple failing transaction from Alice to Bob using a custom js script
+Network: ./0004-network.toml
+Creds: config
+
+alice: is up
+bob: is up
+
+alice: reports node_roles is 4
+
+# We expect the test to fail (returns 0, instead of 1)
+alice: js-script ./failing_transaction.js return is 0 within 200 seconds
+
