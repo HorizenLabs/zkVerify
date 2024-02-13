@@ -118,3 +118,31 @@ fn testnet_genesis(
         },
     })
 }
+
+// This is a sample unit test
+// Following Rust convention, unit tests are appended in the same file as the module they are
+// testing. This is acceptable and should not create confusion, as long as the tests have a
+// very narrow scope - i.e. for verifing the behaviour of a single function of a module.
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // The following test verifies whether we added aura configuration in the genesis block
+    // by checking that the json returned by testnet_genesis() contains the field "aura"
+    #[test]
+    fn check_babe_config_in_genesis_block() {
+        let initial_authorities = vec![authority_keys_from_seed("Alice")];
+        let root_key = get_account_id_from_seed::<sr25519::Public>("Alice");
+        let endowed_accounts = vec![
+            get_account_id_from_seed::<sr25519::Public>("Alice"),
+            get_account_id_from_seed::<sr25519::Public>("Bob"),
+        ];
+
+        let ret_val: serde_json::Value =
+            testnet_genesis(initial_authorities, root_key, endowed_accounts, false);
+
+        let aura_config = &ret_val["aura"];
+
+        assert_ne!(aura_config.is_null(), true);
+    }
+}
