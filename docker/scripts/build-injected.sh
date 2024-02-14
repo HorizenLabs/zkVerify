@@ -2,8 +2,9 @@
 set -e
 
 
-# This script allows building a Container Image from a Linux
-# binary that is injected into a base-image.
+# This script allows building a Container Image starting from a
+# base image (define in DOCKERFILE env variable) that inject 
+# a list of Linux binaries where the first will be the entrypoint.
 
 ENGINE=${ENGINE:-docker}
 

@@ -11,6 +11,5 @@ RUN apt-get update && \
     apt-get clean && \
     find /var/lib/apt/lists/ -type f -not -name lock -delete;
 
-# RUN rustup target add wasm32-unknown-unknown
 
 WORKDIR /usr/src/node
