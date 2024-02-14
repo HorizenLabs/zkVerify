@@ -1,4 +1,4 @@
-doc
+/docs
 **/target/
 .gitignore
 .git

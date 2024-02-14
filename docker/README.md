@@ -46,7 +46,7 @@ After you'll have the `hl/nh-node` docker image on your local docker repository.
 
 Where:
 
-* `-p 9944:994`: provide the access to the rpc interface on your host
+* `-p 9944:9944`: provide the access to the rpc interface on your host
 * `--rpc-cors all --rpc-external`: enable the access from _polkadot.js_ by relaxing the cors policy
 
 The `nh-node` binary is also available on your host environment at `target/release/nh-node`.

@@ -26,7 +26,7 @@ VERSION_TOML=$(grep "^version " "${PROJECT_ROOT}/node/Cargo.toml" | grep -oE "([
 DOCKER_OWNER=${DOCKER_OWNER:-hl}
 
 # We may get 1..n binaries, comma separated
-BINARY=${BINARY:-nh-core}
+BINARY=${BINARY:-nh-node}
 IFS=',' read -r -a BINARIES <<< "$BINARY"
 
 VERSION=${VERSION:-$VERSION_TOML}
@@ -44,8 +44,6 @@ echo "Using engine: $ENGINE"
 echo "Using Dockerfile: $DOCKERFILE"
 echo "Using context: $CONTEXT"
 echo "Building ${IMAGE}:latest container image for ${BINARY} v${VERSION} from ${ARTIFACTS_FOLDER} hang on!"
-echo "ARTIFACTS_FOLDER=$ARTIFACTS_FOLDER"
-echo "CONTEXT=$CONTEXT"
 
 # We need all binaries and resources available in the Container build "CONTEXT"
 mkdir -p "${CONTEXT}/bin"
