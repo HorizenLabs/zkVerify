@@ -1,6 +1,6 @@
 [relaychain]
 default_command = "nh-node"
-default_args = [ "-lparachain=debug" ]
+default_args = []
 
 chain = "local"
 

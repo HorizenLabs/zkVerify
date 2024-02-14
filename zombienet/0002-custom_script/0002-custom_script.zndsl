@@ -17,6 +17,6 @@ alice: js-script ./script.js return is greater than 1 within 200 seconds
 ### Typescript test invocation
 # Notice the file name. zombienet converts the .ts file into the equivalent .js,
 # eventually overwriting any existing file with the same name...
-alice: ts-script ./scrip.ts within 200 seconds
-alice: ts-script ./scrip.ts with "alice" within 200 seconds
-alice: ts-script ./scrip.ts return is greater than 1 within 200 seconds
+alice: ts-script ./script_ts.ts within 200 seconds
+alice: ts-script ./script_ts.ts with "alice" within 200 seconds
+alice: ts-script ./script_ts.ts return is greater than 1 within 200 seconds

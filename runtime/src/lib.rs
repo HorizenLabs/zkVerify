@@ -45,6 +45,9 @@ use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
+#[cfg(test)]
+mod tests;
+
 /// An index to a block.
 pub type BlockNumber = u32;
 
@@ -63,9 +66,6 @@ pub type Nonce = u32;
 
 /// A hash of some data used by the chain.
 pub type Hash = sp_core::H256;
-
-#[cfg(test)]
-mod tests;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats

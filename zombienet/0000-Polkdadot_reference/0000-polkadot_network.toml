@@ -1,6 +1,6 @@
 # This network configuration is only used as a reference when launching zombienet
 # using official polkadot and polkadot-parachain executables
-# Download the exes through zombinet with the following command:
+# Download the exes through zombienet with the following command:
 #     zombienet setup polkadot polkadot-parachain
 # then add the path to these executables to the environmental variabile
 #     export PATH=/path/to/the/exec:$PATH
@@ -11,7 +11,7 @@
 [relaychain]
 default_image = "docker.io/parity/polkadot:latest"
 default_command = "polkadot"
-default_args = [ "-lparachain=debug" ]
+default_args = []
 
 chain = "rococo-local"
 

@@ -1,5 +1,6 @@
 // Existential deposit used in pallet_balances
 pub const EXISTENTIAL_DEPOSIT: u128 = 500;
+pub const EXISTENTIAL_DEPOSIT_REMINDER: u128 = 1;
 
 pub struct SampleAccount {
     pub raw_account: [u8; 32],
@@ -35,7 +36,7 @@ pub fn get_sample_users() -> Vec<SampleAccount> {
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 4,
             ],
-            starting_balance: EXISTENTIAL_DEPOSIT + 1,
+            starting_balance: EXISTENTIAL_DEPOSIT,
         },
     ]
 }

@@ -1,4 +1,4 @@
-// There are a few global variables that are declared in zombinet js test executor but 
+// There are a few global variables that are declared in zombienet js test executor but 
 // they are not properly documented. So far, I found these:
 // - zombie <- there a comment along the test about that
 // - window
