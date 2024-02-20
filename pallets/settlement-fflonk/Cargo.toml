@@ -1,0 +1,54 @@
+[package]
+name = "pallet-settlement-fflonk"
+authors = ["Michele d'Amico <mdamico@horizenlabs.io>"]
+description = "A fflonk verrifyer pallet."
+version = "0.4.0"
+license = "Apache-2.0 MIT"
+homepage = "https://horizenlabs.io"
+repository.workspace = true
+edition.workspace = true
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "3.0.0", features = [
+	"derive",
+], default-features = false }
+scale-info = { version = "2.10.0", default-features = false, features = [
+	"derive",
+] }
+
+# Substrate
+frame-benchmarking = { default-features = false, optional = true, version = "25.0.0" }
+frame-support = { default-features = false, version = "25.0.0" }
+frame-system = { default-features = false, version = "25.0.0" }
+fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", default-features = false, version = "0.1.0" }
+log = "0.4.20"
+sp-std = { default-features = false, version = "12.0.0" }
+
+[dev-dependencies]
+serde = { version = "1.0.188" }
+
+# Substrate
+sp-core = { version = "25.0.0", default-features = false }
+sp-io = { version = "27.0.0", default-features = false }
+sp-runtime = { version = "28.0.0", default-features = false }
+
+[features]
+default = ["std"]
+runtime-benchmarks = [
+	"frame-benchmarking/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+]
+std = [
+	"codec/std",
+	"frame-benchmarking/std",
+	"frame-support/std",
+	"frame-system/std",
+	"scale-info/std",
+	"sp-std/std",
+	"fflonk_verifier/std",
+]
+try-runtime = ["frame-support/try-runtime", "frame-system/try-runtime"]
