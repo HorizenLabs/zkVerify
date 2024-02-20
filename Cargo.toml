@@ -9,6 +9,7 @@ resolver = "2"
 members = [
     "node",
     "runtime",
+    "pallets/settlement-fflonk"
 ]
 
 [workspace.dependencies]
@@ -85,4 +86,3 @@ frame-system-benchmarking = { default-features = false, version = "27.0.0" }
 
 substrate-wasm-builder = { version = "16.0.0" }
 substrate-build-script-utils = { version = "10.0.0" }
-
