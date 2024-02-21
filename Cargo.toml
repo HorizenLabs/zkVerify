@@ -31,7 +31,7 @@ sc-client-api = { version = "27.0.0" }
 
 pallet-transaction-payment = { default-features = false, version = "27.0.0" }
 
-sp-io = { version = "29.0.0" }
+sp-io = { default-features = false, version = "29.0.0" }
 sp-timestamp = { version = "25.0.0" }
 sp-keyring = { version = "30.0.0" }
 

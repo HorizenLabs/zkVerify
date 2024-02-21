@@ -1,0 +1,22 @@
+Description: First custom js script with our test network
+Network: ./0002-network.toml
+Creds: config
+
+alice: is up
+bob: is up
+
+alice: reports node_roles is 4
+
+### Javascript test invocation
+alice: js-script ./script.js within 200 seconds
+# Arguments may be passed to the script as a comma-separated list, enclosed by double quotes
+alice: js-script ./script.js with "alice" within 200 seconds
+# Return value is always a u64 type, and may be used for triggering an assertion
+alice: js-script ./script.js return is greater than 1 within 200 seconds
+
+### Typescript test invocation
+# Notice the file name. zombienet converts the .ts file into the equivalent .js,
+# eventually overwriting any existing file with the same name...
+alice: ts-script ./script_ts.ts within 200 seconds
+alice: ts-script ./script_ts.ts with "alice" within 200 seconds
+alice: ts-script ./script_ts.ts return is greater than 1 within 200 seconds

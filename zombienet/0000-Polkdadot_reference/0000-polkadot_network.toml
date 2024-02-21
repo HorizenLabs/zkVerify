@@ -1,0 +1,24 @@
+# This network configuration is only used as a reference when launching zombienet
+# using official polkadot and polkadot-parachain executables
+# Download the exes through zombienet with the following command:
+#     zombienet setup polkadot polkadot-parachain
+# then add the path to these executables to the environmental variabile
+#     export PATH=/path/to/the/exec:$PATH
+# and spawn the network described in this file
+#     zombienet -p native spawn 0000-Polkadot_reference/0000-polkadot_network.toml
+# Additional debug information are printed to the console by setting the env var DEBUG:
+#     DEBUG=zombie* zombienet -p native spawn 0000-Polkadot_reference/0000-polkadot_network.toml
+[relaychain]
+default_image = "docker.io/parity/polkadot:latest"
+default_command = "polkadot"
+default_args = []
+
+chain = "rococo-local"
+
+  [[relaychain.nodes]]
+  name = "alice"
+  validator = true
+
+  [[relaychain.nodes]]
+  name = "bob"
+  validator = true

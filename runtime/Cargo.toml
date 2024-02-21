@@ -40,6 +40,7 @@ sp-transaction-pool = { workspace = true, default-features = false }
 sp-version = { workspace = true, default-features = false, features = ["serde"] }
 serde_json = { workspace = true, default-features = false, features = ["alloc"] }
 sp-genesis-builder = { default-features = false, workspace = true }
+sp-io = { workspace = true, default-features = false }
 
 # Used for the node template's RPCs
 frame-system-rpc-runtime-api = { workspace = true, default-features = false }

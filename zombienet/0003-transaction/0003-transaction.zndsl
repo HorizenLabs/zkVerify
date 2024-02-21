@@ -1,0 +1,11 @@
+Description: Test of a simple transaction from Alice to Bob using a custom js script
+Network: ./0003-network.toml
+Creds: config
+
+alice: is up
+bob: is up
+
+alice: reports node_roles is 4
+
+alice: js-script ./transaction.js return is greater than 0 within 200 seconds
+
