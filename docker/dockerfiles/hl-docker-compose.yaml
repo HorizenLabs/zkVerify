@@ -14,8 +14,6 @@ services:
       - 30333:30333
   node_alice:
     image: hl/nh-node
-    volumes:
-      - data-alice:/data
     command: |
       --alice
       --chain local
@@ -24,14 +22,9 @@ services:
       - ../resources/envs/.env.alice
   node_bob:
     image: hl/nh-node
-    volumes:
-      - data-bob:/data
     env_file:
       - ../resources/envs/.env.bob
     command: |
       --bob
       --chain local
       --name BobValidator
-volumes:
-  data-alice:
-  data-bob:
