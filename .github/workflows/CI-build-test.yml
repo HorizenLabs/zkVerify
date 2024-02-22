@@ -1,0 +1,50 @@
+name: CI-build-test
+
+run-name: "Workflow performing CI steps: build, unit testing, integration testing"
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  build-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        # os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+      - name: Set up cargo cache
+        uses: actions/cache@v4
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-build-test-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-build-test-cargo-
+      - name: Install deps
+      # required by sc-network-sync
+      # required by nh-runtime
+      # required by nh-runtime
+        run: |
+            sudo apt-get install protobuf-compiler
+            rustup target add wasm32-unknown-unknown
+            rustup component add rust-src
+      - name: Build
+        run: cargo build --release
+      - name: Unit tests
+        run: cargo test --lib --bins --no-fail-fast --release 
+      - name: Integration tests
+        run: cargo test --test '*' --no-fail-fast --release 
