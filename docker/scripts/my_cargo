@@ -10,7 +10,7 @@
 # for example: https://aaaa:ghp_juippNBMadlkfkalk2082792LKjl3432@github.com
 
 docker run --rm -ti \
-    -v "${HOME}/.cargo:/usr/local/cargo" \
+    -v "${HOME}/.cargo/registry:/usr/local/cargo/registry" \
     -v "${HOME}/.git-credentials:/${HOME}/.git-credentials" \
     -v "${HOME}/.gitconfig:/${HOME}/.gitconfig" \
     -v /etc/passwd:/etc/passwd:ro \
