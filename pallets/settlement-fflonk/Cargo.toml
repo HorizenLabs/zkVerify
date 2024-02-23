@@ -30,6 +30,7 @@ sp-std = { workspace = true }
 
 [dev-dependencies]
 serde = { version = "1.0.188" }
+hex = { version = "0.4.3" }
 
 [features]
 default = ["std"]

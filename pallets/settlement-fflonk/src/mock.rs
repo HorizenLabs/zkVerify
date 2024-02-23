@@ -13,7 +13,7 @@ frame_support::construct_runtime!(
     pub enum Test
     {
         System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
-        SettlementFFlonkModule: crate::{Pallet, Call, Storage, Event<T>},
+        SettlementFFlonkPallet: crate::{Pallet, Call},
     }
 );
 
@@ -49,7 +49,6 @@ impl system::Config for Test {
 }
 
 impl crate::Config for Test {
-    type RuntimeEvent = RuntimeEvent;
 }
 
 // Build genesis storage according to the mock runtime.

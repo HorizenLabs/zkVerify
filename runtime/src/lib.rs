@@ -257,7 +257,6 @@ impl pallet_sudo::Config for Runtime {
 }
 
 impl pallet_settlement_fflonk::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
