@@ -1,18 +1,5 @@
-// This is a sample integration test. Almost. Except it formally isn't.
-// The following test verifies that the pallet "balances" correctly interact with the runtime.
-// These kind of tests are usually placed inside the pallet directory and we are required to
-// build a mock runtime, i.e. with the modules under test (in this case, system and balances).
-//
-// In this example, however, we reuse the "real" runtime, as we are not testing the
-// integration of a newly developed pallet.
-//
-// Aside from this detail, we add a test that exercise the balances module by:
-// - creating a test externality
-// - running the test itself
-//
-// The end result is that this test is formally an integration test, but disguised as unit one...
-//
-// A test fixture is included in the 'tests/testfixtures.rs' file as example
+// This are integration tests for pallets (eg pallet-settlement-fflonk)
+// This are unit tests for runtime
 
 use super::*;
 
@@ -51,7 +38,7 @@ fn new_test_ext() -> sp_io::TestExternalities {
 
 // Test definition and execution. Test body must be written in the execute_with closure.
 #[test]
-fn test_check_starting_balances_and_existential_limit() {
+fn check_starting_balances_and_existential_limit() {
     new_test_ext().execute_with(|| {
         // This creates a few public keys used to be converted to AccountId
         let sample_users = testsfixtures::get_sample_users();
@@ -74,5 +61,19 @@ fn test_check_starting_balances_and_existential_limit() {
 
         // Verify that the fourth account balance is now 0
         assert_eq!(Balances::balance(&sample_users[3].raw_account.into()), 0);
+    });
+}
+
+// Test definition and execution. Test body must be written in the execute_with closure.
+#[test]
+fn pallet_fflonk_availability() {
+    new_test_ext().execute_with(|| {
+        let dummy_origin = sp_runtime::AccountId32::new([0; 32]);
+        let dummy_raw_proof = [0; 25 * 32];
+        assert!(SettlementFFlonkPallet::submit_proof(
+            RuntimeOrigin::signed(dummy_origin),
+            dummy_raw_proof
+        ).is_err());
+        // just checking code builds, hence the pallet is available to the runtime
     });
 }
