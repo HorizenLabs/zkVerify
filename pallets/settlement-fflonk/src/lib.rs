@@ -14,10 +14,14 @@ mod tests;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 
+mod weight;
+
 #[frame_support::pallet]
 pub mod pallet {
     use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*};
     use frame_system::pallet_prelude::*;
+    use super::weight::WeightInfo;
+    use super::weight::SubstrateWeight;
 
     #[pallet::pallet]
     pub struct Pallet<T>(_);
@@ -66,7 +70,7 @@ pub mod pallet {
     #[pallet::call]
     impl<T: Config> Pallet<T> {
         #[pallet::call_index(0)]
-        #[pallet::weight(0)]
+        #[pallet::weight(SubstrateWeight::<T>::submit_proof())]
         pub fn submit_proof(_origin: OriginFor<T>, raw_proof: Proof) -> DispatchResultWithPostInfo {
             log::trace!("Enter");
             verify_proof::<T>(raw_proof)
