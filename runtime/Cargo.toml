@@ -54,6 +54,7 @@ frame-system-benchmarking = { workspace = true, default-features = false, option
 pallet-settlement-fflonk = { default-features = false, workspace = true }
 pallet-poe = { default-features = false, workspace = true }
 static_assertions = "1.1.0"
+proof-of-existence-rpc-runtime-api = { path = "../pallets/proof_of_existence_rpc/runtime-api/", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -78,6 +79,7 @@ std = [
 	"pallet-transaction-payment/std",
 	"pallet-settlement-fflonk/std",
 	"pallet-poe/std",
+	"proof-of-existence-rpc-runtime-api/std",
 	"scale-info/std",
 	"serde_json/std",
 	"sp-api/std",

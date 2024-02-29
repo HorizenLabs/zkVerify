@@ -16,6 +16,7 @@ mod weight;
 pub mod pallet {
     use super::weight::SubstrateWeight;
     use super::weight::WeightInfo;
+    use binary_merkle_tree::MerkleProof;
     use pallet_timestamp::{self as timestamp};
 
     use sp_core::H256;
@@ -26,6 +27,12 @@ pub mod pallet {
     use frame_system::pallet_prelude::*;
 
     use hp_poe::{InherentError, InherentType, INHERENT_IDENTIFIER};
+
+    #[derive(Clone, TypeInfo, PartialEq, Eq, Encode, Decode)]
+    pub enum AttestationPathRequestError {
+        ProofNotFound(u64, sp_core::H256),
+        AttestationIdNotPublished(u64),
+    }
 
     #[pallet::config]
     pub trait Config: frame_system::Config + timestamp::Config {
@@ -121,7 +128,7 @@ pub mod pallet {
             }
 
             log::trace!("Inserting element: {value}");
-            Values::<T>::insert(next_attestation, &value, ());
+            Values::<T>::insert(next_attestation, value, ());
 
             Self::deposit_event(Event::NewElement {
                 value,
@@ -146,6 +153,39 @@ pub mod pallet {
                 .get_data::<InherentType>(&INHERENT_IDENTIFIER)
                 .expect("Inherent data not correctly encoded")
                 .expect("Inherent data must be provided");
+        }
+
+        pub fn get_proof_path_from_pallet(
+            attestation_id: u64,
+            proof_hash: H256,
+        ) -> Result<MerkleProof<H256, H256>, AttestationPathRequestError> {
+            // Verify that the requested attestation id is valid, and return an error if we
+            // request one which is greater or equal than the next id to be published
+            if Self::next_attestation() <= attestation_id {
+                return Err(AttestationPathRequestError::AttestationIdNotPublished(
+                    attestation_id,
+                ));
+            }
+
+            // Collect the leaves associated with the attestation_id requested
+            // This should not fail, given the previous check (we have the attestation_id key1 in the map)
+            let leaves = Values::<T>::iter_key_prefix(attestation_id).collect::<BTreeSet<_>>();
+
+            // Check if the requested proof_hash belongs to this set, i.e. is within the set of leaves
+            Values::<T>::try_get(attestation_id, proof_hash).map_err(|_| {
+                AttestationPathRequestError::ProofNotFound(attestation_id, proof_hash)
+            })?;
+
+            // Retrieve the index of the proof_hash in the leaves
+            // This should not fail, given the previous checks (proof_hash is present in the map for the
+            // submitted attestation id)
+            let proof_index = leaves.iter().position(|v| v == &proof_hash).unwrap();
+
+            // Evaluate the Merkle proof and return a MerkleProof structure to the caller
+            Ok(binary_merkle_tree::merkle_proof::<Keccak256, _, _>(
+                leaves,
+                proof_index,
+            ))
         }
     }
 

@@ -4070,6 +4070,7 @@ dependencies = [
  "nh-runtime",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc",
+ "proof-of-existence-rpc",
  "sc-basic-authorship",
  "sc-cli",
  "sc-client-api",
@@ -4486,6 +4487,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-scale-codec",
+ "proof-of-existence-rpc-runtime-api",
  "scale-info",
  "serde_json",
  "sp-api",
@@ -5401,6 +5403,35 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.52",
+]
+
+[[package]]
+name = "proof-of-existence-rpc"
+version = "0.1.0"
+dependencies = [
+ "jsonrpsee",
+ "parity-scale-codec",
+ "proof-of-existence-rpc-runtime-api",
+ "sc-rpc-api",
+ "sp-api",
+ "sp-blockchain",
+ "sp-core",
+ "sp-runtime",
+]
+
+[[package]]
+name = "proof-of-existence-rpc-runtime-api"
+version = "0.1.0"
+dependencies = [
+ "binary-merkle-tree",
+ "pallet-poe",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-api",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
