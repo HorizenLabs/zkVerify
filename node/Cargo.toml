@@ -56,6 +56,7 @@ frame-benchmarking = { workspace = true}
 frame-benchmarking-cli = { workspace = true}
 nh-runtime = { workspace = true}
 hp-poe = { workspace = true }
+proof-of-existence-rpc = { path = "../pallets/proof_of_existence_rpc" }
 
 # CLI-specific dependencies
 try-runtime-cli = { workspace = true, optional = true }

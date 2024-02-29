@@ -1,0 +1,29 @@
+[package]
+name = "proof-of-existence-rpc"
+version = "0.1.0"
+description = "Add RPC commands to the Proof of Existence pallet - node side"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+codec                              = { workspace = true }
+jsonrpsee                          = { workspace = true, features = ["client-core", "server", "macros"] }
+
+proof-of-existence-rpc-runtime-api = { path = "runtime-api" }
+sp-blockchain                      = { workspace = true }
+sp-core                            = { workspace = true }
+sc-rpc-api                         = { workspace = true }
+sp-runtime                         = { workspace = true }
+sp-api                             = { workspace = true }
+
+[features]
+default = ["std"]
+std = [
+    "sp-api/std",
+    "proof-of-existence-rpc-runtime-api/std"
+]
+
