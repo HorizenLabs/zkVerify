@@ -1,9 +1,7 @@
-// This are integration tests for pallets (eg pallet-settlement-fflonk)
-// This are unit tests for runtime
-
 use super::*;
 
 use frame_support::traits::{fungible::Inspect, Currency, ExistenceRequirement, WithdrawReasons};
+use pallet_settlement_fflonk::{Proof, FULL_PROOF_SIZE};
 
 mod testsfixtures;
 
@@ -69,11 +67,12 @@ fn check_starting_balances_and_existential_limit() {
 fn pallet_fflonk_availability() {
     new_test_ext().execute_with(|| {
         let dummy_origin = sp_runtime::AccountId32::new([0; 32]);
-        let dummy_raw_proof = [0; 25 * 32];
+        let dummy_raw_proof: Proof = [0; FULL_PROOF_SIZE];
         assert!(SettlementFFlonkPallet::submit_proof(
             RuntimeOrigin::signed(dummy_origin),
             dummy_raw_proof
-        ).is_err());
+        )
+        .is_err());
         // just checking code builds, hence the pallet is available to the runtime
     });
 }

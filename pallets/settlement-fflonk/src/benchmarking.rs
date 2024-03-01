@@ -9,9 +9,9 @@ use hex_literal::hex;
 
 benchmarks! {
     submit_proof {
-        // we can use a single input rather than complexity parameters 
-        // (https://paritytech.github.io/polkadot-sdk/master/frame_benchmarking/macro.benchmarks.html), 
-        // as the `submit_proof` extrinsic should have O(1) complexity 
+        // we can use a single input rather than complexity parameters
+        // (https://paritytech.github.io/polkadot-sdk/master/frame_benchmarking/macro.benchmarks.html),
+        // as the `submit_proof` extrinsic should have O(1) complexity
         let raw_proof = hex!(
             r#"
             17f87a599ca7d3a86ffd7de8cf12adcfd418136c14aec5ced91f4a49b2975c2c

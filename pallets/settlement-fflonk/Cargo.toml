@@ -49,6 +49,9 @@ std = [
 	"frame-system/std",
 	"scale-info/std",
 	"sp-std/std",
+	"sp-core/std",
+	"sp-runtime/std",
+	"sp-io/std",
 	"fflonk_verifier/std",
 ]
 try-runtime = ["frame-support/try-runtime", "frame-system/try-runtime"]

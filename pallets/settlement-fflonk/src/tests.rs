@@ -36,7 +36,10 @@ pub static VALID_HASH: &str = "ec9d6d72bf6acbcd85aeb4bfc65f4cbd83b15a9035e66c9b3
 #[test]
 fn valid_proof_passes_verification_and_is_notified() {
     new_test_ext().execute_with(|| {
-        let valid_proof: [u8; 25 * 32] = hex::decode(VALID_PROOF_HEX).expect("Decoding failed").try_into().expect("Wrong size");
+        let valid_proof = hex::decode(VALID_PROOF_HEX)
+            .expect("Decoding failed")
+            .try_into()
+            .expect("Wrong size");
 
         // Dispatch a signed extrinsic.
         assert!(
@@ -63,7 +66,10 @@ fn valid_proof_passes_verification_and_is_notified() {
 #[test]
 fn malformed_proof_fails_verification_and_is_not_notified() {
     new_test_ext().execute_with(|| {
-        let mut malformed_proof: [u8; 25 * 32] = hex::decode(VALID_PROOF_HEX).expect("Decoding failed").try_into().expect("Wrong size");
+        let mut malformed_proof: Proof = hex::decode(VALID_PROOF_HEX)
+            .expect("Decoding failed")
+            .try_into()
+            .expect("Wrong size");
         // first byte changed from '0x17' to '0x07' (raw proof data)
         malformed_proof[0] = 0x07;
 
@@ -81,7 +87,10 @@ fn malformed_proof_fails_verification_and_is_not_notified() {
 #[test]
 fn invalid_proof_fails_verification_and_is_not_notified() {
     new_test_ext().execute_with(|| {
-        let mut invalid_proof: [u8; 25 * 32] = hex::decode(VALID_PROOF_HEX).expect("Decoding failed").try_into().expect("Wrong size");
+        let mut invalid_proof: Proof = hex::decode(VALID_PROOF_HEX)
+            .expect("Decoding failed")
+            .try_into()
+            .expect("Wrong size");
         // last byte changed from '0x06' to '0x00' (public inputs)
         invalid_proof[invalid_proof.len() - 1] = 0x00;
 
@@ -126,20 +135,17 @@ mod another_way_of_testing {
     }
 
     impl OnProofVerified for Crash {
-        fn on_proof_verified(pubs_hash: H256) {
+        fn on_proof_verified(_pubs_hash: H256) {
             panic!("should never be called");
         }
     }
 
     // Build genesis storage according to the mock runtime.
     pub fn new_test_ext() -> sp_io::TestExternalities {
-        let mut ext = sp_io::TestExternalities::from(
-            frame_system::GenesisConfig::<Test>::default()
-                .build_storage()
-                .unwrap(),
-        );
-        ext.execute_with(|| System::set_block_number(1));
-        ext
+        frame_system::GenesisConfig::<Test>::default()
+            .build_storage()
+            .unwrap()
+            .into()
     }
 
     #[test]
