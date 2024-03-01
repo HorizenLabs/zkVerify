@@ -50,6 +50,9 @@ pallet-transaction-payment-rpc-runtime-api = { workspace = true, default-feature
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
 frame-system-benchmarking = { workspace = true, default-features = false, optional = true }
 
+# Custom logic
+pallet-settlement-fflonk = { path = "../pallets/settlement-fflonk", default-features = false, version = "0.1.0" }
+
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
 
@@ -71,6 +74,7 @@ std = [
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
+	"pallet-settlement-fflonk/std",
 	"scale-info/std",
 	"serde_json/std",
 	"sp-api/std",
@@ -98,6 +102,7 @@ runtime-benchmarks = [
 	"pallet-grandpa/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
+	"pallet-settlement-fflonk/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 ]
 try-runtime = [
@@ -111,6 +116,7 @@ try-runtime = [
 	"pallet-sudo/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
+	"pallet-settlement-fflonk/try-runtime",
 	"sp-runtime/try-runtime",
 ]
 experimental = ["pallet-aura/experimental"]
