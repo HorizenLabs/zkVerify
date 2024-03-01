@@ -37,7 +37,7 @@ sp-consensus-grandpa = { workspace = true}
 sc-client-api = { workspace = true}
 sp-runtime = { workspace = true}
 sp-io = { workspace = true}
-sp-timestamp = { workspace = true }
+sp-timestamp = { workspace = true}
 sp-inherents = { workspace = true}
 sp-keyring = { workspace = true}
 frame-system = { workspace = true}

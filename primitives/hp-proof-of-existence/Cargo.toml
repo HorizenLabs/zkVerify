@@ -10,12 +10,13 @@ repository.workspace = true
 [dependencies]
 sp-inherents = { default-features = false, workspace = true }
 sp-runtime = { default-features = false, workspace = true }
-sp-std = { default-features = false, workspace = true }
+sp-core = { default-features = false, workspace = true }
 
 codec = { default-features = false, workspace = true, features = ["derive"] }
 snafu = { default-features = false, workspace = true }
 async-trait = { workspace = true, optional = true }
+impl-trait-for-tuples = "0.2.2"
 
 [features]
 default = ["std"]
-std = ["async-trait", "codec/std", "sp-inherents/std", "sp-runtime/std", "sp-std/std", "snafu/std"]
+std = ["async-trait", "codec/std", "sp-inherents/std", "sp-runtime/std", "snafu/std", "sp-core/std"]

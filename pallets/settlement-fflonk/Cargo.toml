@@ -28,7 +28,7 @@ sp-runtime = { workspace = true }
 fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", default-features = false, version = "0.1.0" }
 log = "0.4.20"
 sp-std = { workspace = true }
-impl-trait-for-tuples = "0.2.2"
+hp-poe = { default-features = false, workspace = true }
 
 [dev-dependencies]
 serde = { version = "1.0.188" }

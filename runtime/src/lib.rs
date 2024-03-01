@@ -259,15 +259,17 @@ impl pallet_sudo::Config for Runtime {
 }
 
 impl pallet_settlement_fflonk::Config for Runtime {
-    type OnProofVerified = ();
+    type OnProofVerified = Poe;
 }
 
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
-pub const MAX_PROOFS_FOR_ROOT_PUBLISHING: u32 = 5;
+pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 5;
+// We should avoid publishing attestations for empty trees
+static_assertions::const_assert!(MIN_PROOFS_FOR_ROOT_PUBLISHING > 0);
 
 impl pallet_poe::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type MinProofsPerTree = ConstU32<MAX_PROOFS_FOR_ROOT_PUBLISHING>;
+    type MinProofsForPublishing = ConstU32<MIN_PROOFS_FOR_ROOT_PUBLISHING>;
     type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
 }
 
@@ -338,6 +340,7 @@ mod benches {
         [pallet_timestamp, Timestamp]
         [pallet_sudo, Sudo]
         [pallet_settlement_fflonk, SettlementFFlonkPallet]
+        [pallet_poe, Poe]
     );
 }
 

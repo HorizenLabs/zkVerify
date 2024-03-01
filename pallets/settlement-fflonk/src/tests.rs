@@ -1,5 +1,3 @@
-extern crate hex;
-
 use sp_core::H256;
 
 use crate::mock;
@@ -105,7 +103,7 @@ fn invalid_proof_fails_verification_and_is_not_notified() {
 }
 
 mod another_way_of_testing {
-    use crate::OnProofVerified;
+    use hp_poe::OnProofVerified;
 
     use super::*;
     use frame_support::derive_impl;

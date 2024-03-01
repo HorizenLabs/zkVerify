@@ -7,9 +7,11 @@ repository = "https://github.com/HorizenLabs/NH-core"
 resolver = "2"
 
 members = [
-    "node", "pallets/proof_of_existence", "primitives/hp-proof-of-existence",
+    "node",
     "runtime",
-    "pallets/settlement-fflonk"
+    "pallets/settlement-fflonk",
+    "pallets/proof_of_existence",
+    "primitives/hp-proof-of-existence",
 ]
 
 [workspace.dependencies]
@@ -35,9 +37,12 @@ sc-client-api = { version = "27.0.0" }
 
 pallet-transaction-payment = { default-features = false, version = "27.0.0" }
 
-p-io = { default-features = false, version = "29.0.0" }
+sp-io = { default-features = false, version = "29.0.0" }
 sp-timestamp = { default-features = false, version = "25.0.0" }
 sp-keyring = { version = "30.0.0" }
+
+pallet-settlement-fflonk = { path = "pallets/settlement-fflonk", default-features = false }
+pallet-poe = { path= "pallets/proof_of_existence", default-features = false }
 
 # These dependencies are used for the node template's RPCs
 sc-rpc-api = { version = "0.32.0"}
@@ -78,6 +83,7 @@ sp-transaction-pool = { default-features = false, version = "25.0.0" }
 sp-version = { default-features = false, features = ["serde"], version = "28.0.0" }
 serde_json = { version = "1.0.108", default-features = false, features = ["alloc"] }
 sp-genesis-builder = { default-features = false, version = "0.6.0" }
+hp-poe = { default-features = false, path = "primitives/hp-proof-of-existence"}
 
 # Used for the node template's RPCs
 frame-system-rpc-runtime-api = { default-features = false, version = "25.0.0" }
@@ -89,8 +95,6 @@ frame-system-benchmarking = { default-features = false, version = "27.0.0" }
 
 substrate-wasm-builder = { version = "16.0.0" }
 substrate-build-script-utils = { version = "10.0.0" }
-
-hp-poe = { default-features = false, path = "primitives/hp-proof-of-existence"}
 
 [profile.release]
 # Polkadot runtime requires unwinding.
