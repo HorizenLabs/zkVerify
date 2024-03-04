@@ -2,7 +2,7 @@
 # shellcheck disable=SC2068
 
 # Use rbuilder image to compile the source. All package and cargo cache are mapped on
-# host's user folder. It also maps the .git-credential user file from the user in order
+# host's user folder. It also maps the .git-credentials user file from the user in order
 # to download dependencies from private repos.
 # ${HOME}/.git-credentials should contain the following directive:
 # https://<doesnt_mater>:<your-github-token>@github.com
