@@ -71,6 +71,8 @@ done
 
 echo "TAG_ARGS: $TAG_ARGS"
 
+IMAGES_PRE=$(docker image ls -q -f 'dangling=true')
+
 # time \
 # shellcheck disable=SC2086
 $ENGINE build \
@@ -83,6 +85,14 @@ $ENGINE build \
     ${TAG_ARGS} \
     -f "${PROJECT_ROOT}/${DOCKERFILE}" \
     "${CONTEXT}"
+
+# cleaning images made dangling due to build
+IMAGES_POST=$(docker image ls -q -f 'dangling=true')
+for IMAGE_POST in ${IMAGES_POST}; do
+  if ! echo "${IMAGES_PRE[*]}" | grep -qw $IMAGE_POST; then
+    docker image rm "${IMAGE_POST}"
+  fi
+done
 
 echo "Your Container image for ${IMAGE} is ready"
 $ENGINE images
