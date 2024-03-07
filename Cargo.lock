@@ -1956,8 +1956,8 @@ dependencies = [
 
 [[package]]
 name = "fflonk_verifier"
-version = "0.1.0"
-source = "git+https://github.com/HorizenLabs/fflonk_verifier.git?rev=08ecf056d434#08ecf056d434db13d7528ddf0bbbf47bb5f04ae7"
+version = "0.2.0"
+source = "git+https://github.com/HorizenLabs/fflonk_verifier.git#565976c80c0707f148a2a2ada03a52127ba773fe"
 dependencies = [
  "digest 0.10.7",
  "sha3",
