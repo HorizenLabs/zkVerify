@@ -100,16 +100,8 @@ pub mod pallet {
 
     #[test]
     fn fflonk_hash_as_expected() {
-        let proof = hex::decode(crate::tests::VALID_PROOF_HEX)
-            .expect("Decoding failed")
-            .try_into()
-            .expect("Wrong size");
-        let hash = compute_fflonk_hash(proof);
-        let expected_hash = hex::decode(crate::tests::VALID_HASH)
-            .expect("Decoding failed")
-            .try_into()
-            .expect("Wrong size");
-        let expected_hash = H256(expected_hash);
-        assert_eq!(hash, expected_hash);
+        let hash = compute_fflonk_hash(crate::tests::VALID_PROOF);
+
+        assert_eq!(hash, H256(crate::tests::VALID_HASH));
     }
 }
