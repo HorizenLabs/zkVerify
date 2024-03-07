@@ -1,0 +1,40 @@
+[package]
+name = "pallet-poe"
+version = "0.1.0"
+description = "A pallet to experiment how to give a proof of presence in the storage"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4.20"
+
+codec = { workspace = true }
+scale-info = { workspace = true, features = [
+	"derive",
+] }
+binary-merkle-tree = { workspace = true }
+
+# Substrate
+frame-support = { default-features = false, workspace = true }
+frame-system = { default-features = false, workspace = true }
+sp-std = { default-features = false, workspace = true }
+sp-core = { default-features = false, workspace = true }
+pallet-timestamp = { default-features = false, workspace = true	}
+
+hp-poe = { default-features = false, workspace = true }
+
+[features]
+default = ["std"]
+std = [
+	"codec/std",
+	"frame-support/std",
+	"frame-system/std",
+	"sp-std/std",
+	"scale-info/std",
+	"binary-merkle-tree/std",
+	"pallet-timestamp/std",
+	"hp-poe/std",
+]

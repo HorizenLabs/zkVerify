@@ -107,7 +107,9 @@ pub fn new_partial(
 						slot_duration,
 					);
 
-                Ok((slot, timestamp))
+                let poe = hp_poe::InherentDataProvider::default();
+
+                Ok((slot, timestamp, poe))
             },
             spawner: &task_manager.spawn_essential_handle(),
             registry: config.prometheus_registry(),
@@ -258,7 +260,9 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 							slot_duration,
 						);
 
-                    Ok((slot, timestamp))
+                    let poe = hp_poe::InherentDataProvider::default();
+
+                    Ok((slot, timestamp, poe))
                 },
                 force_authoring,
                 backoff_authoring_blocks,

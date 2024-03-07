@@ -52,6 +52,7 @@ frame-system-benchmarking = { workspace = true, default-features = false, option
 
 # Custom logic
 pallet-settlement-fflonk = { path = "../pallets/settlement-fflonk", default-features = false, version = "0.1.0" }
+pallet-poe = { path= "../pallets/proof_of_existence", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -75,6 +76,7 @@ std = [
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
 	"pallet-settlement-fflonk/std",
+	"pallet-poe/std",
 	"scale-info/std",
 	"serde_json/std",
 	"sp-api/std",

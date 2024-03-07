@@ -555,6 +555,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "binary-merkle-tree"
+version = "12.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c2839a4cb8e9e2c1f2cadb92de7a151c68de424a2e6433ced90e4d67c2ace0b"
+dependencies = [
+ "hash-db",
+ "log",
+]
+
+[[package]]
 name = "bincode"
 version = "1.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2788,6 +2798,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "hp-poe"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "parity-scale-codec",
+ "snafu",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "http"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4032,6 +4054,7 @@ dependencies = [
  "frame-benchmarking-cli",
  "frame-system",
  "futures",
+ "hp-poe",
  "jsonrpsee",
  "nh-runtime",
  "pallet-transaction-payment",
@@ -4433,7 +4456,11 @@ dependencies = [
  "pallet-aura",
  "pallet-balances",
  "pallet-grandpa",
+<<<<<<< HEAD
  "pallet-settlement-fflonk",
+=======
+ "pallet-poe",
+>>>>>>> d136b11 (PoC)
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -4699,6 +4726,22 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-staking",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-poe"
+version = "0.1.0"
+dependencies = [
+ "binary-merkle-tree",
+ "frame-support",
+ "frame-system",
+ "hp-poe",
+ "log",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
  "sp-std",
 ]
 
@@ -7272,24 +7315,41 @@ checksum = "2593d31f82ead8df961d8bd23a64c2ccf2eb5dd34b0a34bfb4dd54011c72009e"
 
 [[package]]
 name = "snafu"
+<<<<<<< HEAD
 version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4de37ad025c587a29e8f3f5605c00f70b98715ef90b9061a815b9e59e9042d6"
 dependencies = [
  "doc-comment",
+=======
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d342c51730e54029130d7dc9fd735d28c4cd360f1368c01981d4f03ff207f096"
+dependencies = [
+>>>>>>> d136b11 (PoC)
  "snafu-derive",
 ]
 
 [[package]]
 name = "snafu-derive"
+<<<<<<< HEAD
 version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "990079665f075b699031e9c08fd3ab99be5029b96f3b78dc0709e8f77e4efebf"
+=======
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "080c44971436b1af15d6f61ddd8b543995cf63ab8e677d46b00cc06f4ef267a0"
+>>>>>>> d136b11 (PoC)
 dependencies = [
  "heck",
  "proc-macro2",
  "quote",
+<<<<<<< HEAD
  "syn 1.0.109",
+=======
+ "syn 2.0.48",
+>>>>>>> d136b11 (PoC)
 ]
 
 [[package]]

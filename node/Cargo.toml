@@ -37,7 +37,7 @@ sp-consensus-grandpa = { workspace = true}
 sc-client-api = { workspace = true}
 sp-runtime = { workspace = true}
 sp-io = { workspace = true}
-sp-timestamp = { workspace = true}
+sp-timestamp = { workspace = true }
 sp-inherents = { workspace = true}
 sp-keyring = { workspace = true}
 frame-system = { workspace = true}
@@ -55,6 +55,7 @@ pallet-transaction-payment-rpc = { workspace = true}
 frame-benchmarking = { workspace = true}
 frame-benchmarking-cli = { workspace = true}
 nh-runtime = { workspace = true}
+hp-poe = { workspace = true }
 
 # CLI-specific dependencies
 try-runtime-cli = { workspace = true, optional = true }
