@@ -2,7 +2,6 @@
 
 /// This pallet provides FFlonk verification for CDK prover.
 pub use pallet::*;
-use sp_core::H256;
 
 #[cfg(test)]
 pub mod mock;
@@ -15,11 +14,6 @@ mod benchmarking;
 
 mod weight;
 
-#[impl_trait_for_tuples::impl_for_tuples(10)]
-pub trait OnProofVerified {
-    fn on_proof_verified(pubs_hash: H256);
-}
-
 pub const FULL_PROOF_SIZE: usize = 25 * 32;
 pub const PUBS_SIZE: usize = 32;
 pub const PROOF_SIZE: usize = 24 * 32;
@@ -29,9 +23,10 @@ pub type Proof = [u8; FULL_PROOF_SIZE];
 pub mod pallet {
     use super::weight::SubstrateWeight;
     use super::weight::WeightInfo;
-    use super::{OnProofVerified, Proof, FULL_PROOF_SIZE, PROOF_SIZE};
+    use super::{Proof, FULL_PROOF_SIZE, PROOF_SIZE};
     use frame_support::dispatch::DispatchResultWithPostInfo;
     use frame_system::pallet_prelude::*;
+    use hp_poe::OnProofVerified;
     use sp_core::H256;
     use sp_io::hashing::keccak_256;
 

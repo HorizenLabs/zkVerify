@@ -1,38 +1,36 @@
 [package]
-name = "pallet-settlement-fflonk"
+name = "pallet-poe"
 version = "0.1.0"
-description = "A fflonk verifier pallet."
+description = "A pallet to experiment how to give a proof of presence in the storage"
 authors.workspace = true
-homepage = "https://horizenlabs.io"
 edition.workspace = true
-publish = false
 repository.workspace = true
 
-[package.metadata.docs.rs]
-targets = ["x86_64-unknown-linux-gnu"]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+log = "0.4.20"
+
 codec = { workspace = true }
-scale-info = { workspace = true }
-hex-literal = { version = "0.4.1", optional = true }
+scale-info = { workspace = true, features = [
+	"derive",
+] }
+binary-merkle-tree = { workspace = true }
 
 # Substrate
 frame-benchmarking = { workspace = true, optional = true }
-frame-support = { workspace = true }
-frame-system = { workspace = true }
-sp-core = { workspace = true }
+frame-support = { default-features = false, workspace = true }
+frame-system = { default-features = false, workspace = true }
+sp-std = { default-features = false, workspace = true }
+sp-core = { default-features = false, workspace = true }
+pallet-timestamp = { default-features = false, workspace = true	}
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 
-# Pallet specific
-fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", default-features = false, version = "0.1.0" }
-log = "0.4.20"
-sp-std = { workspace = true }
 hp-poe = { default-features = false, workspace = true }
 
 [dev-dependencies]
-serde = { version = "1.0.188" }
-hex = { version = "0.4.3" }
+hex-literal = { version = "0.4.1" }
 
 [features]
 default = ["std"]
@@ -40,18 +38,19 @@ runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
-	"dep:hex-literal",
 ]
 std = [
 	"codec/std",
 	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
-	"scale-info/std",
 	"sp-std/std",
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-io/std",
-	"fflonk_verifier/std",
+	"scale-info/std",
+	"pallet-timestamp/std",
+	"hp-poe/std",
+	"binary-merkle-tree/std",
 ]
 try-runtime = ["frame-support/try-runtime", "frame-system/try-runtime"]

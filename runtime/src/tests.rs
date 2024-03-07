@@ -76,3 +76,12 @@ fn pallet_fflonk_availability() {
         // just checking code builds, hence the pallet is available to the runtime
     });
 }
+
+// Test definition and execution. Test body must be written in the execute_with closure.
+#[test]
+fn pallet_poe_availability() {
+    new_test_ext().execute_with(|| {
+        assert!(Poe::publish_attestation(RuntimeOrigin::root()).is_ok());
+        // just checking code builds, hence the pallet is available to the runtime
+    });
+}

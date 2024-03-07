@@ -1,0 +1,22 @@
+[package]
+name = "hp-poe"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+sp-inherents = { default-features = false, workspace = true }
+sp-runtime = { default-features = false, workspace = true }
+sp-core = { default-features = false, workspace = true }
+
+codec = { default-features = false, workspace = true, features = ["derive"] }
+snafu = { default-features = false, workspace = true }
+async-trait = { workspace = true, optional = true }
+impl-trait-for-tuples = "0.2.2"
+
+[features]
+default = ["std"]
+std = ["async-trait", "codec/std", "sp-inherents/std", "sp-runtime/std", "snafu/std", "sp-core/std"]

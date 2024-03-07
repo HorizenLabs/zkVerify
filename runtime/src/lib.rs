@@ -70,6 +70,8 @@ pub type Nonce = u32;
 /// A hash of some data used by the chain.
 pub type Hash = sp_core::H256;
 
+pub use pallet_poe;
+
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -257,7 +259,18 @@ impl pallet_sudo::Config for Runtime {
 }
 
 impl pallet_settlement_fflonk::Config for Runtime {
-    type OnProofVerified = ();
+    type OnProofVerified = Poe;
+}
+
+pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
+pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 5;
+// We should avoid publishing attestations for empty trees
+static_assertions::const_assert!(MIN_PROOFS_FOR_ROOT_PUBLISHING > 0);
+
+impl pallet_poe::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type MinProofsForPublishing = ConstU32<MIN_PROOFS_FOR_ROOT_PUBLISHING>;
+    type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -271,6 +284,7 @@ construct_runtime!(
         TransactionPayment: pallet_transaction_payment,
         Sudo: pallet_sudo,
         SettlementFFlonkPallet: pallet_settlement_fflonk,
+        Poe: pallet_poe,
     }
 );
 
@@ -326,6 +340,7 @@ mod benches {
         [pallet_timestamp, Timestamp]
         [pallet_sudo, Sudo]
         [pallet_settlement_fflonk, SettlementFFlonkPallet]
+        [pallet_poe, Poe]
     );
 }
 
