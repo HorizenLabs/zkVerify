@@ -1,6 +1,8 @@
 #!/bin/sh 
 # shellcheck disable=SC2068
 
+mkdir -p ${HOME}/.cargo/registry
+
 # Use rbuilder image to compile the source. All package and cargo cache are mapped on
 # host's user folder. It also maps the .git-credential user file from the user in order
 # to download dependencies from private repos.
@@ -13,6 +15,8 @@ docker run --rm -ti \
     -v "${HOME}/.cargo/registry:/usr/local/cargo/registry" \
     -v "${HOME}/.git-credentials:/${HOME}/.git-credentials" \
     -v "${HOME}/.gitconfig:/${HOME}/.gitconfig" \
+    -v "${HOME}/.git-credentials:/.git-credentials" \
+    -v "${HOME}/.gitconfig:/.gitconfig" \
     -v /etc/passwd:/etc/passwd:ro \
     -v /etc/group:/etc/group:ro \
     -v .:/usr/src/node \
