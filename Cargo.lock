@@ -601,8 +601,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93f2635620bf0b9d4576eb7bb9a38a55df78bd1205d26fa994b25911a69f212f"
 dependencies = [
  "bitcoin_hashes",
- "rand 0.8.5",
- "rand_core 0.6.4",
+ "rand 0.7.3",
+ "rand_core 0.5.1",
  "serde",
  "unicode-normalization",
 ]
@@ -1956,8 +1956,8 @@ dependencies = [
 
 [[package]]
 name = "fflonk_verifier"
-version = "0.1.0"
-source = "git+https://github.com/HorizenLabs/fflonk_verifier.git?rev=6dc077f0b9bd4151509a2bbcea09e6b9dada61a0#6dc077f0b9bd4151509a2bbcea09e6b9dada61a0"
+version = "0.2.0"
+source = "git+https://github.com/HorizenLabs/fflonk_verifier.git#565976c80c0707f148a2a2ada03a52127ba773fe"
 dependencies = [
  "digest 0.10.7",
  "sha3",
@@ -4806,7 +4806,6 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hex",
  "hex-literal",
  "hp-poe",
  "log",
@@ -9059,7 +9058,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 

@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 use codec::{Decode, Encode};
 use sp_core::H256;
-use sp_inherents::{InherentData, InherentIdentifier, IsFatalError};
+use sp_inherents::{InherentIdentifier, IsFatalError};
 
 /// The identifier for the `proof-of-existence0` inherent.
 pub const INHERENT_IDENTIFIER: InherentIdentifier = *b"PoE-0000";
@@ -56,7 +56,7 @@ pub struct InherentDataProvider {
 impl sp_inherents::InherentDataProvider for InherentDataProvider {
     async fn provide_inherent_data(
         &self,
-        inherent_data: &mut InherentData,
+        inherent_data: &mut sp_inherents::InherentData,
     ) -> Result<(), sp_inherents::Error> {
         inherent_data.put_data(INHERENT_IDENTIFIER, &self.poe)
     }
