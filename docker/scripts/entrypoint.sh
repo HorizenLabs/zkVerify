@@ -18,7 +18,7 @@ NODE=${BINARIES[0]}
 NODE_NAME=${NODE_NAME:-"MyNode"}
 BASE_PATH=${BASE_PATH:-"/data/node"}
 SPEC_PATH=${SPEC_PATH:-"/data/chain_spec.json"}
-SEED_PHRASE_PATH=${SEED_PHRASE_PATH:-"/data/seed_phrase"}
+SEED_PHRASE_PATH=${SEED_PHRASE_PATH:-"/data/seed_phrase.dat"}
 NODE_KEY_PATH=${NODE_KEY_PATH:-"/data/node_key.dat"}
 
 ARGS=
@@ -62,8 +62,8 @@ fi
 
 if [ -f ${NODE_KEY_PATH} ] ; then
 	echo "USE node-key-file"
-	cp ${NODE_KEY_PATH} /tmp/node-key.dat
-	ARGS="${ARGS} --node-key-file /tmp/node-key.dat"
+	cp ${NODE_KEY_PATH} /tmp/node_key.dat
+	ARGS="${ARGS} --node-key-file /tmp/node_key.dat"
 fi	
 
 exec ${NODE} \
