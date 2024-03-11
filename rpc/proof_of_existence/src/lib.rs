@@ -42,17 +42,23 @@ impl<C, P> PoE<C, P> {
 
 // Error type of this RPC api.
 pub enum Error {
-    /// The transaction was not decodable.
-    DecodeError,
+    /// Proof not found
+    ProofNotFound,
+    //// Attestation not published yet
+    AttestationNotPublished,
     /// The call to runtime failed.
     RuntimeError,
+    /// The transaction was not decodable.
+    DecodeError,
 }
 
 impl From<Error> for i32 {
     fn from(e: Error) -> i32 {
         match e {
-            Error::RuntimeError => 1,
-            Error::DecodeError => 2,
+            Error::ProofNotFound => 1,
+            Error::AttestationNotPublished => 2,
+            Error::RuntimeError => 3,
+            Error::DecodeError => 4,
         }
     }
 }
@@ -80,29 +86,28 @@ where
             ))
         }
 
-        let res = api
-            .get_proof_path(at_hash, attestation_id, proof_hash)
+        api.get_proof_path(at_hash, attestation_id, proof_hash)
             .map_err(|e| map_err(e, "Unable to query dispatch info."))
-            .and_then(|r| r.map_err(convert_attestation_error))?;
-        Ok(res)
+            .and_then(|r| r.map_err(convert_attestation_error))
+            .map_err(Into::into)
     }
 }
 
 fn convert_attestation_error(e: AttestationPathRequestError) -> CallError {
     match e {
-        AttestationPathRequestError::AttestationIdNotPublished(id) => {
-            CallError::Custom(ErrorObject::owned(
-                2,
-                "Attestation not published yet",
-                Some(format!("Attestation {id} not published yet")),
-            ))
-        }
         AttestationPathRequestError::ProofNotFound(id, h) => CallError::Custom(ErrorObject::owned(
-            1,
+            Error::ProofNotFound.into(),
             "Proof not found",
             Some(format!(
                 "Proof {h} not found in Storage for attestation id {id}"
             )),
         )),
+        AttestationPathRequestError::AttestationIdNotPublished(id) => {
+            CallError::Custom(ErrorObject::owned(
+                Error::AttestationNotPublished.into(),
+                "Attestation not published yet",
+                Some(format!("Attestation {id} not published yet")),
+            ))
+        }
     }
 }

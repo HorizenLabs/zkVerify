@@ -172,14 +172,19 @@ pub mod pallet {
             let leaves = Values::<T>::iter_key_prefix(attestation_id).collect::<BTreeSet<_>>();
 
             // Check if the requested proof_hash belongs to this set, i.e. is within the set of leaves
-            Values::<T>::try_get(attestation_id, proof_hash).map_err(|_| {
-                AttestationPathRequestError::ProofNotFound(attestation_id, proof_hash)
-            })?;
+            if !leaves.contains(&proof_hash) {
+                return Err(AttestationPathRequestError::ProofNotFound(
+                    attestation_id,
+                    proof_hash,
+                ));
+            }
 
             // Retrieve the index of the proof_hash in the leaves
             // This should not fail, given the previous checks (proof_hash is present in the map for the
             // submitted attestation id)
-            let proof_index = leaves.iter().position(|v| v == &proof_hash).unwrap();
+            let proof_index = leaves.iter().position(|v| v == &proof_hash).expect(
+                "The proof_hash should be present in the leaves, as we have already checked for it",
+            );
 
             // Evaluate the Merkle proof and return a MerkleProof structure to the caller
             Ok(binary_merkle_tree::merkle_proof::<Keccak256, _, _>(

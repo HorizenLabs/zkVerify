@@ -10,15 +10,15 @@ repository.workspace = true
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-codec                              = { workspace = true }
+codec                              = { default-features = false, workspace = true }
 jsonrpsee                          = { workspace = true, features = ["client-core", "server", "macros"] }
 
-proof-of-existence-rpc-runtime-api = { path = "runtime-api" }
+proof-of-existence-rpc-runtime-api = { default-features = false, workspace = true }
+sp-api                             = { default-features = false, workspace = true }
+sp-core                            = { default-features = false, workspace = true }
+sp-runtime                         = { default-features = false, workspace = true }
 sp-blockchain                      = { workspace = true }
-sp-core                            = { workspace = true }
 sc-rpc-api                         = { workspace = true }
-sp-runtime                         = { workspace = true }
-sp-api                             = { workspace = true }
 
 [features]
 default = ["std"]
