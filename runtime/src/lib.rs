@@ -21,6 +21,7 @@ use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
+use sp_runtime::traits::OpaqueKeys;
 
 use frame_support::genesis_builder_helper::{build_config, create_default_config};
 // A few exports that help ease life for downstream crates.
@@ -39,6 +40,7 @@ pub use frame_support::{
     StorageValue,
 };
 pub use frame_system::Call as SystemCall;
+use frame_system::EnsureRoot;
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
 use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier};
@@ -48,6 +50,10 @@ pub use sp_runtime::{Perbill, Permill};
 
 /// Import the settlement pallet.
 pub use pallet_settlement_fflonk;
+//pub use pallet_session_manager;
+pub use pallet_poe;
+
+mod validator_manager;
 
 #[cfg(test)]
 mod tests;
@@ -71,8 +77,6 @@ pub type Nonce = u32;
 /// A hash of some data used by the chain.
 pub type Hash = sp_core::H256;
 
-pub use pallet_poe;
-
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -89,12 +93,6 @@ pub mod opaque {
     /// Opaque block identifier type.
     pub type BlockId = generic::BlockId<Block>;
 
-    impl_opaque_keys! {
-        pub struct SessionKeys {
-            pub aura: Aura,
-            pub grandpa: Grandpa,
-        }
-    }
 }
 
 // To learn more about runtime versioning, see:
@@ -244,6 +242,13 @@ parameter_types! {
     pub FeeMultiplier: Multiplier = Multiplier::one();
 }
 
+impl_opaque_keys! {
+    pub struct SessionKeys {
+        pub aura: Aura,
+        pub grandpa: Grandpa,
+    }
+}
+
 impl pallet_transaction_payment::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
@@ -274,18 +279,53 @@ impl pallet_poe::Config for Runtime {
     type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
 }
 
+//impl pallet_session_manager::Config for Runtime {
+//}
+
+impl validator_manager::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type PrivilegedOrigin = EnsureRoot<AccountId>;
+}
+
+parameter_types! {
+    pub const Period: u32 = 5; // Blocks 
+    pub const Offset: u32 = 0;
+}
+
+pub struct ValidatorIdOf;
+impl sp_runtime::traits::Convert<AccountId, Option<AccountId>> for ValidatorIdOf {
+    fn convert(a: AccountId) -> Option<AccountId> {
+        Some(a)
+    }
+}
+
+impl pallet_session::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type ValidatorId = AccountId;
+    type ValidatorIdOf = ValidatorIdOf;
+    type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
+    type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
+    type SessionManager = ValidatorManager;
+	type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
+    type Keys = SessionKeys;
+    type WeightInfo = ();
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub struct Runtime {
         System: frame_system,
         Timestamp: pallet_timestamp,
+        Balances: pallet_balances,
+        ValidatorManager: validator_manager,
+        Session: pallet_session,
         Aura: pallet_aura,
         Grandpa: pallet_grandpa,
-        Balances: pallet_balances,
         TransactionPayment: pallet_transaction_payment,
         Sudo: pallet_sudo,
         SettlementFFlonkPallet: pallet_settlement_fflonk,
         Poe: pallet_poe,
+        //SessionManager: pallet_session_manager,
     }
 );
 
@@ -423,13 +463,13 @@ impl_runtime_apis! {
 
     impl sp_session::SessionKeys<Block> for Runtime {
         fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
-            opaque::SessionKeys::generate(seed)
+            SessionKeys::generate(seed)
         }
 
         fn decode_session_keys(
             encoded: Vec<u8>,
         ) -> Option<Vec<(Vec<u8>, KeyTypeId)>> {
-            opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
+            SessionKeys::decode_into_raw_public_keys(&encoded)
         }
     }
 

@@ -60,6 +60,7 @@ try-runtime-cli = { version = "0.37.0" }
 codec = { package = "parity-scale-codec", version = "3.6.1", default-features = false, features = ["derive"] }
 scale-info = { version = "2.10.0", default-features = false, features = ["derive", "serde"] }
 
+pallet-session = { default-features = false, version = "27.0.0" }
 pallet-aura = { default-features = false, version = "26.0.0" }
 pallet-balances = { default-features = false, version = "27.0.0" }
 frame-support = { default-features = false, version = "27.0.0" }
