@@ -7,7 +7,7 @@ edition.workspace = true
 repository.workspace = true
 
 [dependencies]
-pallet-poe         = { path = "../../proof_of_existence", default-features = false }
+pallet-poe         = { default-features = false, workspace = true }
 codec              = { default-features = false, workspace = true, features = ["derive"] }
 sp-api             = { default-features = false, workspace = true }
 sp-std             = { default-features = false, workspace = true }
