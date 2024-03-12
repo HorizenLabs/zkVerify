@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 # Sanity check
-if [ -z "$BINARY" ]
-then
+if [ -z "$BINARY" ]; then
     echo "BINARY ENV not defined, this should never be the case. Aborting..."
     exit 1
 fi
@@ -13,62 +12,83 @@ fi
 #  - use the --entrypoint option
 #  - pass the ENV BINARY with a single binary
 IFS=',' read -r -a BINARIES <<< "$BINARY"
-NODE=${BINARIES[0]}
+NH_NODE=${BINARIES[0]}
+echo "NH_NODE=${NH_NODE}"
 
-NODE_NAME=${NODE_NAME:-"MyNode"}
-BASE_PATH=${BASE_PATH:-"/data/node"}
-SPEC_PATH=${SPEC_PATH:-"/data/chain_spec.json"}
-SEED_PHRASE_PATH=${SEED_PHRASE_PATH:-"/data/seed_phrase.dat"}
-NODE_KEY_PATH=${NODE_KEY_PATH:-"/data/node_key.dat"}
+NH_SPEC_PATH=${NH_SPEC_PATH:-"/data/chain_spec.json"}
+NH_SECRET_PHRASE_PATH=${NH_SECRET_PHRASE_PATH:-"/data/secret_phrase.dat"}
+echo "NH_SPEC_PATH=${NH_SPEC_PATH}"
+echo "NH_SECRET_PHRASE_PATH=${NH_SECRET_PHRASE_PATH}"
 
-ARGS=
+# Node configurations (env->arg)
+NH_CONF_NAME=${NH_CONF_NAME:-"MyNode"}
+NH_CONF_BASE_PATH=${NH_CONF_BASE_PATH:-"/data/node"}
+NH_CONF_CHAIN=${NH_CONF_CHAIN:-"${NH_SPEC_PATH%/*}/chain_spec_raw.json"}
+NH_CONF_VALIDATOR=${NH_CONF_VALIDATOR:-""}
+NH_CONF_NODE_KEY_FILE=${NH_CONF_NODE_KEY_FILE:-""}
+NH_CONF_BOOTNODES=${NH_CONF_BOOTNODES:-""}
+NH_CONF_RPC_CORS=${NH_CONF_RPC_CORS:-""}
+NH_CONF_RPC_EXTERNAL=${NH_CONF_RPC_EXTERNAL:-""}
+echo "NH_CONF_NAME=${NH_CONF_NAME}"
+echo "NH_CONF_BASE_PATH=${NH_CONF_BASE_PATH}"
+echo "NH_CONF_CHAIN=${NH_CONF_CHAIN}"
+echo "NH_CONF_VALIDATOR=${NH_CONF_VALIDATOR}"
+echo "NH_CONF_NODE_KEY_FILE=${NH_CONF_NODE_KEY_FILE}"
+echo "NH_CONF_BOOTNODES=${NH_CONF_BOOTNODES}"
+echo "NH_CONF_RPC_CORS=${NH_CONF_RPC_CORS}"
+echo "NH_CONF_RPC_EXTERNAL=${NH_CONF_RPC_EXTERNAL}"
 
-SPEC_RAW_PATH="/data/chain_spec_raw.json"
-
-echo "NODE_NAME=${NODE_NAME}"
-echo "NODE=${NODE}"
-echo "BASE_PATH=${BASE_PATH}"
-echo "SPEC_PATH=${SPEC_PATH}"
-echo "SEED_PHRASE_PATH=${SEED_PHRASE_PATH}"
-echo "SPEC_RAW_PATH=${SPEC_RAW_PATH}"
-echo "NODE_KEY_PATH=${NODE_KEY_PATH}"
-ls -la "${SPEC_PATH}"
-
-if [ ! -f "${SPEC_PATH}" ]; 
-then 
-	echo "BUILDING SPECS"
-	${NODE} build-spec --disable-default-bootnode --chain local > ${SPEC_PATH}
+if [ ! -f "${NH_SPEC_PATH}" ]; then
+	echo "Spec file missing. Aborting..."
+    exit 1
 fi
 
-echo "BUILDING SPECS RAW"
+${NH_NODE} build-spec --chain="${NH_SPEC_PATH}" --raw --disable-default-bootnode > ${NH_CONF_CHAIN}
 
-${NODE} build-spec --chain="${SPEC_PATH}" \
-    --raw --disable-default-bootnode > ${SPEC_RAW_PATH}
-
-if [ -f ${SEED_PHRASE_PATH} ] ; then
-	echo "INJECT KEYS"
-	${NODE} key insert --base-path "${BASE_PATH}" \
-		--chain "${SPEC_RAW_PATH}" \
-    		--scheme Sr25519 \
-		--suri "${SEED_PHRASE_PATH}" \
+if [ -f ${NH_SECRET_PHRASE_PATH} ]; then
+	echo "Injecting key (Aura)"
+	${NH_NODE} key insert --base-path "${NH_CONF_BASE_PATH}" \
+		--chain "${NH_CONF_CHAIN}" \
+    	--scheme Sr25519 \
+		--suri "${NH_SECRET_PHRASE_PATH}" \
 		--key-type aura
-
-	${NODE} key insert --base-path "${BASE_PATH}" \
-		--chain "${SPEC_RAW_PATH}" \
-    		--scheme Ed25519 \
-		--suri "${SEED_PHRASE_PATH}" \
+	echo "Injecting key (Grandpa)"
+	${NH_NODE} key insert --base-path "${NH_CONF_BASE_PATH}" \
+		--chain "${NH_CONF_CHAIN}" \
+    	--scheme Ed25519 \
+		--suri "${NH_SECRET_PHRASE_PATH}" \
 		--key-type gran
 fi
 
-if [ -f ${NODE_KEY_PATH} ] ; then
-	echo "USE node-key-file"
-	cp ${NODE_KEY_PATH} /tmp/node_key.dat
-	ARGS="${ARGS} --node-key-file /tmp/node_key.dat"
-fi	
+ARGS=
+# This is a workaround due to the node needing write permission on the node-key file
+if [ -f ${NH_CONF_NODE_KEY_FILE} ]; then
+	echo "Copying node key file"
+	cp ${NH_CONF_NODE_KEY_FILE} /tmp/node_key.dat
+	ARGS+=" --node-key-file /tmp/node_key.dat"
+fi
+# Set node-specific configurations
+if [[ -n $NH_CONF_VALIDATOR && $NH_CONF_VALIDATOR != "XXXXXXXXXX" ]]; then
+	ARGS+=" --validator"
+fi
+if [[ -n $NH_CONF_BOOTNODES && $NH_CONF_VALIDATOR != "XXXXXXXXXX" ]]; then
+	ARGS+=" --bootnodes ${NH_CONF_BOOTNODES}"
+fi
+if [[ -n $NH_CONF_RPC_CORS && $NH_CONF_VALIDATOR != "XXXXXXXXXX" ]]; then
+	ARGS+=" --rpc-cors ${NH_CONF_RPC_CORS}"
+fi
+if [[ -n $NH_CONF_RPC_EXTERNAL && $NH_CONF_VALIDATOR != "XXXXXXXXXX" ]]; then
+	ARGS+=" --rpc-external"
+fi
+echo "ARGS=${ARGS}"
 
-exec ${NODE} \
-    --base-path "${BASE_PATH}" \
-    --chain "${SPEC_RAW_PATH}" \
-    --name "${NODE_NAME}" \
-    ${ARGS} \
-    "$@"
+# Check files
+echo "Checking files"
+find /data -type f
+echo ""
+
+exec ${NH_NODE} \
+    --base-path "${NH_CONF_BASE_PATH}" \
+    --chain "${NH_CONF_CHAIN}" \
+    --name "${NH_CONF_NAME}" \
+    ${ARGS}

@@ -6,15 +6,11 @@ services:
     image: hl/nh-node
     env_file:
       - ../resources/envs/.env
-    # entrypoint: tail
-    # command: -f /dev/null
-    command: |
-      --validator
     ports:
       - 9944:9944
       - 30333:30333
     volumes:
       - node-data:/data
       - ../resources/deploy/chain_spec.json:/data/chain_spec.json
-      - ../resources/deploy/seed_phrase.dat:/data/seed_phrase.dat
+      - ../resources/deploy/secret_phrase.dat:/data/secret_phrase.dat
       - ../resources/deploy/node_key.dat:/data/node_key.dat
