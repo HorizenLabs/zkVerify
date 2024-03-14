@@ -25,13 +25,14 @@ echo "NH_SECRET_PHRASE_PATH=${NH_SECRET_PHRASE_PATH}"
 NH_CONF_NAME=${NH_CONF_NAME:-"MyNode"}
 NH_CONF_BASE_PATH=${NH_CONF_BASE_PATH:-"/data/node"}
 NH_CONF_CHAIN=${NH_CONF_CHAIN:-"${NH_SPEC_PATH%/*}/chain_spec_raw.json"}
-NH_CONF_VALIDATOR=${NH_CONF_VALIDATOR:-"PLACEHOLDER"}
-NH_CONF_NODE_KEY_FILE=${NH_CONF_NODE_KEY_FILE:-"PLACEHOLDER"}
-NH_CONF_BOOTNODES=${NH_CONF_BOOTNODES:-"PLACEHOLDER"}
-NH_CONF_RPC_CORS=${NH_CONF_RPC_CORS:-"PLACEHOLDER"}
-NH_CONF_RPC_EXTERNAL=${NH_CONF_RPC_EXTERNAL:-"PLACEHOLDER"}
+NH_CONF_VALIDATOR=${NH_CONF_VALIDATOR:-}
+NH_CONF_NODE_KEY_FILE=${NH_CONF_NODE_KEY_FILE:-}
+NH_CONF_BOOTNODES=${NH_CONF_BOOTNODES:-}
+NH_CONF_RPC_CORS=${NH_CONF_RPC_CORS:-}
+NH_CONF_RPC_EXTERNAL=${NH_CONF_RPC_EXTERNAL:-}
+NH_CONF_RPC_METHODS=${NH_CONF_RPC_METHODS:-}
 
-for var_name in NH_CONF_NAME NH_CONF_BASE_PATH NH_CONF_CHAIN NH_CONF_VALIDATOR NH_CONF_NODE_KEY_FILE NH_CONF_BOOTNODES NH_CONF_RPC_CORS NH_CONF_RPC_EXTERNAL; do
+for var_name in NH_CONF_NAME NH_CONF_BASE_PATH NH_CONF_CHAIN NH_CONF_VALIDATOR NH_CONF_NODE_KEY_FILE NH_CONF_BOOTNODES NH_CONF_RPC_CORS NH_CONF_RPC_EXTERNAL NH_CONF_RPC_METHODS; do
   # Get the value of the variable
   var_value="${!var_name}"
 
@@ -48,11 +49,9 @@ if [ ! -f "${NH_SPEC_PATH}" ]; then
   exit 1
 fi
 
-${NH_NODE} build-spec --chain="${NH_SPEC_PATH}" --raw --disable-default-bootnode > "${NH_CONF_CHAIN}"
-# in case of Docker user permission issue directly mount raw conf file
-# if [ ! -f "${NH_CONF_CHAIN}" ]; then
-#   ${NH_NODE} build-spec --chain="${NH_SPEC_PATH}" --raw --disable-default-bootnode > "${NH_CONF_CHAIN}"
-# fi
+if [ ! -f "${NH_CONF_CHAIN}" ]; then
+  ${NH_NODE} build-spec --chain="${NH_SPEC_PATH}" --raw --disable-default-bootnode > "${NH_CONF_CHAIN}"
+fi
 
 if [ -f "${NH_SECRET_PHRASE_PATH}" ]; then
   echo "Injecting key (Aura)"
@@ -78,17 +77,21 @@ if [ -f "${NH_CONF_NODE_KEY_FILE}" ]; then
 fi
 
 # Set node-specific configurations
-if [[ -n "${NH_CONF_VALIDATOR}" && "${NH_CONF_VALIDATOR}" != "PLACEHOLDER" ]]; then
+if [[ -n "${NH_CONF_VALIDATOR}" && "${NH_CONF_VALIDATOR}" == "true" ]]; then
 	ARGS+=" --validator"
+else
+  if [ -n "${NH_CONF_RPC_CORS}" ]; then
+    ARGS+=" --rpc-cors ${NH_CONF_RPC_CORS}"
+  fi
+  if [[ -n "${NH_CONF_RPC_EXTERNAL}" && "${NH_CONF_RPC_EXTERNAL}" == "true" ]]; then
+   	ARGS+=" --rpc-external"
+  fi
+  if [ -n "${NH_CONF_RPC_METHODS}" ]; then
+   	ARGS+=" --rpc-methods ${NH_CONF_RPC_METHODS}"
+  fi
 fi
-if [[ -n "${NH_CONF_BOOTNODES}" && "${NH_CONF_BOOTNODES}" != "PLACEHOLDER" ]]; then
+if [ -n "${NH_CONF_BOOTNODES}" ]; then
 	ARGS+=" --bootnodes ${NH_CONF_BOOTNODES}"
-fi
-if [[ -n "${NH_CONF_RPC_CORS}" && "${NH_CONF_RPC_CORS}" != "PLACEHOLDER" ]]; then
-	ARGS+=" --rpc-cors ${NH_CONF_RPC_CORS}"
-fi
-if [[ -n "${NH_CONF_RPC_EXTERNAL}" && "${NH_CONF_RPC_EXTERNAL}" != "PLACEHOLDER" ]]; then
-	ARGS+=" --rpc-external"
 fi
 # append other extra args
 ARGS+=" "
