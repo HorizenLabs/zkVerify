@@ -24,6 +24,11 @@ use sp_version::RuntimeVersion;
 use sp_runtime::traits::OpaqueKeys;
 
 use frame_support::genesis_builder_helper::{build_config, create_default_config};
+use frame_election_provider_support::{SequentialPhragmen};
+use frame_election_provider_support::onchain::OnChainExecution;
+use frame_election_provider_support::onchain;
+use frame_election_provider_support::bounds::{ElectionBounds, ElectionBoundsBuilder};
+
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
     construct_runtime, derive_impl, parameter_types,
@@ -47,13 +52,14 @@ use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
+use sp_runtime::curve::PiecewiseLinear;
 
 /// Import the settlement pallet.
 pub use pallet_settlement_fflonk;
 //pub use pallet_session_manager;
 pub use pallet_poe;
 
-mod validator_manager;
+//mod validator_manager;
 
 #[cfg(test)]
 mod tests;
@@ -282,10 +288,10 @@ impl pallet_poe::Config for Runtime {
 //impl pallet_session_manager::Config for Runtime {
 //}
 
-impl validator_manager::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
-    type PrivilegedOrigin = EnsureRoot<AccountId>;
-}
+//impl validator_manager::Config for Runtime {
+//    type RuntimeEvent = RuntimeEvent;
+//    type PrivilegedOrigin = EnsureRoot<AccountId>;
+//}
 
 parameter_types! {
     pub const Period: u32 = 5; // Blocks 
@@ -305,11 +311,100 @@ impl pallet_session::Config for Runtime {
     type ValidatorIdOf = ValidatorIdOf;
     type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
     type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
-    type SessionManager = ValidatorManager;
+    type SessionManager = Staking;//ValidatorManager;
 	type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
     type Keys = SessionKeys;
     type WeightInfo = ();
 }
+
+pallet_staking_reward_curve::build! {
+	const REWARD_CURVE: PiecewiseLinear<'static> = curve!(
+		min_inflation: 0_025_000,
+		max_inflation: 0_100_000,
+		ideal_stake: 0_500_000,
+		falloff: 0_050_000,
+		max_piece_count: 40,
+		test_precision: 0_005_000,
+	);
+}
+
+parameter_types! {
+	pub const SessionsPerEra: sp_staking::SessionIndex = 1;
+	pub const BondingDuration: sp_staking::EraIndex = 1;
+	pub const SlashDeferDuration: sp_staking::EraIndex = 24 * 7; // 1/4 the bonding duration.
+	pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
+	pub const MaxNominatorRewardedPerValidator: u32 = 256;
+	pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(17);
+	pub OffchainRepeat: BlockNumber = 5;
+	pub HistoryDepth: u32 = 84;
+}
+
+parameter_types! {
+    pub ElectionBoundsOnChain: ElectionBounds = ElectionBoundsBuilder::default().voters_count(10.into()).targets_count(10.into()).build();
+    pub const MaxActiveValidators: u32 = 10;
+}
+
+pub struct OnChainSeqPhragmen;
+impl onchain::Config for OnChainSeqPhragmen {
+    type System = Runtime;
+    type Solver = SequentialPhragmen<AccountId, sp_runtime::Perbill>;
+    type DataProvider = Staking;
+    type WeightInfo = ();//weights::frame_election_provider_support::WeightInfo<Runtime>;
+    type MaxWinners = MaxActiveValidators;
+    type Bounds = ElectionBoundsOnChain;
+}
+
+/// The numbers configured here could always be more than the the maximum limits of staking pallet
+/// to ensure election snapshot will not run out of memory. For now, we set them to smaller values
+/// since the staking is bounded and the weight pipeline takes hours for this single pallet.
+pub struct ElectionProviderBenchmarkConfig;
+impl pallet_staking::BenchmarkingConfig for ElectionProviderBenchmarkConfig {
+    type MaxNominators = ConstU32<10>;
+    type MaxValidators = ConstU32<10>;
+}
+
+impl pallet_staking::Config for Runtime {
+	type Currency = Balances;
+	type CurrencyBalance = Balance;
+	type UnixTime = Timestamp;
+	type CurrencyToVote = sp_staking::currency_to_vote::U128CurrencyToVote;
+	type RewardRemainder = ();//Treasury;
+	type RuntimeEvent = RuntimeEvent;
+	type Slash = (); //Treasury; // send the slashed funds to the treasury.
+	type Reward = (); // rewards are minted from the void
+	type SessionsPerEra = SessionsPerEra;
+	type BondingDuration = BondingDuration;
+	type SlashDeferDuration = SlashDeferDuration;
+	/// A super-majority of the council can cancel the slash.
+	type AdminOrigin = EnsureRoot<AccountId>;
+    //    EitherOfDiverse<
+	//	EnsureRoot<AccountId>,
+	//	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 4>,
+	//>;
+	type SessionInterface = ();//Self;
+	type EraPayout = pallet_staking::ConvertCurve<RewardCurve>;
+	type NextNewSession = Session;
+	//type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
+	type OffendingValidatorsThreshold = OffendingValidatorsThreshold; // Exceeding this threshold
+                                                                      // would force a new era
+	type ElectionProvider = OnChainExecution<OnChainSeqPhragmen>;//SequentialPhragmen<AccountId, pallet_election_provider_multi_phase::SolutionAccuracyOf<T>>;//ElectionProviderMultiPhase;
+	type GenesisElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
+	type VoterList = pallet_staking::UseNominatorsAndValidatorsMap<Self>;
+	type NominationsQuota = pallet_staking::FixedNominationsQuota<10>;
+	// This a placeholder, to be introduced in the next PR as an instance of bags-list
+	type TargetList = pallet_staking::UseValidatorsMap<Self>;
+	type MaxUnlockingChunks = ConstU32<32>;
+	type HistoryDepth = HistoryDepth; // Number of eras to keep in history
+	type EventListeners =();// NominationPools;
+	type WeightInfo = ();//pallet_staking::weights::SubstrateWeight<Runtime>;
+	type BenchmarkingConfig = ElectionProviderBenchmarkConfig;
+    type MaxExposurePageSize = ConstU32<64>;
+}
+
+impl pallet_authorship::Config for Runtime {
+    type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
+    type EventHandler = Staking;
+} 
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -317,7 +412,9 @@ construct_runtime!(
         System: frame_system,
         Timestamp: pallet_timestamp,
         Balances: pallet_balances,
-        ValidatorManager: validator_manager,
+        //ValidatorManager: validator_manager,
+        Authorship: pallet_authorship,
+        Staking: pallet_staking,
         Session: pallet_session,
         Aura: pallet_aura,
         Grandpa: pallet_grandpa,

@@ -110,6 +110,8 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
     .build())
 }
 
+const STASH: u128 = 1000;
+
 /// Configure initial storage state for FRAME modules.
 fn testnet_genesis(
     initial_authorities: Vec<(AuraId, GrandpaId, AccountId)>,
@@ -124,6 +126,11 @@ fn testnet_genesis(
         },
         "session": {
             "keys": initial_authorities.iter().map(|x| { (x.2.clone(), x.2.clone(), session_keys(x.0.clone(), x.1.clone())) }).collect::<Vec<_>>(),
+        },
+        "staking": {
+            "minimumValidatorCount": 2,
+            "validatorCount": 3,
+            "stakers": initial_authorities.iter().map(|x| (x.0.clone(), x.0.clone(), STASH, sp_staking::StakerStatus::Validator::<AccountId>)).collect::<Vec<_>>(),
         },
         //"aura": {
         //    "authorities": initial_authorities.iter().map(|x| (x.0.clone())).collect::<Vec<_>>(),
