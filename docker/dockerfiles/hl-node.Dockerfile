@@ -49,7 +49,12 @@ RUN chmod -R a+rx "/usr/local/bin"
 
 ENV RUN_USER hl
 
-RUN useradd -m -u 1000 -U -s /bin/sh -d /${RUN_USER} ${RUN_USER} && \
+RUN apt-get update && 	\
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    curl && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    useradd -m -u 1000 -U -s /bin/sh -d /${RUN_USER} ${RUN_USER} && \
     mkdir -p /data /${RUN_USER}/.local/share && \
     chown -R ${RUN_USER}:${RUN_USER} /data /${RUN_USER} && \
     ln -s /data /${RUN_USER}/.local/share

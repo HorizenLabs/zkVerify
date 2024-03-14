@@ -36,7 +36,7 @@ ENV RUN_USER hl
 
 RUN apt-get update && 	\
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-	libssl3 ca-certificates gnupg && \
+	libssl3 ca-certificates gnupg curl && \
 	apt-get autoremove -y && \
 	apt-get clean && \
 	useradd -m -u 1000 -U -s /bin/sh -d /${RUN_USER} ${RUN_USER} && \
