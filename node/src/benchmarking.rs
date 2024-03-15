@@ -5,7 +5,7 @@
 use crate::service::FullClient;
 
 use nh_runtime as runtime;
-use runtime::{AccountId, Balance, BalancesCall, SystemCall};
+use runtime::{currency::Balance, AccountId, BalancesCall, SystemCall};
 use sc_cli::Result;
 use sc_client_api::BlockBackend;
 use sp_core::{Encode, Pair};

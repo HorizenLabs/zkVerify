@@ -40,20 +40,19 @@ pallet-transaction-payment = { default-features = false, version = "27.0.0" }
 
 sp-io = { default-features = false, version = "29.0.0" }
 sp-timestamp = { default-features = false, version = "25.0.0" }
-sp-keyring = { default-features = false, version = "30.0.0" }
+sp-keyring = { version = "30.0.0" }
 
 pallet-settlement-fflonk = { path = "pallets/settlement-fflonk", default-features = false }
 pallet-poe = { path= "pallets/proof_of_existence", default-features = false }
 
 # These dependencies are used for the node template's RPCs
-sc-rpc-api = { default-features = false, version = "0.32.0"}
-sp-blockchain = { default-features = false, version = "27.0.0"}
-sc-basic-authorship = { default-features = false, version = "0.33.0"}
-substrate-frame-rpc-system = { default-features = false, version = "27.0.0"}
+sc-rpc-api = { version = "0.32.0"}
+sp-blockchain = { version = "27.0.0"}
+sc-basic-authorship = { version = "0.33.0"}
+substrate-frame-rpc-system = { version = "27.0.0"}
 frame-election-provider-support = { version = "27.0.0", default-features = false }
-pallet-election-provider-multi-phase = { version = "26.0.0", default-features = false }
-pallet-transaction-payment-rpc = { default-features = false, version = "29.0.0"}
-frame-benchmarking-cli = { default-features = false, version = "31.0.0"}
+pallet-transaction-payment-rpc = { version = "29.0.0"}
+frame-benchmarking-cli = { version = "31.0.0"}
 nh-runtime = { path = "runtime", version = "0.1.0" }
 
 # CLI-specific dependencies
@@ -62,10 +61,11 @@ try-runtime-cli = { version = "0.37.0" }
 codec = { package = "parity-scale-codec", version = "3.6.1", default-features = false, features = ["derive"] }
 scale-info = { version = "2.10.0", default-features = false, features = ["derive", "serde"] }
 
+pallet-offences = { default-features = false, version = "26.0.0" }
+pallet-im-online = { default-features = false, version = "26.0.0" }
 pallet-authorship = { default-features = false, version = "27.0.0" }
 pallet-session = { default-features = false, version = "27.0.0" }
 pallet-staking = { default-features = false, version = "27.0.0" }
-pallet-staking-reward-curve = { default-features = false, version = "11.0.0" }
 pallet-aura = { default-features = false, version = "26.0.0" }
 pallet-balances = { default-features = false, version = "27.0.0" }
 frame-support = { default-features = false, version = "27.0.0" }
