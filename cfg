@@ -1,1 +1,3 @@
-PATH="${PATH}:$(pwd)/docker/scripts"
+if [[ ":$PATH:" != *":$(pwd)/docker/scripts:"* ]]; then
+    PATH="${PATH}:$(pwd)/docker/scripts"
+fi

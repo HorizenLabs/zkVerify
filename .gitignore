@@ -3,4 +3,5 @@ target/
 .idea
 *.iml
 .vscode
-
+docker/resources/deploy
+docker/resources/envs/.env
