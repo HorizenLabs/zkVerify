@@ -5,9 +5,9 @@
 # then add the path to these executables to the environmental variabile
 #     export PATH=/path/to/the/exec:$PATH
 # and spawn the network described in this file
-#     zombienet -p native spawn 0000-Polkadot_reference/0000-polkadot_network.toml
+#     zombienet -p native spawn ./network_defs/polkadot_reference.toml
 # Additional debug information are printed to the console by setting the env var DEBUG:
-#     DEBUG=zombie* zombienet -p native spawn 0000-Polkadot_reference/0000-polkadot_network.toml
+#     DEBUG=zombie* zombienet -p native spawn ./network_defs/polkadot_reference.toml
 [relaychain]
 default_image = "docker.io/parity/polkadot:latest"
 default_command = "polkadot"
