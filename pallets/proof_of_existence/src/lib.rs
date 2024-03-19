@@ -28,7 +28,7 @@ pub mod pallet {
 
     use hp_poe::{InherentError, InherentType, INHERENT_IDENTIFIER};
 
-    #[derive(Clone, TypeInfo, PartialEq, Eq, Encode, Decode)]
+    #[derive(Clone, TypeInfo, PartialEq, Eq, Encode, Decode, Debug)]
     pub enum AttestationPathRequestError {
         ProofNotFound(u64, sp_core::H256),
         AttestationIdNotPublished(u64),
