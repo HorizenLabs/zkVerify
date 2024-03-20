@@ -1,4 +1,5 @@
-use nh_runtime::{AccountId, RuntimeGenesisConfig, Signature, WASM_BINARY};
+use nh_runtime::{AccountId, RuntimeGenesisConfig, SessionKeys, Signature, WASM_BINARY};
+use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_service::{ChainType, Properties};
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
@@ -28,9 +29,22 @@ where
     AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
+fn session_keys(aura: AuraId, grandpa: GrandpaId, im_online: ImOnlineId) -> SessionKeys {
+    SessionKeys {
+        aura,
+        grandpa,
+        im_online,
+    }
+}
+
 /// Generate an Aura authority key.
-pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
-    (get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
+pub fn authority_keys_from_seed(s: &str) -> (AccountId, AuraId, GrandpaId, ImOnlineId) {
+    (
+        get_account_id_from_seed::<sr25519::Public>(s),
+        get_from_seed::<AuraId>(s),
+        get_from_seed::<GrandpaId>(s),
+        get_from_seed::<ImOnlineId>(s),
+    )
 }
 
 pub fn development_config() -> Result<ChainSpec, String> {
@@ -106,9 +120,12 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
     .build())
 }
 
+const INIT_BALANCE: u128 = 1u128 << 60;
+const INIT_STASH: u128 = 1u128 << 59; // Use half the balance as stake
+
 /// Configure initial storage state for FRAME modules.
 fn testnet_genesis(
-    initial_authorities: Vec<(AuraId, GrandpaId)>,
+    initial_authorities: Vec<(AccountId, AuraId, GrandpaId, ImOnlineId)>,
     root_key: AccountId,
     endowed_accounts: Vec<AccountId>,
     _enable_println: bool,
@@ -116,13 +133,15 @@ fn testnet_genesis(
     serde_json::json!({
         "balances": {
             // Configure endowed accounts with initial balance of 1 << 60.
-            "balances": endowed_accounts.iter().cloned().map(|k| (k, 1u64 << 60)).collect::<Vec<_>>(),
+            "balances": endowed_accounts.iter().cloned().map(|k| (k, INIT_BALANCE)).collect::<Vec<_>>(),
         },
-        "aura": {
-            "authorities": initial_authorities.iter().map(|x| (x.0.clone())).collect::<Vec<_>>(),
+        "session": {
+            "keys": initial_authorities.iter().map(|x| { (x.0.clone(), x.0.clone(), session_keys(x.1.clone(), x.2.clone(), x.3.clone())) }).collect::<Vec<_>>(),
         },
-        "grandpa": {
-            "authorities": initial_authorities.iter().map(|x| (x.1.clone(), 1)).collect::<Vec<_>>(),
+        "staking": {
+            "minimumValidatorCount": 2,
+            "validatorCount": 3,
+            "stakers": initial_authorities.iter().map(|x| (x.1.clone(), x.1.clone(), INIT_STASH, sp_staking::StakerStatus::Validator::<AccountId>)).collect::<Vec<_>>(),
         },
         "sudo": {
             // Assign network admin rights.
@@ -142,23 +161,23 @@ mod tests {
     // The following test verifies whether we added aura configuration in the genesis block
     // by checking that the json returned by testnet_genesis() contains the field "aura"
     #[test]
-    fn testnet_genesis_should_set_aura_authorities() {
+    fn testnet_genesis_should_set_session_keys() {
         let initial_authorities = vec![authority_keys_from_seed("Alice")];
         let root_key = get_account_id_from_seed::<sr25519::Public>("Alice");
 
         let ret_val: serde_json::Value =
             testnet_genesis(initial_authorities, root_key, vec![], false);
 
-        let aura_config = &ret_val["aura"];
+        let session_config = &ret_val["session"];
 
         // Check that we have the field "aura" in the genesis config
-        assert!(!aura_config.is_null());
+        assert!(!session_config.is_null());
 
-        let auth_len = aura_config
+        let auth_len = session_config
             .as_object()
-            .map(|inner| inner["authorities"].as_array().unwrap().len())
+            .map(|inner| inner["keys"].as_array().unwrap().len())
             .unwrap();
-        // Check that we have one "authorities" set
+        // Check that we have one "keys" set
         assert_eq!(1, auth_len);
     }
 }

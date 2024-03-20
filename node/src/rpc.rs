@@ -8,7 +8,7 @@
 use std::sync::Arc;
 
 use jsonrpsee::RpcModule;
-use nh_runtime::{opaque::Block, AccountId, Balance, Nonce};
+use nh_runtime::{currency::Balance, opaque::Block, AccountId, Nonce};
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;

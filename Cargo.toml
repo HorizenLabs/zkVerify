@@ -50,6 +50,7 @@ sc-rpc-api = { version = "0.32.0"}
 sp-blockchain = { version = "27.0.0"}
 sc-basic-authorship = { version = "0.33.0"}
 substrate-frame-rpc-system = { version = "27.0.0"}
+frame-election-provider-support = { version = "27.0.0", default-features = false }
 pallet-transaction-payment-rpc = { version = "29.0.0"}
 frame-benchmarking-cli = { version = "31.0.0"}
 nh-runtime = { path = "runtime", version = "0.1.0" }
@@ -60,6 +61,11 @@ try-runtime-cli = { version = "0.37.0" }
 codec = { package = "parity-scale-codec", version = "3.6.1", default-features = false, features = ["derive"] }
 scale-info = { version = "2.10.0", default-features = false, features = ["derive", "serde"] }
 
+pallet-offences = { default-features = false, version = "26.0.0" }
+pallet-im-online = { default-features = false, version = "26.0.0" }
+pallet-authorship = { default-features = false, version = "27.0.0" }
+pallet-session = { default-features = false, version = "27.0.0" }
+pallet-staking = { default-features = false, version = "27.0.0" }
 pallet-aura = { default-features = false, version = "26.0.0" }
 pallet-balances = { default-features = false, version = "27.0.0" }
 frame-support = { default-features = false, version = "27.0.0" }
@@ -78,6 +84,7 @@ sp-inherents = { default-features = false, version = "25.0.0" }
 sp-offchain = { default-features = false, version = "25.0.0" }
 sp-runtime = { default-features = false, features = ["serde"], version = "30.0.1" }
 sp-session = { default-features = false, version = "26.0.0" }
+sp-staking = { default-features = false, version = "25.0.0" }
 sp-std = { default-features = false, version = "13.0.0" }
 sp-storage = { default-features = false, version = "18.0.0" }
 sp-transaction-pool = { default-features = false, version = "25.0.0" }

@@ -42,6 +42,8 @@ sp-inherents = { workspace = true}
 sp-keyring = { workspace = true}
 frame-system = { workspace = true}
 pallet-transaction-payment = { workspace = true, default-features = false }
+sp-staking = { workspace = true}
+pallet-im-online = { workspace = true, default-features = false }
 
 # These dependencies are used for the node template's RPCs
 jsonrpsee = { workspace = true, features = ["server"] }

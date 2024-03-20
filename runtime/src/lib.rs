@@ -7,13 +7,14 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use pallet_grandpa::AuthorityId as GrandpaId;
+use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use proof_of_existence_rpc_runtime_api::MerkleProof;
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
     create_runtime_str, generic, impl_opaque_keys,
-    traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, One, Verify},
+    traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, One, OpaqueKeys, Verify},
     transaction_validity::{TransactionSource, TransactionValidity},
     ApplyExtrinsicResult, MultiSignature,
 };
@@ -22,7 +23,14 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use frame_election_provider_support::{
+    bounds::{ElectionBounds, ElectionBoundsBuilder},
+    onchain,
+    onchain::OnChainExecution,
+    SequentialPhragmen,
+};
 use frame_support::genesis_builder_helper::{build_config, create_default_config};
+
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
     construct_runtime, derive_impl, parameter_types,
@@ -39,15 +47,15 @@ pub use frame_support::{
     StorageValue,
 };
 pub use frame_system::Call as SystemCall;
+use frame_system::EnsureRoot;
 pub use pallet_balances::Call as BalancesCall;
+use pallet_session::historical as pallet_session_historical;
 pub use pallet_timestamp::Call as TimestampCall;
+
 use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier};
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
-
-/// Import the settlement pallet.
-pub use pallet_settlement_fflonk;
 
 #[cfg(test)]
 mod tests;
@@ -62,16 +70,19 @@ pub type Signature = MultiSignature;
 /// to the public key of our transaction signing scheme.
 pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
 
-/// Balance of an account.
-pub type Balance = u128;
+pub mod currency {
+    pub type Balance = u128;
+    pub const NZEN: Balance = 1_000_000_000_000_000_000;
+    pub const CENTS: Balance = NZEN / 100;
+}
+
+use currency::*;
 
 /// Index of a transaction in the chain.
 pub type Nonce = u32;
 
 /// A hash of some data used by the chain.
 pub type Hash = sp_core::H256;
-
-pub use pallet_poe;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -88,13 +99,6 @@ pub mod opaque {
     pub type Block = generic::Block<Header, UncheckedExtrinsic>;
     /// Opaque block identifier type.
     pub type BlockId = generic::BlockId<Block>;
-
-    impl_opaque_keys! {
-        pub struct SessionKeys {
-            pub aura: Aura,
-            pub grandpa: Grandpa,
-        }
-    }
 }
 
 // To learn more about runtime versioning, see:
@@ -244,6 +248,14 @@ parameter_types! {
     pub FeeMultiplier: Multiplier = Multiplier::one();
 }
 
+impl_opaque_keys! {
+    pub struct SessionKeys {
+        pub aura: Aura,
+        pub grandpa: Grandpa,
+        pub im_online: ImOnline,
+    }
+}
+
 impl pallet_transaction_payment::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
@@ -274,16 +286,175 @@ impl pallet_poe::Config for Runtime {
     type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
 }
 
+parameter_types! {
+    pub const Period: u32 = 10 * MINUTES; // Blocks per session
+    pub const Offset: u32 = 0;
+}
+
+pub struct ValidatorIdOf;
+impl sp_runtime::traits::Convert<AccountId, Option<AccountId>> for ValidatorIdOf {
+    fn convert(a: AccountId) -> Option<AccountId> {
+        Some(a)
+    }
+}
+
+impl pallet_session::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type ValidatorId = AccountId;
+    type ValidatorIdOf = ValidatorIdOf;
+    type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
+    type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
+    type SessionManager = Staking;
+    type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
+    type Keys = SessionKeys;
+    type WeightInfo = ();
+}
+
+pub struct ZendPayout;
+impl pallet_staking::EraPayout<Balance> for ZendPayout {
+    fn era_payout(
+        _total_staked: Balance,
+        _total_issuance: Balance,
+        era_duration_millis: u64,
+    ) -> (Balance, Balance) {
+        let era_reward: u128 = 625 * CENTS * u128::from(era_duration_millis / MILLISECS_PER_BLOCK); // 6.25nZEN per block
+        pub const TENTH_TO_MINERS: u128 = 10;
+        pub const TENTH_TO_REST: u128 = 0;
+
+        (
+            era_reward * TENTH_TO_MINERS / 10,
+            era_reward * TENTH_TO_REST / 10,
+        )
+    }
+}
+
+parameter_types! {
+    pub const SessionsPerEra: sp_staking::SessionIndex = 6 * HOURS / Period::get(); // number of sessions in 1 era, 6h
+    pub const BondingDuration: sp_staking::EraIndex = 1; // number of sessions for which staking
+                                                         // remains locked
+    pub const SlashDeferDuration: sp_staking::EraIndex = 0; // eras to wait before slashing is
+                                                            // applied
+    pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(17);
+    pub HistoryDepth: u32 = 30; // Number of eras to keep in history. Older eras cannot be claimed.
+}
+
+pub const MAX_AUTHORITIES: u32 = 10;
+pub const MAX_VOTERS: u32 = 10;
+
+parameter_types! {
+    pub ElectionBoundsOnChain: ElectionBounds = ElectionBoundsBuilder::default().voters_count(MAX_VOTERS.into()).targets_count(MAX_AUTHORITIES.into()).build();
+    pub const MaxActiveValidators: u32 = MAX_AUTHORITIES;
+}
+
+pub struct OnChainSeqPhragmen;
+impl onchain::Config for OnChainSeqPhragmen {
+    type System = Runtime;
+    type Solver = SequentialPhragmen<AccountId, sp_runtime::Perbill>;
+    type DataProvider = Staking;
+    type WeightInfo = (); //weights::frame_election_provider_support::WeightInfo<Runtime>;
+    type MaxWinners = MaxActiveValidators;
+    type Bounds = ElectionBoundsOnChain;
+}
+
+/// The numbers configured here could always be more than the the maximum limits of staking pallet
+/// to ensure election snapshot will not run out of memory. For now, we set them to smaller values
+/// since the staking is bounded and the weight pipeline takes hours for this single pallet.
+pub struct ElectionProviderBenchmarkConfig;
+impl pallet_staking::BenchmarkingConfig for ElectionProviderBenchmarkConfig {
+    type MaxNominators = ConstU32<MAX_VOTERS>;
+    type MaxValidators = ConstU32<MAX_AUTHORITIES>;
+}
+
+impl pallet_staking::Config for Runtime {
+    type Currency = Balances;
+    type CurrencyBalance = Balance;
+    type UnixTime = Timestamp;
+    type CurrencyToVote = sp_staking::currency_to_vote::U128CurrencyToVote;
+    type RewardRemainder = (); // burn the remainder, should be Treasury
+    type RuntimeEvent = RuntimeEvent;
+    type Slash = (); // burn the slashed funds, should be Treasury.
+    type Reward = (); // rewards are minted from the void
+    type SessionsPerEra = SessionsPerEra;
+    type BondingDuration = BondingDuration;
+    type SlashDeferDuration = SlashDeferDuration;
+    /// A super-majority of the council can cancel the slash.
+    type AdminOrigin = EnsureRoot<AccountId>;
+    type SessionInterface = Self;
+    type EraPayout = ZendPayout; // Just an example, we probably should use pallet_staking::ConvertCurve<RewardCurve>;
+    type NextNewSession = Session;
+    type OffendingValidatorsThreshold = OffendingValidatorsThreshold; // Exceeding this threshold would force a new era
+    type ElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
+    type GenesisElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
+    // TODO: consider switching to bags-list
+    type VoterList = pallet_staking::UseNominatorsAndValidatorsMap<Self>;
+    type NominationsQuota = pallet_staking::FixedNominationsQuota<10>;
+    // TODO: consider switching to bags-list
+    type TargetList = pallet_staking::UseValidatorsMap<Self>;
+    type MaxUnlockingChunks = ConstU32<32>;
+    type HistoryDepth = HistoryDepth; // Number of eras to keep in history
+    type EventListeners = (); // NominationPools;
+    type WeightInfo = (); //pallet_staking::weights::SubstrateWeight<Runtime>;
+    type BenchmarkingConfig = ElectionProviderBenchmarkConfig;
+    type MaxExposurePageSize = ConstU32<64>;
+}
+
+impl pallet_authorship::Config for Runtime {
+    type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
+    type EventHandler = Staking;
+}
+
+impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
+where
+    RuntimeCall: From<C>,
+{
+    type Extrinsic = UncheckedExtrinsic;
+    type OverarchingCall = RuntimeCall;
+}
+
+impl pallet_session::historical::Config for Runtime {
+    type FullIdentification = pallet_staking::Exposure<AccountId, Balance>;
+    type FullIdentificationOf = pallet_staking::ExposureOf<Runtime>;
+}
+
+parameter_types! {
+    pub const MaxKeys: u32 = MAX_AUTHORITIES; // only account for validators
+    pub const MaxPeerInHeartbeats: u32 = MAX_AUTHORITIES;
+}
+
+impl pallet_im_online::Config for Runtime {
+    type AuthorityId = ImOnlineId;
+    type RuntimeEvent = RuntimeEvent;
+    type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
+    type ValidatorSet = Historical;
+    type ReportUnresponsiveness = Offences;
+    type UnsignedPriority = ();
+    type WeightInfo = ();
+    type MaxKeys = MaxKeys;
+    type MaxPeerInHeartbeats = MaxPeerInHeartbeats;
+}
+
+impl pallet_offences::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type IdentificationTuple = pallet_session::historical::IdentificationTuple<Self>;
+    type OnOffenceHandler = Staking;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub struct Runtime {
         System: frame_system,
         Timestamp: pallet_timestamp,
+        Balances: pallet_balances,
+        Authorship: pallet_authorship,
+        Staking: pallet_staking,
+        Session: pallet_session,
         Aura: pallet_aura,
         Grandpa: pallet_grandpa,
-        Balances: pallet_balances,
         TransactionPayment: pallet_transaction_payment,
         Sudo: pallet_sudo,
+        Offences: pallet_offences,
+        Historical: pallet_session_historical::{Pallet},
+        ImOnline: pallet_im_online,
         SettlementFFlonkPallet: pallet_settlement_fflonk,
         Poe: pallet_poe,
     }
@@ -423,13 +594,13 @@ impl_runtime_apis! {
 
     impl sp_session::SessionKeys<Block> for Runtime {
         fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
-            opaque::SessionKeys::generate(seed)
+            SessionKeys::generate(seed)
         }
 
         fn decode_session_keys(
             encoded: Vec<u8>,
         ) -> Option<Vec<(Vec<u8>, KeyTypeId)>> {
-            opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
+            SessionKeys::decode_into_raw_public_keys(&encoded)
         }
     }
 
