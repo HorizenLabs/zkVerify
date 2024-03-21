@@ -1,5 +1,5 @@
 [relaychain]
-default_command = "nh-node"
+default_command = "./bin/nh-node"
 default_args = []
 
 chain = "local"

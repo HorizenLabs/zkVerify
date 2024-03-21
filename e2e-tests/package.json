@@ -7,6 +7,6 @@
     "keccak256": "^1.0.6"
   },
   "scripts": {
-    "test": "zombienet-linux-x64 test -p native runner.zndsl"
+    "test": "./test_runner.sh"
   }
 }
