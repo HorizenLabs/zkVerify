@@ -400,7 +400,7 @@ impl pallet_staking::Config for Runtime {
 
 impl pallet_authorship::Config for Runtime {
     type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
-    type EventHandler = Staking;
+    type EventHandler = (Staking, ImOnline);
 }
 
 impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
