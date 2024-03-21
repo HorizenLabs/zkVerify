@@ -31,8 +31,9 @@ NH_CONF_BOOTNODES=${NH_CONF_BOOTNODES:-}
 NH_CONF_RPC_CORS=${NH_CONF_RPC_CORS:-}
 NH_CONF_RPC_EXTERNAL=${NH_CONF_RPC_EXTERNAL:-}
 NH_CONF_RPC_METHODS=${NH_CONF_RPC_METHODS:-}
+NH_CONF_PRUNING=${NH_CONF_PRUNING:-}
 
-for var_name in NH_CONF_NAME NH_CONF_BASE_PATH NH_CONF_CHAIN NH_CONF_VALIDATOR NH_CONF_NODE_KEY_FILE NH_CONF_BOOTNODES NH_CONF_RPC_CORS NH_CONF_RPC_EXTERNAL NH_CONF_RPC_METHODS; do
+for var_name in NH_CONF_NAME NH_CONF_BASE_PATH NH_CONF_CHAIN NH_CONF_VALIDATOR NH_CONF_NODE_KEY_FILE NH_CONF_BOOTNODES NH_CONF_RPC_CORS NH_CONF_RPC_EXTERNAL NH_CONF_RPC_METHODS NH_CONF_PRUNING; do
   # Get the value of the variable
   var_value="${!var_name}"
 
@@ -66,6 +67,12 @@ if [ -f "${NH_SECRET_PHRASE_PATH}" ]; then
     --scheme Ed25519 \
     --suri "${NH_SECRET_PHRASE_PATH}" \
     --key-type gran
+  echo "Injecting key (Imonline)"
+  ${NH_NODE} key insert --base-path "${NH_CONF_BASE_PATH}" \
+    --chain "${NH_CONF_CHAIN}" \
+    --scheme Sr25519 \
+    --suri "${NH_SECRET_PHRASE_PATH}" \
+    --key-type imon
 fi
 
 ARGS=
@@ -88,6 +95,9 @@ else
   fi
   if [ -n "${NH_CONF_RPC_METHODS}" ]; then
    	ARGS+=" --rpc-methods ${NH_CONF_RPC_METHODS}"
+  fi
+  if [ -n "${NH_CONF_PRUNING}" ]; then
+   	ARGS+=" --pruning ${NH_CONF_PRUNING}"
   fi
 fi
 if [ -n "${NH_CONF_BOOTNODES}" ]; then
