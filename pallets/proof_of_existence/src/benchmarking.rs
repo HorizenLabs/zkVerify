@@ -15,4 +15,6 @@ benchmarks! {
     }: _(RawOrigin::Root)
 }
 
+#[cfg(test)]
+use crate::Pallet as Poe;
 impl_benchmark_test_suite!(Poe, crate::mock::new_test_ext(), crate::mock::Test,);
