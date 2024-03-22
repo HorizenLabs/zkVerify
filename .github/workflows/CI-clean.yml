@@ -1,0 +1,21 @@
+name: CI-clean
+
+run-name: "Check clean the instance"
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+jobs:
+  clean_instance:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        # os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+      - name: Clean CI
+        run: ./clean_ci.sh
