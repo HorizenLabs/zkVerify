@@ -12,6 +12,9 @@ RUN apt-get update && \
     find /var/lib/apt/lists/ -type f -not -name lock -delete;
 
 WORKDIR /usr/src/node
+RUN --mount=type=secret,id=fflonkverifiertoken \
+    FFLONK_VERIFIER_TOKEN=$(cat /run/secrets/fflonkverifiertoken); \
+    git config --global url."https://${FFLONK_VERIFIER_TOKEN}@github.com".insteadOf "https://github.com"
 COPY . .
 RUN cargo build --release
 
@@ -23,6 +26,9 @@ SHELL ["/bin/bash", "-c"]
 ARG VCS_REF
 ARG BUILD_DATE
 ARG IMAGE_NAME
+
+# That can be a single one or a comma separated list
+ARG BINARY=nh-node
 
 ARG BIN_FOLDER=.
 ARG DOC_URL=https://github.com/HorizenLabs/NH-core
@@ -44,6 +50,7 @@ WORKDIR /app
 
 ENV BINARY=${BINARY}
 
+COPY docker/scripts/entrypoint.sh .
 COPY --from=builder "/usr/src/node/target/release/nh-node" "/usr/local/bin/"
 RUN chmod -R a+rx "/usr/local/bin"
 
@@ -63,9 +70,7 @@ USER ${RUN_USER}
 ENV BINARY=${BINARY}
 
 # ENTRYPOINT
-ENTRYPOINT ["/usr/local/bin/nh-node"]
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 # We call the help by default
-CMD ["--help"]
-
-
+# CMD ["--help"]
