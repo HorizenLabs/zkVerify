@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
+      - name: Clean CI
+        run: ./.github/scripts/clean_ci.sh
       - name: Config git credentials
         run: git config --global url."https://${{ secrets.FFLONK_VERIFIER_TOKEN }}@github.com".insteadOf https://github.com
       - name: Set up cargo cache
