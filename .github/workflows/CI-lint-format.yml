@@ -46,7 +46,7 @@ jobs:
             rustup component add rust-src
       - name: Linting
         if: matrix.os == 'ubuntu-latest'
-        run: cargo clippy --release
+        run: cargo clippy --release -- --deny warnings
       - name: Formatting
         if: matrix.os == 'ubuntu-latest'
         run: cargo fmt --check
