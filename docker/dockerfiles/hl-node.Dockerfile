@@ -71,6 +71,3 @@ ENV BINARY=${BINARY}
 
 # ENTRYPOINT
 ENTRYPOINT ["/app/entrypoint.sh"]
-
-# We call the help by default
-# CMD ["--help"]

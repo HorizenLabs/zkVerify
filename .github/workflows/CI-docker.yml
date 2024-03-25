@@ -1,0 +1,46 @@
+name: CI-docker
+run-name: "Workflow performing CI step: push docker image to DockerHub"
+
+on:
+  push:
+    tags:
+      - v[0-9].[0-9].[0-9]*
+  workflow_dispatch:
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  docker:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        # os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+      - name: Build Docker image
+        run: |
+          FFLONK_VERIFIER_TOKEN=${{ secrets.FFLONK_VERIFIER_TOKEN }} docker build \
+          --build-arg VCS_REF="${VCS_REF}" \
+          --build-arg BUILD_DATE="$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+          --build-arg IMAGE_NAME="hl/nh-node" \
+          --secret id=fflonkverifiertoken,env=FFLONK_VERIFIER_TOKEN \
+          -f docker/dockerfiles/hl-node.Dockerfile -t nh-node:build .
+      - name: Login into DockerHub
+        run: docker login --username cihorizen --password ${{ secrets.DOCKER_HUB_TOKEN }}
+      - name: Publish Docker image to DockerHub
+        run: |
+          docker image tag nh-node:build horizenlabs/nh-node:${{ github.ref_name }}
+          docker push horizenlabs/nh-node:${{ github.ref_name }}
+      - name: Publish Docker image (tag latest) to DockerHub
+        run: |
+          if [[ ${{ github.ref_name }} =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            docker image tag nh-node:build horizenlabs/nh-node:latest
+            docker push horizenlabs/nh-node:latest
+          else
+            echo Not publishing latest because not official version
+          fi
+      - name: Logout from DockerHub
+        run: docker logout
