@@ -70,7 +70,7 @@ fn pallet_fflonk_availability() {
         let dummy_raw_proof: Proof = [0; FULL_PROOF_SIZE];
         assert!(SettlementFFlonkPallet::submit_proof(
             RuntimeOrigin::signed(dummy_origin),
-            dummy_raw_proof
+            dummy_raw_proof.into()
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime

@@ -15,7 +15,8 @@ fn valid_proof_passes_verification_and_is_notified() {
     new_test_ext().execute_with(|| {
         // Dispatch a signed extrinsic.
         assert!(
-            SettlementFFlonkPallet::submit_proof(RuntimeOrigin::signed(1), VALID_PROOF).is_ok()
+            SettlementFFlonkPallet::submit_proof(RuntimeOrigin::signed(1), VALID_PROOF.into())
+                .is_ok()
         );
 
         let events = mock::System::events();
@@ -38,10 +39,11 @@ fn malformed_proof_fails_verification_and_is_not_notified() {
         malformed_proof[0] = 0x07;
 
         // Dispatch a signed extrinsic.
-        assert!(
-            SettlementFFlonkPallet::submit_proof(RuntimeOrigin::signed(1), malformed_proof)
-                .is_err()
-        );
+        assert!(SettlementFFlonkPallet::submit_proof(
+            RuntimeOrigin::signed(1),
+            malformed_proof.into()
+        )
+        .is_err());
 
         let events = mock::System::events();
         assert_eq!(events.len(), 0);
@@ -56,9 +58,11 @@ fn invalid_proof_fails_verification_and_is_not_notified() {
         invalid_proof[invalid_proof.len() - 1] = 0x00;
 
         // Dispatch a signed extrinsic.
-        assert!(
-            SettlementFFlonkPallet::submit_proof(RuntimeOrigin::signed(1), invalid_proof).is_err()
-        );
+        assert!(SettlementFFlonkPallet::submit_proof(
+            RuntimeOrigin::signed(1),
+            invalid_proof.into()
+        )
+        .is_err());
 
         let events = mock::System::events();
         assert_eq!(events.len(), 0);
@@ -114,7 +118,8 @@ mod another_way_of_testing {
     fn valid_proof_passes_verification_and_is_notified_another() {
         new_test_ext().execute_with(|| {
             // Dispatch a signed extrinsic.
-            let _ = SettlementFFlonkPallet::submit_proof(RuntimeOrigin::signed(1), VALID_PROOF);
+            let _ =
+                SettlementFFlonkPallet::submit_proof(RuntimeOrigin::signed(1), VALID_PROOF.into());
         });
     }
 
@@ -126,7 +131,10 @@ mod another_way_of_testing {
             malformed_proof[0] = 0x07;
 
             // Dispatch a signed extrinsic.
-            let _ = SettlementFFlonkPallet::submit_proof(RuntimeOrigin::signed(1), malformed_proof);
+            let _ = SettlementFFlonkPallet::submit_proof(
+                RuntimeOrigin::signed(1),
+                malformed_proof.into(),
+            );
 
             // should not panic
         });
@@ -140,7 +148,10 @@ mod another_way_of_testing {
             invalid_proof[invalid_proof.len() - 1] = 0x00;
 
             // Dispatch a signed extrinsic.
-            let _ = SettlementFFlonkPallet::submit_proof(RuntimeOrigin::signed(1), invalid_proof);
+            let _ = SettlementFFlonkPallet::submit_proof(
+                RuntimeOrigin::signed(1),
+                invalid_proof.into(),
+            );
 
             // should not panic
         });
