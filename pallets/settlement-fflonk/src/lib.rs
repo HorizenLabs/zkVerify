@@ -29,6 +29,7 @@ pub mod pallet {
     use hp_poe::OnProofVerified;
     use sp_core::H256;
     use sp_io::hashing::keccak_256;
+    use sp_std::boxed::Box;
 
     #[pallet::pallet]
     pub struct Pallet<T>(_);
@@ -90,9 +91,12 @@ pub mod pallet {
     impl<T: Config> Pallet<T> {
         #[pallet::call_index(0)]
         #[pallet::weight(SubstrateWeight::<T>::submit_proof())]
-        pub fn submit_proof(_origin: OriginFor<T>, raw_proof: Proof) -> DispatchResultWithPostInfo {
+        pub fn submit_proof(
+            _origin: OriginFor<T>,
+            raw_proof: Box<Proof>,
+        ) -> DispatchResultWithPostInfo {
             log::trace!("Submitting proof");
-            verify_proof::<T>(raw_proof)
+            verify_proof::<T>(*raw_proof)
                 .map(Into::into)
                 .map_err(Into::into)
         }
