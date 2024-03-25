@@ -74,6 +74,8 @@ pub mod currency {
     pub type Balance = u128;
     pub const NZEN: Balance = 1_000_000_000_000_000_000;
     pub const CENTS: Balance = NZEN / 100;
+    pub const THOUSANDS: Balance = 1_000 * NZEN;
+    pub const MILLIONS: Balance = 1_000 * THOUSANDS;
 }
 
 use currency::*;
