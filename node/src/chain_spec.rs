@@ -4,10 +4,8 @@ use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_service::{ChainType, Properties};
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
-use sp_core::crypto::Ss58Codec;
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
-use sp_runtime::AccountId32;
 
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
@@ -30,6 +28,12 @@ where
     AccountPublic: From<<TPublic::Pair as Pair>::Public>,
 {
     AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
+}
+
+fn from_ss58check<T: sp_core::crypto::Ss58Codec>(
+    key: &str,
+) -> Result<T, sp_core::crypto::PublicError> {
+    <T as sp_core::crypto::Ss58Codec>::from_ss58check(key)
 }
 
 fn session_keys(aura: AuraId, grandpa: GrandpaId, im_online: ImOnlineId) -> SessionKeys {
@@ -56,28 +60,28 @@ pub fn authority_ids_from_ss58(
     ed25519_key: &str,
 ) -> Result<(AccountId, AuraId, GrandpaId, ImOnlineId), String> {
     Ok((
-        AccountId32::from_ss58check(sr25519_key).map_err(|error| {
+        from_ss58check(sr25519_key).map_err(|error| {
             format!(
                 "An error occurred while converting SS58 to AccountId: {}",
-                error.to_string()
+                error
             )
         })?,
-        AuraId::from_ss58check(sr25519_key).map_err(|error| {
+        from_ss58check(sr25519_key).map_err(|error| {
             format!(
                 "An error occurred while converting SS58 to AuraId: {}",
-                error.to_string()
+                error
             )
         })?,
-        GrandpaId::from_ss58check(ed25519_key).map_err(|error| {
+        from_ss58check(ed25519_key).map_err(|error| {
             format!(
                 "An error occurred while converting SS58 to GrandpaId: {}",
-                error.to_string()
+                error
             )
         })?,
-        ImOnlineId::from_ss58check(sr25519_key).map_err(|error| {
+        from_ss58check(sr25519_key).map_err(|error| {
             format!(
                 "An error occurred while converting SS58 to ImOnlineId: {}",
-                error.to_string()
+                error
             )
         })?,
     ))
@@ -106,11 +110,11 @@ pub fn development_config() -> Result<ChainSpec, String> {
         vec![
             (
                 get_account_id_from_seed::<sr25519::Public>("Alice"),
-                10 * currency::MILLIONS + 1 * currency::NZEN,
+                10 * currency::MILLIONS + currency::NZEN,
             ),
             (
                 get_account_id_from_seed::<sr25519::Public>("Bob"),
-                10 * currency::MILLIONS + 1 * currency::NZEN,
+                10 * currency::MILLIONS + currency::NZEN,
             ),
         ],
         true,
@@ -132,26 +136,6 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
         props.insert("tokenDecimals".into(), 18.into());
         props
     })
-    // .with_boot_nodes(vec![
-    //     format!(
-    //         "/ip4/{}/tcp/30333/p2p/{}",
-    //         "127.0.0.1", "12D3KooWAScNHXSGoWEwJwUsLQeyjbZFnuVbt63G6HeGuQ4XWxXd"
-    //     )
-    //     .parse()
-    //     .map_err(|error: ParseErr| error.to_string())?,
-    //     format!(
-    //         "/ip4/{}/tcp/30333/p2p/{}",
-    //         "127.0.0.1", "12D3KooWLykYoBaL2f3mQFYC9ULoF2hMpifW8pyMmTmHoY3e763d"
-    //     )
-    //     .parse()
-    //     .map_err(|error: ParseErr| error.to_string())?,
-    //     format!(
-    //         "/ip4/{}/tcp/30333/p2p/{}",
-    //         "127.0.0.1", "12D3KooWKVnXNNe8Q2MFsSDgNfEyndu2CA4utgWnd3rBY3vDuX2H"
-    //     )
-    //     .parse()
-    //     .map_err(|error: ParseErr| error.to_string())?,
-    // ])
     .with_genesis_config_patch(testnet_genesis(
         // Initial PoA authorities
         vec![
@@ -181,69 +165,69 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
             ),
         ],
         // Sudo account [nh-sudo-t1]
-        AccountId32::from_ss58check("5D9txxK9DTvgCznTjJo7q1cxAgmWa83CzHvcz8zhBtLgaLBV")
+        from_ss58check("5D9txxK9DTvgCznTjJo7q1cxAgmWa83CzHvcz8zhBtLgaLBV")
             .map_err(|error| error.to_string())?,
         // Initial balances
         vec![
             // nh-validator-t1
             (
-                AccountId32::from_ss58check("5DkkLph1sMf13yZ2NJAQQAmW7v3gs7nq1Hq8VBzaz9qsnkTn")
+                from_ss58check("5DkkLph1sMf13yZ2NJAQQAmW7v3gs7nq1Hq8VBzaz9qsnkTn")
                     .map_err(|error| error.to_string())?,
-                4 * currency::MILLIONS + 1 * currency::NZEN,
+                4 * currency::MILLIONS + currency::NZEN,
             ),
             // nh-validator-t2
             (
-                AccountId32::from_ss58check("5FRPTHzWMtLiZPyf2YLnzeesLMscet8BBb4Khz14ftPxwFUj")
+                from_ss58check("5FRPTHzWMtLiZPyf2YLnzeesLMscet8BBb4Khz14ftPxwFUj")
                     .map_err(|error| error.to_string())?,
-                4 * currency::MILLIONS + 1 * currency::NZEN,
+                4 * currency::MILLIONS + currency::NZEN,
             ),
             // nh-validator-t3
             (
-                AccountId32::from_ss58check("5F9A9ktpR7pf5d3LQtppANSFfAXXzpGcCzYM5jBwfDBUpWZ6")
+                from_ss58check("5F9A9ktpR7pf5d3LQtppANSFfAXXzpGcCzYM5jBwfDBUpWZ6")
                     .map_err(|error| error.to_string())?,
-                2 * currency::MILLIONS + 1 * currency::NZEN,
+                2 * currency::MILLIONS + currency::NZEN,
             ),
             // nh-sudo-t1
             (
-                AccountId32::from_ss58check("5D9txxK9DTvgCznTjJo7q1cxAgmWa83CzHvcz8zhBtLgaLBV")
+                from_ss58check("5D9txxK9DTvgCznTjJo7q1cxAgmWa83CzHvcz8zhBtLgaLBV")
                     .map_err(|error| error.to_string())?,
                 100 * currency::THOUSANDS,
             ),
             // nh-wallet-custody-t1
             (
-                AccountId32::from_ss58check("5GKWyvfHyK2PsbZEyTdh5BiP8rhizDaEs7ph2W9YokNLpwpM")
+                from_ss58check("5GKWyvfHyK2PsbZEyTdh5BiP8rhizDaEs7ph2W9YokNLpwpM")
                     .map_err(|error| error.to_string())?,
-                1 * currency::MILLIONS,
+                currency::MILLIONS,
             ),
             // nh-wallet-custody-t2
             (
-                AccountId32::from_ss58check("5DnUTtZRaAbpYnwrdr7zme6snYeWXfQWJ5Rq253zUjJhd2fv")
+                from_ss58check("5DnUTtZRaAbpYnwrdr7zme6snYeWXfQWJ5Rq253zUjJhd2fv")
                     .map_err(|error| error.to_string())?,
-                1 * currency::MILLIONS,
+                currency::MILLIONS,
             ),
             // nh-wallet-automated-t1
             (
-                AccountId32::from_ss58check("5CkmKQbsvME3TZa6ULc7meNRRfrTNPU4aprMLymvFDMruJ9H")
+                from_ss58check("5CkmKQbsvME3TZa6ULc7meNRRfrTNPU4aprMLymvFDMruJ9H")
                     .map_err(|error| error.to_string())?,
                 500 * currency::THOUSANDS,
             ),
             // nh-wallet-user-t1
             (
-                AccountId32::from_ss58check("5HQRNiMdkVrhtEcrDcYD6K6FATYU13p9RKbN6iyu7kbgRN4u")
+                from_ss58check("5HQRNiMdkVrhtEcrDcYD6K6FATYU13p9RKbN6iyu7kbgRN4u")
                     .map_err(|error| error.to_string())?,
                 100 * currency::THOUSANDS,
             ),
             // nh-wallet-faucet-t1
             (
-                AccountId32::from_ss58check("5FCFo9uuY5iZmBc4rE7wFeZcKf3gR8KujVVCPnib6H8XDHTM")
+                from_ss58check("5FCFo9uuY5iZmBc4rE7wFeZcKf3gR8KujVVCPnib6H8XDHTM")
                     .map_err(|error| error.to_string())?,
-                1 * currency::MILLIONS,
+                currency::MILLIONS,
             ),
             // cdk-aggregator-nh-t1
             (
-                AccountId32::from_ss58check("5GCM2e4WzGPBy12xNZVc6XF72gund3esdRZAfAtGqiYCd697")
+                from_ss58check("5GCM2e4WzGPBy12xNZVc6XF72gund3esdRZAfAtGqiYCd697")
                     .map_err(|error| error.to_string())?,
-                1 * currency::MILLIONS,
+                currency::MILLIONS,
             ),
         ],
         true,
@@ -264,12 +248,18 @@ fn testnet_genesis(
             "balances": endowed_accounts,
         },
         "session": {
-            "keys": initial_authorities.iter().map(|(keys, _)| { (keys.0.clone(), keys.0.clone(), session_keys(keys.1.clone(), keys.2.clone(), keys.3.clone())) }).collect::<Vec<_>>(),
+            "keys": initial_authorities.iter()
+                .cloned()
+                .map(|((account, aura, grandpa, imonline), _staking)| { (account.clone(), account, session_keys(aura, grandpa, imonline)) })
+                .collect::<Vec<_>>(),
         },
         "staking": {
             "minimumValidatorCount": 2,
             "validatorCount": 3,
-            "stakers": initial_authorities.iter().map(|(keys, staking)| (keys.0.clone(), keys.0.clone(), staking, sp_staking::StakerStatus::Validator::<AccountId>)).collect::<Vec<_>>(),
+            "stakers": initial_authorities.iter()
+                .cloned()
+                .map(|((account, _aura, _grandpa, _imonline), staking)| (account.clone(), account, staking, sp_staking::StakerStatus::Validator::<AccountId>))
+                .collect::<Vec<_>>(),
         },
         "sudo": {
             // Assign network admin rights.
