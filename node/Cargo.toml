@@ -19,7 +19,7 @@ path = "src/main.rs"
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
 futures = { workspace = true, features = ["thread-pool"] }
-serde_json = { workspace = true}
+serde_json = { workspace = true, features = ["arbitrary_precision"] }
 sc-cli = { workspace = true}
 sp-core = { workspace = true}
 sc-executor = { workspace = true}

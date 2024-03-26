@@ -1,4 +1,5 @@
-use nh_runtime::{AccountId, RuntimeGenesisConfig, SessionKeys, Signature, WASM_BINARY};
+use nh_runtime::currency::Balance;
+use nh_runtime::{currency, AccountId, RuntimeGenesisConfig, SessionKeys, Signature, WASM_BINARY};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_service::{ChainType, Properties};
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -29,6 +30,12 @@ where
     AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
+fn from_ss58check<T: sp_core::crypto::Ss58Codec>(
+    key: &str,
+) -> Result<T, sp_core::crypto::PublicError> {
+    <T as sp_core::crypto::Ss58Codec>::from_ss58check(key)
+}
+
 fn session_keys(aura: AuraId, grandpa: GrandpaId, im_online: ImOnlineId) -> SessionKeys {
     SessionKeys {
         aura,
@@ -47,6 +54,39 @@ pub fn authority_keys_from_seed(s: &str) -> (AccountId, AuraId, GrandpaId, ImOnl
     )
 }
 
+// Generate Aura and Grandpa authority IDs from SS58 addresses.
+pub fn authority_ids_from_ss58(
+    sr25519_key: &str,
+    ed25519_key: &str,
+) -> Result<(AccountId, AuraId, GrandpaId, ImOnlineId), String> {
+    Ok((
+        from_ss58check(sr25519_key).map_err(|error| {
+            format!(
+                "An error occurred while converting SS58 to AccountId: {}",
+                error
+            )
+        })?,
+        from_ss58check(sr25519_key).map_err(|error| {
+            format!(
+                "An error occurred while converting SS58 to AuraId: {}",
+                error
+            )
+        })?,
+        from_ss58check(ed25519_key).map_err(|error| {
+            format!(
+                "An error occurred while converting SS58 to GrandpaId: {}",
+                error
+            )
+        })?,
+        from_ss58check(sr25519_key).map_err(|error| {
+            format!(
+                "An error occurred while converting SS58 to ImOnlineId: {}",
+                error
+            )
+        })?,
+    ))
+}
+
 pub fn development_config() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
@@ -63,15 +103,19 @@ pub fn development_config() -> Result<ChainSpec, String> {
     })
     .with_genesis_config_patch(testnet_genesis(
         // Initial PoA authorities
-        vec![authority_keys_from_seed("Alice")],
+        vec![(authority_keys_from_seed("Alice"), 10 * currency::MILLIONS)],
         // Sudo account
         get_account_id_from_seed::<sr25519::Public>("Alice"),
         // Pre-funded accounts
         vec![
-            get_account_id_from_seed::<sr25519::Public>("Alice"),
-            get_account_id_from_seed::<sr25519::Public>("Bob"),
-            get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-            get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+            (
+                get_account_id_from_seed::<sr25519::Public>("Alice"),
+                10 * currency::MILLIONS + currency::NZEN,
+            ),
+            (
+                get_account_id_from_seed::<sr25519::Public>("Bob"),
+                10 * currency::MILLIONS + currency::NZEN,
+            ),
         ],
         true,
     ))
@@ -83,8 +127,8 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
         None,
     )
-    .with_name("Local Testnet")
-    .with_id("local_testnet")
+    .with_name("NH Testnet")
+    .with_id("nh_testnet")
     .with_chain_type(ChainType::Local)
     .with_properties({
         let mut props = Properties::new();
@@ -95,53 +139,127 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
     .with_genesis_config_patch(testnet_genesis(
         // Initial PoA authorities
         vec![
-            authority_keys_from_seed("Alice"),
-            authority_keys_from_seed("Bob"),
+            // nh-validator-t1
+            (
+                authority_ids_from_ss58(
+                    "5DkkLph1sMf13yZ2NJAQQAmW7v3gs7nq1Hq8VBzaz9qsnkTn",
+                    "5GLr2vfut1KixwPcqzmqg57zZ3bXgV3EisUCxA8Ws3eCiSwH",
+                )?,
+                4 * currency::MILLIONS,
+            ),
+            // nh-validator-t2
+            (
+                authority_ids_from_ss58(
+                    "5FRPTHzWMtLiZPyf2YLnzeesLMscet8BBb4Khz14ftPxwFUj",
+                    "5H7fi3cWJkF4Mjm9cMm3umvB2QieZ2qwfZekJCb4LvaQVkN5",
+                )?,
+                4 * currency::MILLIONS,
+            ),
+            // nh-validator-t3
+            (
+                authority_ids_from_ss58(
+                    "5F9A9ktpR7pf5d3LQtppANSFfAXXzpGcCzYM5jBwfDBUpWZ6",
+                    "5Ep6w32bTWnPUMjyAVwEtrttmmjbM6Yo5vwP6gg79N74tPnw",
+                )?,
+                2 * currency::MILLIONS,
+            ),
         ],
-        // Sudo account
-        get_account_id_from_seed::<sr25519::Public>("Alice"),
-        // Pre-funded accounts
+        // Sudo account [nh-sudo-t1]
+        from_ss58check("5D9txxK9DTvgCznTjJo7q1cxAgmWa83CzHvcz8zhBtLgaLBV")
+            .map_err(|error| error.to_string())?,
+        // Initial balances
         vec![
-            get_account_id_from_seed::<sr25519::Public>("Alice"),
-            get_account_id_from_seed::<sr25519::Public>("Bob"),
-            get_account_id_from_seed::<sr25519::Public>("Charlie"),
-            get_account_id_from_seed::<sr25519::Public>("Dave"),
-            get_account_id_from_seed::<sr25519::Public>("Eve"),
-            get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-            get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-            get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-            get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
-            get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
-            get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
-            get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
+            // nh-validator-t1
+            (
+                from_ss58check("5DkkLph1sMf13yZ2NJAQQAmW7v3gs7nq1Hq8VBzaz9qsnkTn")
+                    .map_err(|error| error.to_string())?,
+                4 * currency::MILLIONS + currency::NZEN,
+            ),
+            // nh-validator-t2
+            (
+                from_ss58check("5FRPTHzWMtLiZPyf2YLnzeesLMscet8BBb4Khz14ftPxwFUj")
+                    .map_err(|error| error.to_string())?,
+                4 * currency::MILLIONS + currency::NZEN,
+            ),
+            // nh-validator-t3
+            (
+                from_ss58check("5F9A9ktpR7pf5d3LQtppANSFfAXXzpGcCzYM5jBwfDBUpWZ6")
+                    .map_err(|error| error.to_string())?,
+                2 * currency::MILLIONS + currency::NZEN,
+            ),
+            // nh-sudo-t1
+            (
+                from_ss58check("5D9txxK9DTvgCznTjJo7q1cxAgmWa83CzHvcz8zhBtLgaLBV")
+                    .map_err(|error| error.to_string())?,
+                100 * currency::THOUSANDS,
+            ),
+            // nh-wallet-custody-t1
+            (
+                from_ss58check("5GKWyvfHyK2PsbZEyTdh5BiP8rhizDaEs7ph2W9YokNLpwpM")
+                    .map_err(|error| error.to_string())?,
+                currency::MILLIONS,
+            ),
+            // nh-wallet-custody-t2
+            (
+                from_ss58check("5DnUTtZRaAbpYnwrdr7zme6snYeWXfQWJ5Rq253zUjJhd2fv")
+                    .map_err(|error| error.to_string())?,
+                currency::MILLIONS,
+            ),
+            // nh-wallet-automated-t1
+            (
+                from_ss58check("5CkmKQbsvME3TZa6ULc7meNRRfrTNPU4aprMLymvFDMruJ9H")
+                    .map_err(|error| error.to_string())?,
+                500 * currency::THOUSANDS,
+            ),
+            // nh-wallet-user-t1
+            (
+                from_ss58check("5HQRNiMdkVrhtEcrDcYD6K6FATYU13p9RKbN6iyu7kbgRN4u")
+                    .map_err(|error| error.to_string())?,
+                100 * currency::THOUSANDS,
+            ),
+            // nh-wallet-faucet-t1
+            (
+                from_ss58check("5FCFo9uuY5iZmBc4rE7wFeZcKf3gR8KujVVCPnib6H8XDHTM")
+                    .map_err(|error| error.to_string())?,
+                currency::MILLIONS,
+            ),
+            // cdk-aggregator-nh-t1
+            (
+                from_ss58check("5GCM2e4WzGPBy12xNZVc6XF72gund3esdRZAfAtGqiYCd697")
+                    .map_err(|error| error.to_string())?,
+                currency::MILLIONS,
+            ),
         ],
         true,
     ))
     .build())
 }
 
-const INIT_BALANCE: u128 = 1u128 << 60;
-const INIT_STASH: u128 = 1u128 << 59; // Use half the balance as stake
-
 /// Configure initial storage state for FRAME modules.
 fn testnet_genesis(
-    initial_authorities: Vec<(AccountId, AuraId, GrandpaId, ImOnlineId)>,
+    initial_authorities: Vec<((AccountId, AuraId, GrandpaId, ImOnlineId), Balance)>,
     root_key: AccountId,
-    endowed_accounts: Vec<AccountId>,
+    endowed_accounts: Vec<(AccountId, Balance)>,
     _enable_println: bool,
 ) -> serde_json::Value {
     serde_json::json!({
         "balances": {
-            // Configure endowed accounts with initial balance of 1 << 60.
-            "balances": endowed_accounts.iter().cloned().map(|k| (k, INIT_BALANCE)).collect::<Vec<_>>(),
+            // Configure endowed accounts with initial balance.
+            "balances": endowed_accounts,
         },
         "session": {
-            "keys": initial_authorities.iter().map(|x| { (x.0.clone(), x.0.clone(), session_keys(x.1.clone(), x.2.clone(), x.3.clone())) }).collect::<Vec<_>>(),
+            "keys": initial_authorities.iter()
+                .cloned()
+                .map(|((account, aura, grandpa, imonline), _staking)| { (account.clone(), account, session_keys(aura, grandpa, imonline)) })
+                .collect::<Vec<_>>(),
         },
         "staking": {
             "minimumValidatorCount": 2,
             "validatorCount": 3,
-            "stakers": initial_authorities.iter().map(|x| (x.1.clone(), x.1.clone(), INIT_STASH, sp_staking::StakerStatus::Validator::<AccountId>)).collect::<Vec<_>>(),
+            "stakers": initial_authorities.iter()
+                .cloned()
+                .map(|((account, _aura, _grandpa, _imonline), staking)| (account.clone(), account, staking, sp_staking::StakerStatus::Validator::<AccountId>))
+                .collect::<Vec<_>>(),
         },
         "sudo": {
             // Assign network admin rights.
@@ -162,7 +280,7 @@ mod tests {
     // by checking that the json returned by testnet_genesis() contains the field "aura"
     #[test]
     fn testnet_genesis_should_set_session_keys() {
-        let initial_authorities = vec![authority_keys_from_seed("Alice")];
+        let initial_authorities = vec![(authority_keys_from_seed("Alice"), 7 * currency::NZEN)];
         let root_key = get_account_id_from_seed::<sr25519::Public>("Alice");
 
         let ret_val: serde_json::Value =
@@ -179,5 +297,11 @@ mod tests {
             .unwrap();
         // Check that we have one "keys" set
         assert_eq!(1, auth_len);
+    }
+
+    // This test checks whether the local testnet genesis configuration is generated correctly
+    #[test]
+    fn local_testnet_genesis_should_be_valid() {
+        assert!(local_testnet_config().is_ok());
     }
 }

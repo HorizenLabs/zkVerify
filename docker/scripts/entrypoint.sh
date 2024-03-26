@@ -16,15 +16,13 @@ IFS=',' read -r -a BINARIES <<< "$BINARY"
 NH_NODE="${BINARIES[0]}"
 echo "NH_NODE=${NH_NODE}"
 
-NH_SPEC_PATH=${NH_SPEC_PATH:-"/data/chain_spec.json"}
 NH_SECRET_PHRASE_PATH=${NH_SECRET_PHRASE_PATH:-"/data/secret_phrase.dat"}
-echo "NH_SPEC_PATH=${NH_SPEC_PATH}"
 echo "NH_SECRET_PHRASE_PATH=${NH_SECRET_PHRASE_PATH}"
 
 # Node configurations (env->arg)
 NH_CONF_NAME=${NH_CONF_NAME:-"MyNode"}
 NH_CONF_BASE_PATH=${NH_CONF_BASE_PATH:-"/data/node"}
-NH_CONF_CHAIN=${NH_CONF_CHAIN:-"${NH_SPEC_PATH%/*}/chain_spec_raw.json"}
+NH_CONF_CHAIN=${NH_CONF_CHAIN:-"local"}
 NH_CONF_VALIDATOR=${NH_CONF_VALIDATOR:-}
 NH_CONF_NODE_KEY_FILE=${NH_CONF_NODE_KEY_FILE:-}
 NH_CONF_BOOTNODES=${NH_CONF_BOOTNODES:-}
@@ -32,8 +30,9 @@ NH_CONF_RPC_CORS=${NH_CONF_RPC_CORS:-}
 NH_CONF_RPC_EXTERNAL=${NH_CONF_RPC_EXTERNAL:-}
 NH_CONF_RPC_METHODS=${NH_CONF_RPC_METHODS:-}
 NH_CONF_PRUNING=${NH_CONF_PRUNING:-}
+NH_PROMETHEUS_EXTERNAL=${NH_PROMETHEUS_EXTERNAL:-}
 
-for var_name in NH_CONF_NAME NH_CONF_BASE_PATH NH_CONF_CHAIN NH_CONF_VALIDATOR NH_CONF_NODE_KEY_FILE NH_CONF_BOOTNODES NH_CONF_RPC_CORS NH_CONF_RPC_EXTERNAL NH_CONF_RPC_METHODS NH_CONF_PRUNING; do
+for var_name in NH_CONF_NAME NH_CONF_BASE_PATH NH_CONF_CHAIN NH_CONF_VALIDATOR NH_CONF_NODE_KEY_FILE NH_CONF_BOOTNODES NH_CONF_RPC_CORS NH_CONF_RPC_EXTERNAL NH_CONF_RPC_METHODS NH_CONF_PRUNING NH_PROMETHEUS_EXTERNAL; do
   # Get the value of the variable
   var_value="${!var_name}"
 
@@ -44,15 +43,6 @@ for var_name in NH_CONF_NAME NH_CONF_BASE_PATH NH_CONF_CHAIN NH_CONF_VALIDATOR N
     echo "${var_name} is empty"
   fi
 done
-
-if [ ! -f "${NH_SPEC_PATH}" ]; then
-  echo "Spec file missing. Aborting..."
-  exit 1
-fi
-
-if [ ! -f "${NH_CONF_CHAIN}" ]; then
-  ${NH_NODE} build-spec --chain="${NH_SPEC_PATH}" --raw --disable-default-bootnode > "${NH_CONF_CHAIN}"
-fi
 
 if [ -f "${NH_SECRET_PHRASE_PATH}" ]; then
   echo "Injecting key (Aura)"
@@ -102,6 +92,9 @@ else
 fi
 if [ -n "${NH_CONF_BOOTNODES}" ]; then
 	ARGS+=" --bootnodes ${NH_CONF_BOOTNODES}"
+fi
+if [ -n "${NH_PROMETHEUS_EXTERNAL}" ]; then
+	ARGS+=" --prometheus-external ${NH_PROMETHEUS_EXTERNAL}"
 fi
 # append other extra args
 ARGS+=" "
