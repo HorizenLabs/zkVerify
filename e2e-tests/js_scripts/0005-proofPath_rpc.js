@@ -190,10 +190,7 @@ async function wait_for_new_attestation(api) {
                 // Show what we are busy with
                 console.log(`\t${event.section}:${event.method}:: (phase=${phase.toString()})`);
 
-                //// event.section == "poe"
-                //// event.method == "NewAttestation"
                 if ((event.section == "poe") && (event.method == "NewAttestation")) {
-                    console.log("NUOVA ATTESTAZIONE PUBBLICATA");
                     unsubscribe();
                     resolve(event);
                 }
@@ -202,9 +199,6 @@ async function wait_for_new_attestation(api) {
                 event.data.forEach((data, index) => {
                     console.log(`\t\t\t${types[index].type}: ${data.toString()}`);
                 });
-
-                //// types[index].type == "u64" e data.toString() restituisce id
-                //// types[index].type == "H256" e data.toString() restituisce hash della root
             });
         });
     }).then(
@@ -213,7 +207,7 @@ async function wait_for_new_attestation(api) {
             return our_best_event;
         },
         error => {
-            console.log("How sad...")
+            console.log("An error happened when waiting for the new attestation to be published.")
             return -1;
         }
     );
@@ -240,7 +234,6 @@ function verify_proof(proof, published_root) {
         width = Math.floor((width - 1) / 2) + 1;
     });
 
-    // return stripHexPrefix(proof['root']) == hash;
     return stripHexPrefix(published_root) == hash;
 }
 

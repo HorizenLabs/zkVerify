@@ -7,9 +7,6 @@ on:
     types: [opened, synchronize]
   push:
     branches: [main]
-  # workflow_run:
-  #   workflows: [CI-build-test]
-  #   types: [completed]
   workflow_dispatch:
 
 env:
@@ -25,8 +22,6 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
-        # with:
-        #   ref: ${{ github.event.workflow_run.head_branch }}
       - name: Config git credentials
         run: git config --global url."https://${{ secrets.FFLONK_VERIFIER_TOKEN }}@github.com".insteadOf https://github.com
       - name: Set up cargo cache

@@ -1,3 +1,9 @@
+# Network definition: single validator node
+# To spawn the network described in this file (from e2e-tests folder)
+#     bin/zombienet-linux-x64 -p native spawn ./network_defs/single_node.toml
+# Additional debug information are printed to the console by setting the env var DEBUG:
+#     DEBUG=zombie* zombienet -p native spawn ./network_defs/single_node.toml
+
 [relaychain]
 default_command = "./bin/nh-node"
 default_args = []

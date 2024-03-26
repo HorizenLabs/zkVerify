@@ -7,5 +7,4 @@ docker/resources/deploy
 docker/resources/envs/.env
 e2e-tests/node_modules
 e2e-tests/yarn.lock
-e2e-tests/bin/nh-node
-e2e-tests/bin/zombienet-linux-x64
+e2e-tests/bin
