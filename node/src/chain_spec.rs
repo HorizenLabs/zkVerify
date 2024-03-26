@@ -62,13 +62,13 @@ pub fn authority_ids_from_ss58(
                 error.to_string()
             )
         })?,
-        AuraId::from_ss58check(ed25519_key).map_err(|error| {
+        AuraId::from_ss58check(sr25519_key).map_err(|error| {
             format!(
                 "An error occurred while converting SS58 to AuraId: {}",
                 error.to_string()
             )
         })?,
-        GrandpaId::from_ss58check(sr25519_key).map_err(|error| {
+        GrandpaId::from_ss58check(ed25519_key).map_err(|error| {
             format!(
                 "An error occurred while converting SS58 to GrandpaId: {}",
                 error.to_string()
@@ -269,7 +269,7 @@ fn testnet_genesis(
         "staking": {
             "minimumValidatorCount": 2,
             "validatorCount": 3,
-            "stakers": initial_authorities.iter().map(|(keys, staking)| (keys.1.clone(), keys.1.clone(), staking, sp_staking::StakerStatus::Validator::<AccountId>)).collect::<Vec<_>>(),
+            "stakers": initial_authorities.iter().map(|(keys, staking)| (keys.0.clone(), keys.0.clone(), staking, sp_staking::StakerStatus::Validator::<AccountId>)).collect::<Vec<_>>(),
         },
         "sudo": {
             // Assign network admin rights.
