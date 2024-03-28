@@ -12,9 +12,6 @@ RUN apt-get update && \
     find /var/lib/apt/lists/ -type f -not -name lock -delete;
 
 WORKDIR /usr/src/node
-RUN --mount=type=secret,id=fflonkverifiertoken \
-    FFLONK_VERIFIER_TOKEN=$(cat /run/secrets/fflonkverifiertoken); \
-    git config --global url."https://${FFLONK_VERIFIER_TOKEN}@github.com".insteadOf "https://github.com"
 COPY . .
 RUN cargo build --release
 
@@ -52,6 +49,7 @@ ENV BINARY=${BINARY}
 
 COPY docker/scripts/entrypoint.sh .
 COPY --from=builder "/usr/src/node/target/release/nh-node" "/usr/local/bin/"
+COPY --from=builder "/usr/src/node/target/release/wbuild/nh-runtime/nh_runtime.compact.compressed.wasm" "./nh_runtime.compact.compressed.wasm"
 RUN chmod -R a+rx "/usr/local/bin"
 
 ENV RUN_USER hl
