@@ -51,4 +51,4 @@ jobs:
       - name: Unit tests
         run: cargo test --lib --bins --all-features --no-fail-fast --release 
       - name: Integration tests
-        run: cargo test --test '*' --all-features --no-fail-fast --release 
+        run: cargo test --test '*' --all-features --no-fail-fast --release
