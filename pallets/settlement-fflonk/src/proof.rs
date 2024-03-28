@@ -1,3 +1,18 @@
+ // Copyright 2024, The Horizen Foundation
+ 
+ // This program is free software: you can redistribute it and/or modify
+ // it under the terms of the GNU General Public License as published by
+ // the Free Software Foundation, either version 3 of the License, or
+ // (at your option) any later version.
+ 
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ // GNU General Public License for more details.
+ 
+ // You should have received a copy of the GNU General Public License
+ // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 pub static VALID_PROOF: crate::Proof = hex_literal::hex!(
     "
         283e3f25323d02dabdb94a897dc2697a3b930d8781381ec574af89a201a91d5a

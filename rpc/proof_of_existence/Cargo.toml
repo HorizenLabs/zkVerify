@@ -5,6 +5,7 @@ description = "Add RPC commands to the Proof of Existence pallet - node side"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true
+license = "Apache-2.0"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]

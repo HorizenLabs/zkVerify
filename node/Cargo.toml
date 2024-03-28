@@ -8,6 +8,7 @@ edition.workspace = true
 publish = false
 repository.workspace = true
 build = "build.rs"
+license = "GPL-3.0"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]

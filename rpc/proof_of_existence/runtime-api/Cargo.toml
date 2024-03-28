@@ -5,6 +5,7 @@ description = "Add RPC commands to the Proof of Existence pallet - runtime side"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true
+license = "Apache-2.0"
 
 [dependencies]
 pallet-poe         = { default-features = false, workspace = true }
