@@ -3,8 +3,6 @@ name: CI-coverage
 run-name: "Workflow performing CI step: coverage"
 
 on:
-  pull_request:
-    types: [opened, synchronize]
   push:
     branches: [main]
   workflow_dispatch:
