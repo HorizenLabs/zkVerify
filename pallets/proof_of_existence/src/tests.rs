@@ -1,6 +1,7 @@
 use crate::mock;
 use crate::mock::RuntimeEvent as TestEvent;
 use crate::mock::*;
+use crate::AttestationPathRequestError;
 use frame_support::inherent::ProvideInherent;
 use frame_support::pallet_prelude::InherentData;
 use frame_system::{EventRecord, Phase};
@@ -8,6 +9,7 @@ use hex_literal::hex;
 use hp_poe::OnProofVerified;
 use hp_poe::INHERENT_IDENTIFIER;
 use sp_core::H256;
+use sp_runtime::traits::Keccak256;
 
 fn assert_attestation_evt(id: u64, value: H256) {
     assert!(mock::System::events().contains(&EventRecord {
@@ -180,4 +182,65 @@ mod should_inherent_call {
             })
         }
     }
+}
+
+/// Tests for the `get_proof_path_from_pallet` function
+#[test]
+fn get_proof_from_pallet_proof_not_found() {
+    new_test_ext().execute_with(|| {
+        for p in 0..MIN_PROOFS_FOR_ROOT_PUBLISHING as usize {
+            Poe::on_proof_verified(H256(HASHES[p].into()));
+        }
+        Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
+        let attestation_id = 0;
+        let proof_hash = H256(hex!(
+            "0badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbad"
+        ));
+
+        // Query for a proof that does not exist
+        assert_eq!(
+            Poe::get_proof_path_from_pallet(attestation_id, proof_hash),
+            Err(AttestationPathRequestError::ProofNotFound(
+                attestation_id,
+                proof_hash,
+            ))
+        );
+    })
+}
+
+#[test]
+fn get_proof_from_pallet_invalid_att_id() {
+    new_test_ext().execute_with(|| {
+        for p in 0..MIN_PROOFS_FOR_ROOT_PUBLISHING as usize {
+            Poe::on_proof_verified(H256(HASHES[p].into()));
+        }
+        Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
+        let attestation_id = 10;
+        let proof_hash = H256(HASHES[0].into());
+
+        // Query for an existing proof with an invalid attestation id
+        assert!(Poe::get_proof_path_from_pallet(attestation_id, proof_hash).is_err());
+    })
+}
+
+#[test]
+fn get_proof_from_pallet_valid_att_id_and_valid_proof() {
+    new_test_ext().execute_with(|| {
+        for p in 0..MIN_PROOFS_FOR_ROOT_PUBLISHING as usize {
+            Poe::on_proof_verified(H256(HASHES[p].into()));
+        }
+        Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
+        let attestation_id = 0;
+        let proof_hash = H256(HASHES[0].into());
+
+        let proof = Poe::get_proof_path_from_pallet(attestation_id, proof_hash).unwrap();
+
+        assert!(binary_merkle_tree::verify_proof::<Keccak256, _, _>(
+            &proof.root,
+            proof.proof,
+            proof.number_of_leaves,
+            proof.leaf_index,
+            &proof_hash
+        ));
+    })
 }

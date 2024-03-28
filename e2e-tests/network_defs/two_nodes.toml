@@ -1,0 +1,19 @@
+# Network definition: two validator nodes
+# To spawn the network described in this file (from e2e-tests folder)
+#     bin/zombienet-linux-x64 -p native spawn ./network_defs/two_nodes.toml
+# Additional debug information are printed to the console by setting the env var DEBUG:
+#     DEBUG=zombie* zombienet -p native spawn ./network_defs/two_nodes.toml
+
+[relaychain]
+default_command = "nh-node"
+default_args = []
+
+chain = "local"
+
+  [[relaychain.nodes]]
+  name = "alice"
+  validator = true
+
+  [[relaychain.nodes]]
+  name = "bob"
+  validator = true

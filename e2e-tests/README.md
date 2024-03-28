@@ -1,35 +1,61 @@
-# End-to-end test with zombienet
+# NH-core end-to-end tests
 
-This folder contains the `NH-core` end-to-end tests written for Polkadot zombienet testing framework.
+## Summary: requirements for a local run
+- node
+- npm
+- yarn
 
-Each sub-folder contains one test, described by the following files:
-- A network configuration specification file, in `.toml` format.
+## Summary: brief instructions for executing the tests
+- Compile NH-core (debug or release mode).
+- Run from within the `e2e-tests` directory:
+- - `yarn install`
+- - `yarn test`
+
+This will copy `nh-node` to the `e2e-tests/bin` directory and will download the zombienet binary in the same directory.
+
+It will then execute all the end to end test (all the `.zndsl` file listed in `test_runner.sh`).
+
+
+---
+
+
+# NH-core end-to-end tests
+
+This folder contains the `NH-core` end-to-end tests written for the Polkadot zombienet testing framework.
+
+Each end-to-end test requires the following files:
+- A network configuration specification file, in `.toml` format; these are stored in the `e2e-tests/network_defs`.
 - The test description, written in zombienet DSL and stored in a `.zndsl` file.
-- (optional) One or more Javascript / Typescript file containing complex tests whose logic cannot be expressed with zombienet DSL language.
+- (optional) One or more Javascript / Typescript file containing complex tests whose logic cannot be expressed in zombienet DSL language; these are stored in the `e2e-tests/js_scripts` directory.
 
 ## Running the test
 
 ### Prerequisites
 
-All tests are executed by running actual `NH-core` nodes, so an instance of the `nh-node` executable must be present on the target system. This can be obtained by compiling this repository (the exec will be available in the `target/debug/` or `target/release/` directory), or by downloading the pre-compiled binary from our official NH-core repository.
+All tests are executed by running actual `NH-core` nodes, so an instance of the `nh-node` executable must be present on the target system. This can be obtained by compiling this repository, as the test runner script looks for the compiled binary in the `target/debug/` or `target/release/` directories. Optionally, it is possible to download the pre-compiled binary from our official `NH-core` repository, and copy that in the `e2e-tests/bin` directory.
 
-The binary path must be added to the local PATH environment variable; for instance, on linux:
-```
-export PATH=/path/to/target/release/:$PATH
-```
+The test runner script also automatically downloads the `zombienet` executable from the official GitHub repo: https://github.com/paritytech/zombienet/releases and places that in the `e2e-tests/bin` as well.
 
-Test execution requires the presence of the `zombienet` executable on the target system as well. Get the binary (or compile the source code) from the official GitHub repo: https://github.com/paritytech/zombienet/releases
+Finally, for local execution, the following packages must be present in the system:
+- node
+- npm
+- yarn
 
-For convenience, copy the `zombienet-linux` executable to the same target directory added to the path variable, i.e. `target/debug/` or `target/release/`.
+### Execute the test suite entirely
 
-### Execute a test
+Run from within the `e2e-tests` directory:
+- `yarn install`
+- `yarn test`
+
+The last command invokes the script `test_runner.sh`.
+
+### Execute a single test
 
 The following instructions are for the local execution environment only, without taking into account Kubernetes or Podman - supported by zombienet, but not mandatory.
 
 Test are launched with the `zombienet test` command, followed by the `.zndsl` file, for instance:
 ```
-cd zombienet/0003-transaction
-zombienet-linux -p native test 0003-transaction.zndsl
+bin/zombienet-linux-x64 -p native test 0003-transaction.zndsl
 ```
 
 Node instances are automatically shut down at the end of the test execution.
@@ -37,7 +63,7 @@ Node instances are automatically shut down at the end of the test execution.
 It is possible to get additional logging information by setting the `DEBUG` environmental variable appropriately:
 
 ```
-DEBUG=zombie* zombienet-linux -p native test 0003-transaction.zndsl
+DEBUG=zombie* bin/zombienet-linux-x64 -p native test 0003-transaction.zndsl
 ```
 
 
@@ -47,7 +73,7 @@ Optionally, it is possible to use zombienet to spawn one of the test network con
 
 ```
 cd zombienet/0003-transaction
-zombienet-linux -p native spawn 0003-network.toml
+bin/zombienet-linux-x64 -p native spawn network_defs/two_nodes.toml
 ```
 
 Nodes keep running indefinitely, and must be stopped with CTRL-C.

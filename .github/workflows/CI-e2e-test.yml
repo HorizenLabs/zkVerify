@@ -1,0 +1,64 @@
+name: CI-e2e-test
+
+run-name: "Workflow performing CI steps: end-to-end tests on zombienet"
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  build-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        # os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+      - name: Config git credentials
+        run: git config --global url."https://${{ secrets.FFLONK_VERIFIER_TOKEN }}@github.com".insteadOf https://github.com
+      - name: Set up cargo cache
+        uses: actions/cache@v4
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-build-test-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-build-test-cargo-
+      - name: Install deps
+      # required by sc-network-sync (wget by zombienet)
+      # required by nh-runtime
+      # required by nh-runtime
+        run: |
+            sudo apt-get install protobuf-compiler wget
+            rustup target add wasm32-unknown-unknown
+            rustup component add rust-src
+      - name: Build
+        run: cargo build --release
+
+      # Prepare for zombienet exec
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18.x
+      - name: Install yarn
+        run: |
+          npm install -g yarn
+          yarn install
+        working-directory: ./e2e-tests
+
+      # Ready to run the test suite: this calls test_runner.sh script after installing the required dependencies
+      - name: Run end-to-end tests
+        run: yarn test
+        working-directory: ./e2e-tests
