@@ -22,7 +22,7 @@ echo "NH_SECRET_PHRASE_PATH=${NH_SECRET_PHRASE_PATH}"
 # Node configurations (env->arg)
 NH_CONF_NAME=${NH_CONF_NAME:-"MyNode"}
 NH_CONF_BASE_PATH=${NH_CONF_BASE_PATH:-"/data/node"}
-NH_CONF_CHAIN=${NH_CONF_CHAIN:-"local"}
+NH_CONF_CHAIN=${NH_CONF_CHAIN:-"test"}
 NH_CONF_VALIDATOR=${NH_CONF_VALIDATOR:-}
 NH_CONF_NODE_KEY_FILE=${NH_CONF_NODE_KEY_FILE:-}
 NH_CONF_BOOTNODES=${NH_CONF_BOOTNODES:-}
@@ -102,9 +102,6 @@ ARGS+="$@"
 
 echo "ARGS=${ARGS}"
 
-# Check files
-echo "Checking files"
-find /data -type f
 echo ""
 
 exec "${NH_NODE}" \

@@ -1,4 +1,4 @@
-use nh_runtime::currency::Balance;
+use nh_runtime::currency::{Balance, NZEN};
 use nh_runtime::{currency, AccountId, RuntimeGenesisConfig, SessionKeys, Signature, WASM_BINARY};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_service::{ChainType, Properties};
@@ -12,6 +12,11 @@ use sp_runtime::traits::{IdentifyAccount, Verify};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig>;
+
+const ENDOWMENT: Balance = 1_000_000 * NZEN;
+const STASH_BOND: Balance = ENDOWMENT / 100;
+const DEFAULT_ENDOWED_SEEDS: [&str; 6] = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie"];
+const LOCAL_N_AUTH: usize = 2;
 
 /// Generate a crypto pair from seed.
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -101,34 +106,33 @@ pub fn development_config() -> Result<ChainSpec, String> {
         props.insert("tokenDecimals".into(), 18.into());
         props
     })
-    .with_genesis_config_patch(testnet_genesis(
+    .with_genesis_config_patch(genesis(
         // Initial PoA authorities
-        vec![(authority_keys_from_seed("Alice"), 10 * currency::MILLIONS)],
+        DEFAULT_ENDOWED_SEEDS
+            .into_iter()
+            .map(|seed| (authority_keys_from_seed(seed), STASH_BOND))
+            .take(1)
+            .collect::<Vec<_>>(),
         // Sudo account
-        get_account_id_from_seed::<sr25519::Public>("Alice"),
+        get_account_id_from_seed::<sr25519::Public>(DEFAULT_ENDOWED_SEEDS[0]),
         // Pre-funded accounts
-        vec![
-            (
-                get_account_id_from_seed::<sr25519::Public>("Alice"),
-                10 * currency::MILLIONS + currency::NZEN,
-            ),
-            (
-                get_account_id_from_seed::<sr25519::Public>("Bob"),
-                10 * currency::MILLIONS + currency::NZEN,
-            ),
-        ],
+        DEFAULT_ENDOWED_SEEDS
+            .into_iter()
+            .map(|seed| (get_account_id_from_seed::<sr25519::Public>(seed), ENDOWMENT))
+            .take(2)
+            .collect::<Vec<_>>(),
         true,
     ))
     .build())
 }
 
-pub fn local_testnet_config() -> Result<ChainSpec, String> {
+pub fn local_config() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
         None,
     )
-    .with_name("NH Testnet")
-    .with_id("nh_testnet")
+    .with_name("NH Local")
+    .with_id("nh_local")
     .with_chain_type(ChainType::Local)
     .with_properties({
         let mut props = Properties::new();
@@ -136,7 +140,40 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
         props.insert("tokenDecimals".into(), 18.into());
         props
     })
-    .with_genesis_config_patch(testnet_genesis(
+    .with_genesis_config_patch(genesis(
+        // Initial PoA authorities
+        DEFAULT_ENDOWED_SEEDS
+            .into_iter()
+            .map(|seed| (authority_keys_from_seed(seed), STASH_BOND))
+            .take(LOCAL_N_AUTH)
+            .collect::<Vec<_>>(),
+        // Sudo account
+        get_account_id_from_seed::<sr25519::Public>(DEFAULT_ENDOWED_SEEDS[0]),
+        // Pre-funded accounts
+        DEFAULT_ENDOWED_SEEDS
+            .into_iter()
+            .map(|seed| (get_account_id_from_seed::<sr25519::Public>(seed), ENDOWMENT))
+            .collect::<Vec<_>>(),
+        true,
+    ))
+    .build())
+}
+
+pub fn testnet_config() -> Result<ChainSpec, String> {
+    Ok(ChainSpec::builder(
+        WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
+        None,
+    )
+    .with_name("NH Testnet")
+    .with_id("nh_testnet")
+    .with_chain_type(ChainType::Live)
+    .with_properties({
+        let mut props = Properties::new();
+        props.insert("tokenSymbol".into(), "nZEN".into());
+        props.insert("tokenDecimals".into(), 18.into());
+        props
+    })
+    .with_genesis_config_patch(genesis(
         // Initial PoA authorities
         vec![
             // nh-validator-t1
@@ -236,7 +273,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 }
 
 /// Configure initial storage state for FRAME modules.
-fn testnet_genesis(
+fn genesis(
     initial_authorities: Vec<((AccountId, AuraId, GrandpaId, ImOnlineId), Balance)>,
     root_key: AccountId,
     endowed_accounts: Vec<(AccountId, Balance)>,
@@ -283,8 +320,7 @@ mod tests {
         let initial_authorities = vec![(authority_keys_from_seed("Alice"), 7 * currency::NZEN)];
         let root_key = get_account_id_from_seed::<sr25519::Public>("Alice");
 
-        let ret_val: serde_json::Value =
-            testnet_genesis(initial_authorities, root_key, vec![], false);
+        let ret_val: serde_json::Value = genesis(initial_authorities, root_key, vec![], false);
 
         let session_config = &ret_val["session"];
 
@@ -302,6 +338,6 @@ mod tests {
     // This test checks whether the local testnet genesis configuration is generated correctly
     #[test]
     fn local_testnet_genesis_should_be_valid() {
-        assert!(local_testnet_config().is_ok());
+        assert!(testnet_config().is_ok());
     }
 }
