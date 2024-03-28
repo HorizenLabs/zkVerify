@@ -5,7 +5,7 @@
 #     DEBUG=zombie* zombienet -p native spawn ./network_defs/two_nodes.toml
 
 [relaychain]
-default_command = "./bin/nh-node"
+default_command = "nh-node"
 default_args = []
 
 chain = "local"

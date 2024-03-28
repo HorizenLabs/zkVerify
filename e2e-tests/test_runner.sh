@@ -6,8 +6,10 @@
 # - npm
 # - yarn
 # The script automatically downloads zombienet binary and save it into the e2e-tests/bin folder.
-# It also copies there the nh-node binary, hence make sure to properly have a freshly compiled
-# version in target/release or target/debug.
+# It also looks for a compiled nh-node binary in the folder target/release, hence make sure to 
+# have a freshly compiled version of nh-node in this folder.
+# Optionally, this script can be launched with the '--debug' switch, which makes it looks for
+# the nh-node binary in the target/debug folder instead.
 
 # ANSI color handles
 TXT_BICYA="\033[96;1m"
@@ -46,27 +48,57 @@ if [ ! -f bin/zombienet-linux-x64 ]; then
     chmod +x bin/zombienet-linux-x64
 fi
 
-# Check if nh-node executable exists, and copy from target/release or target/debug directory
-if [ ! -f bin/nh-node ]; then
-    echo -e "${TXT_BIYLW}WARNING: ${TXT_BIBLK}nh-node executable not found in e2e-tests directory${TXT_NORML}"
-    if [ -f ../target/release/nh-node ]; then
-        echo -e "${TXT_BIGRN}INFO: ${TXT_BIBLK}Copying release version from target/release directory${TXT_NORML}"
-        cp ../target/release/nh-node bin/.
-    elif [ -f ../target/debug/nh-node ]; then
-        echo -e "${TXT_BIGRN}INFO: ${TXT_BIBLK}Copying debug version from target/debug directory${TXT_NORML}"
-        cp ../target/debug/nh-node bin/.
-    else
-        echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}nh-node binary not found. Please compile NH-core before re-running this script.${TXT_NORML}"
-        exit 3
+# Check if we requested a run over a debug build
+if [[ "$@" == *"--debug"* ]]
+then
+    echo -e "${TXT_BIGRN}INFO: ${TXT_BIBLK}Running tests with a debug build${TXT_NORML}"
+    BUILDSUBPATH="debug"
+else
+    echo -e "${TXT_BIGRN}INFO: ${TXT_BIBLK}Running tests with a release build${TXT_NORML}"
+    BUILDSUBPATH="release"
+fi
+
+# Check if nh-node executable exists according tho the requested mode and print error/info messages otherwise
+if [[ ${BUILDSUBPATH} == "debug" ]]
+then
+    if [ ! -f ../target/debug/nh-node ]
+    then
+        if [ -f ../target/release/nh-node ]; then
+            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}debug binary not found; however a release binary is present. Compile nh-node in debug mode${TXT_NORML}"
+            echo -e "${TXT_BIRED}       ${TXT_BIBLK}or relaunch the test runner without the '--debug' switch${TXT_NORML}"
+            exit 2
+        else
+            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}nh-node binary not found. Compile nh-node in debug mode and re-launch this script${TXT_NORML}"
+            exit 3
+        fi
     fi
 fi
 
+if [[ ${BUILDSUBPATH} == "release" ]]
+then
+    if [ ! -f ../target/release/nh-node ]
+    then
+        if [ -f ../target/debug/nh-node ]; then
+            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}release binary not found; however a debug binary is present. Compile nh-node in release mode${TXT_NORML}"
+            echo -e "${TXT_BIRED}       ${TXT_BIBLK}or relaunch the test runner with the '--debug' switch${TXT_NORML}"
+            exit 2
+        else
+            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}nh-node binary not found. Compile nh-node in release mode and re-launch this script${TXT_NORML}"
+            exit 3
+        fi
+    fi
+fi
+
+# If all checks passed, set the full build path
+FULLBUILDPATH="../target/${BUILDSUBPATH}"
+
+# GO! GO! GO!
 for TESTNAME in ${TEST_LIST[@]}; do
     echo -e "\n\n"
     echo -e "============================================================"
     echo -e ${TXT_BIBLK} "Running test: " ${TXT_NORML} "${TESTNAME}"
     echo -e "============================================================"
-    bin/zombienet-linux-x64 -p native test ./${TESTNAME}
+    ( PATH=${PATH}:${FULLBUILDPATH}; bin/zombienet-linux-x64 -p native test ./${TESTNAME} )
     current_exit_code=$?
     TOT_EXEC_TESTS=$((TOT_EXEC_TESTS+1))
     if [ ${current_exit_code} -ne 0 ]; then

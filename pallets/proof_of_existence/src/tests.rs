@@ -216,9 +216,7 @@ fn get_proof_from_pallet_invalid_att_id() {
         }
         Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
         let attestation_id = 10;
-        let proof_hash = H256(hex!(
-            "bbfe8badbe1f542b860d9d7858edae06df34464cb086a47d4b62ba66e0608f72"
-        ));
+        let proof_hash = H256(HASHES[0].into());
 
         // Query for an existing proof with an invalid attestation id
         assert!(Poe::get_proof_path_from_pallet(attestation_id, proof_hash).is_err());
@@ -233,9 +231,7 @@ fn get_proof_from_pallet_valid_att_id_and_valid_proof() {
         }
         Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
         let attestation_id = 0;
-        let proof_hash = H256(hex!(
-            "bbfe8badbe1f542b860d9d7858edae06df34464cb086a47d4b62ba66e0608f72"
-        ));
+        let proof_hash = H256(HASHES[0].into());
 
         let proof = Poe::get_proof_path_from_pallet(attestation_id, proof_hash).unwrap();
 
