@@ -102,9 +102,6 @@ ARGS+="$@"
 
 echo "ARGS=${ARGS}"
 
-# Check files
-echo "Checking files"
-find /data -type f
 echo ""
 
 exec "${NH_NODE}" \

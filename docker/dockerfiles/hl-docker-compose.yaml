@@ -4,30 +4,18 @@ services:
     image: hl/nh-node
     env_file:
       - ../resources/envs/.env.local
-    command: |
-      --chain local
-      --rpc-cors all
-      --rpc-external
-      --name BaseNode
     ports:
       - 9944:9944
       - 30333:30333
-    entrypoint: nh-node
   node_alice:
     image: hl/nh-node
     command: |
       --alice
-      --chain local
-      --name AliceValidator
     env_file:
       - ../resources/envs/.env.alice
-    entrypoint: nh-node
   node_bob:
     image: hl/nh-node
     env_file:
       - ../resources/envs/.env.bob
     command: |
       --bob
-      --chain local
-      --name BobValidator
-    entrypoint: nh-node
