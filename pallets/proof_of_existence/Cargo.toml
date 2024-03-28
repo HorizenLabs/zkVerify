@@ -5,6 +5,7 @@ description = "A pallet to experiment how to give a proof of presence in the sto
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true
+license = "Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
