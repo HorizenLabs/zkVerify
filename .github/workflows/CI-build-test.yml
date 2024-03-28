@@ -45,7 +45,7 @@ jobs:
             rustup target add wasm32-unknown-unknown
             rustup component add rust-src
       - name: Check
-        run: cargo check --all-features --all-targets
+        run: cargo check --all-features --all-targets --release
       - name: Build
         run: cargo build --release
       - name: Unit tests
