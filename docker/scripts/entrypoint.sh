@@ -94,7 +94,7 @@ if [ -n "${NH_CONF_BOOTNODES}" ]; then
 	ARGS+=" --bootnodes ${NH_CONF_BOOTNODES}"
 fi
 if [ -n "${NH_PROMETHEUS_EXTERNAL}" ]; then
-	ARGS+=" --prometheus-external ${NH_PROMETHEUS_EXTERNAL}"
+	ARGS+=" --prometheus-external"
 fi
 # append other extra args
 ARGS+=" "
