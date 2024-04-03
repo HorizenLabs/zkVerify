@@ -49,7 +49,7 @@ jobs:
         env:
           RUSTFLAGS: -C debuginfo=2
         run: |
-          cargo tarpaulin --engine=llvm --verbose --ignore-tests --skip-clean --release --out Json --output-dir ./coverage --test-threads 4
+          cargo tarpaulin --engine=llvm --verbose --ignore-tests --skip-clean --release --out Json --output-dir ./coverage --implicit-test-threads
       - name: Upload JSON Coverage Report as Artifact
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
