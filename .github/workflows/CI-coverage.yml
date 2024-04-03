@@ -42,14 +42,12 @@ jobs:
             sudo apt-get install protobuf-compiler
             rustup target add wasm32-unknown-unknown
             rustup component add rust-src
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin
       - name: Run cargo-tarpaulin for Coverage
         if: matrix.os == 'ubuntu-latest'
-        uses: actions-rs/tarpaulin@v0.1
-        with:
-          version: '0.27.3'
-          out-type: 'Json'
-          args: '--verbose --skip-clean --ignore-tests --release --output-dir ./coverage'
-
+        run: |
+          cargo tarpaulin --verbose --ignore-tests --skip-clean --release --out Json --output-dir ./coverage
       - name: Upload JSON Coverage Report as Artifact
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
@@ -59,4 +57,4 @@ jobs:
           if-no-files-found: warn
           retention-days: 1
           compression-level: 0
-          overwrite: true 
+          overwrite: true
