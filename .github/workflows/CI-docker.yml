@@ -29,15 +29,13 @@ jobs:
           -f docker/dockerfiles/hl-node.Dockerfile -t nh-node:build .
       - name: Login into DockerHub
         run: docker login --username cihorizen --password ${{ secrets.DOCKER_HUB_TOKEN }}
-      - name: Publish Docker image to DockerHub
+      - name: Publish Docker image(s) to DockerHub
         run: |
           TAG_NAME="${{ github.ref_name }}"
           DOCKER_TAG_NAME="${TAG_NAME:1}"
           docker image tag nh-node:build horizenlabs/nh-node:"${DOCKER_TAG_NAME}"
           docker push horizenlabs/nh-node:"${DOCKER_TAG_NAME}"
-      - name: Publish Docker image (tag latest) to DockerHub
-        run: |
-          if [[ ${{ github.ref_name }} =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ "${TAG_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             docker image tag nh-node:build horizenlabs/nh-node:latest
             docker push horizenlabs/nh-node:latest
           else
