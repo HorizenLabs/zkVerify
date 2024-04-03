@@ -46,7 +46,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: actions-rs/tarpaulin@v0.1
         with:
-          version: '0.22.0'
+          version: '0.27.3'
           out-type: 'Json'
           args: '--verbose --skip-clean --ignore-tests --release --output-dir ./coverage'
 
