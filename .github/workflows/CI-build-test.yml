@@ -47,6 +47,18 @@ jobs:
       - name: Build
         run: cargo build --release
       - name: Unit tests
-        run: cargo test --lib --bins --all-features --no-fail-fast --release 
+        run: |
+          cargo test --lib --bins --all-features --no-fail-fast --release 2>&1 | tee unit_tests_output.txt
       - name: Integration tests
-        run: cargo test --test '*' --all-features --no-fail-fast --release
+        run: |
+          cargo test --test '*' --all-features --no-fail-fast --release 2>&1 | tee -a tee integration_tests_output.txt
+      - name: Upload Unit Test Output
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-output
+          path: unit_tests_output.txt
+      - name: Upload Integration Test Output
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-test-output
+          path: integration_tests_output.txt

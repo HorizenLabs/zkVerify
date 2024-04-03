@@ -42,10 +42,17 @@ jobs:
             sudo apt-get install protobuf-compiler
             rustup target add wasm32-unknown-unknown
             rustup component add rust-src
-      - name: Coverage
+      - name: Run cargo-tarpaulin for Coverage
         if: matrix.os == 'ubuntu-latest'
         uses: actions-rs/tarpaulin@v0.1
         with:
-          version: '0.22.0' # higher not available
-          out-type: 'Stdout'
-          args: '--skip-clean --ignore-tests --release'
+          version: '0.22.0'
+          out-type: 'Json'
+          args: '--verbose --skip-clean --ignore-tests --release --output-dir ./coverage'
+
+      - name: Upload JSON Coverage Report as Artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: json-coverage-report
+          path: ./coverage/cargo_tarpaulin_report.json
