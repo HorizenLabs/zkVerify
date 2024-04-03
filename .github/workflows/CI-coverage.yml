@@ -46,8 +46,10 @@ jobs:
         run: cargo install cargo-tarpaulin
       - name: Run cargo-tarpaulin for Coverage
         if: matrix.os == 'ubuntu-latest'
+        env:
+          RUSTFLAGS: -C debuginfo=2
         run: |
-          cargo tarpaulin --verbose --ignore-tests --skip-clean --release --out Json --output-dir ./coverage
+          cargo tarpaulin --engine=llvm --verbose --ignore-tests --skip-clean --release --out Json --output-dir ./coverage --test-threads 4
       - name: Upload JSON Coverage Report as Artifact
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
