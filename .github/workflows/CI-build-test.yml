@@ -53,12 +53,21 @@ jobs:
         run: |
           cargo test --test '*' --all-features --no-fail-fast --release 2>&1 | tee -a tee integration_tests_output.txt
       - name: Upload Unit Test Output
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: unit-test-output
           path: unit_tests_output.txt
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 0
+          overwrite: true
+
       - name: Upload Integration Test Output
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: integration-test-output
           path: integration_tests_output.txt
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 0
+          overwrite: true 

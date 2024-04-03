@@ -52,7 +52,11 @@ jobs:
 
       - name: Upload JSON Coverage Report as Artifact
         if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: json-coverage-report
           path: ./coverage/cargo_tarpaulin_report.json
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 0
+          overwrite: true 
