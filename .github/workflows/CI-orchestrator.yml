@@ -42,4 +42,4 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
       - name: Display unit test output
-        run: cat unit-test-output.txt
+        run: cat unit_tests_output.txt
