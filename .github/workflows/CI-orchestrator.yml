@@ -23,7 +23,7 @@ jobs:
           name: linting-output
 
       - name: Display formatting output
-        run: cat formatting-output.txt
+        run: cat formatting-output/formatting_output.txt
 
       - name: Display linting output
-        run: cat linting_output.txt
+        run: cat linting_output/linting_output.txt
