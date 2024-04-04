@@ -3,9 +3,7 @@ name: CI-coverage
 run-name: "Workflow performing CI step: coverage"
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+  workflow_call:
 
 env:
   RUST_BACKTRACE: 1

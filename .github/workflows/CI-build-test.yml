@@ -3,11 +3,7 @@ name: CI-build-test
 run-name: "Workflow performing CI steps: build, unit testing, integration testing"
 
 on:
-  pull_request:
-    types: [opened, synchronize]
-  push:
-    branches: [main]
-  workflow_dispatch:
+  workflow_call:
 
 env:
   RUST_BACKTRACE: 1
