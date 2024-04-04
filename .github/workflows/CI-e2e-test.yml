@@ -58,5 +58,15 @@ jobs:
 
       # Ready to run the test suite: this calls test_runner.sh script after installing the required dependencies
       - name: Run end-to-end tests
-        run: yarn test
+        run: yarn test 2>&1 | tee e2e_test_output.txt
         working-directory: ./e2e-tests
+
+      - name: Upload E2E Test Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-output
+          path: e2e_test_output.txt
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 0
+          overwrite: true

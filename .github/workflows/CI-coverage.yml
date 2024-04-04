@@ -49,13 +49,13 @@ jobs:
         env:
           RUSTFLAGS: -C debuginfo=2
         run: |
-          cargo tarpaulin --engine=llvm --verbose --ignore-tests --skip-clean --release --out Json --output-dir ./coverage --implicit-test-threads
-      - name: Upload JSON Coverage Report as Artifact
+          cargo tarpaulin --engine=llvm --ignore-tests --skip-clean --release --implicit-test-threads 2>&1 | tee test_coverage_output.txt
+      - name: Upload Test Coverage Output
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: json-coverage-report
-          path: ./coverage/cargo_tarpaulin_report.json
+          name: test-coverage-output
+          path: test_coverage_output.txt
           if-no-files-found: warn
           retention-days: 1
           compression-level: 0

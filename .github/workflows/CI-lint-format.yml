@@ -3,11 +3,7 @@ name: CI-lint-format
 run-name: "Workflow performing CI steps: linting and formatting"
 
 on:
-  pull_request:
-    types: [opened, synchronize]
-  push:
-    branches: [main]
-  workflow_dispatch:
+  workflow_call:
 
 env:
   RUST_BACKTRACE: 1
@@ -43,8 +39,24 @@ jobs:
             rustup target add wasm32-unknown-unknown
             rustup component add rust-src
       - name: Linting
-        if: matrix.os == 'ubuntu-latest'
-        run: cargo clippy --release -- --deny warnings
+        run: cargo clippy --release -- --deny warnings 2>&1 | tee linting_output.txt
+      - name: Upload Linting Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: linting-output
+          path: linting_output.txt
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 0
+          overwrite: true
       - name: Formatting
-        if: matrix.os == 'ubuntu-latest'
-        run: cargo fmt --check
+        run: cargo fmt -- --check 2>&1 | tee formatting_output.txt
+      - name: Upload Formatting Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatting-output
+          path: formatting_output.txt
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 0
+          overwrite: true

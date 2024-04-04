@@ -1,0 +1,29 @@
+name: Orchestrator
+
+on:
+  push:
+    branches: [WEB3-588-Slack-Notifications]
+
+jobs:
+  lint-format-job:
+    uses: ./.github/workflows/CI-lint-format.yml@WEB3-588-Slack-Notifications
+
+  notify-slack:
+    runs-on: ubuntu-latest
+    needs: [lint-format-job]
+    steps:
+      - name: Download formatting artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: formatting-output
+
+      - name: Download linting artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: linting-output
+
+      - name: Display formatting output
+        run: cat formatting-output.txt
+
+      - name: Display linting output
+        run: cat linting_output.txt
