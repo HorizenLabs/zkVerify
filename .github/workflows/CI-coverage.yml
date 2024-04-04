@@ -41,7 +41,7 @@ jobs:
             rustup target add wasm32-unknown-unknown
             rustup component add rust-src
       - name: Install cargo-tarpaulin
-        run: cargo install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin --force
       - name: Run cargo-tarpaulin for Coverage
         if: matrix.os == 'ubuntu-latest'
         env:
