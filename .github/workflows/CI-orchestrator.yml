@@ -6,7 +6,7 @@ on:
 
 jobs:
   lint-format-job:
-    uses: ./.github/workflows/CI-lint-format.yml@WEB3-588-Slack-Notifications
+    uses: ./.github/workflows/CI-lint-format.yml
 
   notify-slack:
     runs-on: ubuntu-latest
