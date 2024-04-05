@@ -40,21 +40,26 @@ jobs:
             sudo apt-get install protobuf-compiler
             rustup target add wasm32-unknown-unknown
             rustup component add rust-src
-      - name: Install cargo-tarpaulin
-        run: cargo install cargo-tarpaulin --force
-      - name: Run cargo-tarpaulin for Coverage
-        if: matrix.os == 'ubuntu-latest'
-        env:
-          RUSTFLAGS: -C debuginfo=2
+      - name: Install coverage tools
         run: |
-          cargo tarpaulin --engine=llvm --ignore-tests --skip-clean --release --implicit-test-threads 2>&1 | tee test_coverage_output.txt
-      - name: Upload Test Coverage Output
+            cargo install --force cargo-llvm-cov
+      - name: Coverage tasks
+        run: |
+            cargo llvm-cov clean --workspace
+            find . -name "*.profraw" -delete
+            cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+            cargo llvm-cov report --json --output-path coverage_report.json --summary-only
+            cargo llvm-cov report > coverage-summary.txt
+            cat coverage-summary.txt
+      - name: Upload json summary as Artifact
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: test-coverage-output
-          path: test_coverage_output.txt
+          name: Upload coverage_report.json summary
+          path: ./coverage_report.json
           if-no-files-found: warn
           retention-days: 1
           compression-level: 0
           overwrite: true
+      # It is also possible to upload the generated lcov.info for later use with Codecov
+      # (see https://llvm.org/docs/CommandGuide/llvm-profdata.html)
