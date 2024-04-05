@@ -19,27 +19,48 @@ jobs:
     needs: [build-test-job,test-coverage-job,lint-format-job, e2e-test-job]
     if: ${{ always() }}
     steps:
-      - name: Download Unit Test artifact
+      - name: Report Job Statuses
+        run: |
+          echo "Build and Test Job Status: ${{ needs.build-test-job.result }}"
+          echo "Test Coverage Job Status: ${{ needs.test-coverage-job.result }}"
+          echo "Lint and Format Job Status: ${{ needs.lint-format-job.result }}"
+          echo "E2E Test Job Status: ${{ needs.e2e-test-job.result }}"
+      - name: Download All Artifacts
         uses: actions/download-artifact@v4
-        with:
-          name: unit-test-output
-      - name: Download Integration Test artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: integration-test-output
-      - name: Download Test Coverage artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: test-coverage-output
-      - name: Download formatting artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: formatting-output
-      - name: Download linting artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: linting-output
       - name: Display structure of downloaded files
         run: ls -R
       - name: Display unit test output
-        run: cat unit_tests_output.txt
+        run: |
+          if [ -f "unit_tests_output.txt" ]; then
+            cat "unit_tests_output.txt"
+          else
+            echo "Unit test output not found."
+          fi
+      - name: Display integration test output
+        run: |
+          if [ -f "integration_tests_output.txt" ]; then
+            cat "integration_tests_output.txt"
+          else
+            echo "Integration test output not found."
+          fi
+      - name: Display test coverage output
+        run: |
+          if [ -f "test_coverage_output.txt" ]; then
+            cat "test_coverage_output.txt"
+          else
+            echo "Test Coverage output not found."
+          fi
+      - name: Display linting output
+        run: |
+          if [ -f "linting_output.txt" ]; then
+            cat "linting_output.txt"
+          else
+            echo "Linting output not found."
+          fi
+      - name: Display formatting output
+        run: |
+          if [ -f "formatting_output.txt" ]; then
+            cat "formatting_output.txt"
+          else
+            echo "Formatting output not found."
+          fi
