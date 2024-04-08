@@ -31,8 +31,8 @@ jobs:
         run: ls -R
       - name: Display unit test output
         run: |
-          if [ -f "unit_tests_output.txt" ]; then
-            cat "unit_tests_output.txt"
+          if [ -f "./unit-test-output/unit_tests_output.txt" ]; then
+            cat "./unit-test-output/unit_tests_output.txt"
           else
             echo "Unit test output not found."
           fi
@@ -45,7 +45,7 @@ jobs:
           fi
       - name: Display test coverage output
         run: |
-          if [ -f "./test-coverage-output/test_coverage_output.txt" ]; then
+          if [ -f "./coverage-output/coverage_report.json" ]; then
             cat "./coverage-output/coverage_report.json"
           else
             echo "Test Coverage output not found."
