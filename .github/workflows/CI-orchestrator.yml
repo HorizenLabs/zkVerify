@@ -38,29 +38,29 @@ jobs:
           fi
       - name: Display integration test output
         run: |
-          if [ -f "integration_tests_output.txt" ]; then
-            cat "integration_tests_output.txt"
+          if [ -f "./integration-test-output/integration_tests_output.txt" ]; then
+            cat "./integration-test-output/integration_tests_output.txt"
           else
             echo "Integration test output not found."
           fi
       - name: Display test coverage output
         run: |
-          if [ -f "test_coverage_output.txt" ]; then
-            cat "test_coverage_output.txt"
+          if [ -f "./test-coverage-output/test_coverage_output.txt" ]; then
+            cat "./coverage-output/coverage_report.json"
           else
             echo "Test Coverage output not found."
           fi
       - name: Display linting output
         run: |
-          if [ -f "linting_output.txt" ]; then
-            cat "linting_output.txt"
+          if [ -f "./linting-output/linting_output.txt" ]; then
+            cat "./linting-output/linting_output.txt"
           else
             echo "Linting output not found."
           fi
       - name: Display formatting output
         run: |
-          if [ -f "formatting_output.txt" ]; then
-            cat "formatting_output.txt"
+          if [ -f "./formatting-output/formatting_output.txt" ]; then
+            cat "./formatting-output/formatting_output.txt"
           else
             echo "Formatting output not found."
           fi
