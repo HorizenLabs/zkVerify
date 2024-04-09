@@ -16,7 +16,7 @@
 # 
 # Example: `NH_CONF_BASE_PATH` -> `--base-path`
 # Values of environment variables are used unmodified as values of command line arguments with the exception
-# of `true` being used as empty value (as a flag, example `NH_CONF_VALIDATOR`/`--validator`)
+# of `true` being dropped (as a flag, example `NH_CONF_VALIDATOR`/`--validator`)
 
 set -eEuo pipefail
 
@@ -28,6 +28,15 @@ get_arg_name_from_env_name() {
     arg_name="${arg_name,,}"
     arg_name=--"${arg_name}"
     echo "${arg_name}"
+}
+
+get_arg_value_from_env_value() {
+    local env_value="$1"
+    arg_value="${env_value}"
+    if [ "$arg_value" == "true" ]; then
+      arg_value=""
+    fi
+    echo "${arg_value}"
 }
 
 # Sanity check
@@ -50,51 +59,52 @@ echo "NH_SECRET_PHRASE_PATH=${NH_SECRET_PHRASE_PATH}"
 
 # Node configurations (env->arg)
 prefix="NH_CONF_"
-conf_args=""
+conf_args=()
 echo "Node configuration:"
 while IFS='=' read -r -d '' var_name var_value; do
   if [[ "$var_name" == ${prefix}* ]]; then
+    # rules above
     arg_name=$(get_arg_name_from_env_name "${var_name}" "${prefix}")
-    arg_value=""
-    if [ "$var_value" != "true" ]; then
-      arg_value=" ${var_value}"
+    conf_args+=("${arg_name}")
+    # rules above
+    arg_value=$(get_arg_value_from_env_value "${var_value}")
+    if [ -n "${arg_value}" ]; then
+      conf_args+=("${arg_value}")
     fi
-    arg="${arg_name}${arg_value}"
-    conf_args+="${arg} "
-    echo "  ${var_name}=${var_value} -> $arg"
+    echo "  ${var_name}=${var_value} -> ${arg_name} ${arg_value}"
   fi
 done < <(env -0)
 
 # Keys handling
 if [ -f "${NH_SECRET_PHRASE_PATH}" ]; then
+  injection_args=()
   path=${NH_CONF_BASE_PATH:-""}
   if [ -n "${path}" ]; then
-    path="$(get_arg_name_from_env_name NH_CONF_BASE_PATH ${prefix}) ${NH_CONF_BASE_PATH}"
+    injection_args+=("$(get_arg_name_from_env_name NH_CONF_BASE_PATH ${prefix})")
+    injection_args+=("$(get_arg_value_from_env_value ${NH_CONF_BASE_PATH})")
   fi
   chain=${NH_CONF_CHAIN:-""}
   if [ -n "${chain}" ]; then
-    chain="$(get_arg_name_from_env_name NH_CONF_CHAIN ${prefix}) ${NH_CONF_CHAIN}"
+    injection_args+=("$(get_arg_name_from_env_name NH_CONF_CHAIN ${prefix})")
+    injection_args+=("$(get_arg_value_from_env_value ${NH_CONF_CHAIN})")
   fi
-  echo "Injecting with path ${path} and chain ${chain}"
+  echo "Injecting keys with ${injection_args[@]}"
   echo "Injecting key (Aura)"
-  ${NH_NODE} key insert ${path} \
-    ${chain} \
+  ${NH_NODE} key insert "${injection_args[@]}" \
     --scheme Sr25519 \
     --suri "${NH_SECRET_PHRASE_PATH}" \
     --key-type aura
   echo "Injecting key (Grandpa)"
-  ${NH_NODE} key insert ${path} \
-    ${chain} \
+  ${NH_NODE} key insert "${injection_args[@]}" \
     --scheme Ed25519 \
     --suri "${NH_SECRET_PHRASE_PATH}" \
     --key-type gran
   echo "Injecting key (Imonline)"
-  ${NH_NODE} key insert ${path} \
-    ${chain} \
+  ${NH_NODE} key insert "${injection_args[@]}" \
     --scheme Sr25519 \
     --suri "${NH_SECRET_PHRASE_PATH}" \
     --key-type imon
 fi
 
-echo "Launching ${NH_NODE} with args ${conf_args}"
-exec "${NH_NODE}" ${conf_args}
+echo "Launching ${NH_NODE} with args ${conf_args[@]}"
+exec ${NH_NODE} "${conf_args[@]}"
