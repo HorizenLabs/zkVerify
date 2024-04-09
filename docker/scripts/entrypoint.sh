@@ -31,7 +31,7 @@ get_arg_name_from_env_name() {
 }
 
 # Sanity check
-if [ -z "${BINARY+}" ]; then
+if [ -z "${BINARY}" ]; then
     echo "BINARY ENV not defined, this should never be the case. Aborting..."
     exit 1
 fi
@@ -45,7 +45,7 @@ IFS=',' read -r -a BINARIES <<< "$BINARY"
 NH_NODE="${BINARIES[0]}"
 echo "NH_NODE=${NH_NODE}"
 
-NH_SECRET_PHRASE_PATH=${NH_SECRET_PHRASE_PATH:-"/data/secret_phrase.dat"}
+NH_SECRET_PHRASE_PATH=${NH_SECRET_PHRASE_PATH:-"/data/config/secret_phrase.dat"}
 echo "NH_SECRET_PHRASE_PATH=${NH_SECRET_PHRASE_PATH}"
 
 # Node configurations (env->arg)
@@ -67,29 +67,30 @@ done < <(env -0)
 
 # Keys handling
 if [ -f "${NH_SECRET_PHRASE_PATH}" ]; then
-  path=""
-  if [ -z "${NH_CONF_BASE_PATH+}" ]; then
-    path=$(get_arg_name_from_env_name NH_CONF_BASE_PATH "${prefix}") $NH_CONF_BASE_PATH
+  path=${NH_CONF_BASE_PATH:-""}
+  if [ -n "${path}" ]; then
+    path="$(get_arg_name_from_env_name NH_CONF_BASE_PATH ${prefix}) ${NH_CONF_BASE_PATH}"
   fi
-  chain=""
-  if [ -z "${NH_CONF_CHAIN+}" ]; then
-    path=$(get_arg_name_from_env_name NH_CONF_CHAIN "${prefix}") $NH_CONF_CHAIN
+  chain=${NH_CONF_CHAIN:-""}
+  if [ -n "${chain}" ]; then
+    chain="$(get_arg_name_from_env_name NH_CONF_CHAIN ${prefix}) ${NH_CONF_CHAIN}"
   fi
+  echo "Injecting with path ${path} and chain ${chain}"
   echo "Injecting key (Aura)"
-  ${NH_NODE} key insert "${path}" \
-    "${chain}" \
+  ${NH_NODE} key insert ${path} \
+    ${chain} \
     --scheme Sr25519 \
     --suri "${NH_SECRET_PHRASE_PATH}" \
     --key-type aura
   echo "Injecting key (Grandpa)"
-  ${NH_NODE} key insert "${path}" \
-    "${chain}" \
+  ${NH_NODE} key insert ${path} \
+    ${chain} \
     --scheme Ed25519 \
     --suri "${NH_SECRET_PHRASE_PATH}" \
     --key-type gran
   echo "Injecting key (Imonline)"
-  ${NH_NODE} key insert  "${path}" \
-    "${chain}" \
+  ${NH_NODE} key insert ${path} \
+    ${chain} \
     --scheme Sr25519 \
     --suri "${NH_SECRET_PHRASE_PATH}" \
     --key-type imon
