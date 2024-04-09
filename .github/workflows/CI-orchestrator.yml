@@ -64,3 +64,54 @@ jobs:
           else
             echo "Formatting output not found."
           fi
+      - name: Prepare Slack Notification Data
+        run: |
+          OVERALL_STATUS="success"
+
+          if [ "${{ needs.build-test-job.result }}" != "success" ] || 
+              [ "${{ needs.test-coverage-job.result }}" != "success" ] ||
+              [ "${{ needs.lint-format-job.result }}" != "success" ] || 
+              [ "${{ needs.e2e-test-job.result }}" != "success" ]; then
+            OVERALL_STATUS="failure"
+          fi
+          
+          COLOR_SUCCESS="#36a64f"
+          COLOR_FAILURE="#ff0000"
+          
+          if [ "$OVERALL_STATUS" = "success" ]; then
+            BAR_COLOR="$COLOR_SUCCESS"
+          else
+            BAR_COLOR="$COLOR_FAILURE"
+          fi
+          
+          echo "BAR_COLOR=$BAR_COLOR" >> $GITHUB_ENV
+          echo "OVERALL_STATUS=$OVERALL_STATUS" >> $GITHUB_ENV
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "${{ env.BAR_COLOR }}",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "*Overall Status:* ${{ env.OVERALL_STATUS }}\nDetails:"
+                      }
+                    },
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "Build & Test: ${{ needs.build-test-job.result }}\nTest Coverage: ${{ needs.test-coverage-job.result }}\nLint & Format: ${{ needs.lint-format-job.result }}\nE2E Test: ${{ needs.e2e-test-job.result }}"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
