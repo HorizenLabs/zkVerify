@@ -91,6 +91,7 @@ jobs:
         with:
           payload: |
             {
+              "text": "NH-CORE BUILD",
               "attachments": [
                 {
                   "color": "${{ env.BAR_COLOR }}",
