@@ -19,6 +19,11 @@ jobs:
     needs: [build-test-job,test-coverage-job,lint-format-job, e2e-test-job]
     if: ${{ always() }}
     steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+      - name: Summarize Test Data
+        id: summarize_tests
+        run: echo "::set-output name=summary::$(./.github/scripts/summarize_tests.sh)"
       - name: Report Job Statuses
         run: |
           echo "Build and Test Job Status: ${{ needs.build-test-job.result }}"
@@ -76,33 +81,33 @@ jobs:
           fi
           
           if [ "$OVERALL_STATUS" = "success" ]; then
-          echo "OVERALL_STATUS_EMOJI=:green_circle:" >> $GITHUB_ENV
+          echo "OVERALL_STATUS_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
-            echo "OVERALL_STATUS_EMOJI=:red_circle:" >> $GITHUB_ENV
+            echo "OVERALL_STATUS_EMOJI=:large_red_circle:" >> $GITHUB_ENV
           fi
 
           if [[ "${{ needs.build-test-job.result }}" == "success" ]]; then
-            echo "BUILD_TEST_JOB_EMOJI=:green_circle:" >> $GITHUB_ENV
+            echo "BUILD_TEST_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
-            echo "BUILD_TEST_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
+            echo "BUILD_TEST_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
           fi
 
           if [[ "${{ needs.test-coverage-job.result }}" == "success" ]]; then
-            echo "TEST_COVERAGE_JOB_EMOJI=:green_circle:" >> $GITHUB_ENV
+            echo "TEST_COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
-            echo "TEST_COVERAGE_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
+            echo "TEST_COVERAGE_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
           fi
 
           if [[ "${{ needs.lint-format-job.result }}" == "success" ]]; then
-            echo "LINT_FORMAT_JOB_EMOJI=:green_circle:" >> $GITHUB_ENV
+            echo "LINT_FORMAT_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
-            echo "LINT_FORMAT_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
+            echo "LINT_FORMAT_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
           fi
 
           if [[ "${{ needs.e2e-test-job.result }}" == "success" ]]; then
-            echo "E2E_TEST_JOB_EMOJI=:green_circle:" >> $GITHUB_ENV
+            echo "E2E_TEST_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
-            echo "E2E_TEST_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
+            echo "E2E_TEST_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
           fi
           echo "OVERALL_STATUS=$OVERALL_STATUS" >> $GITHUB_ENV
       - name: Send Slack Notification
@@ -123,6 +128,13 @@ jobs:
                   "text": {
                     "type": "mrkdwn",
                     "text": "${{ env.BUILD_TEST_JOB_EMOJI }} *Build & Test:* ${{ needs.build-test-job.result }}\n${{ env.TEST_COVERAGE_JOB_EMOJI }} *Test Coverage:* ${{ needs.test-coverage-job.result }}\n${{ env.LINT_FORMAT_JOB_EMOJI }} *Lint & Format:*  ${{ needs.lint-format-job.result }}\n${{ env.E2E_TEST_JOB_EMOJI }} *E2E Test:* ${{ needs.e2e-test-job.result }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ steps.summarize_tests.outputs.summary }}"
                   }
                 }
               ]
