@@ -91,10 +91,8 @@ jobs:
         with:
           payload: |
             {
-              "text": "NH-CORE BUILD",
-              "attachments": [
-                {
-                  "color": "${{ env.BAR_COLOR }}",
+              "text": "NH-CORE BUILD: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
+              "color": "${{ env.BAR_COLOR }}",
                   "blocks": [
                     {
                       "type": "section",
@@ -111,8 +109,8 @@ jobs:
                       }
                     }
                   ]
-                }
-              ]
-            }
+              }
+
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
