@@ -1,4 +1,23 @@
 #!/usr/bin/env bash
+
+# This script performs the following tasks:
+# 
+# - translation of environment variables to command line arguments
+# - preparation before the node start (example keys injection)
+# - launch of the actual node
+# 
+# Environment variables should generally be in the form `NH_*`
+# Environment variables in the form `NH_CONF_*` are translated to command line arguments based on these rules:
+#
+# 1. `NH_CONF_` prefix is removed
+# 2. underscores (`_`) replaced with dashes (`-`)
+# 3. letters to lower case
+# 4. prefix `--` added
+# 
+# Example: `NH_CONF_BASE_PATH` -> `--base-path`
+# Values of environment variables are used unmodified as values of command line arguments with the exception
+# of `true` being used as empty value (as a flag, example `NH_CONF_VALIDATOR`/`--validator`)
+
 set -eEuo pipefail
 
 get_arg_name_from_env_name() {
@@ -12,7 +31,7 @@ get_arg_name_from_env_name() {
 }
 
 # Sanity check
-if [ -z "${BINARY}" ]; then
+if [ -z "${BINARY+}" ]; then
     echo "BINARY ENV not defined, this should never be the case. Aborting..."
     exit 1
 fi
@@ -34,7 +53,7 @@ prefix="NH_CONF_"
 conf_args=""
 echo "Node configuration:"
 while IFS='=' read -r -d '' var_name var_value; do
-  if [[ "$var_name" == NH_CONF* ]]; then
+  if [[ "$var_name" == ${prefix}* ]]; then
     arg_name=$(get_arg_name_from_env_name "${var_name}" "${prefix}")
     arg_value=""
     if [ "$var_value" != "true" ]; then
