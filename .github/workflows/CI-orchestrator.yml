@@ -75,41 +75,58 @@ jobs:
             OVERALL_STATUS="failure"
           fi
           
-          COLOR_SUCCESS="#36a64f"
-          COLOR_FAILURE="#ff0000"
-          
           if [ "$OVERALL_STATUS" = "success" ]; then
-            BAR_COLOR="$COLOR_SUCCESS"
+          echo "OVERALL_STATUS_EMOJI=:green_circle:" >> $GITHUB_ENV
           else
-            BAR_COLOR="$COLOR_FAILURE"
+            echo "OVERALL_STATUS_EMOJI=:red_circle:" >> $GITHUB_ENV
           fi
-          
-          echo "BAR_COLOR=$BAR_COLOR" >> $GITHUB_ENV
+
+          if [[ "${{ needs.build-test-job.result }}" == "success" ]]; then
+            echo "BUILD_TEST_JOB_EMOJI=:green_circle:" >> $GITHUB_ENV
+          else
+            echo "BUILD_TEST_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
+          fi
+
+          if [[ "${{ needs.test-coverage-job.result }}" == "success" ]]; then
+            echo "TEST_COVERAGE_JOB_EMOJI=:green_circle:" >> $GITHUB_ENV
+          else
+            echo "TEST_COVERAGE_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
+          fi
+
+          if [[ "${{ needs.lint-format-job.result }}" == "success" ]]; then
+            echo "LINT_FORMAT_JOB_EMOJI=:green_circle:" >> $GITHUB_ENV
+          else
+            echo "LINT_FORMAT_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
+          fi
+
+          if [[ "${{ needs.e2e-test-job.result }}" == "success" ]]; then
+            echo "E2E_TEST_JOB_EMOJI=:green_circle:" >> $GITHUB_ENV
+          else
+            echo "E2E_TEST_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
+          fi
           echo "OVERALL_STATUS=$OVERALL_STATUS" >> $GITHUB_ENV
       - name: Send Slack Notification
         uses: slackapi/slack-github-action@v1.25.0
         with:
           payload: |
             {
-              "text": "NH-CORE BUILD: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
-              "color": "${{ env.BAR_COLOR }}",
-                  "blocks": [
-                    {
-                      "type": "section",
-                      "text": {
-                        "type": "mrkdwn",
-                        "text": "*Overall Status:* ${{ env.OVERALL_STATUS }}\nDetails:"
-                      }
-                    },
-                    {
-                      "type": "section",
-                      "text": {
-                        "type": "mrkdwn",
-                        "text": "Build & Test: ${{ needs.build-test-job.result }}\nTest Coverage: ${{ needs.test-coverage-job.result }}\nLint & Format: ${{ needs.lint-format-job.result }}\nE2E Test: ${{ needs.e2e-test-job.result }}"
-                      }
-                    }
-                  ]
-              }
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ env.OVERALL_STATUS_EMOJI }} *NH-CORE BUILD STATUS:* ${{ env.OVERALL_STATUS }} ${{ env.OVERALL_STATUS_EMOJI }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ env.BUILD_TEST_JOB_EMOJI }} *Build & Test:* ${{ needs.build-test-job.result }}\n${{ env.TEST_COVERAGE_JOB_EMOJI }} *Test Coverage:* ${{ needs.test-coverage-job.result }}\n${{ env.LINT_FORMAT_JOB_EMOJI }} *Lint & Format:*  ${{ needs.lint-format-job.result }}\n${{ env.E2E_TEST_JOB_EMOJI }} *E2E Test:* ${{ needs.e2e-test-job.result }}"
+                  }
+                }
+              ]
+            }
 
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
