@@ -13,45 +13,53 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Existential deposit used in pallet_balances
-pub const EXISTENTIAL_DEPOSIT: u128 = 500;
-pub const EXISTENTIAL_DEPOSIT_REMINDER: u128 = 1;
+use crate::Balance;
 
+// Existential deposit used in pallet_balances
+pub const EXISTENTIAL_DEPOSIT: Balance = 500;
+pub const EXISTENTIAL_DEPOSIT_REMAINDER: Balance = 1;
+pub const NUM_TEST_ACCOUNTS: u32 = 4;
+pub const STASH_DEPOSIT: Balance = 500; // MUST not be smaller than EXISTENTIAL_DEPOSIT
+
+#[derive(Clone)]
 pub struct SampleAccount {
     pub raw_account: [u8; 32],
-    pub starting_balance: u128,
+    pub starting_balance: Balance,
+    pub session_key_seed: u8,
 }
 
 // Build a vector containing a few sample user accounts, along with their starting balances
-pub fn get_sample_users() -> Vec<SampleAccount> {
-    vec![
-        SampleAccount {
-            raw_account: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 1,
-            ],
-            starting_balance: 1000001,
-        },
-        SampleAccount {
-            raw_account: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 2,
-            ],
-            starting_balance: 12345432,
-        },
-        SampleAccount {
-            raw_account: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 3,
-            ],
-            starting_balance: 9955223,
-        },
-        SampleAccount {
-            raw_account: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 4,
-            ],
-            starting_balance: EXISTENTIAL_DEPOSIT,
-        },
-    ]
-}
+pub static SAMPLE_USERS: [SampleAccount; NUM_TEST_ACCOUNTS as usize] = [
+    SampleAccount {
+        raw_account: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 1,
+        ],
+        starting_balance: 1000001,
+        session_key_seed: 1,
+    },
+    SampleAccount {
+        raw_account: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 2,
+        ],
+        starting_balance: 12345432,
+        session_key_seed: 2,
+    },
+    SampleAccount {
+        raw_account: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 3,
+        ],
+        starting_balance: 9955223,
+        session_key_seed: 3,
+    },
+    SampleAccount {
+        raw_account: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 4,
+        ],
+        starting_balance: EXISTENTIAL_DEPOSIT,
+        session_key_seed: 4,
+    },
+];
