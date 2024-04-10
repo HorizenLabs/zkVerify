@@ -365,10 +365,12 @@ mod payout {
     /// $ZEN in the PoW Horizen blockchain for miners, which is a coinbase of 6.25 Zen for
     /// each block every 2.5 minutes.
     #[test]
-    fn payout_is_same_as_pow_coinbase() {
+    fn is_same_as_pow_coinbase() {
         new_test_ext().execute_with(|| {
             const POW_BLOCK_TIME_MILLIS: u64 = 150 * 1000;
             const POW_BLOCK_COINBASE: Balance = 625 * CENTS;
+
+            // Check the reward for an era lasting the target time.
             assert_eq!(
                 <Runtime as pallet_staking::Config>::EraPayout::era_payout(
                     0,
@@ -376,6 +378,22 @@ mod payout {
                     POW_BLOCK_TIME_MILLIS
                 ),
                 (POW_BLOCK_COINBASE, 0)
+            );
+
+            // Check the reward also for a smaller era (it should be proportional).
+            assert_eq!(
+                <Runtime as pallet_staking::Config>::EraPayout::era_payout(
+                    0,
+                    0,
+                    POW_BLOCK_TIME_MILLIS / 10
+                ),
+                (POW_BLOCK_COINBASE / 10, 0)
+            );
+
+            // Check the reward also for an empty era.
+            assert_eq!(
+                <Runtime as pallet_staking::Config>::EraPayout::era_payout(0, 0, 0),
+                (0, 0)
             );
         });
     }

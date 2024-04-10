@@ -335,9 +335,9 @@ impl pallet_staking::EraPayout<Balance> for ZendPayout {
         _total_issuance: Balance,
         era_duration_millis: u64,
     ) -> (Balance, Balance) {
-        const HORIZEN_POW_MILLISECS_PER_BLOCK: u64 = 150 * 1000; // 2.5 minutes
+        const HORIZEN_POW_MILLISECS_PER_BLOCK: u128 = 150 * 1000; // 2.5 minutes
         let era_reward: u128 =
-            625 * CENTS * u128::from(era_duration_millis / HORIZEN_POW_MILLISECS_PER_BLOCK); // 6.25nZEN per block
+            625 * CENTS * u128::from(era_duration_millis) / HORIZEN_POW_MILLISECS_PER_BLOCK; // 6.25nZEN per Zend block
 
         // Assign 100% of the reward to validators.
         // In the future we may want to split the reward between validators and the treasury.
