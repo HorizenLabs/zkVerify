@@ -17,13 +17,12 @@ integration_total_failed=0
 integration_total_ignored=0
 integration_total_runtime=0.0
 
-# Flag for overall status
 overall_status="success"
 
-# Function to process test files (unit or integration)
 process_test_file() {
   local file_type="$1" # "unit" or "integration"
   local file_path="$2"
+  local output_not_found="$file_type test output not found."
   
   if [ -f "$file_path" ]; then
     while IFS= read -r line; do
@@ -52,7 +51,7 @@ process_test_file() {
       fi
     done < "$file_path"
   else
-    echo "$file_type test output not found."
+    echo "$(echo ${file_type} | awk '{print toupper($0)}')_TEST_SUMMARY=$output_not_found" >> $GITHUB_ENV
   fi
 }
 
@@ -60,7 +59,16 @@ process_test_file() {
 process_test_file "unit" "$unit_test_file"
 process_test_file "integration" "$integration_test_file"
 
-# Extract and summarize overall test coverage data
+# Format the run times to 2 decimal places
+unit_total_runtime=$(printf "%.2f" $unit_total_runtime)
+integration_total_runtime=$(printf "%.2f" $integration_total_runtime)
+
+# Append formatted summaries to $GITHUB_ENV
+echo "UNIT_TEST_SUMMARY=*Unit Tests*\nTotal passed: $unit_total_passed\nTotal failed: $unit_total_failed\nTotal ignored: $unit_total_ignored\nRuntime: ${unit_total_runtime}s" >> $GITHUB_ENV
+echo "INTEGRATION_TEST_SUMMARY=*Integration Tests*\nTotal passed: $integration_total_passed\nTotal failed: $integration_total_failed\nTotal ignored: $integration_total_ignored\nRuntime: ${integration_total_runtime}s" >> $GITHUB_ENV
+
+
+# Extract and summarize overall test coverage data to $GITHUB_ENV
 if [ -f "$coverage_report_file" ]; then
     coverage_totals=$(cat "$coverage_report_file" | jq '.data[0].totals')
     
@@ -73,23 +81,9 @@ if [ -f "$coverage_report_file" ]; then
     instantiations_count=$(echo "$coverage_totals" | jq '.instantiations.count')
     instantiations_percent=$(echo "$coverage_totals" | jq '.instantiations.percent')
 
-    coverage_summary="\n*Test Coverage Summary*\n"
-    coverage_summary+="Functions: $functions_count covered, $functions_percent% coverage\n"
-    coverage_summary+="Lines: $lines_count covered, $lines_percent% coverage\n"
-    coverage_summary+="Regions: $regions_count covered, $regions_percent% coverage\n"
-    coverage_summary+="Instantiations: $instantiations_count covered, $instantiations_percent% coverage"
+    coverage_summary="*Test Coverage Summary*\nFunctions: $functions_count covered, $functions_percent% coverage\nLines: $lines_count covered, $lines_percent% coverage\nRegions: $regions_count covered, $regions_percent% coverage\nInstantiations: $instantiations_count covered, $instantiations_percent% coverage"
+    echo "COVERAGE_TEST_SUMMARY=$coverage_summary" >> $GITHUB_ENV
+    echo "LINE_COVERAGE_PERCENT=$lines_percent" >> $GITHUB_ENV
 else
-    coverage_summary="\nCoverage data not found."
+    echo "COVERAGE_TEST_SUMMARY=Coverage data not found." >> $GITHUB_ENV
 fi
-
-# Format the run times to 2 decimal places
-unit_total_runtime=$(printf "%.2f" $unit_total_runtime)
-integration_total_runtime=$(printf "%.2f" $integration_total_runtime)
-
-# Prepare the summary
-summary+="*Unit Tests*\nTotal passed: $unit_total_passed\nTotal failed: $unit_total_failed\nTotal ignored: $unit_total_ignored\nRuntime: ${unit_total_runtime}s\n\n"
-summary+="*Integration Tests*\nTotal passed: $integration_total_passed\nTotal failed: $integration_total_failed\nTotal ignored: $integration_total_ignored\nRuntime: ${integration_total_runtime}s"
-summary+="$coverage_summary"
-
-# Output the summary
-echo -e "$summary"

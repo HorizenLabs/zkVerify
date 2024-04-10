@@ -21,9 +21,6 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
-      - name: Summarize Test Data
-        id: summarize_tests
-        run: echo "::set-output name=summary::$(./.github/scripts/summarize_tests.sh)"
       - name: Report Job Statuses
         run: |
           echo "Build and Test Job Status: ${{ needs.build-test-job.result }}"
@@ -34,6 +31,8 @@ jobs:
         uses: actions/download-artifact@v4
       - name: Display structure of downloaded files
         run: ls -R
+      - name: Summarize Test Data
+        run: ./.github/scripts/summarize_tests.sh
       - name: Display unit test output
         run: |
           if [ -f "./unit-test-output/unit_tests_output.txt" ]; then
@@ -92,8 +91,16 @@ jobs:
             echo "BUILD_TEST_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
           fi
 
-          if [[ "${{ needs.test-coverage-job.result }}" == "success" ]]; then
+          if [[ -z "${LINE_COVERAGE_PERCENT}" ]]; then
+            if [[ "${{ needs.test-coverage-job.result }}" == "success" ]]; then
+              echo "TEST_COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
+            else
+              echo "TEST_COVERAGE_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
+            fi
+          elif [[ "${{ needs.test-coverage-job.result }}" == "success" ]] && (( $(echo "$LINE_COVERAGE_PERCENT >= 70" | bc -l) )); then
             echo "TEST_COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
+          elif [[ "${{ needs.test-coverage-job.result }}" == "success" ]]; then
+            echo "TEST_COVERAGE_JOB_EMOJI=:large_yellow_circle:" >> $GITHUB_ENV
           else
             echo "TEST_COVERAGE_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
           fi
@@ -127,14 +134,28 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ env.BUILD_TEST_JOB_EMOJI }} *Build & Test:* ${{ needs.build-test-job.result }}\n${{ env.TEST_COVERAGE_JOB_EMOJI }} *Test Coverage:* ${{ needs.test-coverage-job.result }}\n${{ env.LINT_FORMAT_JOB_EMOJI }} *Lint & Format:*  ${{ needs.lint-format-job.result }}\n${{ env.E2E_TEST_JOB_EMOJI }} *E2E Test:* ${{ needs.e2e-test-job.result }}"
+                    "text": "${{ env.BUILD_TEST_JOB_EMOJI }} *Build & Test:* ${{ needs.build-test-job.result }}\n\n${{ env.UNIT_TEST_SUMMARY }}$\n${{ env.INTEGRATION_TEST_SUMMARY }}"
                   }
                 },
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ steps.summarize_tests.outputs.summary }}"
+                    "text": "${{ env.TEST_COVERAGE_JOB_EMOJI }} *Test Coverage:* ${{ needs.test-coverage-job.result }}\n\n${{ env.COVERAGE_TEST_SUMMARY }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ env.LINT_FORMAT_JOB_EMOJI }} *Lint & Format:*  ${{ needs.lint-format-job.result }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ env.E2E_TEST_JOB_EMOJI }} *E2E Test:* ${{ needs.e2e-test-job.result }}"
                   }
                 }
               ]
