@@ -327,14 +327,22 @@ impl pallet_session::Config for Runtime {
 
 pub struct ZendPayout;
 impl pallet_staking::EraPayout<Balance> for ZendPayout {
+    /// Calculates the validators reward based on the duration of the era.
+    /// The reward mimics the current PoW coinbase (6.25 $ZEN per block).
+    /// Total stake and issuance are currently ignored.
     fn era_payout(
         _total_staked: Balance,
         _total_issuance: Balance,
         era_duration_millis: u64,
     ) -> (Balance, Balance) {
-        let era_reward: u128 = 625 * CENTS * u128::from(era_duration_millis / MILLISECS_PER_BLOCK); // 6.25nZEN per block
-        pub const TENTH_TO_MINERS: u128 = 10;
-        pub const TENTH_TO_REST: u128 = 0;
+        const HORIZEN_POW_MILLISECS_PER_BLOCK: u64 = 150 * 1000; // 2.5 minutes
+        let era_reward: u128 =
+            625 * CENTS * u128::from(era_duration_millis / HORIZEN_POW_MILLISECS_PER_BLOCK); // 6.25nZEN per block
+
+        // Assign 100% of the reward to validators.
+        // In the future we may want to split the reward between validators and the treasury.
+        const TENTH_TO_MINERS: u128 = 10;
+        const TENTH_TO_REST: u128 = 0;
 
         (
             era_reward * TENTH_TO_MINERS / 10,
