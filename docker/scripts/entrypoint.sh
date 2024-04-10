@@ -10,11 +10,17 @@
 # Environment variables in the form `NH_CONF_*` are translated to command line arguments based on these rules:
 #
 # 1. `NH_CONF_` prefix is removed
-# 2. underscores (`_`) replaced with dashes (`-`)
-# 3. letters to lower case
-# 4. prefix `--` added
+# 2. if both a trailing underscore (`_`) and number are present, they are removed
+# 3. if underscores (`_`) are present, they are replaced with dashes (`-`)
+# 4. letters are replaced with lower case
+# 5. prefix `--` is added
 # 
-# Example: `NH_CONF_BASE_PATH` -> `--base-path`
+# Examples:
+# 
+# - `NH_CONF_BASE_PATH` -> `--base-path`
+# - `NH_CONF_BOOTNODES` -> `--bootnodes`
+# - `NH_CONF_BOOTNODES_2` -> `--bootnodes`
+#
 # Values of environment variables are used unmodified as values of command line arguments with the exception
 # of `true` being dropped (as a flag, example `NH_CONF_VALIDATOR`/`--validator`)
 
@@ -24,6 +30,7 @@ get_arg_name_from_env_name() {
     local env_name="$1"
     local prefix="$2"
     arg_name="${env_name:${#prefix}}"
+    arg_name=$(echo ${arg_name} | sed -r 's/^(.+)_[0-9]*$/\1/')
     arg_name="${arg_name//_/-}"
     arg_name="${arg_name,,}"
     arg_name=--"${arg_name}"
