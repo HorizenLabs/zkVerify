@@ -47,7 +47,7 @@ get_arg_value_from_env_value() {
 }
 
 # Sanity check
-if [ -z "${BINARY}" ]; then
+if [ -z "${BINARY:-}" ]; then
     echo "BINARY ENV not defined, this should never be the case. Aborting..."
     exit 1
 fi
@@ -85,13 +85,11 @@ done < <(env -0)
 # Keys handling
 if [ -f "${NH_SECRET_PHRASE_PATH}" ]; then
   injection_args=()
-  path=${NH_CONF_BASE_PATH:-""}
-  if [ -n "${path}" ]; then
+  if [ -n "${NH_CONF_BASE_PATH:-}" ]; then
     injection_args+=("$(get_arg_name_from_env_name NH_CONF_BASE_PATH ${prefix})")
     injection_args+=("$(get_arg_value_from_env_value ${NH_CONF_BASE_PATH})")
   fi
-  chain=${NH_CONF_CHAIN:-""}
-  if [ -n "${chain}" ]; then
+  if [ -n "${NH_CONF_CHAIN:-}" ]; then
     injection_args+=("$(get_arg_name_from_env_name NH_CONF_CHAIN ${prefix})")
     injection_args+=("$(get_arg_value_from_env_value ${NH_CONF_CHAIN})")
   fi
