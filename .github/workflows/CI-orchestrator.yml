@@ -1,8 +1,9 @@
 name: Orchestrator
 
 on:
-  push:
-    branches: [WEB3-588-Slack-Notifications]
+  pull_request:
+    branches: 
+      - main
 
 jobs:
   build-test-job:
@@ -127,7 +128,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ env.OVERALL_STATUS_EMOJI }} *NH-CORE BUILD STATUS:* ${{ env.OVERALL_STATUS }} ${{ env.OVERALL_STATUS_EMOJI }}\n*COMMIT:* ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                    "text": "${{ env.OVERALL_STATUS_EMOJI }} *NH-CORE BUILD STATUS:* ${{ env.OVERALL_STATUS }} ${{ env.OVERALL_STATUS_EMOJI }}\n*Pull Request:* ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
                   }
                 },
                 {
