@@ -1,21 +1,23 @@
 version: '3'
 services:
   local_node:
-    image: hl/nh-node
+    image: horizenlabs/nh-node:latest
     env_file:
       - ../resources/envs/.env.local
+    volumes:
+      - ../resources/deploy:/data/config
     ports:
       - 9944:9944
       - 30333:30333
   node_alice:
-    image: hl/nh-node
-    command: |
-      --alice
+    image: horizenlabs/nh-node:latest
     env_file:
       - ../resources/envs/.env.alice
+    volumes:
+      - ../resources/deploy:/data/config
   node_bob:
-    image: hl/nh-node
+    image: horizenlabs/nh-node:latest
     env_file:
       - ../resources/envs/.env.bob
-    command: |
-      --bob
+    volumes:
+      - ../resources/deploy:/data/config
