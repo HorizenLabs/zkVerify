@@ -127,14 +127,14 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ env.OVERALL_STATUS_EMOJI }} *NH-CORE BUILD STATUS:* ${{ env.OVERALL_STATUS }} ${{ env.OVERALL_STATUS_EMOJI }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                    "text": "${{ env.OVERALL_STATUS_EMOJI }} *NH-CORE BUILD STATUS:* ${{ env.OVERALL_STATUS }} ${{ env.OVERALL_STATUS_EMOJI }}\n*COMMIT:* ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
                   }
                 },
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ env.BUILD_TEST_JOB_EMOJI }} *Build & Test:* ${{ needs.build-test-job.result }}\n\n${{ env.UNIT_TEST_SUMMARY }}$\n${{ env.INTEGRATION_TEST_SUMMARY }}"
+                    "text": "${{ env.BUILD_TEST_JOB_EMOJI }} *Build & Test:* ${{ needs.build-test-job.result }}\n\n${{ env.UNIT_TEST_SUMMARY }}\n${{ env.INTEGRATION_TEST_SUMMARY }}"
                   }
                 },
                 {
@@ -155,7 +155,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ env.E2E_TEST_JOB_EMOJI }} *E2E Test:* ${{ needs.e2e-test-job.result }}"
+                    "text": "${{ env.E2E_TEST_JOB_EMOJI }} *Zombienet Tests:* ${{ needs.e2e-test-job.result }}"
                   }
                 }
               ]

@@ -64,16 +64,16 @@ unit_total_runtime=$(printf "%.2f" $unit_total_runtime)
 integration_total_runtime=$(printf "%.2f" $integration_total_runtime)
 
 # Format and add summaries to $GITHUB_ENV
-passed_formatted=":white_check_mark: *Passed*: $unit_total_passed"
-failed_formatted=":octagonal_sign: *Failed*: $unit_total_failed"
-ignored_formatted=":warning: *Ignored*: $unit_total_ignored"
-runtime_formatted=":clock3: *Runtime*: ${unit_total_runtime}s"
+passed_formatted="*Passed*: $unit_total_passed"
+failed_formatted="*Failed*: $unit_total_failed"
+ignored_formatted="*Ignored*: $unit_total_ignored"
+runtime_formatted="*Runtime*: ${unit_total_runtime}s"
 echo "UNIT_TEST_SUMMARY=*Unit Tests*\n$passed_formatted, $failed_formatted, $ignored_formatted, $runtime_formatted" >> $GITHUB_ENV
 
-passed_formatted=":white_check_mark: *Passed*: $integration_total_passed"
-failed_formatted=":octagonal_sign: *Failed*: $integration_total_failed"
-ignored_formatted=":warning: *Ignored*: $integration_total_ignored"
-runtime_formatted=":clock3: *Runtime*: ${integration_total_runtime}s"
+passed_formatted="*Passed*: $integration_total_passed"
+failed_formatted="*Failed*: $integration_total_failed"
+ignored_formatted="*Ignored*: $integration_total_ignored"
+runtime_formatted="*Runtime*: ${integration_total_runtime}s"
 echo "INTEGRATION_TEST_SUMMARY=*Integration Tests*\n$passed_formatted, $failed_formatted, $ignored_formatted, $runtime_formatted" >> $GITHUB_ENV
 
 # Extract and summarize overall test coverage data to $GITHUB_ENV
@@ -89,7 +89,7 @@ if [ -f "$coverage_report_file" ]; then
     instantiations_count=$(echo "$coverage_totals" | jq '.instantiations.count')
     instantiations_percent=$(echo "$coverage_totals" | jq -r '.instantiations.percent' | awk '{printf "%.2f", $0}')
 
-    coverage_summary="*Test Coverage Summary ($lines_percent%)*\nFunctions: $functions_count ($functions_percent%)\nLines: $lines_count ($lines_percent%)\nRegions: $regions_count ($regions_percent%)\nInstantiations: $instantiations_count ($instantiations_percent%)"
+    coverage_summary="*Test Coverage Summary ($lines_percent%)*\n*Functions:* $functions_count ($functions_percent%), *Lines:* $lines_count ($lines_percent%), *Regions:* $regions_count ($regions_percent%), *Instantiations:* $instantiations_count ($instantiations_percent%)"
     echo "COVERAGE_TEST_SUMMARY=$coverage_summary" >> $GITHUB_ENV
     echo "LINE_COVERAGE_PERCENT=$lines_percent" >> $GITHUB_ENV
 else
