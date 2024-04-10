@@ -82,7 +82,7 @@ jobs:
           if [ "$OVERALL_STATUS" = "success" ]; then
           echo "OVERALL_STATUS_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
-            echo "OVERALL_STATUS_EMOJI=:large_red_circle:" >> $GITHUB_ENV
+            echo "OVERALL_STATUS_EMOJI=:alert:" >> $GITHUB_ENV
           fi
 
           if [[ "${{ needs.build-test-job.result }}" == "success" ]]; then

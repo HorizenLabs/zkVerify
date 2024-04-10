@@ -31,22 +31,22 @@ process_test_file() {
           overall_status="failed"
         fi
 
-        passed=$(echo "$line" | grep -oP '(?<=passed; )\d+')
-        failed=$(echo "$line" | grep -oP '(?<=failed; )\d+')
-        ignored=$(echo "$line" | grep -oP '(?<=ignored; )\d+')
-        runtime=$(echo "$line" | grep -oP '(?<=finished in )\d+\.\d+')
+        passed=$(echo "$line" | awk '{for (i=1; i<=NF; i++) if ($i=="passed;") print $(i-1)}')
+        failed=$(echo "$line" | awk '{for (i=1; i<=NF; i++) if ($i=="failed;") print $(i-1)}')
+        ignored=$(echo "$line" | awk '{for (i=1; i<=NF; i++) if ($i=="ignored;") print $(i-1)}')
+        runtime=$(echo "$line" | awk -F'finished in ' '{n=split($2,a," "); print (n>0)?a[1]:0}')
 
         # Update counters based on file type
         if [[ "$file_type" == "unit" ]]; then
           unit_total_passed=$((unit_total_passed + passed))
           unit_total_failed=$((unit_total_failed + failed))
           unit_total_ignored=$((unit_total_ignored + ignored))
-          unit_total_runtime=$(echo "$unit_total_runtime + $runtime" | bc)
+          unit_total_runtime=$(awk -v tr="$unit_total_runtime" -v rt="$runtime" 'BEGIN {printf "%.2f", tr+rt}')
         elif [[ "$file_type" == "integration" ]]; then
           integration_total_passed=$((integration_total_passed + passed))
           integration_total_failed=$((integration_total_failed + failed))
           integration_total_ignored=$((integration_total_ignored + ignored))
-          integration_total_runtime=$(echo "$integration_total_runtime + $runtime" | bc)
+          integration_total_runtime=$(awk -v tr="$integration_total_runtime" -v rt="$runtime" 'BEGIN {printf "%.2f", tr+rt}')
         fi
       fi
     done < "$file_path"
@@ -63,27 +63,36 @@ process_test_file "integration" "$integration_test_file"
 unit_total_runtime=$(printf "%.2f" $unit_total_runtime)
 integration_total_runtime=$(printf "%.2f" $integration_total_runtime)
 
-# Append formatted summaries to $GITHUB_ENV
-echo "UNIT_TEST_SUMMARY=*Unit Tests*\nTotal passed: $unit_total_passed\nTotal failed: $unit_total_failed\nTotal ignored: $unit_total_ignored\nRuntime: ${unit_total_runtime}s" >> $GITHUB_ENV
-echo "INTEGRATION_TEST_SUMMARY=*Integration Tests*\nTotal passed: $integration_total_passed\nTotal failed: $integration_total_failed\nTotal ignored: $integration_total_ignored\nRuntime: ${integration_total_runtime}s" >> $GITHUB_ENV
+# Format and add summaries to $GITHUB_ENV
+passed_formatted=":white_check_mark: *Passed*: $unit_total_passed"
+failed_formatted=":octagonal_sign: *Failed*: $unit_total_failed"
+ignored_formatted=":warning: *Ignored*: $unit_total_ignored"
+runtime_formatted=":clock3: *Runtime*: ${unit_total_runtime}s"
+echo "UNIT_TEST_SUMMARY=*Unit Tests*\n$passed_formatted, $failed_formatted, $ignored_formatted, $runtime_formatted" >> $GITHUB_ENV
 
+passed_formatted=":white_check_mark: *Passed*: $integration_total_passed"
+failed_formatted=":octagonal_sign: *Failed*: $integration_total_failed"
+ignored_formatted=":warning: *Ignored*: $integration_total_ignored"
+runtime_formatted=":clock3: *Runtime*: ${integration_total_runtime}s"
+echo "INTEGRATION_TEST_SUMMARY=*Integration Tests*\n$passed_formatted, $failed_formatted, $ignored_formatted, $runtime_formatted" >> $GITHUB_ENV
 
 # Extract and summarize overall test coverage data to $GITHUB_ENV
 if [ -f "$coverage_report_file" ]; then
     coverage_totals=$(cat "$coverage_report_file" | jq '.data[0].totals')
     
     functions_count=$(echo "$coverage_totals" | jq '.functions.count')
-    functions_percent=$(echo "$coverage_totals" | jq '.functions.percent')
+    functions_percent=$(echo "$coverage_totals" | jq -r '.functions.percent' | awk '{printf "%.2f", $0}')
     lines_count=$(echo "$coverage_totals" | jq '.lines.count')
-    lines_percent=$(echo "$coverage_totals" | jq '.lines.percent')
+    lines_percent=$(echo "$coverage_totals" | jq -r '.lines.percent' | awk '{printf "%.2f", $0}')
     regions_count=$(echo "$coverage_totals" | jq '.regions.count')
-    regions_percent=$(echo "$coverage_totals" | jq '.regions.percent')
+    regions_percent=$(echo "$coverage_totals" | jq -r '.regions.percent' | awk '{printf "%.2f", $0}')
     instantiations_count=$(echo "$coverage_totals" | jq '.instantiations.count')
-    instantiations_percent=$(echo "$coverage_totals" | jq '.instantiations.percent')
+    instantiations_percent=$(echo "$coverage_totals" | jq -r '.instantiations.percent' | awk '{printf "%.2f", $0}')
 
-    coverage_summary="*Test Coverage Summary*\nFunctions: $functions_count covered, $functions_percent% coverage\nLines: $lines_count covered, $lines_percent% coverage\nRegions: $regions_count covered, $regions_percent% coverage\nInstantiations: $instantiations_count covered, $instantiations_percent% coverage"
+    coverage_summary="*Test Coverage Summary ($lines_percent%)*\nFunctions: $functions_count ($functions_percent%)\nLines: $lines_count ($lines_percent%)\nRegions: $regions_count ($regions_percent%)\nInstantiations: $instantiations_count ($instantiations_percent%)"
     echo "COVERAGE_TEST_SUMMARY=$coverage_summary" >> $GITHUB_ENV
     echo "LINE_COVERAGE_PERCENT=$lines_percent" >> $GITHUB_ENV
 else
     echo "COVERAGE_TEST_SUMMARY=Coverage data not found." >> $GITHUB_ENV
 fi
+
