@@ -13,7 +13,7 @@ ARG BINARY=nh-node
 ARG BIN_FOLDER=.
 ARG DOC_URL=https://github.com/HorizenLabs/NH-core
 ARG DESCRIPTION="NH-core"
-ARG AUTHORS="devops@horizenlabs.io"
+ARG AUTHORS="mainchain-team@horizenlabs.io"
 ARG VENDOR="Horizen Labs"
 
 LABEL io.hl.image.authors=${AUTHORS} \
