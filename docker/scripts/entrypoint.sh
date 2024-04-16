@@ -30,7 +30,7 @@ get_arg_name_from_env_name() {
     local env_name="$1"
     local prefix="$2"
     arg_name="${env_name:${#prefix}}"
-    arg_name=$(echo ${arg_name} | sed -r 's/^(.+)_[0-9]*$/\1/')
+    arg_name=$(echo "${arg_name}" | sed -r 's/^(.+)_[0-9]*$/\1/')
     arg_name="${arg_name//_/-}"
     arg_name="${arg_name,,}"
     arg_name=--"${arg_name}"
@@ -87,13 +87,13 @@ if [ -f "${NH_SECRET_PHRASE_PATH}" ]; then
   injection_args=()
   if [ -n "${NH_CONF_BASE_PATH:-}" ]; then
     injection_args+=("$(get_arg_name_from_env_name NH_CONF_BASE_PATH ${prefix})")
-    injection_args+=("$(get_arg_value_from_env_value ${NH_CONF_BASE_PATH})")
+    injection_args+=("$(get_arg_value_from_env_value "${NH_CONF_BASE_PATH}")")
   fi
   if [ -n "${NH_CONF_CHAIN:-}" ]; then
     injection_args+=("$(get_arg_name_from_env_name NH_CONF_CHAIN ${prefix})")
-    injection_args+=("$(get_arg_value_from_env_value ${NH_CONF_CHAIN})")
+    injection_args+=("$(get_arg_value_from_env_value "${NH_CONF_CHAIN}")")
   fi
-  echo "Injecting keys with ${injection_args[@]}"
+  echo "Injecting keys with ${injection_args[*]}"
   echo "Injecting key (Aura)"
   ${NH_NODE} key insert "${injection_args[@]}" \
     --scheme Sr25519 \
@@ -111,5 +111,5 @@ if [ -f "${NH_SECRET_PHRASE_PATH}" ]; then
     --key-type imon
 fi
 
-echo "Launching ${NH_NODE} with args ${conf_args[@]}"
-exec ${NH_NODE} "${conf_args[@]}"
+echo "Launching ${NH_NODE} with args ${conf_args[*]}"
+exec "${NH_NODE}" "${conf_args[@]}"

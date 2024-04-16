@@ -1,0 +1,14 @@
+name: CI-tag-orchestrator
+
+on:
+  push:
+    tags:
+      - '[0-9].[0-9].[0-9]*'
+  workflow_dispatch:
+
+jobs:
+  docker-job:
+    uses: ./.github/workflows/CI-docker.yml
+  rustdoc-job:
+    needs: docker-job
+    uses: ./.github/workflows/CI-rustdoc.yml

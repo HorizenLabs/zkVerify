@@ -3,8 +3,8 @@ name: CI-e2e-test
 run-name: "Workflow performing CI steps: end-to-end tests on zombienet"
 
 on:
-  pull_request:
-    types: [opened, synchronize]
+#  pull_request:
+#    types: [opened, synchronize]
   push:
     branches: [main]
   workflow_dispatch:

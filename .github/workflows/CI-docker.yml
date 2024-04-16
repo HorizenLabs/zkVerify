@@ -1,45 +1,29 @@
 name: CI-docker
-run-name: "Workflow performing CI step: push docker image to DockerHub"
+run-name: "Workflow performing CI step: Docker Image Build and Publish"
 
 on:
-  push:
-    tags:
-      - v[0-9].[0-9].[0-9]*
+  workflow_call:
   workflow_dispatch:
 
 env:
   RUST_BACKTRACE: 1
+  RELEASE_BRANCH: release
 
 jobs:
   docker:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout branch
+      - name: Git checkout
         uses: actions/checkout@v4
-      - name: Build Docker image
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Build/Publish Docker image
+        env:
+          MAINTAINERS_KEYS: ${{ vars.MAINTAINERS_KEYS }}
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
         run: |
-          docker build \
-          --build-arg VCS_REF="${VCS_REF}" \
-          --build-arg BUILD_DATE="$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
-          --build-arg IMAGE_NAME="hl/nh-node" \
-          -f docker/dockerfiles/hl-node.Dockerfile -t nh-node:build .
-      - name: Login into DockerHub
-        run: docker login --username cihorizen --password ${{ secrets.DOCKER_HUB_TOKEN }}
-      - name: Publish Docker image(s) to DockerHub
-        run: |
-          TAG_NAME="${{ github.ref_name }}"
-          DOCKER_TAG_NAME="${TAG_NAME:1}"
-          docker image tag nh-node:build horizenlabs/nh-node:"${DOCKER_TAG_NAME}"
-          docker push horizenlabs/nh-node:"${DOCKER_TAG_NAME}"
-          if [[ "${TAG_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            docker image tag nh-node:build horizenlabs/nh-node:latest
-            docker push horizenlabs/nh-node:latest
-          else
-            echo Not publishing latest because not official version
-          fi
-      - name: Logout from DockerHub
-        run: docker logout
+          source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
+          "${GITHUB_WORKSPACE}/ci/docker.sh"
