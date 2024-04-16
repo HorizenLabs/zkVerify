@@ -18,6 +18,7 @@ use nh_runtime::{currency, AccountId, RuntimeGenesisConfig, SessionKeys, Signatu
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_service::{ChainType, Properties};
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+use sp_consensus_babe::AuthorityId as BabeId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
@@ -56,8 +57,14 @@ fn from_ss58check<T: sp_core::crypto::Ss58Codec>(
     <T as sp_core::crypto::Ss58Codec>::from_ss58check(key)
 }
 
-fn session_keys(aura: AuraId, grandpa: GrandpaId, im_online: ImOnlineId) -> SessionKeys {
+fn session_keys(
+    babe: BabeId,
+    aura: AuraId,
+    grandpa: GrandpaId,
+    im_online: ImOnlineId,
+) -> SessionKeys {
     SessionKeys {
+        babe,
         aura,
         grandpa,
         im_online,
@@ -65,9 +72,10 @@ fn session_keys(aura: AuraId, grandpa: GrandpaId, im_online: ImOnlineId) -> Sess
 }
 
 /// Generate an Aura authority key.
-pub fn authority_keys_from_seed(s: &str) -> (AccountId, AuraId, GrandpaId, ImOnlineId) {
+pub fn authority_keys_from_seed(s: &str) -> (AccountId, BabeId, AuraId, GrandpaId, ImOnlineId) {
     (
         get_account_id_from_seed::<sr25519::Public>(s),
+        get_from_seed::<BabeId>(s),
         get_from_seed::<AuraId>(s),
         get_from_seed::<GrandpaId>(s),
         get_from_seed::<ImOnlineId>(s),
@@ -78,11 +86,17 @@ pub fn authority_keys_from_seed(s: &str) -> (AccountId, AuraId, GrandpaId, ImOnl
 pub fn authority_ids_from_ss58(
     sr25519_key: &str,
     ed25519_key: &str,
-) -> Result<(AccountId, AuraId, GrandpaId, ImOnlineId), String> {
+) -> Result<(AccountId, BabeId, AuraId, GrandpaId, ImOnlineId), String> {
     Ok((
         from_ss58check(sr25519_key).map_err(|error| {
             format!(
                 "An error occurred while converting SS58 to AccountId: {}",
+                error
+            )
+        })?,
+        from_ss58check(sr25519_key).map_err(|error| {
+            format!(
+                "An error occurred while converting SS58 to BabeId: {}",
                 error
             )
         })?,
@@ -146,8 +160,9 @@ pub fn local_config() -> Result<ChainSpec, String> {
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
         None,
     )
-    .with_name("NH Local")
-    .with_id("nh_local")
+    .with_name("DR NH Local")
+    .with_id("dr_nh_local")
+    .with_protocol_id("dr_nh_local")
     .with_chain_type(ChainType::Local)
     .with_properties({
         let mut props = Properties::new();
@@ -289,7 +304,7 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
 
 /// Configure initial storage state for FRAME modules.
 fn genesis(
-    initial_authorities: Vec<((AccountId, AuraId, GrandpaId, ImOnlineId), Balance)>,
+    initial_authorities: Vec<((AccountId, BabeId, AuraId, GrandpaId, ImOnlineId), Balance)>,
     root_key: AccountId,
     endowed_accounts: Vec<(AccountId, Balance)>,
     _enable_println: bool,
@@ -299,10 +314,14 @@ fn genesis(
             // Configure endowed accounts with initial balance.
             "balances": endowed_accounts,
         },
+        "babe": {
+            //authorities: vec![],
+            "epochConfig": Some(nh_runtime::BABE_GENESIS_EPOCH_CONFIG),
+        },
         "session": {
             "keys": initial_authorities.iter()
                 .cloned()
-                .map(|((account, aura, grandpa, imonline), _staking)| { (account.clone(), account, session_keys(aura, grandpa, imonline)) })
+                .map(|((account, babe, aura, grandpa, imonline), _staking)| { (account.clone(), account, session_keys(babe, aura, grandpa, imonline)) })
                 .collect::<Vec<_>>(),
         },
         "staking": {
@@ -310,7 +329,7 @@ fn genesis(
             "validatorCount": 3,
             "stakers": initial_authorities.iter()
                 .cloned()
-                .map(|((account, _aura, _grandpa, _imonline), staking)| (account.clone(), account, staking, sp_staking::StakerStatus::Validator::<AccountId>))
+                .map(|((account, _babe, _aura, _grandpa, _imonline), staking)| (account.clone(), account, staking, sp_staking::StakerStatus::Validator::<AccountId>))
                 .collect::<Vec<_>>(),
         },
         "sudo": {

@@ -18,27 +18,37 @@ use super::*;
 use codec::Encode;
 use frame_support::{
     assert_ok,
-    traits::{fungible::Inspect, Currency, ExistenceRequirement, OnInitialize, WithdrawReasons},
+    traits::{
+        fungible::Inspect, Currency, EstimateNextNewSession, EstimateNextSessionRotation,
+        ExistenceRequirement, OnInitialize, WithdrawReasons,
+    },
 };
 use frame_system::{EventRecord, Phase};
 use pallet_settlement_fflonk::{Proof, FULL_PROOF_SIZE};
-use sp_consensus_aura::{Slot, AURA_ENGINE_ID};
-use sp_core::{Pair, Public};
+use sp_consensus_babe::{Slot, BABE_ENGINE_ID};
+use sp_core::crypto::VrfSecret;
+use sp_core::{Pair, Public, H256};
 use sp_runtime::{AccountId32, Digest, DigestItem};
 use sp_staking::{offence, offence::ReportOffence, Exposure, SessionIndex};
 
 mod testsfixtures;
 
-/// Generate a crypto pair from seed.
-pub fn get_from_seed<TPublic: Public>(seed: u8) -> <TPublic::Pair as Pair>::Public {
+pub fn get_from_seed<TPublic: Public>(seed: u8) -> TPublic::Pair {
     TPublic::Pair::from_string(&format!("//test_seed{}", seed), None)
         .expect("static values are valid; qed")
-        .public()
 }
 
 pub const SLOT_ID: u64 = 87; // Any random value should do
 pub const NUM_VALIDATORS: u32 = 2;
-pub const AURA_AUTHOR_ID: u32 = (SLOT_ID as u32) % NUM_VALIDATORS;
+pub const BABE_AUTHOR_ID: u32 = 1;
+pub const TEST_PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
+
+/// The BABE epoch configuration at genesis.
+pub const TEST_BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
+    sp_consensus_babe::BabeEpochConfiguration {
+        c: TEST_PRIMARY_PROBABILITY,
+        allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryVRFSlots,
+    };
 
 // Function used for creating the environment for the test.
 // It must return a sp_io::TestExternalities, and the actual test will execute this one before running.
@@ -58,6 +68,14 @@ fn new_test_ext() -> sp_io::TestExternalities {
     .assimilate_storage(&mut t)
     .unwrap();
 
+    pallet_babe::GenesisConfig::<super::Runtime> {
+        authorities: vec![],
+        epoch_config: Some(TEST_BABE_GENESIS_EPOCH_CONFIG),
+        ..Default::default()
+    }
+    .assimilate_storage(&mut t)
+    .unwrap();
+
     // Add authorities
     pallet_session::GenesisConfig::<super::Runtime> {
         keys: testsfixtures::SAMPLE_USERS
@@ -68,9 +86,10 @@ fn new_test_ext() -> sp_io::TestExternalities {
                     user.raw_account.into(),
                     user.raw_account.into(),
                     SessionKeys {
-                        aura: get_from_seed::<AuraId>(user.session_key_seed),
-                        grandpa: get_from_seed::<GrandpaId>(user.session_key_seed),
-                        im_online: get_from_seed::<ImOnlineId>(user.session_key_seed),
+                        babe: get_from_seed::<BabeId>(user.session_key_seed).public(),
+                        aura: get_from_seed::<AuraId>(user.session_key_seed).public(),
+                        grandpa: get_from_seed::<GrandpaId>(user.session_key_seed).public(),
+                        im_online: get_from_seed::<ImOnlineId>(user.session_key_seed).public(),
                     },
                 )
             })
@@ -172,38 +191,68 @@ fn pallet_poe_availability() {
 
 mod pallets_interact {
     use super::*;
+    const BLOCK_NUMBER: BlockNumber = 1;
 
-    #[test]
-    fn session_notifies_staking() {
-        new_test_ext().execute_with(|| {
-            let pre_staking_session = Staking::current_planned_session();
-            Session::rotate_session();
-            let post_staking_session = Staking::current_planned_session();
-            assert_eq!(pre_staking_session + 1, post_staking_session);
-        });
+    fn initialize() {
+        let slot = Slot::from(SLOT_ID);
+        let authority_index = BABE_AUTHOR_ID;
+        let transcript = sp_consensus_babe::VrfTranscript::new(b"test", &[]); //sp_consensus_babe::make_vrf_transcript(&Babe::randomness(), slot, 0);
+        let pair: &sp_consensus_babe::AuthorityPair = &get_from_seed::<BabeId>(
+            testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].session_key_seed,
+        );
+        let vrf_signature = pair.as_ref().vrf_sign(&transcript.into());
+        let digest_data = sp_consensus_babe::digests::PreDigest::Primary(
+            sp_consensus_babe::digests::PrimaryPreDigest {
+                authority_index,
+                slot,
+                vrf_signature,
+            },
+        );
+        let pre_digest = Digest {
+            logs: vec![DigestItem::PreRuntime(BABE_ENGINE_ID, digest_data.encode())],
+        };
+        System::reset_events();
+        System::initialize(&BLOCK_NUMBER, &Default::default(), &pre_digest);
+        Babe::on_initialize(BLOCK_NUMBER);
+    }
+
+    mod session {
+        use super::*;
+
+        #[test]
+        fn uses_babe_session_length() {
+            new_test_ext().execute_with(|| {
+                initialize();
+                assert_eq!(
+                    Session::average_session_length(),
+                    Babe::average_session_length()
+                );
+            });
+        }
+
+        #[test]
+        fn notifies_staking() {
+            new_test_ext().execute_with(|| {
+                initialize();
+                let pre_staking_session = Staking::current_planned_session();
+                Session::rotate_session();
+                let post_staking_session = Staking::current_planned_session();
+                assert_eq!(pre_staking_session + 1, post_staking_session);
+            });
+        }
     }
 
     mod authorship {
         use super::*;
-        const BLOCK_NUMBER: BlockNumber = 1;
-
-        fn initialize() {
-            let slot = Slot::from(SLOT_ID);
-            let pre_digest = Digest {
-                logs: vec![DigestItem::PreRuntime(AURA_ENGINE_ID, slot.encode())],
-            };
-            System::reset_events();
-            System::initialize(&BLOCK_NUMBER, &Default::default(), &pre_digest);
-        }
 
         #[test]
-        fn authorship_is_configured_with_aura() {
+        fn is_configured_with_babe() {
             new_test_ext().execute_with(|| {
                 initialize();
                 assert_eq!(
                     Authorship::author(),
                     Some(AccountId32::new(
-                        testsfixtures::SAMPLE_USERS[AURA_AUTHOR_ID as usize]
+                        testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
                             .raw_account
                             .into()
                     ))
@@ -213,25 +262,23 @@ mod pallets_interact {
 
         // Check that Authorship calls back on ImOnline
         #[test]
-        fn authorship_notifies_imonline() {
+        fn notifies_imonline() {
             new_test_ext().execute_with(|| {
                 initialize();
-                assert!(!ImOnline::is_online(AURA_AUTHOR_ID));
+                assert!(!ImOnline::is_online(BABE_AUTHOR_ID));
                 Authorship::on_initialize(BLOCK_NUMBER);
-                assert!(ImOnline::is_online(AURA_AUTHOR_ID));
+                assert!(ImOnline::is_online(BABE_AUTHOR_ID));
             });
         }
 
         #[test]
-        fn authorship_notifies_staking() {
+        fn notifies_staking() {
             new_test_ext().execute_with(|| {
                 initialize();
                 // Before authoring a block, no points have been given in the active era
                 assert!(
-                    Staking::eras_reward_points(
-                        Staking::active_era().expect("No active era").index
-                    )
-                    .total
+                    Staking::eras_reward_points(Staking::active_era().expect("No active era").index)
+                        .total
                         == 0
                 );
 
@@ -240,116 +287,263 @@ mod pallets_interact {
 
                 // Authoring a block notifies Staking, which results in a positive points balance
                 assert!(
-                    Staking::eras_reward_points(
-                        Staking::active_era().expect("No active era").index
-                    )
-                    .total
+                    Staking::eras_reward_points(Staking::active_era().expect("No active era").index)
+                        .total
                         > 0
                 );
             });
         }
     }
 
-    fn is_offender(session: SessionIndex, offender_account: &AccountId) -> bool {
-        pallet_offences::ConcurrentReportsIndex::<Runtime>::get(
-            b"im-online:offlin",
-            session.encode(),
-        )
-        .into_iter()
-        .any(|offender| {
-            pallet_offences::Reports::<Runtime>::get(offender)
-                .expect("Offence not found")
-                .offender
-                .0
-                == *offender_account
-        })
-    }
+    mod offences {
+        use super::*;
+        type OffencesOpaqueTimeSlot = Vec<u8>;
 
-    #[test]
-    fn imonline_notifies_offences() {
-        new_test_ext().execute_with(|| {
-            let session = Session::current_index();
-            let offender_account = AccountId32::new(
-                testsfixtures::SAMPLE_USERS[AURA_AUTHOR_ID as usize]
-                    .raw_account
-                    .into(),
-            );
-
-            // Check that no previous offences were reported
-            assert!(!is_offender(session, &offender_account));
-
-            // AURA_AUTHOR_ID is considered offline
-            assert!(!ImOnline::is_online(AURA_AUTHOR_ID));
-
-            // Advance to next session
-            System::set_block_number(System::block_number() + 1);
-            Session::rotate_session();
-
-            // Check that the offline offence for the last session was received by pallet_offences
-            assert!(is_offender(session, &offender_account));
-        });
-    }
-
-    pub const TEST_SLASH_FRACTION: Perbill = Perbill::one();
-    struct TestOffence {
-        offender_account: AccountId32,
-    }
-    impl offence::Offence<(AccountId32, Exposure<AccountId32, u128>)> for TestOffence {
-        const ID: offence::Kind = *b"testoffencenooop";
-        type TimeSlot = u128;
-
-        fn offenders(&self) -> Vec<(AccountId32, Exposure<AccountId32, u128>)> {
-            let exposure =
-                pallet_staking::EraInfo::<Runtime>::get_full_exposure(0, &self.offender_account);
-
-            vec![(self.offender_account.clone(), exposure)]
+        fn is_offender(
+            time_slot: OffencesOpaqueTimeSlot,
+            offender_account: &AccountId,
+            offence: &[u8; 16],
+        ) -> bool {
+            pallet_offences::ConcurrentReportsIndex::<Runtime>::get(offence, time_slot)
+                .into_iter()
+                .any(|offender| {
+                    pallet_offences::Reports::<Runtime>::get(offender)
+                        .expect("Offence not found")
+                        .offender
+                        .0
+                        == *offender_account
+                })
         }
-        fn validator_set_count(&self) -> u32 {
-            NUM_VALIDATORS
+
+        pub const TEST_SLASH_FRACTION: Perbill = Perbill::one();
+        struct TestOffence {
+            offender_account: AccountId32,
         }
-        fn time_slot(&self) -> Self::TimeSlot {
-            0
+        impl offence::Offence<(AccountId32, Exposure<AccountId32, u128>)> for TestOffence {
+            const ID: offence::Kind = *b"testoffencenooop";
+            type TimeSlot = u128;
+
+            fn offenders(&self) -> Vec<(AccountId32, Exposure<AccountId32, u128>)> {
+                let exposure = pallet_staking::EraInfo::<Runtime>::get_full_exposure(
+                    0,
+                    &self.offender_account,
+                );
+
+                vec![(self.offender_account.clone(), exposure)]
+            }
+            fn validator_set_count(&self) -> u32 {
+                NUM_VALIDATORS
+            }
+            fn time_slot(&self) -> Self::TimeSlot {
+                0
+            }
+            fn session_index(&self) -> SessionIndex {
+                0
+            }
+            fn slash_fraction(&self, _offenders_count: u32) -> Perbill {
+                TEST_SLASH_FRACTION
+            }
         }
-        fn session_index(&self) -> SessionIndex {
-            0
+
+        #[test]
+        fn notifies_staking() {
+            new_test_ext().execute_with(|| {
+                let offender_account = sp_runtime::AccountId32::new(
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
+                        .raw_account
+                        .into(),
+                );
+
+                let expected_slashing_event = EventRecord {
+                    phase: Phase::Initialization,
+                    event: RuntimeEvent::Staking(pallet_staking::Event::SlashReported {
+                        validator: offender_account.clone(),
+                        fraction: TEST_SLASH_FRACTION,
+                        slash_era: 0,
+                    }),
+                    topics: vec![],
+                };
+
+                // Make sure that no slash events for offender_account is published
+                assert!(!System::events().contains(&expected_slashing_event));
+
+                // Make pallet_offences report an offence
+                let offence = TestOffence {
+                    offender_account: offender_account.clone(),
+                };
+                assert_ok!(Offences::report_offence(vec![], offence));
+
+                // Check that pallet_staking generates the related event (i.e. it has been notified of
+                // the offence)
+                assert!(System::events().contains(&expected_slashing_event));
+            });
         }
-        fn slash_fraction(&self, _offenders_count: u32) -> Perbill {
-            TEST_SLASH_FRACTION
+
+        #[test]
+        fn notified_by_imonline() {
+            new_test_ext().execute_with(|| {
+                initialize();
+                let session = Session::current_index();
+                let offender_account = AccountId32::new(
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
+                        .raw_account
+                        .into(),
+                );
+
+                const EQUIVOCATION_KIND: &offence::Kind = b"im-online:offlin";
+                // Check that no previous offences were reported
+                assert!(!is_offender(
+                    session.encode(),
+                    &offender_account,
+                    EQUIVOCATION_KIND
+                ));
+
+                // BABE_AUTHOR_ID is considered offline
+                assert!(!ImOnline::is_online(BABE_AUTHOR_ID));
+
+                // Advance to next session
+                System::set_block_number(System::block_number() + 1);
+
+                Session::rotate_session();
+
+                // Check that the offline offence for the last session was received by pallet_offences
+                assert!(is_offender(
+                    session.encode(),
+                    &offender_account,
+                    EQUIVOCATION_KIND
+                ));
+            });
         }
-    }
 
-    #[test]
-    fn offences_notifies_staking() {
-        new_test_ext().execute_with(|| {
-            let offender_account = sp_runtime::AccountId32::new(
-                testsfixtures::SAMPLE_USERS[AURA_AUTHOR_ID as usize]
-                    .raw_account
-                    .into(),
-            );
+        #[test]
+        fn notified_by_grandpa() {
+            new_test_ext().execute_with(|| {
+                initialize();
+                let offender_account = AccountId32::new(
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
+                        .raw_account
+                        .into(),
+                );
+                let offender = get_from_seed::<GrandpaId>(
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].session_key_seed,
+                );
+                //.public();
 
-            let expected_slashing_event = EventRecord {
-                phase: Phase::Initialization,
-                event: RuntimeEvent::Staking(pallet_staking::Event::SlashReported {
-                    validator: offender_account.clone(),
-                    fraction: TEST_SLASH_FRACTION,
-                    slash_era: 0,
-                }),
-                topics: vec![],
-            };
+                const EQUIVOCATION_KIND: &[u8; 16] = b"grandpa:equivoca";
+                let round = 0;
+                let set_id = Grandpa::current_set_id();
+                let time_slot = pallet_grandpa::TimeSlot { set_id, round };
+                assert!(!is_offender(
+                    time_slot.encode(),
+                    &offender_account,
+                    EQUIVOCATION_KIND
+                ));
 
-            // Make sure that no slash events for offender_account is published
-            assert!(!System::events().contains(&expected_slashing_event));
+                let target_number = 0;
+                let signed_prevote = |target_hash| {
+                    let prevote = finality_grandpa::Prevote {
+                        target_hash,
+                        target_number,
+                    };
+                    let prevote_msg = finality_grandpa::Message::Prevote(prevote.clone());
+                    let payload =
+                        sp_consensus_grandpa::localized_payload(round, set_id, &prevote_msg);
+                    let signed = offender.sign(&payload).into();
+                    (prevote, signed)
+                };
+                let first_vote = signed_prevote(H256::random());
+                let second_vote = signed_prevote(H256::random());
+                let equivocation_proof = sp_consensus_grandpa::EquivocationProof::<H256, u32>::new(
+                    set_id,
+                    sp_consensus_grandpa::Equivocation::Prevote(finality_grandpa::Equivocation {
+                        round_number: round,
+                        identity: offender.public(),
+                        first: first_vote,
+                        second: second_vote,
+                    }),
+                );
+                let key = (sp_consensus_grandpa::KEY_TYPE, &offender.public());
+                let key_owner_proof = Historical::prove(key).unwrap();
 
-            // Make pallet_offences report an offence
-            let offence = TestOffence {
-                offender_account: offender_account.clone(),
-            };
-            assert_ok!(Offences::report_offence(vec![], offence));
+                assert_ok!(Grandpa::report_equivocation_unsigned(
+                    RuntimeOrigin::none(),
+                    Box::new(equivocation_proof),
+                    key_owner_proof,
+                ));
+                assert!(is_offender(
+                    time_slot.encode(),
+                    &offender_account,
+                    EQUIVOCATION_KIND
+                ));
+            });
+        }
 
-            // Check that pallet_staking generates the related event (i.e. it has been notified of
-            // the offence)
-            assert!(System::events().contains(&expected_slashing_event));
-        });
+        #[test]
+        fn notified_by_babe() {
+            new_test_ext().execute_with(|| {
+                initialize();
+                let mut h1 = System::finalize();
+                initialize();
+                let mut h2 = System::finalize();
+
+                let slot = Slot::from(SLOT_ID);
+                let offender_account = AccountId32::new(
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
+                        .raw_account
+                        .into(),
+                );
+                let offender = get_from_seed::<BabeId>(
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].session_key_seed,
+                )
+                .public();
+                let offender_babe = get_from_seed::<BabeId>(
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].session_key_seed,
+                );
+
+                const EQUIVOCATION_KIND: &[u8; 16] = b"babe:equivocatio";
+                // Check that no previous offences were reported
+                assert!(!is_offender(
+                    slot.encode(),
+                    &offender_account,
+                    EQUIVOCATION_KIND
+                ));
+
+                let key = (sp_consensus_babe::KEY_TYPE, &offender);
+                let key_owner_proof = Historical::prove(key).unwrap();
+
+                use sp_consensus_babe::digests::CompatibleDigestItem;
+                use sp_runtime::generic::Header;
+                use sp_runtime::traits::Header as _;
+
+                let seal_header = |header: &mut Header<u32, BlakeTwo256>| {
+                    let pre_hash = header.hash();
+                    let seal = <DigestItem as CompatibleDigestItem>::babe_seal(
+                        offender_babe.sign(pre_hash.as_ref()),
+                    );
+                    header.digest_mut().push(seal)
+                };
+                seal_header(&mut h1);
+                seal_header(&mut h2);
+
+                let equivocation_proof = sp_consensus_babe::EquivocationProof {
+                    slot,
+                    offender,
+                    first_header: h1,
+                    second_header: h2,
+                };
+
+                assert_ok!(Babe::report_equivocation_unsigned(
+                    RuntimeOrigin::none(),
+                    Box::new(equivocation_proof),
+                    key_owner_proof
+                ));
+                assert!(is_offender(
+                    slot.encode(),
+                    &offender_account,
+                    EQUIVOCATION_KIND
+                ));
+            });
+        }
     }
 }
 
