@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eEuo pipefail
 
 # Set output file locations
 unit_test_file="./unit-test-output/unit_tests_output.txt"

@@ -50,7 +50,7 @@ jobs:
           compression-level: 0
           overwrite: true
       - name: Formatting
-        run: cargo fmt -- --check 2>&1 | tee formatting_output.txt
+        run: cargo fmt --check 2>&1 | tee formatting_output.txt
       - name: Upload Formatting Output
         uses: actions/upload-artifact@v4
         with:
