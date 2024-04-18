@@ -3,9 +3,7 @@ name: CI-coverage
 run-name: "Workflow performing CI step: coverage"
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+  workflow_call:
 
 env:
   RUST_BACKTRACE: 1
@@ -42,10 +40,26 @@ jobs:
             sudo apt-get install protobuf-compiler
             rustup target add wasm32-unknown-unknown
             rustup component add rust-src
-      - name: Coverage
+      - name: Install coverage tools
+        run: |
+            cargo install --force cargo-llvm-cov
+      - name: Coverage tasks
+        run: |
+            cargo llvm-cov clean --workspace
+            find . -name "*.profraw" -delete
+            cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+            cargo llvm-cov report --json --output-path coverage_report.json --summary-only
+            cargo llvm-cov report > coverage-summary.txt
+            cat coverage-summary.txt
+      - name: Upload json summary as Artifact
         if: matrix.os == 'ubuntu-latest'
-        uses: actions-rs/tarpaulin@v0.1
+        uses: actions/upload-artifact@v4
         with:
-          version: '0.22.0' # higher not available
-          out-type: 'Stdout'
-          args: '--skip-clean --ignore-tests --release'
+          name: coverage-output
+          path: ./coverage_report.json
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 0
+          overwrite: true
+      # It is also possible to upload the generated lcov.info for later use with Codecov
+      # (see https://llvm.org/docs/CommandGuide/llvm-profdata.html)

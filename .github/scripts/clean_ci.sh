@@ -26,10 +26,22 @@ echo "Listing 100 largest packages"
 dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
 echo "********************************* START SIZE *********************************"
 df -h
+echo "Removing Android library"
+sudo rm -rf /usr/local/lib/android
+echo "Removing .NET runtime"
+sudo rm -rf /usr/share/dotnet
+echo "Removing Haskell runtime"
+sudo rm -rf /opt/ghc
+sudo rm -rf /usr/local/.ghcup
 echo "Removing large packages"
-sudo apt-get remove -y '^dotnet-.*'
-sudo apt-get remove -y '^temurin-.*'
-sudo apt-get remove -y azure-cli google-cloud-cli microsoft-edge-stable google-chrome-stable firefox powershell
+sudo apt-get remove -y '^aspnetcore-.*'
+sudo apt-get remove -y '^dotnet-.*' --fix-missing
+sudo apt-get remove -y '^temurin-.*' --fix-missing
+sudo apt-get remove -y 'php.*' --fix-missing
+sudo apt-get remove -y '^mongodb-.*' --fix-missing
+sudo apt-get remove -y '^mysql-.*' --fix-missing
+sudo apt-get remove -y google-cloud-sdk --fix-missing
+sudo apt-get remove -y azure-cli google-cloud-cli microsoft-edge-stable google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing
 sudo apt-get autoremove -y
 sudo apt-get clean
 echo "************************* AFTER PACKAGES CLEAN SIZE *************************"
