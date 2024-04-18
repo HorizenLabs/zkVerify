@@ -1,0 +1,20 @@
+Block:
+  title: Block object
+  type: object
+  properties:
+    header:
+      title: Header
+      type: object
+      $ref: '#/components/schemas/Header'
+    extrinsics:
+      title: Extrinsics
+      type: array
+      items:
+        $ref: '#/components/schemas/hash32'
+    justifications:
+      title: Justifications
+      anyOf:
+        - type: 'null'
+        - type: 'array'
+          items:
+            $ref: '#/components/schemas/bytes256'

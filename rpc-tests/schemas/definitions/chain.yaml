@@ -1,0 +1,40 @@
+- name: chain_getBlock
+  summary: Returns a full block.
+  params:
+    - name: Block Hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Block
+    schema:
+      $ref: '#/components/schemas/Block'
+- name: chain_getBlockHash
+  summary: Returns the hash of a block by number or the latest block hash if no number is provided.
+  params:
+    - name: Block Number
+      required: false
+      schema:
+        type: number
+  result:
+    name: Block Hash
+    schema:
+      $ref: '#/components/schemas/hash32'
+- name: chain_getFinalizedHead
+  summary: Returns the hash of the latest finalized block.
+  params: []
+  result:
+    name: Finalized Block Hash
+    schema:
+      $ref: '#/components/schemas/hash32'
+- name: chain_getHeader
+  summary: Returns an object representing the header information of the requested block
+  params:
+    - name: Block Hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Header
+    schema:
+      $ref: '#/components/schemas/Header'

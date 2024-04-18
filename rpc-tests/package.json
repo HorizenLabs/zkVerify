@@ -1,0 +1,37 @@
+{
+  "name": "rpc-tests",
+  "version": "1.0.0",
+  "description": "Test suite for the NH-Core node RPC interface.",
+  "author": "Horizen Labs <info@horizenlabs.io>",
+  "main": "index",
+  "scripts": {
+    "test-local": "cp .env.local .env && jest --config=jest.config.local.js",
+    "test-testnet": "cp .env.testnet .env && jest --config=jest.config.testnet.js"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.[t|j]sx?$": "babel-jest"
+    }
+  },
+  "devDependencies": {
+    "@babel/preset-env": "7.21.5",
+    "@babel/preset-typescript": "7.21.5",
+    "@jest/globals": "29.5.0",
+    "@types/jest": "29.5.1",
+    "@types/node": "20.1.1",
+    "@types/web3": "^1.2.2",
+    "babel-jest": "29.5.0",
+    "bn": "^1.0.5",
+    "canonical-weth": "^1.4.0",
+    "jest": "29.5.0",
+    "jest-html-reporter": "3.10.0",
+    "ts-jest": "29.1.0",
+    "typescript": "5.0.4",
+    "web3": "^4.1.1"
+  },
+  "dependencies": {
+    "axios": "1.4.0",
+    "dotenv": "16.0.3",
+    "yaml": "2.3.0"
+  }
+}
