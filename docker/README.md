@@ -72,7 +72,7 @@ All Dockerfile and compose definitions are located in `docker/dockerfile` folder
 To generate a node image without bothering about local resources, Rust installation and so on you can simply use:
 
 ```bash
-> docker build -f docker/dockerfiles/hl-node.Dockerfile -t nh-node:latest .
+> docker build -f docker/dockerfiles/hl-node.Dockerfile -t horizenlabs/nh-node:latest .
 ```
 
 and run it with
