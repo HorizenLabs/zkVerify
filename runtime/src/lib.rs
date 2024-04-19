@@ -26,7 +26,6 @@ use pallet_grandpa::AuthorityId as GrandpaId;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use proof_of_existence_rpc_runtime_api::MerkleProof;
 use sp_api::impl_runtime_apis;
-use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
     create_runtime_str, generic, impl_opaque_keys,
@@ -139,7 +138,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 /// This determines the average expected block time that we are targeting.
 /// Blocks will be produced at a minimum duration defined by `SLOT_DURATION`.
 /// `SLOT_DURATION` is picked up by `pallet_timestamp` which is in turn picked
-/// up by `pallet_aura` to implement `fn slot_duration()`.
+/// up by `pallet_babe` to implement `fn slot_duration()`.
 ///
 /// Change this to adjust the block time.
 pub const MILLISECS_PER_BLOCK: u64 = 6000;
@@ -213,16 +212,6 @@ impl frame_system::Config for Runtime {
     type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
-impl pallet_aura::Config for Runtime {
-    type AuthorityId = AuraId;
-    type DisabledValidators = ();
-    type MaxAuthorities = MaxAuthorities;
-    type AllowMultipleBlocksPerSlot = ConstBool<false>;
-
-    #[cfg(feature = "experimental")]
-    type SlotDuration = pallet_aura::MinimumPeriodTimesTwo<Runtime>;
-}
-
 parameter_types! {
     pub const ExpectedBlockTime: u64 = MILLISECS_PER_BLOCK; // Should use primitives::Moment
     pub const EpochDurationInBlocks: BlockNumber = 1 * MINUTES; // TODO: use prod_or_fast!
@@ -294,7 +283,6 @@ parameter_types! {
 impl_opaque_keys! {
     pub struct SessionKeys {
         pub babe: Babe,
-        pub aura: Aura,
         pub grandpa: Grandpa,
         pub im_online: ImOnline,
     }
@@ -501,7 +489,6 @@ construct_runtime!(
         Authorship: pallet_authorship,
         Staking: pallet_staking,
         Session: pallet_session,
-        Aura: pallet_aura,
         Babe: pallet_babe,
         Grandpa: pallet_grandpa,
         TransactionPayment: pallet_transaction_payment,
@@ -640,16 +627,6 @@ impl_runtime_apis! {
     impl sp_offchain::OffchainWorkerApi<Block> for Runtime {
         fn offchain_worker(header: &<Block as BlockT>::Header) {
             Executive::offchain_worker(header)
-        }
-    }
-
-    impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
-        fn slot_duration() -> sp_consensus_aura::SlotDuration {
-            sp_consensus_aura::SlotDuration::from_millis(Aura::slot_duration())
-        }
-
-        fn authorities() -> Vec<AuraId> {
-            Aura::authorities().into_inner()
         }
     }
 

@@ -87,7 +87,6 @@ fn new_test_ext() -> sp_io::TestExternalities {
                     user.raw_account.into(),
                     SessionKeys {
                         babe: get_from_seed::<BabeId>(user.session_key_seed).public(),
-                        aura: get_from_seed::<AuraId>(user.session_key_seed).public(),
                         grandpa: get_from_seed::<GrandpaId>(user.session_key_seed).public(),
                         im_online: get_from_seed::<ImOnlineId>(user.session_key_seed).public(),
                     },

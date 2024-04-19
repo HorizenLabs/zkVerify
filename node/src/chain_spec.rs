@@ -17,7 +17,6 @@ use nh_runtime::currency::{Balance, NZEN};
 use nh_runtime::{currency, AccountId, RuntimeGenesisConfig, SessionKeys, Signature, WASM_BINARY};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_service::{ChainType, Properties};
-use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{sr25519, Pair, Public};
@@ -59,34 +58,31 @@ fn from_ss58check<T: sp_core::crypto::Ss58Codec>(
 
 fn session_keys(
     babe: BabeId,
-    aura: AuraId,
     grandpa: GrandpaId,
     im_online: ImOnlineId,
 ) -> SessionKeys {
     SessionKeys {
         babe,
-        aura,
         grandpa,
         im_online,
     }
 }
 
-/// Generate an Aura authority key.
-pub fn authority_keys_from_seed(s: &str) -> (AccountId, BabeId, AuraId, GrandpaId, ImOnlineId) {
+/// Generate a session authority key.
+pub fn authority_keys_from_seed(s: &str) -> (AccountId, BabeId, GrandpaId, ImOnlineId) {
     (
         get_account_id_from_seed::<sr25519::Public>(s),
         get_from_seed::<BabeId>(s),
-        get_from_seed::<AuraId>(s),
         get_from_seed::<GrandpaId>(s),
         get_from_seed::<ImOnlineId>(s),
     )
 }
 
-// Generate Aura and Grandpa authority IDs from SS58 addresses.
+// Generate authority IDs from SS58 addresses.
 pub fn authority_ids_from_ss58(
     sr25519_key: &str,
     ed25519_key: &str,
-) -> Result<(AccountId, BabeId, AuraId, GrandpaId, ImOnlineId), String> {
+) -> Result<(AccountId, BabeId, GrandpaId, ImOnlineId), String> {
     Ok((
         from_ss58check(sr25519_key).map_err(|error| {
             format!(
@@ -97,12 +93,6 @@ pub fn authority_ids_from_ss58(
         from_ss58check(sr25519_key).map_err(|error| {
             format!(
                 "An error occurred while converting SS58 to BabeId: {}",
-                error
-            )
-        })?,
-        from_ss58check(sr25519_key).map_err(|error| {
-            format!(
-                "An error occurred while converting SS58 to AuraId: {}",
                 error
             )
         })?,
@@ -304,7 +294,7 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
 
 /// Configure initial storage state for FRAME modules.
 fn genesis(
-    initial_authorities: Vec<((AccountId, BabeId, AuraId, GrandpaId, ImOnlineId), Balance)>,
+    initial_authorities: Vec<((AccountId, BabeId, GrandpaId, ImOnlineId), Balance)>,
     root_key: AccountId,
     endowed_accounts: Vec<(AccountId, Balance)>,
     _enable_println: bool,
@@ -321,7 +311,7 @@ fn genesis(
         "session": {
             "keys": initial_authorities.iter()
                 .cloned()
-                .map(|((account, babe, aura, grandpa, imonline), _staking)| { (account.clone(), account, session_keys(babe, aura, grandpa, imonline)) })
+                .map(|((account, babe, grandpa, imonline), _staking)| { (account.clone(), account, session_keys(babe, grandpa, imonline)) })
                 .collect::<Vec<_>>(),
         },
         "staking": {
@@ -329,7 +319,7 @@ fn genesis(
             "validatorCount": 3,
             "stakers": initial_authorities.iter()
                 .cloned()
-                .map(|((account, _babe, _aura, _grandpa, _imonline), staking)| (account.clone(), account, staking, sp_staking::StakerStatus::Validator::<AccountId>))
+                .map(|((account, _babe, _grandpa, _imonline), staking)| (account.clone(), account, staking, sp_staking::StakerStatus::Validator::<AccountId>))
                 .collect::<Vec<_>>(),
         },
         "sudo": {
@@ -347,8 +337,8 @@ fn genesis(
 mod tests {
     use super::*;
 
-    // The following test verifies whether we added aura configuration in the genesis block
-    // by checking that the json returned by testnet_genesis() contains the field "aura"
+    // The following test verifies whether we added session configuration in the genesis block
+    // by checking that the json returned by testnet_genesis() contains the field "session"
     #[test]
     fn testnet_genesis_should_set_session_keys() {
         let initial_authorities = vec![(authority_keys_from_seed("Alice"), 7 * currency::NZEN)];
@@ -358,7 +348,7 @@ mod tests {
 
         let session_config = &ret_val["session"];
 
-        // Check that we have the field "aura" in the genesis config
+        // Check that we have the field "session" in the genesis config
         assert!(!session_config.is_null());
 
         let auth_len = session_config

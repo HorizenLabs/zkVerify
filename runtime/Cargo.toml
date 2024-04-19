@@ -21,7 +21,6 @@ pallet-im-online = { workspace = true, default-features = false }
 pallet-authorship = { workspace = true, default-features = false }
 pallet-session = { workspace = true, default-features = false }
 pallet-staking = { workspace = true, default-features = false }
-pallet-aura = { workspace = true, default-features = false }
 pallet-babe = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
 frame-support = { workspace = true, default-features = false }
@@ -34,7 +33,6 @@ pallet-transaction-payment = { workspace = true, default-features = false }
 frame-executive = { workspace = true, default-features = false }
 sp-api = { workspace = true, default-features = false }
 sp-block-builder = { workspace = true, default-features = false }
-sp-consensus-aura = { workspace = true, default-features = false, features = ["serde"] }
 sp-consensus-babe = { workspace = true, default-features = false, features = ["serde"] }
 finality-grandpa = { workspace = true, default-features = false }
 sp-consensus-grandpa = { workspace = true, default-features = false, features = ["serde"] }
@@ -87,7 +85,6 @@ std = [
 	"pallet-offences/std",
 	"pallet-im-online/std",
 	"pallet-authorship/std",
-	"pallet-aura/std",
 	"pallet-babe/std",
 	"pallet-session/std",
 	"pallet-staking/std",
@@ -105,7 +102,6 @@ std = [
 	"sp-io/std",
 	"sp-api/std",
 	"sp-block-builder/std",
-	"sp-consensus-aura/std",
 	"sp-consensus-babe/std",
 	"sp-consensus-grandpa/std",
 	"sp-core/std",
@@ -143,7 +139,6 @@ try-runtime = [
 	"pallet-offences/try-runtime",
 	"pallet-im-online/try-runtime",
 	"pallet-authorship/try-runtime",
-	"pallet-aura/try-runtime",
 	"pallet-babe/try-runtime",
 	"pallet-session/try-runtime",
 	"pallet-staking/try-runtime",
@@ -156,4 +151,3 @@ try-runtime = [
 	"pallet-poe/try-runtime",
 	"sp-runtime/try-runtime",
 ]
-experimental = ["pallet-aura/experimental"]

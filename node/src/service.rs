@@ -317,7 +317,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
             telemetry: telemetry.as_ref().map(|x| x.handle()),
         }).expect("Ouch");
 
-        // the AURA authoring task is considered essential, i.e. if it
+        // the BABE authoring task is considered essential, i.e. if it
         // fails we take down the service with it.
         task_manager
             .spawn_essential_handle()

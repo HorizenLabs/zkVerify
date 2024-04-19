@@ -31,7 +31,6 @@ sc-telemetry = { version = "14.0.0" }
 sc-transaction-pool = { version = "27.0.0" }
 sc-transaction-pool-api = { version = "27.0.0" }
 sc-offchain = { version = "28.0.0" }
-sc-consensus-aura = { version = "0.33.0" }
 sc-consensus-babe = { version = "0.33.0" }
 sc-consensus-babe-rpc = { version = "0.33.0" }
 sc-consensus = { version = "0.32.0" }
@@ -70,7 +69,6 @@ pallet-im-online = { default-features = false, version = "26.0.0" }
 pallet-authorship = { default-features = false, version = "27.0.0" }
 pallet-session = { default-features = false, version = "27.0.0" }
 pallet-staking = { default-features = false, version = "27.0.0" }
-pallet-aura = { default-features = false, version = "26.0.0" }
 pallet-babe = { default-features = false, version = "27.0.0" }
 pallet-balances = { default-features = false, version = "27.0.0" }
 frame-support = { default-features = false, version = "27.0.0" }
@@ -83,7 +81,6 @@ frame-executive = { default-features = false, version = "27.0.0" }
 sp-api = { default-features = false, version = "25.0.0" }
 sp-block-builder = { default-features = false, version = "25.0.0" }
 sp-consensus = { default-features = false, version = "0.31.0" }
-sp-consensus-aura = { default-features = false, features = ["serde"], version = "0.31.0" }
 sp-consensus-babe = { default-features = false, features = ["serde"], version = "0.31.0" }
 finality-grandpa = { default-features = false, version = "0.16.2" }
 sp-consensus-grandpa = { default-features = false, features = ["serde"], version = "12.0.0" }

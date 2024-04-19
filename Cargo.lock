@@ -4106,7 +4106,6 @@ dependencies = [
  "sc-cli",
  "sc-client-api",
  "sc-consensus",
- "sc-consensus-aura",
  "sc-consensus-babe",
  "sc-consensus-babe-rpc",
  "sc-consensus-grandpa",
@@ -4124,7 +4123,6 @@ dependencies = [
  "sp-block-builder",
  "sp-blockchain",
  "sp-consensus",
- "sp-consensus-aura",
  "sp-consensus-babe",
  "sp-consensus-grandpa",
  "sp-core",
@@ -4518,7 +4516,6 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
  "log",
- "pallet-aura",
  "pallet-authorship",
  "pallet-babe",
  "pallet-balances",
@@ -4539,7 +4536,6 @@ dependencies = [
  "serde_json",
  "sp-api",
  "sp-block-builder",
- "sp-consensus-aura",
  "sp-consensus-babe",
  "sp-consensus-grandpa",
  "sp-core",
@@ -4733,24 +4729,6 @@ name = "option-ext"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
-
-[[package]]
-name = "pallet-aura"
-version = "26.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "796c9823f84c4fc3b92b170ef9339bad67f9376a16d8df943331b72809dade39"
-dependencies = [
- "frame-support",
- "frame-system",
- "log",
- "pallet-timestamp",
- "parity-scale-codec",
- "scale-info",
- "sp-application-crypto",
- "sp-consensus-aura",
- "sp-runtime",
- "sp-std",
-]
 
 [[package]]
 name = "pallet-authorship"
@@ -6401,36 +6379,6 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "sp-state-machine",
- "substrate-prometheus-endpoint",
- "thiserror",
-]
-
-[[package]]
-name = "sc-consensus-aura"
-version = "0.33.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "766cbbf38bbe4ce34d201e3f12011d1038c1d0c8c980aec53012f7db9fe6e110"
-dependencies = [
- "async-trait",
- "futures",
- "log",
- "parity-scale-codec",
- "sc-block-builder",
- "sc-client-api",
- "sc-consensus",
- "sc-consensus-slots",
- "sc-telemetry",
- "sp-api",
- "sp-application-crypto",
- "sp-block-builder",
- "sp-blockchain",
- "sp-consensus",
- "sp-consensus-aura",
- "sp-consensus-slots",
- "sp-core",
- "sp-inherents",
- "sp-keystore",
- "sp-runtime",
  "substrate-prometheus-endpoint",
  "thiserror",
 ]

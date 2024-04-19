@@ -31,8 +31,6 @@ sc-transaction-pool = { workspace = true}
 sc-transaction-pool-api = { workspace = true}
 sc-offchain = { workspace = true}
 sp-consensus = { workspace = true}
-sc-consensus-aura = { workspace = true}
-sp-consensus-aura = { workspace = true}
 sc-consensus-babe = { workspace = true}
 sc-consensus-babe-rpc = { workspace = true}
 sp-consensus-babe = { workspace = true}
