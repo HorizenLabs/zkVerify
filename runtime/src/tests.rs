@@ -33,20 +33,17 @@ use sp_staking::{offence, offence::ReportOffence, Exposure, SessionIndex};
 
 mod testsfixtures;
 
-pub fn get_from_seed<TPublic: Public>(seed: u8) -> TPublic::Pair {
+fn get_from_seed<TPublic: Public>(seed: u8) -> TPublic::Pair {
     TPublic::Pair::from_string(&format!("//test_seed{}", seed), None)
         .expect("static values are valid; qed")
 }
 
-pub const SLOT_ID: u64 = 87; // Any random value should do
-pub const NUM_VALIDATORS: u32 = 2;
-pub const BABE_AUTHOR_ID: u32 = 1;
-pub const TEST_PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
+const NUM_VALIDATORS: u32 = 2;
 
 /// The BABE epoch configuration at genesis.
-pub const TEST_BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
+const TEST_BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
     sp_consensus_babe::BabeEpochConfiguration {
-        c: TEST_PRIMARY_PROBABILITY,
+        c: crate::PRIMARY_PROBABILITY,
         allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryVRFSlots,
     };
 
@@ -190,12 +187,17 @@ fn pallet_poe_availability() {
 
 mod pallets_interact {
     use super::*;
-    const BLOCK_NUMBER: BlockNumber = 1;
 
+    // Any random values for these constants should do
+    const BLOCK_NUMBER: BlockNumber = 1;
+    const SLOT_ID: u64 = 87;
+    const BABE_AUTHOR_ID: u32 = 1;
+
+    // Initialize block #BLOCK_NUMBER, authored at slot SLOT_ID by BABE_AUTHOR_ID using Babe
     fn initialize() {
         let slot = Slot::from(SLOT_ID);
         let authority_index = BABE_AUTHOR_ID;
-        let transcript = sp_consensus_babe::VrfTranscript::new(b"test", &[]); //sp_consensus_babe::make_vrf_transcript(&Babe::randomness(), slot, 0);
+        let transcript = sp_consensus_babe::VrfTranscript::new(b"test", &[]);
         let pair: &sp_consensus_babe::AuthorityPair = &get_from_seed::<BabeId>(
             testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].session_key_seed,
         );
@@ -215,13 +217,18 @@ mod pallets_interact {
         Babe::on_initialize(BLOCK_NUMBER);
     }
 
+    fn new_test_ext() -> sp_io::TestExternalities {
+        let mut ex = super::new_test_ext();
+        ex.execute_with(|| initialize());
+        ex
+    }
+
     mod session {
         use super::*;
 
         #[test]
         fn uses_babe_session_length() {
             new_test_ext().execute_with(|| {
-                initialize();
                 assert_eq!(
                     Session::average_session_length(),
                     Babe::average_session_length()
@@ -232,7 +239,6 @@ mod pallets_interact {
         #[test]
         fn notifies_staking() {
             new_test_ext().execute_with(|| {
-                initialize();
                 let pre_staking_session = Staking::current_planned_session();
                 Session::rotate_session();
                 let post_staking_session = Staking::current_planned_session();
@@ -247,7 +253,6 @@ mod pallets_interact {
         #[test]
         fn is_configured_with_babe() {
             new_test_ext().execute_with(|| {
-                initialize();
                 assert_eq!(
                     Authorship::author(),
                     Some(AccountId32::new(
@@ -263,7 +268,6 @@ mod pallets_interact {
         #[test]
         fn notifies_imonline() {
             new_test_ext().execute_with(|| {
-                initialize();
                 assert!(!ImOnline::is_online(BABE_AUTHOR_ID));
                 Authorship::on_initialize(BLOCK_NUMBER);
                 assert!(ImOnline::is_online(BABE_AUTHOR_ID));
@@ -273,11 +277,12 @@ mod pallets_interact {
         #[test]
         fn notifies_staking() {
             new_test_ext().execute_with(|| {
-                initialize();
                 // Before authoring a block, no points have been given in the active era
                 assert!(
-                    Staking::eras_reward_points(Staking::active_era().expect("No active era").index)
-                        .total
+                    Staking::eras_reward_points(
+                        Staking::active_era().expect("No active era").index
+                    )
+                    .total
                         == 0
                 );
 
@@ -286,8 +291,10 @@ mod pallets_interact {
 
                 // Authoring a block notifies Staking, which results in a positive points balance
                 assert!(
-                    Staking::eras_reward_points(Staking::active_era().expect("No active era").index)
-                        .total
+                    Staking::eras_reward_points(
+                        Staking::active_era().expect("No active era").index
+                    )
+                    .total
                         > 0
                 );
             });
@@ -296,6 +303,10 @@ mod pallets_interact {
 
     mod offences {
         use super::*;
+        use sp_consensus_babe::digests::CompatibleDigestItem;
+        use sp_runtime::generic::Header;
+        use sp_runtime::traits::Header as _;
+
         type OffencesOpaqueTimeSlot = Vec<u8>;
 
         fn is_offender(
@@ -314,7 +325,7 @@ mod pallets_interact {
                 })
         }
 
-        pub const TEST_SLASH_FRACTION: Perbill = Perbill::one();
+        const TEST_SLASH_FRACTION: Perbill = Perbill::one();
         struct TestOffence {
             offender_account: AccountId32,
         }
@@ -381,7 +392,6 @@ mod pallets_interact {
         #[test]
         fn notified_by_imonline() {
             new_test_ext().execute_with(|| {
-                initialize();
                 let session = Session::current_index();
                 let offender_account = AccountId32::new(
                     testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
@@ -400,9 +410,8 @@ mod pallets_interact {
                 // BABE_AUTHOR_ID is considered offline
                 assert!(!ImOnline::is_online(BABE_AUTHOR_ID));
 
-                // Advance to next session
+                // Advance to next session w/o offender being online
                 System::set_block_number(System::block_number() + 1);
-
                 Session::rotate_session();
 
                 // Check that the offline offence for the last session was received by pallet_offences
@@ -417,7 +426,6 @@ mod pallets_interact {
         #[test]
         fn notified_by_grandpa() {
             new_test_ext().execute_with(|| {
-                initialize();
                 let offender_account = AccountId32::new(
                     testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
                         .raw_account
@@ -426,20 +434,24 @@ mod pallets_interact {
                 let offender = get_from_seed::<GrandpaId>(
                     testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].session_key_seed,
                 );
-                //.public();
 
-                const EQUIVOCATION_KIND: &[u8; 16] = b"grandpa:equivoca";
+                const EQUIVOCATION_KIND: &offence::Kind = b"grandpa:equivoca";
+
                 let round = 0;
                 let set_id = Grandpa::current_set_id();
                 let time_slot = pallet_grandpa::TimeSlot { set_id, round };
+
+                // Make sure no previous reports for this offence/offender pair
                 assert!(!is_offender(
                     time_slot.encode(),
                     &offender_account,
                     EQUIVOCATION_KIND
                 ));
 
-                let target_number = 0;
-                let signed_prevote = |target_hash| {
+                // Make Grandpa report an offence for a double vote on different hashes for the
+                // same target block in the same Grandpa round
+                let target_number = BLOCK_NUMBER;
+                let create_signed_prevote = |target_hash| {
                     let prevote = finality_grandpa::Prevote {
                         target_hash,
                         target_number,
@@ -450,8 +462,8 @@ mod pallets_interact {
                     let signed = offender.sign(&payload).into();
                     (prevote, signed)
                 };
-                let first_vote = signed_prevote(H256::random());
-                let second_vote = signed_prevote(H256::random());
+                let first_vote = create_signed_prevote(H256::random());
+                let second_vote = create_signed_prevote(H256::random());
                 let equivocation_proof = sp_consensus_grandpa::EquivocationProof::<H256, u32>::new(
                     set_id,
                     sp_consensus_grandpa::Equivocation::Prevote(finality_grandpa::Equivocation {
@@ -469,6 +481,8 @@ mod pallets_interact {
                     Box::new(equivocation_proof),
                     key_owner_proof,
                 ));
+
+                // Check report for this offence/offender pair has been received by pallet_offences
                 assert!(is_offender(
                     time_slot.encode(),
                     &offender_account,
@@ -480,12 +494,6 @@ mod pallets_interact {
         #[test]
         fn notified_by_babe() {
             new_test_ext().execute_with(|| {
-                initialize();
-                let mut h1 = System::finalize();
-                initialize();
-                let mut h2 = System::finalize();
-
-                let slot = Slot::from(SLOT_ID);
                 let offender_account = AccountId32::new(
                     testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
                         .raw_account
@@ -493,49 +501,51 @@ mod pallets_interact {
                 );
                 let offender = get_from_seed::<BabeId>(
                     testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].session_key_seed,
-                )
-                .public();
-                let offender_babe = get_from_seed::<BabeId>(
-                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].session_key_seed,
                 );
 
-                const EQUIVOCATION_KIND: &[u8; 16] = b"babe:equivocatio";
-                // Check that no previous offences were reported
+                let seal_header = |mut header: Header<u32, BlakeTwo256>| {
+                    let pre_hash = header.hash();
+                    let seal = <DigestItem as CompatibleDigestItem>::babe_seal(
+                        offender.sign(pre_hash.as_ref()),
+                    );
+                    header.digest_mut().push(seal);
+                    header
+                };
+
+                // Produce two different block headers for the same height
+                let h1 = seal_header(System::finalize());
+                // Need to initialize again
+                initialize();
+                let h2 = seal_header(System::finalize());
+
+                let slot = Slot::from(SLOT_ID);
+                const EQUIVOCATION_KIND: &offence::Kind = b"babe:equivocatio";
+
+                // Make sure no previous reports for this offence/offender pair
                 assert!(!is_offender(
                     slot.encode(),
                     &offender_account,
                     EQUIVOCATION_KIND
                 ));
 
-                let key = (sp_consensus_babe::KEY_TYPE, &offender);
-                let key_owner_proof = Historical::prove(key).unwrap();
-
-                use sp_consensus_babe::digests::CompatibleDigestItem;
-                use sp_runtime::generic::Header;
-                use sp_runtime::traits::Header as _;
-
-                let seal_header = |header: &mut Header<u32, BlakeTwo256>| {
-                    let pre_hash = header.hash();
-                    let seal = <DigestItem as CompatibleDigestItem>::babe_seal(
-                        offender_babe.sign(pre_hash.as_ref()),
-                    );
-                    header.digest_mut().push(seal)
-                };
-                seal_header(&mut h1);
-                seal_header(&mut h2);
-
+                // Make Babe report the offence for authoring two different blocks for the same
+                // target height
                 let equivocation_proof = sp_consensus_babe::EquivocationProof {
                     slot,
-                    offender,
+                    offender: offender.public(),
                     first_header: h1,
                     second_header: h2,
                 };
+                let key = (sp_consensus_babe::KEY_TYPE, &offender.public());
+                let key_owner_proof = Historical::prove(key).unwrap();
 
                 assert_ok!(Babe::report_equivocation_unsigned(
                     RuntimeOrigin::none(),
                     Box::new(equivocation_proof),
                     key_owner_proof
                 ));
+
+                // Check report for this offence/offender pair has been received by pallet_offences
                 assert!(is_offender(
                     slot.encode(),
                     &offender_account,

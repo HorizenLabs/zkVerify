@@ -56,11 +56,7 @@ fn from_ss58check<T: sp_core::crypto::Ss58Codec>(
     <T as sp_core::crypto::Ss58Codec>::from_ss58check(key)
 }
 
-fn session_keys(
-    babe: BabeId,
-    grandpa: GrandpaId,
-    im_online: ImOnlineId,
-) -> SessionKeys {
+fn session_keys(babe: BabeId, grandpa: GrandpaId, im_online: ImOnlineId) -> SessionKeys {
     SessionKeys {
         babe,
         grandpa,
@@ -150,9 +146,9 @@ pub fn local_config() -> Result<ChainSpec, String> {
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
         None,
     )
-    .with_name("DR NH Local")
-    .with_id("dr_nh_local")
-    .with_protocol_id("dr_nh_local")
+    .with_name("NH Local")
+    .with_id("nh_local")
+    .with_protocol_id("lzen")
     .with_chain_type(ChainType::Local)
     .with_properties({
         let mut props = Properties::new();
@@ -186,6 +182,7 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
     )
     .with_name("NH Testnet")
     .with_id("nh_testnet")
+    .with_protocol_id("tzen")
     .with_chain_type(ChainType::Live)
     .with_properties({
         let mut props = Properties::new();
@@ -305,7 +302,6 @@ fn genesis(
             "balances": endowed_accounts,
         },
         "babe": {
-            //authorities: vec![],
             "epochConfig": Some(nh_runtime::BABE_GENESIS_EPOCH_CONFIG),
         },
         "session": {

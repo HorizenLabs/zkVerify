@@ -241,7 +241,6 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
         let client = client.clone();
         let pool = transaction_pool.clone();
         let select_chain = select_chain.clone();
-        //let chain_spec = config.chain_spec.cloned_box();
         let babe = {
             crate::rpc::BabeDeps {
                 keystore: keystore_container.keystore().clone(),
@@ -254,7 +253,6 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
                 client: client.clone(),
                 pool: pool.clone(),
                 select_chain: select_chain.clone(),
-                //chain_spec: chain_spec.cloned_box(),
                 babe: babe.clone(),
                 deny_unsafe,
             };

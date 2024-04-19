@@ -151,10 +151,8 @@ pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
-// 1 in 4 blocks (on average, not counting collisions) will be primary babe blocks.
-// The choice of is done in accordance to the slot duration and expected target
-// block time, for safely resisting network delays of maximum two seconds.
-// <https://research.web3.foundation/en/latest/polkadot/BABE/Babe/#6-practical-results>
+
+// 1 in 4 blocks will be primary babe blocks.
 pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
 
 /// The version information used to identify this runtime when compiled natively.
@@ -214,7 +212,8 @@ impl frame_system::Config for Runtime {
 
 parameter_types! {
     pub const ExpectedBlockTime: u64 = MILLISECS_PER_BLOCK; // Should use primitives::Moment
-    pub const EpochDurationInBlocks: BlockNumber = 1 * MINUTES; // TODO: use prod_or_fast!
+    pub const EpochDurationInBlocks: BlockNumber = HOURS; // TODO: use prod_or_fast!
+    /// How long (in blocks) an equivocation report is valid for
     pub ReportLongevity: u64 = EpochDurationInBlocks::get() as u64 * 10;
     pub const MaxAuthorities: u32 = 32;
 }
@@ -228,7 +227,7 @@ impl pallet_babe::Config for Runtime {
     type WeightInfo = ();
     type MaxAuthorities = MaxAuthorities;
     type MaxNominators = ConstU32<0>;
-    type KeyOwnerProof = <Historical as KeyOwnerProofSystem<(KeyTypeId, BabeId)>>::Proof;
+    type KeyOwnerProof = sp_session::MembershipProof;
     type EquivocationReportSystem =
         pallet_babe::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
 }
@@ -241,7 +240,7 @@ impl pallet_grandpa::Config for Runtime {
     type MaxNominators = ConstU32<0>;
     type MaxSetIdSessionEntries = ConstU64<0>;
 
-    type KeyOwnerProof = <Historical as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
+    type KeyOwnerProof = sp_session::MembershipProof;
     type EquivocationReportSystem =
         pallet_grandpa::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
 }
@@ -318,11 +317,6 @@ impl pallet_poe::Config for Runtime {
     type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
 }
 
-parameter_types! {
-    pub const Period: u32 = 10 * MINUTES; // Blocks per session
-    pub const Offset: u32 = 0;
-}
-
 pub struct ValidatorIdOf;
 impl sp_runtime::traits::Convert<AccountId, Option<AccountId>> for ValidatorIdOf {
     fn convert(a: AccountId) -> Option<AccountId> {
@@ -334,9 +328,8 @@ impl pallet_session::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type ValidatorId = AccountId;
     type ValidatorIdOf = ValidatorIdOf;
-    // TODO: switch to Babe?
-    type ShouldEndSession = Babe; //pallet_session::PeriodicSessions<Period, Offset>;
-    type NextSessionRotation = Babe; //pallet_session::PeriodicSessions<Period, Offset>;
+    type ShouldEndSession = Babe;
+    type NextSessionRotation = Babe;
     type SessionManager = Staking;
     type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
     type Keys = SessionKeys;
@@ -370,7 +363,7 @@ impl pallet_staking::EraPayout<Balance> for ZendPayout {
 }
 
 parameter_types! {
-    pub const SessionsPerEra: sp_staking::SessionIndex = 6 * HOURS / Period::get(); // number of sessions in 1 era, 6h
+    pub const SessionsPerEra: sp_staking::SessionIndex = 6 * HOURS / EpochDurationInBlocks::get(); // number of sessions in 1 era, 6h
     pub const BondingDuration: sp_staking::EraIndex = 1; // number of sessions for which staking
                                                          // remains locked
     pub const SlashDeferDuration: sp_staking::EraIndex = 0; // eras to wait before slashing is
@@ -465,7 +458,7 @@ parameter_types! {
 impl pallet_im_online::Config for Runtime {
     type AuthorityId = ImOnlineId;
     type RuntimeEvent = RuntimeEvent;
-    type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
+    type NextSessionRotation = Babe;
     type ValidatorSet = Historical;
     type ReportUnresponsiveness = Offences;
     type UnsignedPriority = ();
@@ -657,7 +650,7 @@ impl_runtime_apis! {
 
         fn generate_key_ownership_proof(
             _slot: sp_consensus_babe::Slot,
-            authority_id: sp_consensus_babe::AuthorityId,
+            authority_id: BabeId,
         ) -> Option<sp_consensus_babe::OpaqueKeyOwnershipProof> {
             use codec::Encode;
 
@@ -701,13 +694,18 @@ impl_runtime_apis! {
         }
 
         fn submit_report_equivocation_unsigned_extrinsic(
-            _equivocation_proof: sp_consensus_grandpa::EquivocationProof<
+            equivocation_proof: sp_consensus_grandpa::EquivocationProof<
                 <Block as BlockT>::Hash,
                 NumberFor<Block>,
             >,
-            _key_owner_proof: sp_consensus_grandpa::OpaqueKeyOwnershipProof,
+            key_owner_proof: sp_consensus_grandpa::OpaqueKeyOwnershipProof,
         ) -> Option<()> {
-            None
+            let key_owner_proof = key_owner_proof.decode()?;
+
+            Grandpa::submit_unsigned_equivocation_report(
+                equivocation_proof,
+                key_owner_proof,
+            )
         }
 
         fn generate_key_ownership_proof(
