@@ -18,7 +18,6 @@ function type(value) {
 
   const tag = value[Symbol.toStringTag];
   if (typeof tag === "string") {
-    console.log(`Detected tag type: ${tag}`);
     return tag;
   }
 
@@ -29,7 +28,6 @@ function type(value) {
 
   const className = value.constructor.name;
   if (typeof className === "string" && className !== "") {
-    console.log(`Detected constructor name type: ${className}`);
     return className;
   }
 

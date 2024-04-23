@@ -2,78 +2,107 @@ import parseYaml from "../utils/parseYaml";
 
 function getType($ref) {
   const $refDirName = $ref.split("/");
-  const type = $refDirName[$refDirName.length - 1];
-  console.log(`Resolved type from $ref: ${type}`);
-  return type;
+  return $refDirName[$refDirName.length - 1];
 }
 
 function getRpcDefinition(rpcDefinitionPath, rpcName) {
-  const definitions = parseYaml(rpcDefinitionPath);
-  const definition = definitions.find(item => item.name === rpcName);
-  console.log(`RPC Definition for ${rpcName}: ${JSON.stringify(definition)}`);
-  return definition;
+  return parseYaml(rpcDefinitionPath).find(item => item.name === rpcName);
 }
 
 function getSchema() {
   const baseTypes = parseYaml("../schemas/base-types.yaml");
   const block = parseYaml("../schemas/block.yaml");
-  const header = parseYaml("../schemas/header.yaml");
+  const runtime = parseYaml("../schemas/runtime.yaml");
 
-  const combinedSchema = {
+  return {
     ...baseTypes,
     ...block,
-    ...header,
-  };
-  console.log(`Combined Schema: ${JSON.stringify(combinedSchema)}`);
-  return combinedSchema;
+    ...runtime,
+  }
 }
 
 function isBaseType(type) {
-  const baseTypes = parseYaml("../schemas/base-types.yaml");
-  const isBase = baseTypes.hasOwnProperty(type);
-  console.log(`Is ${type} a base type? ${isBase}`);
-  return isBase;
+  return Object
+    .keys(parseYaml("../schemas/base-types.yaml"))
+    .find(baseType => type === baseType);
 }
 
 function getPattern(type) {
   const schema = getSchema();
   const schemaType = schema[type];
-  console.log(`Fetching pattern for type ${type}: ${JSON.stringify(schemaType)}`);
+  if (isBaseType(type) && schemaType) return new RegExp(schemaType.pattern);
 
-  if (schemaType && schemaType.pattern) {
-    return new RegExp(schemaType.pattern);
+  const { properties } = schemaType;
+  if (properties) return iterateObjectProperties(properties);
+
+  let combinedPattern = {};
+  let combinedProperties;
+  const { allOf, oneOf } = schemaType;
+  if (allOf || oneOf) {
+    combinedProperties = allOf || oneOf;
+    combinedProperties.forEach((item) => {
+      if (item.properties) combinedPattern = { ...iterateObjectProperties(item.properties) }
+    });
+    return combinedPattern;
   }
 
-  if (schemaType && schemaType.properties) {
-    return iterateObjectProperties(schemaType.properties);
-  }
-
-  console.error(`No pattern or properties found for type ${type}`);
   return null;
 }
 
 function iterateObjectProperties(properties) {
   const pattern = {};
-  console.log(`Iterating over properties: ${JSON.stringify(properties)}`);
   for (const key in properties) {
     const propertyValue = properties[key];
-    console.log(`Processing property ${key}: ${JSON.stringify(propertyValue)}`);
+    const { items, anyOf } = propertyValue;
 
     if (propertyValue.$ref) {
+      // string
       pattern[key] = getPattern(getType(propertyValue.$ref));
-    } else if (propertyValue.type === 'array' && propertyValue.items) {
-      pattern[key] = [getPattern(getType(propertyValue.items.$ref || propertyValue.items.type))];
-      console.log(`Array pattern for ${key}: ${JSON.stringify(pattern[key])}`);
-    } else if (propertyValue.type === 'object' && propertyValue.properties) {
-      pattern[key] = iterateObjectProperties(propertyValue.properties);
-      console.log(`Object pattern for ${key}: ${JSON.stringify(pattern[key])}`);
-    } else {
-      console.error(`Unsupported property definition for ${key}: ${JSON.stringify(propertyValue)}`);
+      continue;
+    }
+    
+    if (items) {
+      if (items.items) {
+        // array.array
+        pattern[key] = [[getPattern(getType(propertyValue.items.items.$ref))]];
+        continue;
+      }
+
+      // array
+      pattern[key] = [getPattern(getType(propertyValue.items.$ref))];
+      continue;
+    }
+
+    if (anyOf) {
+      pattern[key] = { any: [] };
+      anyOf.forEach((item) => {
+        if (item.items) {
+          const anyOfItemType = getType(item.items.$ref);
+          const anyOfItemTypePattern = getPattern(anyOfItemType);
+          if (isBaseType(anyOfItemType) && anyOfItemTypePattern) {
+            // { any: [...string] }
+            pattern[key].any.push(anyOfItemTypePattern);
+          }
+
+          const schema = getSchema();
+          const { oneOf } = schema[anyOfItemType];
+          if (oneOf) {
+            let oneOfProperties = {};
+            oneOf.forEach((item) => {
+              const oneOfItemType = getType(item.$ref);
+              oneOfProperties = { ...oneOfProperties, ...getPattern(oneOfItemType) };
+            })
+            // { any: [...object] }
+            pattern[key].any.push(oneOfProperties);
+          }
+        }
+      });
+      continue;
     }
   }
+
   return pattern;
 }
-
 
 async function buildArrayPattern({ rpcDefinitionPath, rpcName }) {
   const rpcDefinition = getRpcDefinition(rpcDefinitionPath, rpcName);
@@ -82,12 +111,14 @@ async function buildArrayPattern({ rpcDefinitionPath, rpcName }) {
 
 async function buildObjectPattern({ rpcDefinitionPath, rpcName }) {
   const rpcDefinition = getRpcDefinition(rpcDefinitionPath, rpcName);
-  return iterateObjectProperties(rpcDefinition.result.schema.properties);
+  const { properties } = rpcDefinition.result.schema;
+  return iterateObjectProperties(properties);
 }
 
 async function buildMainPattern({ rpcDefinitionPath, rpcName }) {
   const rpcDefinition = getRpcDefinition(rpcDefinitionPath, rpcName);
-  return getPattern(getType(rpcDefinition.result.schema.$ref));
+  const { $ref } = rpcDefinition.result.schema;
+  return getPattern(getType($ref));
 }
 
 async function buildSingleObjectPattern({ type }) {

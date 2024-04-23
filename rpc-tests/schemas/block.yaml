@@ -1,20 +1,39 @@
 Block:
   title: Block object
   type: object
+  required:
+    - header
+    - extrinsics
+    - justifications
   properties:
     header:
-      title: Header
-      type: object
       $ref: '#/components/schemas/Header'
     extrinsics:
-      title: Extrinsics
       type: array
       items:
         $ref: '#/components/schemas/hash32'
     justifications:
-      title: Justifications
-      anyOf:
-        - type: 'null'
-        - type: 'array'
-          items:
-            $ref: '#/components/schemas/bytes256'
+      type: array
+      items:
+        $ref: '#/components/schemas/hash32'
+Header:
+  title: Block Header
+  type: object
+  properties:
+    parentHash:
+      $ref: '#/components/schemas/hash32'
+    number:
+      $ref: '#/components/schemas/uint'
+    stateRoot:
+      $ref: '#/components/schemas/hash32'
+    extrinsicsRoot:
+      $ref: '#/components/schemas/hash32'
+    digest:
+      $ref: '#/components/schemas/Digest'
+Digest:
+  type: object
+  properties:
+    logs:
+      type: array
+      items:
+        $ref: '#/components/schemas/unknownHex'
