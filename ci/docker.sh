@@ -43,7 +43,7 @@ fi
 # Building and publishing docker image
 if [ -n "${docker_tag:-}" ]; then
   log italic green "=== Building Docker image: ${docker_hub_org}/${docker_image_build_name}:${docker_tag} ==="
-  #docker build -f "${docker_file_path}" -t "${docker_hub_org}/${docker_image_build_name}:${docker_tag}" .
+  docker build -f "${docker_file_path}" -t "${docker_hub_org}/${docker_image_build_name}:${docker_tag}" .
 
   # Publishing to DockerHub
   log italic green "=== Publishing Docker image(s) on Docker Hub ==="
@@ -51,7 +51,8 @@ if [ -n "${docker_tag:-}" ]; then
 
   # Docker image(s) tags for PROD vs DEV release
   if [ "${prod_release}" = "true" ]; then
-    publish_tags=("${docker_tag}" "latest")
+#    publish_tags=("${docker_tag}" "latest")
+    publish_tags=("${docker_tag}" "latest-test")
   elif [ "${dev_release}" = "true" ]; then
     publish_tags=("${docker_tag}" "dev")
   elif [ "${test_release}" = "true" ]; then
@@ -60,8 +61,8 @@ if [ -n "${docker_tag:-}" ]; then
 
   for publish_tag in "${publish_tags[@]}"; do
     log italic green "Publishing docker image: ${docker_image_build_name}:${publish_tag}"
-    #docker tag "${docker_image_build_name}:${docker_tag}" "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
-    #docker push "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
+    docker tag "${docker_image_build_name}:${docker_tag}" "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
+    docker push "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
   done
 else
   fn_die "ERROR: the build did NOT satisfy RELEASE build requirements. Docker image(s) was(were) NOT build and/or published."
