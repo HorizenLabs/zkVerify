@@ -51,8 +51,7 @@ if [ -n "${docker_tag:-}" ]; then
 
   # Docker image(s) tags for PROD vs DEV release
   if [ "${prod_release}" = "true" ]; then
-#    publish_tags=("${docker_tag}" "latest")
-    publish_tags=("${docker_tag}" "latest-test")
+    publish_tags=("${docker_tag}" "latest")
   elif [ "${dev_release}" = "true" ]; then
     publish_tags=("${docker_tag}" "dev")
   elif [ "${test_release}" = "true" ]; then
