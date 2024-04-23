@@ -102,11 +102,11 @@ fi
 
 # Final check for release vs non-release build
 if [ "${PROD_RELEASE}" = "true" ]; then
-  echo "" && log bold green "=== This is Production release build ===" && echo ""
+  echo "" && log bold green "=== This is a Production release build ===" && echo ""
 elif [ "${DEV_RELEASE}" = "true" ]; then
-  echo "" && log bold green "=== This is Development release build ===" && echo ""
+  echo "" && log bold green "=== This is a Development release build ===" && echo ""
 elif [ "${TEST_RELEASE}" = "true" ]; then
-  echo "" && log bold green "=== This is Test release build ===" && echo ""
+  echo "" && log bold green "=== This is a Test release build ===" && echo ""
 elif [ "${IS_A_RELEASE}" = "false" ]; then
   echo "" && log bold yellow "WARNING: Thi is NOT a RELEASE build" && echo ""
 fi
