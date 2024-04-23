@@ -93,7 +93,7 @@ if [ -n "${github_tag}" ]; then
       elif [[ "${github_tag}" =~ ${test_release_regex} ]]; then
         export TEST_RELEASE="true"
       else
-        log bold yellow "WARNING: GitHub tag: ${github_tag} is in the wrong format for the DEVELOPMENT or TEST release. Expecting the following format of the release: DEVELOPMENT = 'd.d.d-rc[0-9]' and TEST = 'd.d.d-.*'. The build is not going to be released ..."
+        log bold yellow "WARNING: GitHub tag: ${github_tag} is in the wrong format for the DEVELOPMENT or TEST release. Expecting the following format of the release: DEVELOPMENT = 'd.d.d-rc.[0-9]' and TEST = 'd.d.d-*'. The build is not going to be released ..."
         export IS_A_RELEASE="false"
       fi
     fi
