@@ -1,0 +1,22 @@
+- name: system_properties
+  summary: Get a custom set of properties as a JSON object, defined in the chain spec.
+  params: []
+  result:
+    type: object
+    properties:
+      ss58Format: 
+        $ref: '#/components/schemas/number'
+      tokenDecimals: 
+        $ref: '#/components/schemas/number'
+      tokenSymbol: 
+        $ref: '#/components/schemas/number'    
+- name: system_name
+  summary: Retrieves the node name
+  params: []
+  result:
+    name: System Name
+    schema:
+      $ref: '#/components/schemas/string'
+
+
+      

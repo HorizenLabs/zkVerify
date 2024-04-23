@@ -1,0 +1,28 @@
+RuntimeVersion:
+  title: Runtime Version
+  type: object
+  properties:
+    specName:
+      title: specName
+      $ref: '#/components/schemas/string'
+    implName:
+      title: implName
+      $ref: '#/components/schemas/string'
+    authoringVersion:
+      title: authoringVersion
+      $ref: '#/components/schemas/number'
+    specVersion:
+      title: specVersion
+      $ref: '#/components/schemas/number'
+    implVersion:
+      title: implVersion
+      $ref: '#/components/schemas/number'
+    apis:
+      title: apis
+      $ref: '#/components/schemas/HexIntegerPair'    
+    transactionVersion:
+      $ref: '#/components/schemas/number'
+    stateVersion:
+      $ref: '#/components/schemas/number'
+
+  

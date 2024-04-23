@@ -1,0 +1,25 @@
+- name: state_getMetadata
+  summary: Returns the runtime metadata.
+  params:
+    - name: Block Hash
+      required: false
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Metadata
+    schema:
+      $ref: '#/components/schemas/unknownHex'
+- name: state_getRuntimeVersion
+  summary: Retrieves the runtime version.
+  params:
+    - name: Block Hash
+      required: false
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: RuntimeVersion
+    schema:
+      $ref: '#/components/schemas/RuntimeVersion'
+
+
+      

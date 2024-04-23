@@ -38,3 +38,10 @@
     name: Header
     schema:
       $ref: '#/components/schemas/Header'
+- name: chain_subscribeNewHeads
+  summary: Subscribes to receive new head blocks as they are created.
+  params: []
+  result:
+    name: New Head
+    schema:
+      $ref: '#/components/schemas/Header'

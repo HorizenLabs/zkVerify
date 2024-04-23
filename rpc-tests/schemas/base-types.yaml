@@ -64,4 +64,18 @@ unknownHex:
   title: Hex of unknown length (Avoid once actual type is known)
   type: string
   pattern: ^0x[0-9a-fA-F]+$
-
+string:
+  title: Non-hex normal string
+  type: string
+  pattern: ^[A-Za-z0-9,.'\s\-!?]+$
+number:
+  title: Non-hex normal number
+  type: string
+  pattern: ^-?[0-9]+$
+HexIntegerPair:
+  type: array
+  items:
+    - type: string
+      pattern: '^0x[a-fA-F0-9]+$'
+    - type: integer
+  additionalItems: false
