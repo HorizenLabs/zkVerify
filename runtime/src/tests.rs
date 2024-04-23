@@ -24,7 +24,6 @@ use frame_support::{
     },
 };
 use frame_system::{EventRecord, Phase};
-use pallet_settlement_fflonk::{Proof, FULL_PROOF_SIZE};
 use sp_consensus_babe::{Slot, BABE_ENGINE_ID};
 use sp_core::crypto::VrfSecret;
 use sp_core::{Pair, Public, H256};
