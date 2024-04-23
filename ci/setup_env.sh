@@ -11,8 +11,8 @@ workdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
 github_tag="${GITHUB_REF_NAME:-}"
 prod_release_branch="${PROD_RELEASE_BRANCH:-main}"
 prod_release_regex='^[0-9]+\.[0-9]+\.[0-9]+$'
-dev_release_regex='^[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?(-rc[0-9]+){1}$'
-test_release_regex='^[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?-.*$'
+dev_release_regex='^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+){1}$'
+test_release_regex='^[0-9]+\.[0-9]+\.[0-9]+(?!-rc)(-.*$)'
 
 # Requirement
 if ! [ -f "${workdir}/${COMMON_FILE_LOCATION}" ]; then
