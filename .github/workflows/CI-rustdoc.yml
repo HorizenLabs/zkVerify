@@ -26,8 +26,8 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-lint-format-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-lint-format-cargo-
+          key: ${{ runner.os }}-build-test-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-build-test-cargo-
 
       - name: Install deps
       # required by sc-network-sync
@@ -39,7 +39,7 @@ jobs:
             rustup component add rust-src
 
       - name: Generate Rust documentation
-        run: cargo doc --no-deps
+        run: cargo doc --no-deps --release
 
       - name: Remove lock file
         run: rm target/doc/.lock
