@@ -2,9 +2,7 @@ name: CI-docker
 run-name: "Workflow performing CI step: push docker image to DockerHub"
 
 on:
-  push:
-    tags:
-      - v[0-9].[0-9].[0-9]*
+  workflow_call:
   workflow_dispatch:
 
 env:
