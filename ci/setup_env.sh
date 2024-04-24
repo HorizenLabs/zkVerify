@@ -1,5 +1,6 @@
 #!/bin/bash
 set -eEo pipefail
+set -x
 
 export IS_A_RELEASE="false"
 export PROD_RELEASE="false"
@@ -78,24 +79,27 @@ if [ -n "${github_tag}" ]; then
 
   # Release test
   if [ "${IS_A_RELEASE}" = "true" ]; then
-    if (git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${prod_release_branch}$"); then
-      # Checking format of production vs development release version
-      if [[ "${github_tag}" =~ ${prod_release_regex} ]]; then
-        export PROD_RELEASE="true"
+    # Checking if github tag was created from release/* (release/1.1.1 and etc) branch
+    if (git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${prod_release_branch}/[^/]+$"); then
+      release_name="$(git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${prod_release_branch}/[^/]+$" | cut -d '/' -f3)"
+      # Checking if branch name after 'release/' matches github tag name
+      if [ "${release_name}" = "${github_tag}" ]; then
+        if [[ "${github_tag}" =~ ${prod_release_regex} ]]; then
+          export PROD_RELEASE="true"
+        elif [[ "${github_tag}" =~ ${dev_release_regex} ]]; then
+          export DEV_RELEASE="true"
+        elif [[ "${github_tag}" =~ ${test_release_regex} ]]; then
+          export TEST_RELEASE="true"
+        else
+          log bold yellow "WARNING: GitHub tag: ${github_tag} is in the wrong format for PRODUCTION, DEVELOPMENT or TEST release. Expecting the following format for the release: PRODUCTION = 'd.d.d' | DEVELOPMENT = 'd.d.d-rc.[0-9]' | TEST = 'd.d.d-*'. The build is not going to be released ..."
+          export IS_A_RELEASE="false"
+        fi
       else
-        log bold yellow "WARNING: GitHub tag: ${github_tag} is in the wrong format for the PRODUCTION release. Expecting the following format: 'd.d.d'. The build is not going to be released ..."
+        log bold yellow "WARNING: GitHub tag = ${github_tag} does NOT match github release branch name = ${release_name}. The build is not going to be released ..."
         export IS_A_RELEASE="false"
       fi
     else
-      log bold yellow "WARNING: GitHub tag = ${github_tag} was not created from PRODUCTION branch = ${prod_release_branch}. Trying to build DEVELOPMENT or TEST release"
-      if [[ "${github_tag}" =~ ${dev_release_regex} ]]; then
-        export DEV_RELEASE="true"
-      elif [[ "${github_tag}" =~ ${test_release_regex} ]]; then
-        export TEST_RELEASE="true"
-      else
-        log bold yellow "WARNING: GitHub tag: ${github_tag} is in the wrong format for the DEVELOPMENT or TEST release. Expecting the following format of the release: DEVELOPMENT = 'd.d.d-rc.[0-9]' and TEST = 'd.d.d-*'. The build is not going to be released ..."
-        export IS_A_RELEASE="false"
-      fi
+      export IS_A_RELEASE="false"
     fi
   fi
 fi
@@ -112,3 +116,4 @@ elif [ "${IS_A_RELEASE}" = "false" ]; then
 fi
 
 set +eo pipefail
+exit 1
