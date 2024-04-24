@@ -10,7 +10,7 @@ export COMMON_FILE_LOCATION='ci/common.sh'
 
 workdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
 github_tag="${GITHUB_REF_NAME:-}"
-prod_release_branch="${PROD_RELEASE_BRANCH:-main}"
+release_branch="${RELEASE_BRANCH:-release}"
 prod_release_regex='^[0-9]+\.[0-9]+\.[0-9]+$'
 dev_release_regex='^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+){1}$'
 test_release_regex='^[0-9]+\.[0-9]+\.[0-9]+(?!-rc)(-.*$)'
@@ -61,7 +61,7 @@ check_signed_tag() {
 ####
 # Main
 ####
-log italic green "Production release branch is: ${prod_release_branch}"
+log italic green "Release branches are: ${release_branch}/*"
 log italic green "Github tag is: ${github_tag}"
 
 # Checking if it is a release build
@@ -80,8 +80,8 @@ if [ -n "${github_tag}" ]; then
   # Release test
   if [ "${IS_A_RELEASE}" = "true" ]; then
     # Checking if github tag was created from release/* (release/1.1.1 and etc) branch
-    if (git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${prod_release_branch}/[^/]+$"); then
-      release_name="$(git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${prod_release_branch}/[^/]+$" | cut -d '/' -f3)"
+    if (git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${release_branch}/[^/]+$"); then
+      release_name="$(git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${release_branch}/[^/]+$" | cut -d '/' -f3)"
       # Checking if branch name after 'release/' matches github tag name
       if [ "${release_name}" = "${github_tag}" ]; then
         if [[ "${github_tag}" =~ ${prod_release_regex} ]]; then
