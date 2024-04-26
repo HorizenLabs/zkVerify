@@ -11,4 +11,4 @@ jobs:
     uses: ./.github/workflows/CI-docker.yml
   rustdoc-job:
     needs: docker-job
-    uses: ./.github/workflows/CI-rustdoc.yml"
+    uses: ./.github/workflows/CI-rustdoc.yml
