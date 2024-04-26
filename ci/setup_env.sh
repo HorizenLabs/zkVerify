@@ -65,13 +65,10 @@ log italic green "Release branches are: ${release_branch}/*"
 log italic green "Github tag is: ${github_tag}"
 
 # Checking if it is a release build
-#if [ -n "${github_tag}" ] && git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${release_branch}/[^/]+$"; then
 if git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${release_branch}/[^/]+$"; then
   IS_A_RELEASE="true"
-
   derived_from_branch="$(git branch -r --contains "${github_tag}" | grep -xE ". origin\/${release_branch}/[^/]+$")"
   release_br_amount="$(wc -l <<< "${derived_from_branch}")"
-
   # Sanity check
   if [ "${release_br_amount}" -ne 1 ]; then
     log bold yellow "WARNING: More than 1 GitHub '${release_name}/*' branch contains current GitHub tag: ${github_tag}. The build is not going to be released ..."
@@ -83,15 +80,12 @@ if git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${release_bra
   fi
 
   import_gpg_keys "${MAINTAINERS_KEYS}"
-
-  # Checking git tag gpg signature requirement
   check_signed_tag "${github_tag}"
-
 
   # Release test
   if [ "${IS_A_RELEASE}" = "true" ]; then
     # Checking if github tag was created from release/* (release/1.1.1 and etc) branch
-    release_name="$(git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${release_branch}/[^/]+$" | cut -d '/' -f3)"
+    release_name="$(cut -d '/' -f3 <<< "${derived_from_branch}")"
     # Checking if branch name after 'release/' matches github tag name
     if [ "${release_name}" = "${github_tag}" ]; then
       if [[ "${github_tag}" =~ ${prod_release_regex} ]]; then
