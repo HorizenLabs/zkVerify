@@ -22,7 +22,8 @@ jobs:
       - name: Build/Publish Docker image
         env:
           MAINTAINERS_KEYS: ${{ vars.MAINTAINERS_KEYS }}
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+#          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_USERNAME: ${{ vars.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
         run: |
           source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
