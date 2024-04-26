@@ -99,7 +99,7 @@ if git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${release_bra
         export IS_A_RELEASE="false"
       fi
     else
-      log bold yellow "WARNING: GitHub tag = ${github_tag} does NOT match github release branch name = ${release_name}. The build is not going to be released ..."
+      log bold yellow "WARNING: GitHub tag = ${github_tag} does NOT match GitHub release branch name = ${release_name}. The build is not going to be released ..."
       export IS_A_RELEASE="false"
     fi
   fi
