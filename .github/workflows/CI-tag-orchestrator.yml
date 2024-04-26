@@ -8,18 +8,7 @@ on:
 
 jobs:
   docker-job:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Run Docker job
-        uses: ./.github/workflows/CI-docker.yml
-
+    uses: ./.github/workflows/CI-docker.yml
   rustdoc-job:
     needs: docker-job
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Run Rustdoc job
-        uses: ./.github/workflows/CI-rustdoc.yml
+    uses: ./.github/workflows/CI-rustdoc.yml"
