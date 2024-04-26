@@ -2,9 +2,7 @@ name: CI-docker
 run-name: "Workflow performing CI step: Docker Image Build and Publish"
 
 on:
-  push:
-    tags:
-      - '[0-9].[0-9].[0-9]*'
+  workflow_call:
   workflow_dispatch:
 
 env:
