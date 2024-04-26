@@ -13,7 +13,7 @@ github_tag="${GITHUB_REF_NAME:-}"
 release_branch="${RELEASE_BRANCH:-release}"
 prod_release_regex='^[0-9]+\.[0-9]+\.[0-9]+$'
 dev_release_regex='^[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+){1}$'
-test_release_regex='^[0-9]+\.[0-9]+\.[0-9]+(?!-rc)(-.*$)'
+test_release_regex='^[0-9]+\.[0-9]+\.[0-9]+(?!-rc)(.*$)'
 
 # Requirement
 if ! [ -f "${workdir}/${COMMON_FILE_LOCATION}" ]; then
