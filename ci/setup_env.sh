@@ -71,7 +71,7 @@ if git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${release_bra
   release_br_amount="$(wc -l <<< "${derived_from_branch}")"
   # Sanity check
   if [ "${release_br_amount}" -ne 1 ]; then
-    log bold yellow "WARNING: More than 1 GitHub '${release_name}/*' branch contains current GitHub tag: ${github_tag}. The build is not going to be released ..."
+    log bold yellow "WARNING: More than 1 GitHub '${release_branch}/*' branch contains current GitHub tag: ${github_tag}. The build is not going to be released ..."
     IS_A_RELEASE="false"
   fi
 
