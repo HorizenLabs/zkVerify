@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eEuo pipefail
 set -x
-env
+env | grep -E 'MAINTAINERS_KEYS|DOCKER_HUB_USERNAME|DOCKER_HUB_TOKEN'
 
 workdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
 docker_image_build_name="${DOCKER_IMAGE_BUILD_NAME:-nh-node}"

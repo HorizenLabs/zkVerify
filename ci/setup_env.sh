@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eEo pipefail
 set -x
-env
+env | grep -E 'MAINTAINERS_KEYS|DOCKER_HUB_USERNAME|DOCKER_HUB_TOKEN'
 
 export IS_A_RELEASE="false"
 export PROD_RELEASE="false"
