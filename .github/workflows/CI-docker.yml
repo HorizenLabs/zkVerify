@@ -9,8 +9,7 @@ on:
 
 env:
   RUST_BACKTRACE: 1
-#  RELEASE_BRANCH: release
-  RELEASE_BRANCH: dockerFileReview
+  RELEASE_BRANCH: release
 
 jobs:
   docker:
