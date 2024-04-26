@@ -38,10 +38,10 @@ The simple workflow is:
 > bootstrap.sh
 ```
 
-After you'll have the `hl/nh-node` docker image on your local docker repository. You can run a _**solo**_ chain with
+After you'll have the `horizenlabs/nh-node` docker image on your local docker repository. You can run a _**solo**_ chain with
 
 ```bash
-> docker run -ti --rm -p 9944:9944 hl/nh-node --dev --rpc-cors all --rpc-external
+> docker run -ti --rm -p 9944:9944 horizenlabs/nh-node --dev --rpc-cors all --rpc-external
 ```
 
 Where:
