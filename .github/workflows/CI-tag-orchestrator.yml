@@ -9,15 +9,7 @@ on:
 jobs:
   docker-job:
     runs-on: ubuntu-latest
-    env:
-      MAINTAINERS_KEYS: ${{ vars.MAINTAINERS_KEYS }}
-      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Run Docker job
-        uses: ./.github/workflows/CI-docker.yml  # Use the CI-docker workflow
+    uses: ./.github/workflows/CI-docker.yml
   rustdoc-job:
     needs: docker-job
     uses: ./.github/workflows/CI-rustdoc.yml

@@ -24,7 +24,7 @@ jobs:
           MAINTAINERS_KEYS: ${{ vars.MAINTAINERS_KEYS }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+          YURI: ${{ secrets.YURI }}
         run: |
-          if [ -n ${{ secrets.DOCKER_HUB_USERNAME }} ]; then echo "Secret var is not empty";else echo "Secret var is empty" && exit 1;fi
           source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
           "${GITHUB_WORKSPACE}/ci/docker.sh"
