@@ -8,6 +8,10 @@ on:
 
 jobs:
   docker-job:
+    env:
+      MAINTAINERS_KEYS: ${{ vars.MAINTAINERS_KEYS }}
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
     uses: ./.github/workflows/CI-docker.yml
   rustdoc-job:
     needs: docker-job

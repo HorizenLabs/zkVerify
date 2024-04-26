@@ -1,5 +1,7 @@
 #!/bin/bash
 set -eEo pipefail
+set -x
+env
 
 export IS_A_RELEASE="false"
 export PROD_RELEASE="false"

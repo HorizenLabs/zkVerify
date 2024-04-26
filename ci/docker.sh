@@ -1,5 +1,7 @@
 #!/bin/bash
 set -eEuo pipefail
+set -x
+env
 
 workdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
 docker_image_build_name="${DOCKER_IMAGE_BUILD_NAME:-nh-node}"
