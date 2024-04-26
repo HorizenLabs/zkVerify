@@ -27,6 +27,8 @@ fi
 ####
 # Main
 ####
+cd "${workdir}"
+
 if [ -z "${docker_hub_token:-}" ]; then
   fn_die "ERROR: DOCKER_HUB_TOKEN variable is not set. Exiting ..."
 fi
@@ -61,7 +63,7 @@ if [ -n "${docker_tag:-}" ]; then
   for publish_tag in "${publish_tags[@]}"; do
     log italic green "Publishing docker image: ${docker_image_build_name}:${publish_tag}"
     docker tag "${docker_hub_org}/${docker_image_build_name}:${docker_tag}" "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
-    docker push "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
+    #docker push "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
   done
 else
   fn_die "ERROR: the build did NOT satisfy RELEASE build requirements. Docker image(s) was(were) NOT build and/or published."
