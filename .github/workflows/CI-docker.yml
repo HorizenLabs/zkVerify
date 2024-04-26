@@ -26,6 +26,5 @@ jobs:
           DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
           YURI: ${{ secrets.YURI }}
         run: |
-          export DOCKER_HUB_USERNAME DOCKER_HUB_TOKEN YURI
           source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
           "${GITHUB_WORKSPACE}/ci/docker.sh"
