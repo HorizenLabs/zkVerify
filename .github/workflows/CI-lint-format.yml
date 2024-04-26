@@ -3,8 +3,8 @@ name: CI-lint-format
 run-name: "Workflow performing CI steps: linting and formatting"
 
 on:
-#  pull_request:
-#    types: [opened, synchronize]
+  pull_request:
+    types: [opened, synchronize]
   push:
     branches: [main]
   workflow_dispatch:
