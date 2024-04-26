@@ -104,7 +104,7 @@ if git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${release_bra
     fi
   fi
 else
-  log bold yellow "WARNING: GitHub tag = ${github_tag} does NOT derive from any '${release_branch}/*' branches. The build is not going to be released ..."
+  log bold yellow "WARNING: GitHub tag = ${github_tag} does NOT derive from any '${release_branch}/*' branches or derives from more than 1 branch. The build is not going to be released ..."
 fi
 
 # Final check for release vs non-release build
