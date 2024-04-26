@@ -1,7 +1,5 @@
 #!/bin/bash
 set -eEuo pipefail
-set -x
-env | grep -E 'MAINTAINERS_KEYS|DOCKER_HUB_USERNAME|DOCKER_HUB_TOKEN'
 
 workdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
 docker_image_build_name="${DOCKER_IMAGE_BUILD_NAME:-nh-node}"
@@ -65,7 +63,7 @@ if [ -n "${docker_tag:-}" ]; then
   for publish_tag in "${publish_tags[@]}"; do
     log italic green "Publishing docker image: ${docker_image_build_name}:${publish_tag}"
     docker tag "${docker_hub_org}/${docker_image_build_name}:${docker_tag}" "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
-    #docker push "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
+    docker push "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
   done
 else
   fn_die "ERROR: the build did NOT satisfy RELEASE build requirements. Docker image(s) was(were) NOT build and/or published."
