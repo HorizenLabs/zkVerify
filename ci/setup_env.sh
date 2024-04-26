@@ -12,7 +12,7 @@ workdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
 github_tag="${GITHUB_REF_NAME:-}"
 release_branch="${RELEASE_BRANCH:-release}"
 prod_release_regex='^[0-9]+\.[0-9]+\.[0-9]+$'
-dev_release_regex='^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+){1}$'
+dev_release_regex='^[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+){1}$'
 test_release_regex='^[0-9]+\.[0-9]+\.[0-9]+(?!-rc)(-.*$)'
 
 # Requirement
@@ -95,7 +95,7 @@ if git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${release_bra
       elif [[ "${github_tag}" =~ ${test_release_regex} ]]; then
         export TEST_RELEASE="true"
       else
-        log bold yellow "WARNING: GitHub tag: ${github_tag} is in the wrong format for PRODUCTION, DEVELOPMENT or TEST release. Expecting the following format for the release: PRODUCTION = 'd.d.d' | DEVELOPMENT = 'd.d.d-rc.[0-9]' | TEST = 'd.d.d-*'. The build is not going to be released ..."
+        log bold yellow "WARNING: GitHub tag: ${github_tag} is in the wrong format for PRODUCTION, DEVELOPMENT or TEST release. Expecting the following format for the release: PRODUCTION = 'd.d.d' | DEVELOPMENT = 'd.d.d-rc[0-9]' | TEST = 'd.d.d-*'. The build is not going to be released ..."
         export IS_A_RELEASE="false"
       fi
     else
