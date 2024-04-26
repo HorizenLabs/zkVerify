@@ -7,8 +7,24 @@ on:
   workflow_dispatch:
 
 jobs:
-  docker-job:
-    uses: ./.github/workflows/CI-docker.yml
+  jobs:
+    docker-job:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Git checkout
+          uses: actions/checkout@v4
+          with:
+            ref: ${{ github.ref }}
+            fetch-depth: 0
+
+        - name: Build/Publish Docker image
+          env:
+            MAINTAINERS_KEYS: ${{ secrets.MAINTAINERS_KEYS }}
+            DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+            DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+          run: |
+            source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
+            "${GITHUB_WORKSPACE}/ci/docker.sh"
   rustdoc-job:
     needs: docker-job
     uses: ./.github/workflows/CI-rustdoc.yml
