@@ -1,0 +1,10 @@
+Description: Testing that a proof submission should pay both if it's ok or fails
+Network: ./network_defs/single_node.toml
+Creds: config
+
+alice: is up
+
+alice: reports node_roles is 4
+
+### Javascript test invocation
+alice: js-script ./js_scripts/0006-proof_should_pay.js return is equal to 1 within 30 seconds

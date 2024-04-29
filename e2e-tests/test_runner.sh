@@ -22,13 +22,7 @@ TXT_BIBLK="\033[90;1m"
 TXT_NORML="\033[0m"
 
 # Please do not exceed 64 chars for each test filename - including the .zndsl extension
-TEST_LIST=(
-    '0001-simple_test.zndsl'
-    '0002-custom_script.zndsl'
-    '0003-transaction.zndsl'
-    '0004-failing_transaction.zndsl'
-    '0005-proofPath_rpc.zndsl'
-);
+TEST_LIST=$(find -name "*.zndsl" | sort);
 
 # The return value of each zombinet invocation is always equal to the
 # number of failed tests among those listed in each .zndsl.
