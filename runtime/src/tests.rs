@@ -165,7 +165,8 @@ fn check_starting_balances_and_existential_limit() {
 fn pallet_fflonk_availability() {
     new_test_ext().execute_with(|| {
         let dummy_origin = AccountId32::new([0; 32]);
-        let dummy_raw_proof: Proof = [0; FULL_PROOF_SIZE];
+        let dummy_raw_proof: pallet_settlement_fflonk::Proof =
+            [0; pallet_settlement_fflonk::FULL_PROOF_SIZE];
         assert!(SettlementFFlonkPallet::submit_proof(
             RuntimeOrigin::signed(dummy_origin),
             dummy_raw_proof.into()
@@ -173,6 +174,30 @@ fn pallet_fflonk_availability() {
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
     });
+}
+
+#[test]
+fn pallet_zksync_availability() {
+    new_test_ext().execute_with(|| {
+        let dummy_origin = AccountId32::new([0; 32]);
+        let dummy_raw_proof: pallet_settlement_zksync::Proof =
+            [0; pallet_settlement_zksync::FULL_PROOF_SIZE];
+        assert!(SettlementZksyncPallet::submit_proof(
+            RuntimeOrigin::signed(dummy_origin),
+            dummy_raw_proof.into()
+        )
+        .is_err());
+        // just checking code builds, hence the pallet is available to the runtime
+    });
+}
+
+#[test]
+fn pallet_zksync_should_use_correct_weights() {
+    use pallet_settlement_zksync::weight::WeightInfo;
+    assert_eq!(
+        <Runtime as pallet_settlement_zksync::Config>::WeightInfo::submit_proof(),
+        pallet_settlement_zksync::weight::SubstrateWeight::<Runtime>::submit_proof()
+    );
 }
 
 // Test definition and execution. Test body must be written in the execute_with closure.

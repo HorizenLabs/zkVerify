@@ -306,6 +306,11 @@ impl pallet_settlement_fflonk::Config for Runtime {
     type OnProofVerified = Poe;
 }
 
+impl pallet_settlement_zksync::Config for Runtime {
+    type OnProofVerified = Poe;
+    type WeightInfo = pallet_settlement_zksync::weight::SubstrateWeight<Runtime>;
+}
+
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
 pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 5;
 // We should avoid publishing attestations for empty trees
@@ -491,6 +496,7 @@ construct_runtime!(
         ImOnline: pallet_im_online,
         SettlementFFlonkPallet: pallet_settlement_fflonk,
         Poe: pallet_poe,
+        SettlementZksyncPallet: pallet_settlement_zksync,
     }
 );
 
@@ -547,6 +553,7 @@ mod benches {
         [pallet_sudo, Sudo]
         [pallet_settlement_fflonk, SettlementFFlonkPallet]
         [pallet_poe, Poe]
+        [pallet_settlement_zksync, SettlementZksyncPallet]
     );
 }
 
