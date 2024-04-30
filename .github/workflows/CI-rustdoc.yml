@@ -34,7 +34,7 @@ jobs:
       # required by nh-runtime
       # required by nh-runtime
         run: |
-            sudo apt-get install protobuf-compiler
+            sudo apt-get update -qq && sudo apt-get install protobuf-compiler
             rustup target add wasm32-unknown-unknown
             rustup component add rust-src
 
