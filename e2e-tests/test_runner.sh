@@ -12,8 +12,6 @@
 # the nh-node binary in the target/debug folder instead.
 
 # ANSI color handles
-TXT_BICYA="\033[96;1m"
-TXT_BIPRP="\033[95;1m"
 TXT_BIBLU="\033[94;1m"
 TXT_BIYLW="\033[93;1m"
 TXT_BIGRN="\033[92;1m"
@@ -43,14 +41,15 @@ if [ ! -f bin/zombienet-linux-x64 ]; then
 fi
 
 # Check if we requested a run over a debug build
-if [[ "$@" == *"--debug"* ]]
-then
-    echo -e "${TXT_BIGRN}INFO: ${TXT_BIBLK}Running tests with a debug build${TXT_NORML}"
-    BUILDSUBPATH="debug"
-else
-    echo -e "${TXT_BIGRN}INFO: ${TXT_BIBLK}Running tests with a release build${TXT_NORML}"
-    BUILDSUBPATH="release"
-fi
+BUILDSUBPATH="release"
+for ARG in "$@"; do
+    if [[ "${ARG}" == "--debug" ]]
+    then
+        BUILDSUBPATH="debug"
+    fi
+done
+
+echo -e "${TXT_BIGRN}INFO: ${TXT_BIBLK}Running tests with a ${BUILDSUBPATH} build${TXT_NORML}"
 
 # Check if nh-node executable exists according tho the requested mode and print error/info messages otherwise
 if [[ ${BUILDSUBPATH} == "debug" ]]
@@ -87,16 +86,16 @@ fi
 FULLBUILDPATH="../target/${BUILDSUBPATH}"
 
 # GO! GO! GO!
-for TESTNAME in ${TEST_LIST[@]}; do
+for TESTNAME in "${TEST_LIST[@]}"; do
     echo -e "\n\n"
     echo -e "============================================================"
-    echo -e ${TXT_BIBLK} "Running test: " ${TXT_NORML} "${TESTNAME}"
+    echo -e "${TXT_BIBLK} Running test:  ${TXT_NORML} ${TESTNAME}"
     echo -e "============================================================"
-    ( PATH=${PATH}:${FULLBUILDPATH}; bin/zombienet-linux-x64 -p native test ./${TESTNAME} )
+    ( PATH=${PATH}:${FULLBUILDPATH}; bin/zombienet-linux-x64 -p native test ./"${TESTNAME}" )
     current_exit_code=$?
     TOT_EXEC_TESTS=$((TOT_EXEC_TESTS+1))
     if [ ${current_exit_code} -ne 0 ]; then
-        FAILED_TESTS+=($TESTNAME)
+        FAILED_TESTS+=("$TESTNAME")
         TOT_FAIL_TESTS=$((TOT_FAIL_TESTS+1))
     fi
 done
@@ -105,13 +104,13 @@ done
 # Print a fancy table summarizing the test suit run
 echo -e "\n\n\n"
 echo -e "┌────────────────────────────────────────────────────────────────────────┐"
-echo -e "│                              "${TXT_BIYLW}"TEST SUMMARY"${TXT_NORML}"                              │"
+echo -e "│                              ${TXT_BIYLW}TEST SUMMARY${TXT_NORML}                              │"
 echo -e "├────────────────────────────────────────────────────────────────────────┤"
 printf  "│ ${TXT_BIBLK} Total tests executed:  ${TXT_BIBLU} %3d ${TXT_NORML}                                          │\n" "${TOT_EXEC_TESTS}"
 if [ ${TOT_FAIL_TESTS} -ne 0 ]; then
     echo -e "├────────────────────────────────────────────────────────────────────────┤"
     printf  "│ ${TXT_BIBLK} Failed tests:          ${TXT_BIRED} %3d ${TXT_NORML}                                          │\n" "${TOT_FAIL_TESTS}"
-    for failed_test in ${FAILED_TESTS[@]}; do
+    for failed_test in "${FAILED_TESTS[@]}"; do
         printf "│     - %-64s │\n" "${failed_test}"
     done
     echo -e "└────────────────────────────────────────────────────────────────────────┘"
