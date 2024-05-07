@@ -94,11 +94,11 @@ if [ -f "${NH_SECRET_PHRASE_PATH}" ]; then
     injection_args+=("$(get_arg_value_from_env_value "${NH_CONF_CHAIN}")")
   fi
   echo "Injecting keys with ${injection_args[*]}"
-  echo "Injecting key (Aura)"
+  echo "Injecting key (Babe)"
   ${NH_NODE} key insert "${injection_args[@]}" \
     --scheme Sr25519 \
     --suri "${NH_SECRET_PHRASE_PATH}" \
-    --key-type aura
+    --key-type babe
   echo "Injecting key (Grandpa)"
   ${NH_NODE} key insert "${injection_args[@]}" \
     --scheme Ed25519 \
