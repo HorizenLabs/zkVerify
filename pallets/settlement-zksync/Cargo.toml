@@ -1,0 +1,60 @@
+[package]
+name = "pallet-settlement-zksync"
+version = "0.1.0"
+description = "A zksync-era verifier pallet."
+authors.workspace = true
+homepage.workspace = true
+edition.workspace = true
+repository.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+codec = { workspace = true, default-features = false }
+scale-info = { workspace = true, default-features = false }
+log = "0.4.21"
+hex-literal = { version = "0.4.1", optional = true }
+
+native = { default-features = false, workspace = true }
+
+hp-poe = { default-features = false, workspace = true }
+
+# Substrate
+frame-benchmarking = { workspace = true, optional = true }
+frame-support = { workspace = true, default-features = false }
+frame-system = { workspace = true, default-features = false }
+sp-core = { workspace = true, default-features = false }
+sp-io = { workspace = true, default-features = false }
+sp-runtime = { workspace = true, default-features = false }
+sp-std = { workspace = true, default-features = false }
+
+[dev-dependencies]
+hex-literal = { version = "0.4.1" }
+rstest = "0.19.0"
+
+
+[features]
+default = ["std"]
+runtime-benchmarks = [
+    "frame-benchmarking/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
+    "frame-system/runtime-benchmarks",
+    "dep:hex-literal",
+]
+std = [
+    "codec/std",
+    "frame-benchmarking/std",
+    "frame-support/std",
+    "frame-system/std",
+    "scale-info/std",
+    "sp-std/std",
+    "sp-core/std",
+    "sp-runtime/std",
+    "sp-io/std",
+    "native/std",
+    "hp-poe/std",
+]
+try-runtime = ["frame-support/try-runtime", "frame-system/try-runtime"]

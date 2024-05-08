@@ -3,7 +3,7 @@ name = "pallet-settlement-fflonk"
 version = "0.1.0"
 description = "A fflonk verifier pallet."
 authors.workspace = true
-homepage = "https://horizenlabs.io"
+homepage.workspace = true
 edition.workspace = true
 publish = false
 repository.workspace = true
@@ -26,7 +26,7 @@ sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 
 # Pallet specific
-fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", default-features = false, version="0.3.0" }
+fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", default-features = false, tag = "v0.3.0" }
 log = "0.4.20"
 sp-std = { workspace = true }
 hp-poe = { default-features = false, workspace = true }

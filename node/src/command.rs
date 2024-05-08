@@ -20,6 +20,7 @@ use crate::{
     service,
 };
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
+use native::HLNativeHostFunctions;
 use nh_runtime::{Block, EXISTENTIAL_DEPOSIT};
 use sc_cli::SubstrateCli;
 use sc_service::PartialComponents;
@@ -154,7 +155,7 @@ pub fn run() -> sc_cli::Result<()> {
                             );
                         }
 
-                        cmd.run::<Block, ()>(config)
+                        cmd.run::<Block, HLNativeHostFunctions>(config)
                     }
                     BenchmarkCmd::Block(cmd) => {
                         let PartialComponents { client, .. } = service::new_partial(&config)?;

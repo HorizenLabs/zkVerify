@@ -14,7 +14,10 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 codec = { workspace = true, default-features = false, features = ["derive"] }
-scale-info = { workspace = true, default-features = false, features = ["derive", "serde"] }
+scale-info = { workspace = true, default-features = false, features = [
+	"derive",
+	"serde",
+] }
 
 pallet-offences = { workspace = true, default-features = false }
 pallet-im-online = { workspace = true, default-features = false }
@@ -33,20 +36,30 @@ pallet-transaction-payment = { workspace = true, default-features = false }
 frame-executive = { workspace = true, default-features = false }
 sp-api = { workspace = true, default-features = false }
 sp-block-builder = { workspace = true, default-features = false }
-sp-consensus-babe = { workspace = true, default-features = false, features = ["serde"] }
+sp-consensus-babe = { workspace = true, default-features = false, features = [
+	"serde",
+] }
 finality-grandpa = { workspace = true, default-features = false }
-sp-consensus-grandpa = { workspace = true, default-features = false, features = ["serde"] }
+sp-consensus-grandpa = { workspace = true, default-features = false, features = [
+	"serde",
+] }
 sp-core = { workspace = true, default-features = false, features = ["serde"] }
 sp-inherents = { workspace = true, default-features = false }
 sp-offchain = { workspace = true, default-features = false }
-sp-runtime = { workspace = true, default-features = false, features = ["serde"] }
+sp-runtime = { workspace = true, default-features = false, features = [
+	"serde",
+] }
 sp-session = { workspace = true, default-features = false }
 sp-staking = { workspace = true, default-features = false }
 sp-std = { workspace = true, default-features = false }
 sp-storage = { workspace = true, default-features = false }
 sp-transaction-pool = { workspace = true, default-features = false }
-sp-version = { workspace = true, default-features = false, features = ["serde"] }
-serde_json = { workspace = true, default-features = false, features = ["alloc"] }
+sp-version = { workspace = true, default-features = false, features = [
+	"serde",
+] }
+serde_json = { workspace = true, default-features = false, features = [
+	"alloc",
+] }
 sp-genesis-builder = { default-features = false, workspace = true }
 sp-io = { workspace = true, default-features = false }
 log = "0.4.20"
@@ -62,6 +75,7 @@ frame-system-benchmarking = { workspace = true, default-features = false, option
 
 # Custom logic
 pallet-settlement-fflonk = { default-features = false, workspace = true }
+pallet-settlement-zksync = { default-features = false, workspace = true }
 pallet-poe = { default-features = false, workspace = true }
 static_assertions = "1.1.0"
 proof-of-existence-rpc-runtime-api = { default-features = false, workspace = true }
@@ -95,6 +109,7 @@ std = [
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
 	"pallet-settlement-fflonk/std",
+	"pallet-settlement-zksync/std",
 	"pallet-poe/std",
 	"proof-of-existence-rpc-runtime-api/std",
 	"scale-info/std",
@@ -127,6 +142,7 @@ runtime-benchmarks = [
 	"pallet-sudo/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-settlement-fflonk/runtime-benchmarks",
+	"pallet-settlement-zksync/runtime-benchmarks",
 	"pallet-poe/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 ]
@@ -148,6 +164,7 @@ try-runtime = [
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-settlement-fflonk/try-runtime",
+	"pallet-settlement-zksync/try-runtime",
 	"pallet-poe/try-runtime",
 	"sp-runtime/try-runtime",
 ]
