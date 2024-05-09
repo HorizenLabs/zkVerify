@@ -28,11 +28,10 @@ RuntimeVersion:
 Apis:
   type: array
   items:
-    type: array
-    minItems: 2
-    maxItems: 2
-    items:
-      - $ref: '#/components/schemas/hexString'
-      - $ref: '#/components/schemas/number'
+    $ref: '#/components/schemas/Tuple'
 
-
+Tuple:
+  type: array
+  items:
+    - $ref: '#/components/schemas/unknownHex'
+    - $ref: '#/components/schemas/number'
