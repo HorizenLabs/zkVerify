@@ -69,7 +69,7 @@ pallet-im-online = { default-features = false, version = "26.0.0" }
 pallet-authorship = { default-features = false, version = "27.0.0" }
 pallet-session = { default-features = false, version = "27.0.0" }
 pallet-staking = { default-features = false, version = "27.0.0" }
-pallet-staking-reward-curve = { default-features = false, version = "11.0.0" }
+pallet-staking-reward-curve = { default-features = false, version = "10.0.0" }
 pallet-babe = { default-features = false, version = "27.0.0" }
 pallet-balances = { default-features = false, version = "27.0.0" }
 frame-support = { default-features = false, version = "27.0.0" }
