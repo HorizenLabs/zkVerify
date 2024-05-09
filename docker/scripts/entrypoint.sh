@@ -63,6 +63,8 @@ echo "NH_NODE=${NH_NODE}"
 
 NH_SECRET_PHRASE_PATH=${NH_SECRET_PHRASE_PATH:-"/data/config/secret_phrase.dat"}
 echo "NH_SECRET_PHRASE_PATH=${NH_SECRET_PHRASE_PATH}"
+NH_NODE_KEY_FILE=${NH_NODE_KEY_FILE:-"/data/config/node_key.dat"}
+echo "NH_NODE_KEY_FILE=${NH_NODE_KEY_FILE}"
 
 # Node configurations (env->arg)
 prefix="NH_CONF_"
@@ -109,6 +111,17 @@ if [ -f "${NH_SECRET_PHRASE_PATH}" ]; then
     --scheme Sr25519 \
     --suri "${NH_SECRET_PHRASE_PATH}" \
     --key-type imon
+fi
+
+# Node-key handling
+if [[ (-n "${NH_CONF_BASE_PATH:-}") && (-n "${NH_CONF_CHAIN:-}") && (-f "${NH_NODE_KEY_FILE}") ]]; then
+  base_path=("$(get_arg_value_from_env_value "${NH_CONF_BASE_PATH}")")
+  chain=("$(get_arg_value_from_env_value "${NH_CONF_CHAIN}")")
+  chain_id=$("${NH_NODE}" build-spec --chain "${chain}" 2> /dev/null | grep \"id\": | awk -F'"' '{print $4}')
+  destination="${base_path}/chains/${chain_id}/network"
+  mkdir -p "${destination}"
+  echo "Copying node key file"
+  cp "${NH_NODE_KEY_FILE}" "${destination}/secret_ed25519"
 fi
 
 echo "Launching ${NH_NODE} with args ${conf_args[*]}"
