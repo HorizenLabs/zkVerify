@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nh_runtime::currency::{Balance, NZEN};
+use nh_runtime::currency::{Balance, ZETA};
 use nh_runtime::{currency, AccountId, RuntimeGenesisConfig, SessionKeys, Signature, WASM_BINARY};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_service::{ChainType, Properties};
@@ -28,7 +28,7 @@ use sp_runtime::traits::{IdentifyAccount, Verify};
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig>;
 
-const ENDOWMENT: Balance = 1_000_000 * NZEN;
+const ENDOWMENT: Balance = 1_000_000 * ZETA;
 const STASH_BOND: Balance = ENDOWMENT / 100;
 const DEFAULT_ENDOWED_SEEDS: [&str; 6] = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie"];
 const LOCAL_N_AUTH: usize = 2;
@@ -117,7 +117,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
     .with_chain_type(ChainType::Development)
     .with_properties({
         let mut props = Properties::new();
-        props.insert("tokenSymbol".into(), "nZEN".into());
+        props.insert("tokenSymbol".into(), "ZETA".into());
         props.insert("tokenDecimals".into(), 18.into());
         props
     })
@@ -152,7 +152,7 @@ pub fn local_config() -> Result<ChainSpec, String> {
     .with_chain_type(ChainType::Local)
     .with_properties({
         let mut props = Properties::new();
-        props.insert("tokenSymbol".into(), "nZEN".into());
+        props.insert("tokenSymbol".into(), "ZETA".into());
         props.insert("tokenDecimals".into(), 18.into());
         props
     })
@@ -186,7 +186,7 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
     .with_chain_type(ChainType::Live)
     .with_properties({
         let mut props = Properties::new();
-        props.insert("tokenSymbol".into(), "nZEN".into());
+        props.insert("tokenSymbol".into(), "ZETA".into());
         props.insert("tokenDecimals".into(), 18.into());
         props
     })
@@ -196,26 +196,26 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
             // nh-validator-t1
             (
                 authority_ids_from_ss58(
-                    "5DkkLph1sMf13yZ2NJAQQAmW7v3gs7nq1Hq8VBzaz9qsnkTn",
-                    "5GLr2vfut1KixwPcqzmqg57zZ3bXgV3EisUCxA8Ws3eCiSwH",
+                    "5ETuZEyLnfVzQCaDM8aQCcsNnz6xjPKvQCtqynCLqwng8QLd",
+                    "5CbPYnSSw7KpKAJR3caCYv7KP3ChaAUgw5BgC3GPppnfiK5E",
                 )?,
-                4 * currency::MILLIONS,
+                280 * currency::MILLIONS,
             ),
             // nh-validator-t2
             (
                 authority_ids_from_ss58(
-                    "5FRPTHzWMtLiZPyf2YLnzeesLMscet8BBb4Khz14ftPxwFUj",
-                    "5H7fi3cWJkF4Mjm9cMm3umvB2QieZ2qwfZekJCb4LvaQVkN5",
+                    "5D29UEzgStCBTnjKNdkurDNvd3FHePHgTkPEUvjXYvg3brJj",
+                    "5H5XnaSsh5eebN2BSTx19qCUweMziyJATuUVb9qdWVDhHQ3K",
                 )?,
-                4 * currency::MILLIONS,
+                280 * currency::MILLIONS,
             ),
             // nh-validator-t3
             (
                 authority_ids_from_ss58(
-                    "5F9A9ktpR7pf5d3LQtppANSFfAXXzpGcCzYM5jBwfDBUpWZ6",
-                    "5Ep6w32bTWnPUMjyAVwEtrttmmjbM6Yo5vwP6gg79N74tPnw",
+                    "5DiMVAp8WmFyWAwaTwAr7sU4K3brXcgNCBDbHoBWj3M46PiP",
+                    "5CYcXe9bodJ31HE6pLT9EyUK5mrB3otXDNhDXVFSSmTAYm4f",
                 )?,
-                2 * currency::MILLIONS,
+                140 * currency::MILLIONS,
             ),
         ],
         // Sudo account [nh-sudo-t1]
@@ -225,63 +225,57 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
         vec![
             // nh-validator-t1
             (
-                from_ss58check("5DkkLph1sMf13yZ2NJAQQAmW7v3gs7nq1Hq8VBzaz9qsnkTn")
+                from_ss58check("5ETuZEyLnfVzQCaDM8aQCcsNnz6xjPKvQCtqynCLqwng8QLd")
                     .map_err(|error| error.to_string())?,
-                4 * currency::MILLIONS + currency::NZEN,
+                280 * currency::MILLIONS + 1000 * currency::ZETA,
             ),
             // nh-validator-t2
             (
-                from_ss58check("5FRPTHzWMtLiZPyf2YLnzeesLMscet8BBb4Khz14ftPxwFUj")
+                from_ss58check("5D29UEzgStCBTnjKNdkurDNvd3FHePHgTkPEUvjXYvg3brJj")
                     .map_err(|error| error.to_string())?,
-                4 * currency::MILLIONS + currency::NZEN,
+                280 * currency::MILLIONS + 1000 * currency::ZETA,
             ),
             // nh-validator-t3
             (
-                from_ss58check("5F9A9ktpR7pf5d3LQtppANSFfAXXzpGcCzYM5jBwfDBUpWZ6")
+                from_ss58check("5DiMVAp8WmFyWAwaTwAr7sU4K3brXcgNCBDbHoBWj3M46PiP")
                     .map_err(|error| error.to_string())?,
-                2 * currency::MILLIONS + currency::NZEN,
+                140 * currency::MILLIONS + 1000 * currency::ZETA,
             ),
             // nh-sudo-t1
             (
-                from_ss58check("5D9txxK9DTvgCznTjJo7q1cxAgmWa83CzHvcz8zhBtLgaLBV")
+                from_ss58check("5EhREncHsntgJaax9YQphk1xN3LxPu2Rzbz4A3g7Ut8cRXWq")
                     .map_err(|error| error.to_string())?,
-                100 * currency::THOUSANDS,
+                7 * currency::MILLIONS,
             ),
             // nh-wallet-custody-t1
             (
-                from_ss58check("5GKWyvfHyK2PsbZEyTdh5BiP8rhizDaEs7ph2W9YokNLpwpM")
+                from_ss58check("5C84NU2477uHCUF1A8rHb89sP2D2ZsnquPaGa2Htv75FN9gm")
                     .map_err(|error| error.to_string())?,
-                currency::MILLIONS,
+                70 * currency::MILLIONS,
             ),
             // nh-wallet-custody-t2
             (
-                from_ss58check("5DnUTtZRaAbpYnwrdr7zme6snYeWXfQWJ5Rq253zUjJhd2fv")
+                from_ss58check("5HdZjrmNAkWQhYQUPNv7YRYnT4vyQswjbNm8eXBvULNQz5wH")
                     .map_err(|error| error.to_string())?,
-                currency::MILLIONS,
+                70 * currency::MILLIONS,
             ),
             // nh-wallet-automated-t1
             (
-                from_ss58check("5CkmKQbsvME3TZa6ULc7meNRRfrTNPU4aprMLymvFDMruJ9H")
+                from_ss58check("5HjFLKpiCStQgRm6ZM1fT1R5pLKAqQdUG3uh7pvzaQfhdFuB")
                     .map_err(|error| error.to_string())?,
-                500 * currency::THOUSANDS,
+                35 * currency::MILLIONS,
             ),
             // nh-wallet-user-t1
             (
-                from_ss58check("5HQRNiMdkVrhtEcrDcYD6K6FATYU13p9RKbN6iyu7kbgRN4u")
+                from_ss58check("5ECktCamcAtBFJirEzvvJmXFxgLMCTAejhqZwLT1Dxn2fwB1")
                     .map_err(|error| error.to_string())?,
-                100 * currency::THOUSANDS,
+                7 * currency::MILLIONS,
             ),
             // nh-wallet-faucet-t1
             (
-                from_ss58check("5FCFo9uuY5iZmBc4rE7wFeZcKf3gR8KujVVCPnib6H8XDHTM")
+                from_ss58check("5EZbvFqx3j7ejqBSPWseif8xL3PwoqMQHdMT8rs9qWoHcdR3")
                     .map_err(|error| error.to_string())?,
-                currency::MILLIONS,
-            ),
-            // cdk-aggregator-nh-t1
-            (
-                from_ss58check("5GCM2e4WzGPBy12xNZVc6XF72gund3esdRZAfAtGqiYCd697")
-                    .map_err(|error| error.to_string())?,
-                currency::MILLIONS,
+                70 * currency::MILLIONS,
             ),
         ],
         true,
@@ -337,7 +331,7 @@ mod tests {
     // by checking that the json returned by testnet_genesis() contains the field "session"
     #[test]
     fn testnet_genesis_should_set_session_keys() {
-        let initial_authorities = vec![(authority_keys_from_seed("Alice"), 7 * currency::NZEN)];
+        let initial_authorities = vec![(authority_keys_from_seed("Alice"), 7 * currency::ZETA)];
         let root_key = get_account_id_from_seed::<sr25519::Public>("Alice");
 
         let ret_val: serde_json::Value = genesis(initial_authorities, root_key, vec![], false);

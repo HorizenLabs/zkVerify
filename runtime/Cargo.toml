@@ -22,6 +22,7 @@ pallet-authorship = { workspace = true, default-features = false }
 pallet-session = { workspace = true, default-features = false }
 pallet-staking = { workspace = true, default-features = false }
 pallet-babe = { workspace = true, default-features = false }
+pallet-staking-reward-curve = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
 frame-support = { workspace = true, default-features = false }
 pallet-grandpa = { workspace = true, default-features = false }
