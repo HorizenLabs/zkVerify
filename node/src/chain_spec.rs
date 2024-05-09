@@ -22,6 +22,10 @@ use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
+// The connection strings for bootnodes
+const BOOTNODE_1: &str = "/dns/bootnode-tn-1.zkverify.io/tcp/443/wss/p2p/12D3KooWNhvf6iSowraUY4tZnjpNZXEe85oy9zDWYRKFBnWivukc";
+const BOOTNODE_2: &str = "/dns/bootnode-tn-2.zkverify.io/tcp/443/wss/p2p/12D3KooWEjVadU1YWyfDGvyRXPbCq2rXhzJtXaG4RxJZBkGE9Aug";
+
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 
@@ -184,6 +188,10 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
     .with_id("nh_testnet")
     .with_protocol_id("tzen")
     .with_chain_type(ChainType::Live)
+    .with_boot_nodes(vec![
+        BOOTNODE_1.parse().expect("MultiaddrWithPeerId"),
+        BOOTNODE_2.parse().expect("MultiaddrWithPeerId"),
+    ])
     .with_properties({
         let mut props = Properties::new();
         props.insert("tokenSymbol".into(), "nZEN".into());
