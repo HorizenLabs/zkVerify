@@ -7,7 +7,7 @@ describe("system_properties", () => {
   it("Returns a custom set of properties as a JSON object.", async () => {
     evaluateResponse({
       response: await system_properties(), 
-      pattern: await patternGenerator.buildObjectPattern({
+      pattern: await patternGenerator.buildMainPattern({
         rpcDefinitionPath: "../schemas/definitions/system.yaml",
         rpcName: "system_properties",
       }),

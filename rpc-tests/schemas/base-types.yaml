@@ -72,10 +72,3 @@ number:
   title: Non-hex normal number
   type: string
   pattern: ^-?[0-9]+$
-HexIntegerPair:
-  type: array
-  items:
-    - type: string
-      pattern: '^0x[a-fA-F0-9]+$'
-    - type: integer
-  additionalItems: false

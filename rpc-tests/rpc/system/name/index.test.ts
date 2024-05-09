@@ -7,7 +7,7 @@ describe("system_name", () => {
   it("Retrieves the node name", async () => {
     evaluateResponse({
       response: await system_name(), 
-      pattern: await patternGenerator.buildObjectPattern({
+      pattern: await patternGenerator.buildStringPattern({
         rpcDefinitionPath: "../schemas/definitions/system.yaml",
         rpcName: "system_name",
       }),

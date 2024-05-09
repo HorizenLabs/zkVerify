@@ -19,10 +19,20 @@ RuntimeVersion:
       $ref: '#/components/schemas/number'
     apis:
       title: apis
-      $ref: '#/components/schemas/HexIntegerPair'    
+      $ref: '#/components/schemas/Apis'    
     transactionVersion:
       $ref: '#/components/schemas/number'
     stateVersion:
       $ref: '#/components/schemas/number'
 
-  
+Apis:
+  type: array
+  items:
+    type: array
+    minItems: 2
+    maxItems: 2
+    items:
+      - $ref: '#/components/schemas/hexString'
+      - $ref: '#/components/schemas/number'
+
+

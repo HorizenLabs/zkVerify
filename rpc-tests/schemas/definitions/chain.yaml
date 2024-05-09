@@ -8,7 +8,7 @@
   result:
     name: Block
     schema:
-      $ref: '#/components/schemas/Block'
+      $ref: '#/components/schemas/GetBlockResponse'
 - name: chain_getBlockHash
   summary: Returns the hash of a block by number or the latest block hash if no number is provided.
   params:

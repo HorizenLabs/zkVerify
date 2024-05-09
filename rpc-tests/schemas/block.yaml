@@ -1,21 +1,31 @@
+GetBlockResponse:
+  title: Block Response
+  type: object
+  required:
+    - block
+    - justifications
+  properties:
+    block:
+      $ref: '#/components/schemas/Block'
+    justifications:
+      type: array
+      items:
+          $ref: '#/components/schemas/hash32'
+
 Block:
   title: Block object
   type: object
   required:
     - header
     - extrinsics
-    - justifications
   properties:
     header:
       $ref: '#/components/schemas/Header'
     extrinsics:
       type: array
       items:
-        $ref: '#/components/schemas/hash32'
-    justifications:
-      type: array
-      items:
-        $ref: '#/components/schemas/hash32'
+        $ref: '#/components/schemas/unknownHex'
+
 Header:
   title: Block Header
   type: object
@@ -30,6 +40,7 @@ Header:
       $ref: '#/components/schemas/hash32'
     digest:
       $ref: '#/components/schemas/Digest'
+
 Digest:
   type: object
   properties:

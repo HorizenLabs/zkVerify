@@ -85,7 +85,7 @@ function iterateObjectProperties(value, pattern) {
 }
 
 function reduceValue(value, pattern) {
-  console.log(`Reducing value: Type = ${type(value)}, Value = ${JSON.stringify(value)}, Pattern = ${pattern}`);
+  console.log(`Reducing value: Type = ${type(value)}, Value = ${JSON.stringify(value)}, Pattern = ${JSON.stringify(pattern)}`);
   switch(type(value)) {
     case "Array":
       iterateArrayItems(value, pattern);

@@ -1,0 +1,14 @@
+SystemProperties:
+  title: System Properties
+  required:
+    - ss58Format
+    - tokenDecimals
+    - tokenSymbol
+  type: object
+  properties:
+    ss58Format: 
+      $ref: '#/components/schemas/number'
+    tokenDecimals: 
+      $ref: '#/components/schemas/number'
+    tokenSymbol: 
+      $ref: '#/components/schemas/string'   
