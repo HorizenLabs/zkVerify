@@ -87,9 +87,9 @@ pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::Account
 
 pub mod currency {
     pub type Balance = u128;
-    pub const NZEN: Balance = 1_000_000_000_000_000_000;
-    pub const CENTS: Balance = NZEN / 100;
-    pub const THOUSANDS: Balance = 1_000 * NZEN;
+    pub const ZETA: Balance = 1_000_000_000_000_000_000;
+    pub const CENTS: Balance = ZETA / 100;
+    pub const THOUSANDS: Balance = 1_000 * ZETA;
     pub const MILLIONS: Balance = 1_000 * THOUSANDS;
 }
 
@@ -213,6 +213,7 @@ impl frame_system::Config for Runtime {
 parameter_types! {
     pub const ExpectedBlockTime: u64 = MILLISECS_PER_BLOCK; // Should use primitives::Moment
     pub const EpochDurationInBlocks: BlockNumber = HOURS; // TODO: use prod_or_fast!
+    
     /// How long (in blocks) an equivocation report is valid for
     pub ReportLongevity: u64 = EpochDurationInBlocks::get() as u64 * 10;
     pub const MaxAuthorities: u32 = 32;
@@ -341,34 +342,23 @@ impl pallet_session::Config for Runtime {
     type WeightInfo = ();
 }
 
-pub struct ZendPayout;
-impl pallet_staking::EraPayout<Balance> for ZendPayout {
-    /// Calculates the validators reward based on the duration of the era.
-    /// The reward mimics the current PoW coinbase (6.25 $ZEN per block).
-    /// Total stake and issuance are currently ignored.
-    fn era_payout(
-        _total_staked: Balance,
-        _total_issuance: Balance,
-        era_duration_millis: u64,
-    ) -> (Balance, Balance) {
-        const HORIZEN_POW_MILLISECS_PER_BLOCK: u128 = 150 * 1000; // 2.5 minutes
-        let era_reward: u128 =
-            625 * CENTS * u128::from(era_duration_millis) / HORIZEN_POW_MILLISECS_PER_BLOCK; // 6.25nZEN per Zend block
-
-        // Assign 100% of the reward to validators.
-        // In the future we may want to split the reward between validators and the treasury.
-        const TENTH_TO_MINERS: u128 = 10;
-        const TENTH_TO_REST: u128 = 0;
-
-        (
-            era_reward * TENTH_TO_MINERS / 10,
-            era_reward * TENTH_TO_REST / 10,
-        )
-    }
+//TODO: Set these parameters appropriately.
+pallet_staking_reward_curve::build! {
+	const REWARD_CURVE: sp_runtime::curve::PiecewiseLinear<'static> = curve!(
+		min_inflation: 0_025_000,
+		max_inflation: 0_100_000,
+		ideal_stake: 0_500_000,
+		falloff: 0_050_000,
+		max_piece_count: 40,
+		test_precision: 0_005_000,
+	);
 }
 
 parameter_types! {
     pub const SessionsPerEra: sp_staking::SessionIndex = 6 * HOURS / EpochDurationInBlocks::get(); // number of sessions in 1 era, 6h
+
+    pub const RewardCurve: &'static sp_runtime::curve::PiecewiseLinear<'static> = &REWARD_CURVE;
+
     pub const BondingDuration: sp_staking::EraIndex = 1; // number of sessions for which staking
                                                          // remains locked
     pub const SlashDeferDuration: sp_staking::EraIndex = 0; // eras to wait before slashing is
@@ -419,7 +409,7 @@ impl pallet_staking::Config for Runtime {
     /// A super-majority of the council can cancel the slash.
     type AdminOrigin = EnsureRoot<AccountId>;
     type SessionInterface = Self;
-    type EraPayout = ZendPayout; // Just an example, we probably should use pallet_staking::ConvertCurve<RewardCurve>;
+    type EraPayout = pallet_staking::ConvertCurve<RewardCurve>;
     type NextNewSession = Session;
     type OffendingValidatorsThreshold = OffendingValidatorsThreshold; // Exceeding this threshold would force a new era
     type ElectionProvider = OnChainExecution<OnChainSeqPhragmen>;

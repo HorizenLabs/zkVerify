@@ -584,43 +584,35 @@ mod pallets_interact {
 mod payout {
     use pallet_staking::EraPayout;
 
-    use crate::{Balance, Runtime, CENTS};
+    use crate::{Balance, Runtime};
 
     use super::new_test_ext;
 
-    /// Test that validators receive a cumulative reward that mimics the current emission of
-    /// $ZEN in the PoW Horizen blockchain for miners, which is a coinbase of 6.25 Zen for
-    /// each block every 2.5 minutes.
     #[test]
-    fn is_same_as_pow_coinbase() {
+    fn check_era_rewards() {
         new_test_ext().execute_with(|| {
-            const POW_BLOCK_TIME_MILLIS: u64 = 150 * 1000;
-            const POW_BLOCK_COINBASE: Balance = 625 * CENTS;
+            const ERA_DURATION_MILLIS: u64 = 6 * 60 * 60 * 1000;
+            const TOTAL_STAKED: Balance = 900000000;
+            const TOTAL_ISSUANCE: Balance = 1000000000;
 
-            // Check the reward for an era lasting the target time.
+            // Check the reward for an empty era.
             assert_eq!(
                 <Runtime as pallet_staking::Config>::EraPayout::era_payout(
                     0,
                     0,
-                    POW_BLOCK_TIME_MILLIS
+                    ERA_DURATION_MILLIS
                 ),
-                (POW_BLOCK_COINBASE, 0)
+                (0u128, 0)
             );
 
-            // Check the reward also for a smaller era (it should be proportional).
+            // Check the reward for a normal era
             assert_eq!(
                 <Runtime as pallet_staking::Config>::EraPayout::era_payout(
-                    0,
-                    0,
-                    POW_BLOCK_TIME_MILLIS / 10
+                    TOTAL_STAKED,
+                    TOTAL_ISSUANCE,
+                    ERA_DURATION_MILLIS
                 ),
-                (POW_BLOCK_COINBASE / 10, 0)
-            );
-
-            // Check the reward also for an empty era.
-            assert_eq!(
-                <Runtime as pallet_staking::Config>::EraPayout::era_payout(0, 0, 0),
-                (0, 0)
+                (17313, 51133)
             );
         });
     }
