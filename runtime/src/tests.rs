@@ -564,7 +564,6 @@ mod payout {
 
     use super::new_test_ext;
 
-    #[ignore]
     #[test]
     fn check_era_rewards() {
         new_test_ext().execute_with(|| {
