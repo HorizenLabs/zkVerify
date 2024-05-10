@@ -31,10 +31,24 @@ impl pallet_timestamp::Config for Test {
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = 6000;
 pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 2;
 
+pub struct MockWeightInfo;
+
+impl MockWeightInfo {
+    pub const REF_TIME: u64 = 42;
+    pub const PROOF_SIZE: u64 = 24;
+}
+
+impl crate::weight::WeightInfo for MockWeightInfo {
+    fn publish_attestation() -> frame_support::weights::Weight {
+        frame_support::weights::Weight::from_parts(Self::REF_TIME, Self::PROOF_SIZE)
+    }
+}
+
 impl crate::Config for Test {
     type RuntimeEvent = RuntimeEvent;
     type MinProofsForPublishing = ConstU32<MIN_PROOFS_FOR_ROOT_PUBLISHING>;
     type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
+    type WeightInfo = MockWeightInfo;
 }
 
 // Configure a mock runtime to test the pallet.

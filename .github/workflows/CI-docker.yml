@@ -28,6 +28,7 @@ jobs:
           --build-arg VCS_REF="${VCS_REF}" \
           --build-arg BUILD_DATE="$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
           --build-arg IMAGE_NAME="hl/nh-node" \
+          --build-arg PROFILE=production
           -f docker/dockerfiles/hl-node.Dockerfile -t nh-node:build .
       - name: Login into DockerHub
         run: docker login --username cihorizen --password ${{ secrets.DOCKER_HUB_TOKEN }}

@@ -62,12 +62,15 @@ serde_json = { workspace = true, default-features = false, features = [
 	"alloc",
 ] }
 sp-genesis-builder = { default-features = false, workspace = true }
+sp-weights = { default-features = false, workspace = true }
 sp-io = { workspace = true, default-features = false }
 log = "0.4.20"
 
 # Used for the node template's RPCs
 frame-system-rpc-runtime-api = { workspace = true, default-features = false }
 frame-election-provider-support = { workspace = true, default-features = false }
+pallet-election-provider-support-benchmarking = { workspace = true, default-features = false, optional = true }
+pallet-session-benchmarking = { workspace = true, default-features = false, optional = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true, default-features = false }
 
 # Used for runtime benchmarking
@@ -85,6 +88,26 @@ proof-of-existence-rpc-runtime-api = { default-features = false, workspace = tru
 substrate-wasm-builder = { workspace = true, optional = true }
 
 [features]
+runtime-benchmarks = [
+	"frame-benchmarking/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
+	"frame-system-benchmarking/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"frame-election-provider-support/runtime-benchmarks",
+	"pallet-election-provider-support-benchmarking/runtime-benchmarks",
+	"pallet-im-online/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-babe/runtime-benchmarks",
+	"pallet-grandpa/runtime-benchmarks",
+	"pallet-sudo/runtime-benchmarks",
+	"pallet-session-benchmarking/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-settlement-fflonk/runtime-benchmarks",
+	"pallet-settlement-zksync/runtime-benchmarks",
+	"pallet-poe/runtime-benchmarks",
+	"pallet-staking/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+]
 default = ["std"]
 std = [
 	"codec/std",
@@ -131,21 +154,8 @@ std = [
 	"sp-storage/std",
 	"sp-transaction-pool/std",
 	"sp-version/std",
+	"sp-weights/std",
 	"substrate-wasm-builder",
-]
-runtime-benchmarks = [
-	"frame-benchmarking/runtime-benchmarks",
-	"frame-support/runtime-benchmarks",
-	"frame-system-benchmarking/runtime-benchmarks",
-	"frame-system/runtime-benchmarks",
-	"pallet-balances/runtime-benchmarks",
-	"pallet-grandpa/runtime-benchmarks",
-	"pallet-sudo/runtime-benchmarks",
-	"pallet-timestamp/runtime-benchmarks",
-	"pallet-settlement-fflonk/runtime-benchmarks",
-	"pallet-settlement-zksync/runtime-benchmarks",
-	"pallet-poe/runtime-benchmarks",
-	"sp-runtime/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",

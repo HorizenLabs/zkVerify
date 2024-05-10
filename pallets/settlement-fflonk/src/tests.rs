@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use frame_support::dispatch::{GetDispatchInfo, Pays};
 use hex_literal::hex;
 
 use sp_core::H256;
@@ -20,6 +21,7 @@ use sp_core::H256;
 use super::Proof;
 use crate::mock;
 use crate::mock::*;
+use crate::weight::WeightInfo;
 
 include!("proof.rs");
 pub static VALID_HASH: [u8; 32] =
@@ -84,6 +86,18 @@ fn invalid_proof_fails_verification_and_is_not_notified() {
     });
 }
 
+#[test]
+fn should_use_the_configured_weights() {
+    let proof: Proof = VALID_PROOF;
+    let info = crate::pallet::Call::<Test>::submit_proof {
+        raw_proof: Box::new(proof),
+    }
+    .get_dispatch_info();
+
+    assert_eq!(info.pays_fee, Pays::Yes);
+    assert_eq!(info.weight, MockWeightInfo::submit_proof());
+}
+
 mod another_way_of_testing {
     use hp_poe::OnProofVerified;
 
@@ -112,6 +126,7 @@ mod another_way_of_testing {
 
     impl crate::Config for Test {
         type OnProofVerified = Crash;
+        type WeightInfo = ();
     }
 
     impl OnProofVerified for Crash {

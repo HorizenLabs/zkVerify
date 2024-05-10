@@ -191,15 +191,6 @@ fn pallet_zksync_availability() {
     });
 }
 
-#[test]
-fn pallet_zksync_should_use_correct_weights() {
-    use pallet_settlement_zksync::weight::WeightInfo;
-    assert_eq!(
-        <Runtime as pallet_settlement_zksync::Config>::WeightInfo::submit_proof(),
-        pallet_settlement_zksync::weight::SubstrateWeight::<Runtime>::submit_proof()
-    );
-}
-
 // Test definition and execution. Test body must be written in the execute_with closure.
 #[test]
 fn pallet_poe_availability() {
@@ -207,6 +198,90 @@ fn pallet_poe_availability() {
         assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
         // just checking code builds, hence the pallet is available to the runtime
     });
+}
+
+mod use_correct_weights {
+    use crate::Runtime;
+
+    #[test]
+    fn frame_system() {
+        use frame_system::WeightInfo;
+
+        assert_eq!(
+            <Runtime as frame_system::Config>::SystemWeightInfo::set_heap_pages(),
+            crate::weights::frame_system::NHWeight::<Runtime>::set_heap_pages()
+        );
+    }
+
+    #[test]
+    fn pallet_balances() {
+        use pallet_balances::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_balances::Config>::WeightInfo::transfer_allow_death(),
+            crate::weights::pallet_balances::NHWeight::<Runtime>::transfer_allow_death()
+        );
+    }
+
+    #[test]
+    fn pallet_sudo() {
+        use pallet_sudo::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_sudo::Config>::WeightInfo::sudo(),
+            crate::weights::pallet_sudo::NHWeight::<Runtime>::sudo()
+        );
+    }
+
+    #[test]
+    fn pallet_timestamp() {
+        use pallet_timestamp::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_timestamp::Config>::WeightInfo::set(),
+            crate::weights::pallet_timestamp::NHWeight::<Runtime>::set()
+        );
+    }
+
+    #[test]
+    fn pallet_im_online() {
+        use pallet_im_online::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_im_online::Config>::WeightInfo::validate_unsigned_and_then_heartbeat(42),
+            crate::weights::pallet_im_online::NHWeight::<Runtime>::validate_unsigned_and_then_heartbeat(42)
+        );
+    }
+
+    #[test]
+    fn pallet_settlement_fflonk() {
+        use pallet_settlement_fflonk::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_settlement_fflonk::Config>::WeightInfo::submit_proof(),
+            crate::weights::pallet_settlement_fflonk::NHWeight::<Runtime>::submit_proof()
+        );
+    }
+
+    #[test]
+    fn pallet_settlement_zksync() {
+        use pallet_settlement_zksync::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_settlement_zksync::Config>::WeightInfo::submit_proof(),
+            crate::weights::pallet_settlement_zksync::NHWeight::<Runtime>::submit_proof()
+        );
+    }
+
+    #[test]
+    fn pallet_poe() {
+        use pallet_poe::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_poe::Config>::WeightInfo::publish_attestation(),
+            crate::weights::pallet_poe::NHWeight::<Runtime>::publish_attestation()
+        );
+    }
 }
 
 mod pallets_interact {

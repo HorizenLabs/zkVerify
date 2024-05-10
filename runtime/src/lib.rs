@@ -48,15 +48,15 @@ use frame_support::genesis_builder_helper::{build_config, create_default_config}
 
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
-    construct_runtime, derive_impl, parameter_types,
+    construct_runtime, derive_impl,
+    dispatch::DispatchClass,
+    parameter_types,
     traits::{
         ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, KeyOwnerProofSystem, Randomness,
         StorageInfo,
     },
     weights::{
-        constants::{
-            BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND,
-        },
+        constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
         IdentityFee, Weight,
     },
     StorageValue,
@@ -66,6 +66,8 @@ use frame_system::EnsureRoot;
 pub use pallet_balances::Call as BalancesCall;
 use pallet_session::historical as pallet_session_historical;
 pub use pallet_timestamp::Call as TimestampCall;
+use weights::block_weights::BlockExecutionWeight;
+use weights::extrinsic_weights::ExtrinsicBaseWeight;
 
 use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier};
 #[cfg(any(feature = "std", test))]
@@ -74,6 +76,7 @@ pub use sp_runtime::{Perbill, Permill};
 
 #[cfg(test)]
 mod tests;
+mod weights;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -164,17 +167,38 @@ pub fn native_version() -> NativeVersion {
     }
 }
 
+/// We assume that ~10% of the block weight is consumed by `on_initialize` handlers.
+/// This is used to limit the maximal weight of a single extrinsic.
+const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_percent(10);
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+/// We allow for 2 seconds of compute with a 6 second average block time, with maximum proof size.
+const MAXIMUM_BLOCK_WEIGHT: Weight =
+    Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2), u64::MAX);
 
 parameter_types! {
     pub const BlockHashCount: BlockNumber = 2400;
     pub const Version: RuntimeVersion = VERSION;
-    /// We allow for 2 seconds of compute with a 6 second average block time.
+
     pub BlockWeights: frame_system::limits::BlockWeights =
-        frame_system::limits::BlockWeights::with_sensible_defaults(
-            Weight::from_parts(2u64 * WEIGHT_REF_TIME_PER_SECOND, u64::MAX),
-            NORMAL_DISPATCH_RATIO,
-        );
+        frame_system::limits::BlockWeights::builder()
+        .base_block(BlockExecutionWeight::get())
+        .for_class(DispatchClass::all(), |weights| {
+            weights.base_extrinsic = ExtrinsicBaseWeight::get();
+        })
+        .for_class(DispatchClass::Normal, |weights| {
+            weights.max_total = Some(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT);
+        })
+        .for_class(DispatchClass::Operational, |weights| {
+            weights.max_total = Some(MAXIMUM_BLOCK_WEIGHT);
+            // Operational transactions have some extra reserved space, so that they
+            // are included even if block reached `MAXIMUM_BLOCK_WEIGHT`.
+            weights.reserved = Some(
+                MAXIMUM_BLOCK_WEIGHT - NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT
+            );
+        })
+        .avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
+        .build_or_panic();
+
     pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
         ::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
     pub const SS58Prefix: u8 = 42;
@@ -208,6 +232,7 @@ impl frame_system::Config for Runtime {
     /// This is used as an identifier of the chain. 42 is the generic substrate prefix.
     type SS58Prefix = SS58Prefix;
     type MaxConsumers = frame_support::traits::ConstU32<16>;
+    type SystemWeightInfo = weights::frame_system::NHWeight<Runtime>;
 }
 
 parameter_types! {
@@ -251,7 +276,7 @@ impl pallet_timestamp::Config for Runtime {
     type Moment = u64;
     type OnTimestampSet = Babe;
     type MinimumPeriod = ConstU64<{ SLOT_DURATION / 2 }>; // this is a Babe assumption
-    type WeightInfo = ();
+    type WeightInfo = weights::pallet_timestamp::NHWeight<Runtime>;
 }
 
 /// Existential deposit.
@@ -268,7 +293,7 @@ impl pallet_balances::Config for Runtime {
     type DustRemoval = ();
     type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;
     type AccountStore = System;
-    type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+    type WeightInfo = weights::pallet_balances::NHWeight<Runtime>;
     type FreezeIdentifier = ();
     type MaxFreezes = ();
     type RuntimeHoldReason = ();
@@ -300,16 +325,17 @@ impl pallet_transaction_payment::Config for Runtime {
 impl pallet_sudo::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type RuntimeCall = RuntimeCall;
-    type WeightInfo = pallet_sudo::weights::SubstrateWeight<Runtime>;
+    type WeightInfo = weights::pallet_sudo::NHWeight<Runtime>;
 }
 
 impl pallet_settlement_fflonk::Config for Runtime {
     type OnProofVerified = Poe;
+    type WeightInfo = weights::pallet_settlement_fflonk::NHWeight<Runtime>;
 }
 
 impl pallet_settlement_zksync::Config for Runtime {
     type OnProofVerified = Poe;
-    type WeightInfo = pallet_settlement_zksync::weight::SubstrateWeight<Runtime>;
+    type WeightInfo = weights::pallet_settlement_zksync::NHWeight<Runtime>;
 }
 
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
@@ -321,6 +347,7 @@ impl pallet_poe::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type MinProofsForPublishing = ConstU32<MIN_PROOFS_FOR_ROOT_PUBLISHING>;
     type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
+    type WeightInfo = weights::pallet_poe::NHWeight<Runtime>;
 }
 
 pub struct ValidatorIdOf;
@@ -339,7 +366,7 @@ impl pallet_session::Config for Runtime {
     type SessionManager = Staking;
     type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
     type Keys = SessionKeys;
-    type WeightInfo = ();
+    type WeightInfo = pallet_session::weights::SubstrateWeight<Runtime>;
 }
 
 //TODO: Set these parameters appropriately.
@@ -422,7 +449,7 @@ impl pallet_staking::Config for Runtime {
     type MaxUnlockingChunks = ConstU32<32>;
     type HistoryDepth = HistoryDepth; // Number of eras to keep in history
     type EventListeners = (); // NominationPools;
-    type WeightInfo = (); //pallet_staking::weights::SubstrateWeight<Runtime>;
+    type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
     type BenchmarkingConfig = ElectionProviderBenchmarkConfig;
     type MaxExposurePageSize = ConstU32<64>;
 }
@@ -457,8 +484,8 @@ impl pallet_im_online::Config for Runtime {
     type ValidatorSet = Historical;
     type ReportUnresponsiveness = Offences;
     type UnsignedPriority = ();
-    type WeightInfo = ();
-    type MaxKeys = MaxKeys;
+    type WeightInfo = weights::pallet_im_online::NHWeight<Runtime>;
+    type MaxKeys = ConstU32<10_000>; // We need them form benchmarking
     type MaxPeerInHeartbeats = MaxPeerInHeartbeats;
 }
 
@@ -539,10 +566,16 @@ mod benches {
         [frame_benchmarking, BaselineBench::<Runtime>]
         [frame_system, SystemBench::<Runtime>]
         [pallet_balances, Balances]
+        [pallet_babe, crate::Babe]
+        [pallet_grandpa, crate::Grandpa]
         [pallet_timestamp, Timestamp]
         [pallet_sudo, Sudo]
-        [pallet_settlement_fflonk, SettlementFFlonkPallet]
+        [pallet_session, SessionBench::<Runtime>]
+        [pallet_staking, Staking]
+        [pallet_im_online, ImOnline]
+        [pallet_election_provider_support_benchmarking, ElectionProviderBench::<Runtime>]
         [pallet_poe, Poe]
+        [pallet_settlement_fflonk, SettlementFFlonkPallet]
         [pallet_settlement_zksync, SettlementZksyncPallet]
     );
 }
@@ -785,6 +818,8 @@ impl_runtime_apis! {
             use frame_support::traits::StorageInfoTrait;
             use frame_system_benchmarking::Pallet as SystemBench;
             use baseline::Pallet as BaselineBench;
+            use pallet_election_provider_support_benchmarking::Pallet as ElectionProviderBench;
+            use pallet_session_benchmarking::Pallet as SessionBench;
 
             let mut list = Vec::<BenchmarkList>::new();
             list_benchmarks!(list, extra);
@@ -801,9 +836,14 @@ impl_runtime_apis! {
             use sp_storage::TrackedStorageKey;
             use frame_system_benchmarking::Pallet as SystemBench;
             use baseline::Pallet as BaselineBench;
+            use pallet_election_provider_support_benchmarking::Pallet as ElectionProviderBench;
+            use pallet_session_benchmarking::Pallet as SessionBench;
 
             impl frame_system_benchmarking::Config for Runtime {}
             impl baseline::Config for Runtime {}
+            impl pallet_election_provider_support_benchmarking::Config for Runtime {}
+
+            impl pallet_session_benchmarking::Config for Runtime {}
 
             use frame_support::traits::WhitelistedStorageKeys;
             let whitelist: Vec<TrackedStorageKey> = AllPalletsWithSystem::whitelisted_storage_keys();

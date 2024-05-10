@@ -19,7 +19,7 @@ use crate::{
     cli::{Cli, Subcommand},
     service,
 };
-use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
+use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory};
 use native::HLNativeHostFunctions;
 use nh_runtime::{Block, EXISTENTIAL_DEPOSIT};
 use sc_cli::SubstrateCli;
@@ -203,7 +203,7 @@ pub fn run() -> sc_cli::Result<()> {
                         cmd.run(client, inherent_benchmark_data()?, Vec::new(), &ext_factory)
                     }
                     BenchmarkCmd::Machine(cmd) => {
-                        cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())
+                        cmd.run(&config, crate::hardware::nh_reference_hardware().clone())
                     }
                 }
             })

@@ -18,11 +18,11 @@
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 31.0.0
 //! DATE: 2024-05-10, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
-//! HOSTNAME: `miklap`, CPU: `11th Gen Intel(R) Core(TM) i7-11850H @ 2.50GHz`
+//! HOSTNAME: `ca4df850a17b`, CPU: `AMD EPYC 7571`
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("dev")`, DB CACHE: `1024`
 
 // Executed Command:
-// /home/mdamico/devel/NH-core/target/production/nh-node
+// /usr/local/bin/nh-node
 // benchmark
 // pallet
 // --chain
@@ -37,11 +37,11 @@
 // 20
 // --heap-pages=4096
 // --header
-// /home/mdamico/devel/NH-core/HEADER-APACHE2
+// /data/benchmark/HEADER-APACHE2
 // --output
-// pallets/proof_of_existence/src/weight.rs
+// /data/benchmark/runtime/src/weights/pallet_poe.rs
 // --template
-// /home/mdamico/devel/NH-core/node/hl-pallets-weight-template.hbs
+// /data/benchmark/node/hl-deploy-weight-template.hbs
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
@@ -51,13 +51,10 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for `pallet_poe`.
-pub trait WeightInfo {
-	fn publish_attestation() -> Weight;
-}
+/// Weights for `pallet_poe` using the New Horizen node and recommended hardware.
+pub struct NHWeight<T>(PhantomData<T>);
 
-// For backwards compatibility and tests.
-impl WeightInfo for () {
+impl<T: frame_system::Config> pallet_poe::WeightInfo for NHWeight<T> {
 	/// Storage: `Poe::NextAttestation` (r:1 w:1)
 	/// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
 	/// Storage: `Poe::Values` (r:11 w:0)
@@ -66,9 +63,9 @@ impl WeightInfo for () {
 		// Proof Size summary in bytes:
 		//  Measured:  `656`
 		//  Estimated: `29007`
-		// Minimum execution time: 30_039_000 picoseconds.
-		Weight::from_parts(31_120_000, 29007)
-			.saturating_add(RocksDbWeight::get().reads(12_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
+		// Minimum execution time: 75_791_000 picoseconds.
+		Weight::from_parts(77_181_000, 29007)
+			.saturating_add(T::DbWeight::get().reads(12_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 }

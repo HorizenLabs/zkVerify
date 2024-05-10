@@ -17,6 +17,8 @@ use crate::mock;
 use crate::mock::RuntimeEvent as TestEvent;
 use crate::mock::*;
 use crate::AttestationPathRequestError;
+use frame_support::dispatch::GetDispatchInfo;
+use frame_support::dispatch::Pays;
 use frame_support::inherent::ProvideInherent;
 use frame_support::pallet_prelude::InherentData;
 use frame_system::{EventRecord, Phase};
@@ -258,4 +260,13 @@ fn get_proof_from_pallet_valid_att_id_and_valid_proof() {
             &proof_hash
         ));
     })
+}
+
+#[test]
+fn should_use_the_configured_weights() {
+    use crate::weight::WeightInfo;
+    let info = crate::pallet::Call::<Test>::publish_attestation {}.get_dispatch_info();
+
+    assert_eq!(info.pays_fee, Pays::Yes);
+    assert_eq!(info.weight, MockWeightInfo::publish_attestation());
 }
