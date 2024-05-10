@@ -32,18 +32,18 @@ mod tests;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 
-pub mod weight;
+mod weight;
+pub use weight::WeightInfo;
 
 #[frame_support::pallet]
 pub mod pallet {
-    use super::{weight, Proof, PROOF_SIZE, PUBS_SIZE};
+    use super::{Proof, WeightInfo, PROOF_SIZE, PUBS_SIZE};
     use frame_support::dispatch::DispatchResultWithPostInfo;
     use frame_system::pallet_prelude::OriginFor;
     use hp_poe::OnProofVerified;
     use sp_core::H256;
     use sp_io::hashing::keccak_256;
     use sp_std::boxed::Box;
-    use weight::WeightInfo;
 
     #[pallet::pallet]
     pub struct Pallet<T>(_);
@@ -60,35 +60,12 @@ pub mod pallet {
     }
 
     /// Configure the pallet by specifying the parameters and types on which it depends.
-    #[pallet::config(with_default)]
+    #[pallet::config]
     pub trait Config: frame_system::Config {
-        #[pallet::no_default]
+        /// Proof verified call back
         type OnProofVerified: OnProofVerified;
-        type WeightInfo: weight::WeightInfo;
-    }
-
-    pub mod config_preludes {
-        #[cfg(test)]
-        pub use testing::*;
-
-        #[cfg(test)]
-        mod testing {
-            use frame_support::pallet_prelude::*;
-            use frame_support::{derive_impl, register_default_impl};
-
-            pub struct TestDefaultConfig;
-
-            #[derive_impl(frame_system::config_preludes::TestDefaultConfig as frame_system::DefaultConfig, no_aggregated_types)]
-            impl frame_system::DefaultConfig for TestDefaultConfig {
-                #[inject_runtime_type]
-                type RuntimeEvent = ();
-            }
-
-            #[register_default_impl(TestDefaultConfig)]
-            impl crate::pallet::DefaultConfig for TestDefaultConfig {
-                type WeightInfo = ();
-            }
-        }
+        /// The weight definition for this pallet
+        type WeightInfo: WeightInfo;
     }
 
     pub fn verify_proof<T: Config>(full_proof: Proof) -> Result<(), Error<T>> {

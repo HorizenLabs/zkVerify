@@ -29,6 +29,7 @@ mod benchmarking;
 
 mod weight;
 
+pub use weight::WeightInfo;
 pub const FULL_PROOF_SIZE: usize = 25 * 32;
 pub const PUBS_SIZE: usize = 32;
 pub const PROOF_SIZE: usize = 24 * 32;
@@ -36,9 +37,7 @@ pub type Proof = [u8; FULL_PROOF_SIZE];
 
 #[frame_support::pallet]
 pub mod pallet {
-    use super::weight::SubstrateWeight;
-    use super::weight::WeightInfo;
-    use super::{Proof, FULL_PROOF_SIZE, PROOF_SIZE};
+    use super::{Proof, WeightInfo, FULL_PROOF_SIZE, PROOF_SIZE};
     use frame_support::dispatch::DispatchResultWithPostInfo;
     use frame_system::pallet_prelude::*;
     use hp_poe::OnProofVerified;
@@ -52,7 +51,10 @@ pub mod pallet {
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
     pub trait Config: frame_system::Config {
+        /// Proof verified call back
         type OnProofVerified: OnProofVerified;
+        /// The weight definition for this pallet
+        type WeightInfo: WeightInfo;
     }
 
     pub fn verify_proof<T: Config>(full_proof: Proof) -> Result<(), Error<T>> {
@@ -102,10 +104,9 @@ pub mod pallet {
     // Dispatchable functions allows users to interact with the pallet and invoke state changes.
     // These functions materialize as "extrinsics", which are often compared to transactions.
     // Dispatchable functions must be annotated with a weight and must return a DispatchResult.
-    #[pallet::call]
+    #[pallet::call(weight(<T as Config>::WeightInfo))]
     impl<T: Config> Pallet<T> {
         #[pallet::call_index(0)]
-        #[pallet::weight(SubstrateWeight::<T>::submit_proof())]
         pub fn submit_proof(
             _origin: OriginFor<T>,
             raw_proof: Box<Proof>,

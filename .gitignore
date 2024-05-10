@@ -9,3 +9,4 @@ e2e-tests/node_modules
 e2e-tests/yarn.lock
 e2e-tests/bin
 lcov.info
+benchmarking_errors.txt

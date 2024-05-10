@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::derive_impl;
+use frame_support::{derive_impl, weights::Weight};
 use frame_system;
 use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
@@ -50,6 +50,19 @@ pub mod on_proof_verified {
     }
 }
 
+pub struct MockWeightInfo;
+
+impl MockWeightInfo {
+    pub const REF_TIME: u64 = 42;
+    pub const PROOF_SIZE: u64 = 24;
+}
+
+impl crate::weight::WeightInfo for MockWeightInfo {
+    fn submit_proof() -> Weight {
+        Weight::from_parts(Self::REF_TIME, Self::PROOF_SIZE)
+    }
+}
+
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
     pub enum Test
@@ -69,6 +82,7 @@ impl frame_system::Config for Test {
 
 impl crate::Config for Test {
     type OnProofVerified = OnProofVerifiedMock;
+    type WeightInfo = MockWeightInfo;
 }
 
 impl on_proof_verified::pallet::Config for Test {

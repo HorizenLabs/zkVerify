@@ -4311,6 +4311,7 @@ dependencies = [
  "sc-rpc",
  "sc-rpc-api",
  "sc-service",
+ "sc-sysinfo",
  "sc-telemetry",
  "sc-transaction-pool",
  "sc-transaction-pool-api",
@@ -4742,11 +4743,13 @@ dependencies = [
  "pallet-authorship",
  "pallet-babe",
  "pallet-balances",
+ "pallet-election-provider-support-benchmarking",
  "pallet-grandpa",
  "pallet-im-online",
  "pallet-offences",
  "pallet-poe",
  "pallet-session",
+ "pallet-session-benchmarking",
  "pallet-settlement-fflonk",
  "pallet-settlement-zksync",
  "pallet-staking",
@@ -4775,6 +4778,7 @@ dependencies = [
  "sp-storage",
  "sp-transaction-pool",
  "sp-version",
+ "sp-weights",
  "static_assertions",
  "substrate-wasm-builder",
 ]
@@ -5023,6 +5027,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-election-provider-support-benchmarking"
+version = "26.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "baa4d9a426c024e1aa3bb6adbb03aa3b6887be8775e3fba0abda48ca9b17c864"
+dependencies = [
+ "frame-benchmarking",
+ "frame-election-provider-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-npos-elections",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-grandpa"
 version = "27.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5129,6 +5148,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-session-benchmarking"
+version = "27.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08c8a1fe52d8f2fc79e4784f8c96f3e3bed6da5d343bedaa4237c5641563f8cc"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-session",
+ "pallet-staking",
+ "parity-scale-codec",
+ "rand 0.8.5",
+ "sp-runtime",
+ "sp-session",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-settlement-fflonk"
 version = "0.1.0"
 dependencies = [
@@ -5182,6 +5219,7 @@ dependencies = [
  "pallet-authorship",
  "pallet-session",
  "parity-scale-codec",
+ "rand_chacha 0.2.2",
  "scale-info",
  "serde",
  "sp-application-crypto",
