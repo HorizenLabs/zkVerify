@@ -18,7 +18,7 @@
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 31.0.0
 //! DATE: 2024-05-10, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
-//! HOSTNAME: `3079ae965fdf`, CPU: `11th Gen Intel(R) Core(TM) i7-11850H @ 2.50GHz`
+//! HOSTNAME: `ca4df850a17b`, CPU: `AMD EPYC 7571`
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("dev")`, DB CACHE: `1024`
 
 // Executed Command:
@@ -63,8 +63,8 @@ impl<T: frame_system::Config> pallet_poe::WeightInfo for NHWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `656`
 		//  Estimated: `29007`
-		// Minimum execution time: 29_381_000 picoseconds.
-		Weight::from_parts(30_050_000, 29007)
+		// Minimum execution time: 75_791_000 picoseconds.
+		Weight::from_parts(77_181_000, 29007)
 			.saturating_add(T::DbWeight::get().reads(12_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}

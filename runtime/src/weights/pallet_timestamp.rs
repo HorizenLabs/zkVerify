@@ -18,7 +18,7 @@
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 31.0.0
 //! DATE: 2024-05-10, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
-//! HOSTNAME: `dc113e67c07b`, CPU: `11th Gen Intel(R) Core(TM) i7-11850H @ 2.50GHz`
+//! HOSTNAME: `293e1189ed1b`, CPU: `AMD EPYC 7571`
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("dev")`, DB CACHE: `1024`
 
 // Executed Command:
@@ -63,8 +63,8 @@ impl<T: frame_system::Config> pallet_timestamp::WeightInfo for NHWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `138`
 		//  Estimated: `1493`
-		// Minimum execution time: 7_818_000 picoseconds.
-		Weight::from_parts(8_352_000, 1493)
+		// Minimum execution time: 14_580_000 picoseconds.
+		Weight::from_parts(15_000_000, 1493)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -72,7 +72,7 @@ impl<T: frame_system::Config> pallet_timestamp::WeightInfo for NHWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `57`
 		//  Estimated: `0`
-		// Minimum execution time: 3_933_000 picoseconds.
-		Weight::from_parts(4_076_000, 0)
+		// Minimum execution time: 6_920_000 picoseconds.
+		Weight::from_parts(7_110_000, 0)
 	}
 }

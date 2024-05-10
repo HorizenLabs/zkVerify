@@ -18,7 +18,7 @@
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 31.0.0
 //! DATE: 2024-05-10, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
-//! HOSTNAME: `8d41c9b06a09`, CPU: `11th Gen Intel(R) Core(TM) i7-11850H @ 2.50GHz`
+//! HOSTNAME: `309e3701e060`, CPU: `AMD EPYC 7571`
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("dev")`, DB CACHE: `1024`
 
 // Executed Command:
@@ -67,8 +67,8 @@ impl<T: frame_system::Config> pallet_settlement_zksync::WeightInfo for NHWeight<
 		// Proof Size summary in bytes:
 		//  Measured:  `74`
 		//  Estimated: `3537`
-		// Minimum execution time: 5_463_659_000 picoseconds.
-		Weight::from_parts(5_537_684_000, 3537)
+		// Minimum execution time: 11_612_353_000 picoseconds.
+		Weight::from_parts(12_856_472_000, 3537)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}

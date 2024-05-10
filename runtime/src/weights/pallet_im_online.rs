@@ -18,7 +18,7 @@
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 31.0.0
 //! DATE: 2024-05-10, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
-//! HOSTNAME: `c8ec986a952e`, CPU: `11th Gen Intel(R) Core(TM) i7-11850H @ 2.50GHz`
+//! HOSTNAME: `f062fb2a40a7`, CPU: `AMD EPYC 7571`
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("dev")`, DB CACHE: `1024`
 
 // Executed Command:
@@ -70,10 +70,10 @@ impl<T: frame_system::Config> pallet_im_online::WeightInfo for NHWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `261 + k * (32 ±0)`
 		//  Estimated: `321487 + k * (1761 ±0)`
-		// Minimum execution time: 60_183_000 picoseconds.
-		Weight::from_parts(69_683_355, 321487)
-			// Standard Error: 813
-			.saturating_add(Weight::from_parts(25_530, 0).saturating_mul(k.into()))
+		// Minimum execution time: 171_543_000 picoseconds.
+		Weight::from_parts(191_687_129, 321487)
+			// Standard Error: 1_171
+			.saturating_add(Weight::from_parts(43_972, 0).saturating_mul(k.into()))
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 			.saturating_add(Weight::from_parts(0, 1761).saturating_mul(k.into()))
