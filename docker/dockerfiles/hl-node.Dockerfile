@@ -12,7 +12,6 @@ RUN apt-get update -qq \
   && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*.deb
 
 ARG PROFILE="release"
-ARG PROFILE="release"
 ARG FEATURES=""
 
 WORKDIR /usr/src/node
