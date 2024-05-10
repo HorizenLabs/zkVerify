@@ -153,7 +153,7 @@ pub fn local_config() -> Result<ChainSpec, String> {
     )
     .with_name("NH Local")
     .with_id("nh_local")
-    .with_protocol_id("lzen")
+    .with_protocol_id("lzeta")
     .with_chain_type(ChainType::Local)
     .with_properties({
         let mut props = Properties::new();
@@ -187,7 +187,7 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
     )
     .with_name("NH Testnet")
     .with_id("nh_testnet")
-    .with_protocol_id("tzen")
+    .with_protocol_id("tzeta")
     .with_chain_type(ChainType::Live)
     .with_boot_nodes(vec![
         BOOTNODE_1.parse().expect("MultiaddrWithPeerId"),
