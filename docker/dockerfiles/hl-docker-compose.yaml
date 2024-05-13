@@ -4,8 +4,6 @@ services:
     image: horizenlabs/nh-node:latest
     env_file:
       - ../resources/envs/.env.local
-    volumes:
-      - ../resources/deploy:/data/config
     ports:
       - 9944:9944
       - 30333:30333
@@ -13,11 +11,7 @@ services:
     image: horizenlabs/nh-node:latest
     env_file:
       - ../resources/envs/.env.alice
-    volumes:
-      - ../resources/deploy:/data/config
   node_bob:
     image: horizenlabs/nh-node:latest
     env_file:
       - ../resources/envs/.env.bob
-    volumes:
-      - ../resources/deploy:/data/config
