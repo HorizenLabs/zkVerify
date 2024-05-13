@@ -24,8 +24,10 @@ use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
 // The connection strings for bootnodes
-const BOOTNODE_1: &str = "/dns/bootnode-tn-1.zkverify.io/tcp/443/wss/p2p/12D3KooWNhvf6iSowraUY4tZnjpNZXEe85oy9zDWYRKFBnWivukc";
-const BOOTNODE_2: &str = "/dns/bootnode-tn-2.zkverify.io/tcp/443/wss/p2p/12D3KooWEjVadU1YWyfDGvyRXPbCq2rXhzJtXaG4RxJZBkGE9Aug";
+const BOOTNODE_1_DNS: &str = "bootnode-tn-1.zkverify.io";
+const BOOTNODE_1_PEER_ID: &str = "12D3KooWNhvf6iSowraUY4tZnjpNZXEe85oy9zDWYRKFBnWivukc";
+const BOOTNODE_2_DNS: &str = "bootnode-tn-2.zkverify.io";
+const BOOTNODE_2_PEER_ID: &str = "12D3KooWEjVadU1YWyfDGvyRXPbCq2rXhzJtXaG4RxJZBkGE9Aug";
 
 // The URL for the telemetry server.
 const STAGING_TELEMETRY_URL: &str = "wss://nh-telemetry.horizenlabs.io/submit/";
@@ -190,8 +192,24 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
     .with_protocol_id("tzeta")
     .with_chain_type(ChainType::Live)
     .with_boot_nodes(vec![
-        BOOTNODE_1.parse().expect("MultiaddrWithPeerId"),
-        BOOTNODE_2.parse().expect("MultiaddrWithPeerId"),
+        format!("/dns/{BOOTNODE_1_DNS}/tcp/30333/p2p/{BOOTNODE_1_PEER_ID}")
+            .parse()
+            .expect("MultiaddrWithPeerId"),
+        format!("/dns/{BOOTNODE_1_DNS}/tcp/30334/ws/p2p/{BOOTNODE_1_PEER_ID}")
+            .parse()
+            .expect("MultiaddrWithPeerId"),
+        format!("/dns/{BOOTNODE_1_DNS}/tcp/443/wss/p2p/{BOOTNODE_1_PEER_ID}")
+            .parse()
+            .expect("MultiaddrWithPeerId"),
+        format!("/dns/{BOOTNODE_2_DNS}/tcp/30333/p2p/{BOOTNODE_2_PEER_ID}")
+            .parse()
+            .expect("MultiaddrWithPeerId"),
+        format!("/dns/{BOOTNODE_2_DNS}/tcp/30334/ws/p2p/{BOOTNODE_2_PEER_ID}")
+            .parse()
+            .expect("MultiaddrWithPeerId"),
+        format!("/dns/{BOOTNODE_2_DNS}/tcp/443/wss/p2p/{BOOTNODE_2_PEER_ID}")
+            .parse()
+            .expect("MultiaddrWithPeerId"),
     ])
     .with_telemetry_endpoints(
         TelemetryEndpoints::new(vec![(
