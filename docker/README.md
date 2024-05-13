@@ -38,10 +38,10 @@ The simple workflow is:
 > bootstrap.sh
 ```
 
-After you'll have the `horizenlabs/nh-node` docker image on your local docker repository. You can run a _**solo**_ chain with
+After you'll have the `horizenlabs/zkverify` docker image on your local docker repository. You can run a _**solo**_ chain with
 
 ```bash
-> docker run -ti --rm -p 9944:9944 horizenlabs/nh-node --dev --rpc-cors all --rpc-external
+> docker run -ti --rm -p 9944:9944 horizenlabs/zkverify --dev --rpc-cors all --rpc-external
 ```
 
 Where:
@@ -72,16 +72,16 @@ All Dockerfile and compose definitions are located in `docker/dockerfile` folder
 To generate a node image without bothering about local resources, Rust installation and so on you can simply use:
 
 ```bash
-> docker build -f docker/dockerfiles/hl-node.Dockerfile -t horizenlabs/nh-node:latest .
+> docker build -f docker/dockerfiles/hl-node.Dockerfile -t horizenlabs/zkverify:latest .
 ```
 
 and run it with
 
 ```bash
-> docker run -ti --rm nh-node --dev
+> docker run -ti --rm horizenlabs/zkverify --dev
 ```
 
-All arguments after `nh-node` image name will be passed to the node executable.
+All arguments after `horizenlabs/zkverify` image name will be passed to the node executable.
 
 ### Compose
 
