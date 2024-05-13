@@ -2,7 +2,7 @@
 set -eEuo pipefail
 
 workdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
-docker_image_build_name="${DOCKER_IMAGE_BUILD_NAME:-nh-node}"
+docker_image_build_name="${DOCKER_IMAGE_BUILD_NAME:-zkverify}"
 docker_hub_org="${DOCKER_HUB_ORG:-horizenlabs}"
 docker_hub_username="${DOCKER_HUB_USERNAME:-}"
 docker_hub_token="${DOCKER_HUB_TOKEN:-}"
@@ -45,7 +45,7 @@ fi
 # Building and publishing docker image
 if [ -n "${docker_tag:-}" ]; then
   log italic green "=== Building Docker image: ${docker_hub_org}/${docker_image_build_name}:${docker_tag} ==="
-  docker build -f "${docker_file_path}" -t "${docker_hub_org}/${docker_image_build_name}:${docker_tag}" .
+  docker build --build-arg PROFILE=production -f "${docker_file_path}" -t "${docker_hub_org}/${docker_image_build_name}:${docker_tag}" .
 
   # Publishing to DockerHub
   log italic green "=== Publishing Docker image(s) on Docker Hub ==="
