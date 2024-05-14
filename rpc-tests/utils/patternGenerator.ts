@@ -13,11 +13,13 @@ function getSchema() {
   const baseTypes = parseYaml("../schemas/base-types.yaml");
   const block = parseYaml("../schemas/block.yaml");
   const runtime = parseYaml("../schemas/runtime.yaml");
+  const properties = parseYaml("../schemas/properties.yaml");
 
   return {
     ...baseTypes,
     ...block,
     ...runtime,
+    ...properties,
   }
 }
 
