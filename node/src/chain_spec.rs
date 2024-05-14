@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nh_runtime::currency::{Balance, ZETA};
+use nh_runtime::currency::{Balance, ACME};
 use nh_runtime::{currency, AccountId, RuntimeGenesisConfig, SessionKeys, Signature, WASM_BINARY};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_service::{ChainType, Properties};
@@ -35,7 +35,7 @@ const STAGING_TELEMETRY_URL: &str = "wss://nh-telemetry.horizenlabs.io/submit/";
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig>;
 
-const ENDOWMENT: Balance = 1_000_000 * ZETA;
+const ENDOWMENT: Balance = 1_000_000 * ACME;
 const STASH_BOND: Balance = ENDOWMENT / 100;
 const DEFAULT_ENDOWED_SEEDS: [&str; 6] = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie"];
 const LOCAL_N_AUTH: usize = 2;
@@ -124,7 +124,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
     .with_chain_type(ChainType::Development)
     .with_properties({
         let mut props = Properties::new();
-        props.insert("tokenSymbol".into(), "ZETA".into());
+        props.insert("tokenSymbol".into(), "ACME".into());
         props.insert("tokenDecimals".into(), 18.into());
         props
     })
@@ -155,11 +155,11 @@ pub fn local_config() -> Result<ChainSpec, String> {
     )
     .with_name("NH Local")
     .with_id("nh_local")
-    .with_protocol_id("lzeta")
+    .with_protocol_id("lacme")
     .with_chain_type(ChainType::Local)
     .with_properties({
         let mut props = Properties::new();
-        props.insert("tokenSymbol".into(), "ZETA".into());
+        props.insert("tokenSymbol".into(), "ACME".into());
         props.insert("tokenDecimals".into(), 18.into());
         props
     })
@@ -189,7 +189,7 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
     )
     .with_name("NH Testnet")
     .with_id("nh_testnet")
-    .with_protocol_id("tzeta")
+    .with_protocol_id("tacme")
     .with_chain_type(ChainType::Live)
     .with_boot_nodes(vec![
         format!("/dns/{BOOTNODE_1_DNS}/tcp/30333/p2p/{BOOTNODE_1_PEER_ID}")
@@ -220,7 +220,7 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
     )
     .with_properties({
         let mut props = Properties::new();
-        props.insert("tokenSymbol".into(), "ZETA".into());
+        props.insert("tokenSymbol".into(), "ACME".into());
         props.insert("tokenDecimals".into(), 18.into());
         props
     })
@@ -261,19 +261,19 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
             (
                 from_ss58check("5ETuZEyLnfVzQCaDM8aQCcsNnz6xjPKvQCtqynCLqwng8QLd")
                     .map_err(|error| error.to_string())?,
-                280 * currency::MILLIONS + 1000 * currency::ZETA,
+                280 * currency::MILLIONS + 1000 * currency::ACME,
             ),
             // nh-validator-t2
             (
                 from_ss58check("5D29UEzgStCBTnjKNdkurDNvd3FHePHgTkPEUvjXYvg3brJj")
                     .map_err(|error| error.to_string())?,
-                280 * currency::MILLIONS + 1000 * currency::ZETA,
+                280 * currency::MILLIONS + 1000 * currency::ACME,
             ),
             // nh-validator-t3
             (
                 from_ss58check("5DiMVAp8WmFyWAwaTwAr7sU4K3brXcgNCBDbHoBWj3M46PiP")
                     .map_err(|error| error.to_string())?,
-                140 * currency::MILLIONS + 1000 * currency::ZETA,
+                140 * currency::MILLIONS + 1000 * currency::ACME,
             ),
             // nh-sudo-t1
             (
@@ -365,7 +365,7 @@ mod tests {
     // by checking that the json returned by testnet_genesis() contains the field "session"
     #[test]
     fn testnet_genesis_should_set_session_keys() {
-        let initial_authorities = vec![(authority_keys_from_seed("Alice"), 7 * currency::ZETA)];
+        let initial_authorities = vec![(authority_keys_from_seed("Alice"), 7 * currency::ACME)];
         let root_key = get_account_id_from_seed::<sr25519::Public>("Alice");
 
         let ret_val: serde_json::Value = genesis(initial_authorities, root_key, vec![], false);
