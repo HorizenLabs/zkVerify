@@ -90,9 +90,9 @@ pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::Account
 
 pub mod currency {
     pub type Balance = u128;
-    pub const ZETA: Balance = 1_000_000_000_000_000_000;
-    pub const CENTS: Balance = ZETA / 100;
-    pub const THOUSANDS: Balance = 1_000 * ZETA;
+    pub const ACME: Balance = 1_000_000_000_000_000_000;
+    pub const CENTS: Balance = ACME / 100;
+    pub const THOUSANDS: Balance = 1_000 * ACME;
     pub const MILLIONS: Balance = 1_000 * THOUSANDS;
 }
 
@@ -238,7 +238,7 @@ impl frame_system::Config for Runtime {
 parameter_types! {
     pub const ExpectedBlockTime: u64 = MILLISECS_PER_BLOCK; // Should use primitives::Moment
     pub const EpochDurationInBlocks: BlockNumber = HOURS; // TODO: use prod_or_fast!
-    
+
     /// How long (in blocks) an equivocation report is valid for
     pub ReportLongevity: u64 = EpochDurationInBlocks::get() as u64 * 10;
     pub const MaxAuthorities: u32 = 32;
@@ -371,14 +371,14 @@ impl pallet_session::Config for Runtime {
 
 //TODO: Set these parameters appropriately.
 pallet_staking_reward_curve::build! {
-	const REWARD_CURVE: sp_runtime::curve::PiecewiseLinear<'static> = curve!(
-		min_inflation: 0_025_000,
-		max_inflation: 0_100_000,
-		ideal_stake: 0_500_000,
-		falloff: 0_050_000,
-		max_piece_count: 40,
-		test_precision: 0_005_000,
-	);
+    const REWARD_CURVE: sp_runtime::curve::PiecewiseLinear<'static> = curve!(
+        min_inflation: 0_025_000,
+        max_inflation: 0_100_000,
+        ideal_stake: 0_500_000,
+        falloff: 0_050_000,
+        max_piece_count: 40,
+        test_precision: 0_005_000,
+    );
 }
 
 parameter_types! {
