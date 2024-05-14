@@ -90,9 +90,9 @@ pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::Account
 
 pub mod currency {
     pub type Balance = u128;
-    pub const ZETA: Balance = 1_000_000_000_000_000_000;
-    pub const CENTS: Balance = ZETA / 100;
-    pub const THOUSANDS: Balance = 1_000 * ZETA;
+    pub const ACME: Balance = 1_000_000_000_000_000_000;
+    pub const CENTS: Balance = ACME / 100;
+    pub const THOUSANDS: Balance = 1_000 * ACME;
     pub const MILLIONS: Balance = 1_000 * THOUSANDS;
 }
 
