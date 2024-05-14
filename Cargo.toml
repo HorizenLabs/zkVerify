@@ -65,7 +65,7 @@ pallet-election-provider-support-benchmarking = { version = "26.0.0", default-fe
 pallet-session-benchmarking = { version = "27.0.0", default-features = false }
 pallet-transaction-payment-rpc = { version = "29.0.0" }
 frame-benchmarking-cli = { version = "31.0.0" }
-nh-runtime = { path = "runtime", version = "0.1.0" }
+nh-runtime = { path = "runtime", version = "0.2.0" }
 
 # CLI-specific dependencies
 try-runtime-cli = { version = "0.37.0" }
