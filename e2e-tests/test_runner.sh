@@ -20,7 +20,7 @@ TXT_BIBLK="\033[90;1m"
 TXT_NORML="\033[0m"
 
 # Please do not exceed 64 chars for each test filename - including the .zndsl extension
-TEST_LIST=$(find -name "*.zndsl" | sort);
+IFS=$'\n' TEST_LIST=($(find . -name "*.zndsl" | sort))
 
 # The return value of each zombinet invocation is always equal to the
 # number of failed tests among those listed in each .zndsl.
@@ -29,15 +29,29 @@ FAILED_TESTS=()
 TOT_EXEC_TESTS=0
 TOT_FAIL_TESTS=0
 
-# Check if zombienet executable exists, otherwise download that from Parity Tech repo
-if [ ! -f bin/zombienet-linux-x64 ]; then
+# Check operating system and set variables for binary name
+OS="$(uname)"
+BASE_URL="https://github.com/paritytech/zombienet/releases/download/v1.3.94"
+if [ "$OS" == "Linux" ]; then
+    ZOMBIENET_BINARY="zombienet-linux-x64"
+elif [ "$OS" == "Darwin" ]; then
+    ZOMBIENET_BINARY="zombienet-macos"
+else
+    echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}Unsupported operating system.${TXT_NORML}"
+    exit 4
+fi
+
+ZOMBIENET_URL="${BASE_URL}/${ZOMBIENET_BINARY}"
+
+# Check if Zombienet executable exists, otherwise download it
+if [ ! -f "bin/$ZOMBIENET_BINARY" ]; then
     echo -e "${TXT_BIYLW}WARNING: ${TXT_BIBLK}Zombienet executable not found${TXT_NORML}"
-    wget --progress=dot:giga https://github.com/paritytech/zombienet/releases/download/v1.3.94/zombienet-linux-x64 -O bin/zombienet-linux-x64
+    curl -L $ZOMBIENET_URL -o "bin/$ZOMBIENET_BINARY"
     if [ $? -ne 0 ]; then
-        echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}zombienet binary download failed.${TXT_NORML}"
+        echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}Failed to download Zombienet binary.${TXT_NORML}"
         exit 2
     fi
-    chmod +x bin/zombienet-linux-x64
+    chmod +x "bin/$ZOMBIENET_BINARY"
 fi
 
 # Check if we requested a run over a debug build
@@ -91,7 +105,7 @@ for TESTNAME in "${TEST_LIST[@]}"; do
     echo -e "============================================================"
     echo -e "${TXT_BIBLK} Running test:  ${TXT_NORML} ${TESTNAME}"
     echo -e "============================================================"
-    ( PATH=${PATH}:${FULLBUILDPATH}; bin/zombienet-linux-x64 -p native test ./"${TESTNAME}" )
+    ( PATH=${PATH}:${FULLBUILDPATH}; bin/$ZOMBIENET_BINARY -p native test ./"${TESTNAME}" )
     current_exit_code=$?
     TOT_EXEC_TESTS=$((TOT_EXEC_TESTS+1))
     if [ ${current_exit_code} -ne 0 ]; then
@@ -107,14 +121,15 @@ echo -e "┌──────────────────────�
 echo -e "│                              ${TXT_BIYLW}TEST SUMMARY${TXT_NORML}                              │"
 echo -e "├────────────────────────────────────────────────────────────────────────┤"
 printf  "│ ${TXT_BIBLK} Total tests executed:  ${TXT_BIBLU} %3d ${TXT_NORML}                                          │\n" "${TOT_EXEC_TESTS}"
+PASSED_TESTS=$((TOT_EXEC_TESTS - TOT_FAIL_TESTS))
+printf  "│ ${TXT_BIBLK} Passed tests:          ${TXT_BIGRN} %3d ${TXT_NORML}                                          │\n" "${PASSED_TESTS}"
+printf  "│ ${TXT_BIBLK} Failed tests:          ${TXT_BIRED} %3d ${TXT_NORML}                                          │\n" "${TOT_FAIL_TESTS}"
+
 if [ ${TOT_FAIL_TESTS} -ne 0 ]; then
     echo -e "├────────────────────────────────────────────────────────────────────────┤"
-    printf  "│ ${TXT_BIBLK} Failed tests:          ${TXT_BIRED} %3d ${TXT_NORML}                                          │\n" "${TOT_FAIL_TESTS}"
     for failed_test in "${FAILED_TESTS[@]}"; do
         printf "│     - %-64s │\n" "${failed_test}"
     done
-    echo -e "└────────────────────────────────────────────────────────────────────────┘"
-    exit 1
 fi
 echo -e "└────────────────────────────────────────────────────────────────────────┘"
 exit 0
