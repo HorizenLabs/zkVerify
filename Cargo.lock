@@ -2017,6 +2017,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ethnum"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b90ca2580b73ab6a1f724b76ca11ab632df820fd6040c336200d2c1df7b3c82c"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "event-listener"
 version = "2.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2134,10 +2143,12 @@ dependencies = [
 
 [[package]]
 name = "fflonk_verifier"
-version = "0.3.0"
-source = "git+https://github.com/HorizenLabs/fflonk_verifier.git?tag=v0.3.0#ed74fb5eccb2af07cb178823b04e71af3a129a7a"
+version = "0.4.0"
+source = "git+https://github.com/HorizenLabs/fflonk_verifier.git?tag=v0.4.0#aa848aa56114c9e002c5b41a2822c7043d19b501"
 dependencies = [
  "digest 0.10.7",
+ "ethnum",
+ "serde",
  "sha3",
  "snafu 0.7.5",
  "substrate-bn",
@@ -5183,6 +5194,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "substrate-bn",
 ]
 
 [[package]]

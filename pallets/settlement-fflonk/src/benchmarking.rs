@@ -30,7 +30,7 @@ benchmarks! {
         // as the `submit_proof` extrinsic should have O(1) complexity
 
         let caller: T::AccountId = whitelisted_caller();
-    }: _(RawOrigin::Signed(caller), VALID_PROOF.into())
+    }: _(RawOrigin::Signed(caller), VALID_PROOF.into(), None)
 }
 
 impl_benchmark_test_suite!(

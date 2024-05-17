@@ -26,13 +26,16 @@ sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 
 # Pallet specific
-fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", default-features = false, tag = "v0.3.0" }
+fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", features = [
+	"serde",
+], tag = "v0.4.0" }
+serde = { version = "1.0.188" }
+substrate-bn = "0.6.0"
 log = "0.4.20"
 sp-std = { workspace = true }
 hp-poe = { default-features = false, workspace = true }
 
 [dev-dependencies]
-serde = { version = "1.0.188" }
 hex-literal = { version = "0.4.1" }
 
 [features]

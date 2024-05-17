@@ -31,10 +31,12 @@ pub static VALID_HASH: [u8; 32] =
 fn valid_proof_passes_verification_and_is_notified() {
     new_test_ext().execute_with(|| {
         // Dispatch a signed extrinsic.
-        assert!(
-            SettlementFFlonkPallet::submit_proof(RuntimeOrigin::signed(1), VALID_PROOF.into())
-                .is_ok()
-        );
+        assert!(SettlementFFlonkPallet::submit_proof(
+            RuntimeOrigin::signed(1),
+            VALID_PROOF.into(),
+            None
+        )
+        .is_ok());
 
         let events = mock::System::events();
         assert_eq!(events.len(), 1);
@@ -58,7 +60,8 @@ fn malformed_proof_fails_verification_and_is_not_notified() {
         // Dispatch a signed extrinsic.
         assert!(SettlementFFlonkPallet::submit_proof(
             RuntimeOrigin::signed(1),
-            malformed_proof.into()
+            malformed_proof.into(),
+            None
         )
         .is_err());
 
@@ -77,7 +80,8 @@ fn invalid_proof_fails_verification_and_is_not_notified() {
         // Dispatch a signed extrinsic.
         assert!(SettlementFFlonkPallet::submit_proof(
             RuntimeOrigin::signed(1),
-            invalid_proof.into()
+            invalid_proof.into(),
+            None
         )
         .is_err());
 
@@ -91,6 +95,7 @@ fn should_use_the_configured_weights() {
     let proof: Proof = VALID_PROOF;
     let info = crate::pallet::Call::<Test>::submit_proof {
         raw_proof: Box::new(proof),
+        vk: None,
     }
     .get_dispatch_info();
 
@@ -148,8 +153,11 @@ mod another_way_of_testing {
     fn valid_proof_passes_verification_and_is_notified_another() {
         new_test_ext().execute_with(|| {
             // Dispatch a signed extrinsic.
-            let _ =
-                SettlementFFlonkPallet::submit_proof(RuntimeOrigin::signed(1), VALID_PROOF.into());
+            let _ = SettlementFFlonkPallet::submit_proof(
+                RuntimeOrigin::signed(1),
+                VALID_PROOF.into(),
+                None,
+            );
         });
     }
 
@@ -164,6 +172,7 @@ mod another_way_of_testing {
             let _ = SettlementFFlonkPallet::submit_proof(
                 RuntimeOrigin::signed(1),
                 malformed_proof.into(),
+                None,
             );
 
             // should not panic
@@ -181,6 +190,7 @@ mod another_way_of_testing {
             let _ = SettlementFFlonkPallet::submit_proof(
                 RuntimeOrigin::signed(1),
                 invalid_proof.into(),
+                None,
             );
 
             // should not panic
