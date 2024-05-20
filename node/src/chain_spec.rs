@@ -183,6 +183,11 @@ pub fn local_config() -> Result<ChainSpec, String> {
 }
 
 pub fn testnet_config() -> Result<ChainSpec, String> {
+    ChainSpec::from_json_bytes(&include_bytes!("../chain-specs/zkverify_testnet.json")[..])
+}
+
+#[allow(dead_code)]
+pub fn testnet_config_build() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
         None,

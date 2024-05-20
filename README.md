@@ -1,4 +1,5 @@
 # NH-core
+
 Implementation of a node for the **New Horizen Proof Verification Layer**.
 
 It is based on the [Substrate](https://substrate.io/) framework.
@@ -23,7 +24,28 @@ It is possible to run tests with:
 cargo test
 ```
 
+### Run testnet node
+
+To run a testnet node:
+
+```bash
+cd target/release
+./nh-node --chain test
+```
+
+The client will connect to `NH Testnet` and start syncing blockchain data, with default path at `$HOME/.local/share/` (double check with log `💾 Database: RocksDb at`).
+
+For entirely removing blockchain data:
+
+```bash
+cd target/release
+./nh-node purge --chain test
+```
+
+### Run dev node
+
 To run a local dev node:
+
 ```bash
 cd target/release
 ./nh-node --dev
@@ -67,27 +89,27 @@ The client will run a chain with a single validator (Alice) and start producing 
 2024-03-28 11:49:18 🔖 Pre-sealed block for proposal at 2. Hash now 0x8226727507239e061f089d102f346e0e6c285a7d73a1dce3e000196f1dbedf51, previously 0xea3c4edc3223623ccbbfa6871e05e3a1b8b6b8a9ed0b97de37fde441d9860c78.
 2024-03-28 11:49:18 ✨ Imported #2 (0x8226…df51)
 2024-03-28 11:49:19 💤 Idle (0 peers), best: #2 (0x8226…df51), finalized #1 (0x89e3…c6c4), ⬇ 0 ⬆ 0
-2024-03-28 11:49:24 🙌 Starting consensus session on top of parent 0x8226727507239e061f089d102f346e0e6c285a7d73a1dce3e000196f1dbedf51
-2024-03-28 11:49:24 🎁 Prepared block for proposing at 3 (0 ms) [hash: 0xfefa63f0d35437f9f66842f2b165af805aeb6b3e8afe41d0c9f652c95b654184; parent_hash: 0x8226…df51; extrinsics (1): [0x5d14…4d83]
-2024-03-28 11:49:24 🔖 Pre-sealed block for proposal at 3. Hash now 0xf308498cc798d66c6cbeeddffbb70d030b30362e16d305d812e21cc4edb5e8ac, previously 0xfefa63f0d35437f9f66842f2b165af805aeb6b3e8afe41d0c9f652c95b654184.
-2024-03-28 11:49:24 ✨ Imported #3 (0xf308…e8ac)
-2024-03-28 11:49:24 💤 Idle (0 peers), best: #3 (0xf308…e8ac), finalized #2 (0x8226…df51), ⬇ 0 ⬆ 0
 ```
 
 ## Docker
+
 NH-core includes some Docker files for building the client and running one or more nodes locally.
-For more information, see [docker/README.md](docker/README.md]).
+For more information, see [docker/README.md](docker/README.md).
 
 ## License
+
 NH-core as a whole is released under the [GPL 3.0 license](LICENSE-GPL3). This is mostly due to the fact that the proof verification implemented by the `settlement-fflonk` pallet is based on GPL 3.0 software.
 
 For this reason, all the crates that include such dependency are GPL 3.0 licensed:
+
 - `pallet-settlement-fflonk`
 - `nh-runtime`
 - `mainchain`
 
 The remaining crates, which are independent of the FFLONK verifier implementation, are released under the [APACHE 2.0 license](LICENSE-APACHE2):
+
 - `pallet-poe`
 - `hp-poe`
 - `proof-of-existence-rpc`
 - `proof-of-existence-rpc-runtime-api`
+- `pallet-settlement-zksync`
