@@ -1,18 +1,27 @@
 import { expect } from "@jest/globals";
 import fixtures from "../fixtures";
+import debug from 'debug';
 require("dotenv").config();
+
+const log = debug('app:log');
+
+if (process.env.DEV_MODE === 'true') {
+  debug.enable('app:log');
+} else {
+  debug.disable();
+}
 
 // A robust version of the "typeof" operator
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof#custom_method_that_gets_a_more_specific_type
 function type(value) {
   if (value === null) {
-    console.log("Detected type: null");
+    log("Detected type: null");
     return "null";
   }
 
   const baseType = typeof value;
   if (!["object", "function"].includes(baseType)) {
-    console.log(`Detected primitive type: ${baseType}`);
+    log(`Detected primitive type: ${baseType}`);
     return baseType;
   }
 
@@ -22,7 +31,7 @@ function type(value) {
   }
 
   if (baseType === "function" && Function.prototype.toString.call(value).startsWith("class")) {
-    console.log(`Detected class type: class`);
+    log(`Detected class type: class`);
     return "class";
   }
 
@@ -31,13 +40,12 @@ function type(value) {
     return className;
   }
 
-  console.log(`Fallback type detection, using base type: ${baseType}`);
+  log(`Fallback type detection, using base type: ${baseType}`);
   return baseType;
 }
 
-
 function testString(value, pattern) {
-  console.log(`Testing string: Value = ${value}, Pattern = ${pattern}`);
+  log(`Testing string: Value = ${value}, Pattern = ${pattern}`);
   if (pattern) {
     expect(value).toMatch(pattern);
   } else {
@@ -46,12 +54,12 @@ function testString(value, pattern) {
 }
 
 function testNumber(value) {
-  console.log(`Testing number: Value = ${value}`);
+  log(`Testing number: Value = ${value}`);
   expect(value).not.toBeNaN();
 }
 
 function testNull(value) {
-  console.log(`Testing for null: Value = ${value}`);
+  log(`Testing for null: Value = ${value}`);
   expect(value).toBeNull();
 }
 
@@ -66,14 +74,21 @@ function unsupportedType(type) {
 }
 
 function iterateArrayItems(value, pattern) {
-  console.log(`Iterating array items: ${JSON.stringify(value)}, Pattern: ${JSON.stringify(pattern)}`);
-  value.forEach(item => {
-    if (pattern && pattern.any) {
-      pattern.any.forEach((anyPattern) => {
-        reduceValue(item, anyPattern);
-      });
-    } else {
-      reduceValue(item, pattern[0]);
+  log(`Iterating array items: ${JSON.stringify(value)}, Pattern: ${JSON.stringify(pattern)}`);
+  value.forEach((item, index) => {
+    if (Array.isArray(pattern)) {
+      if (pattern.length === 1 && Array.isArray(pattern[0])) {
+        // Tuple
+        if (pattern[0].length !== item.length) {
+          throw new Error(`Tuple pattern does not match item structure at index ${index}`);
+        }
+        item.forEach((element, idx) => {
+          reduceValue(element, pattern[0][idx]);
+        });
+      } else {
+        // Regular array
+        reduceValue(item, pattern[0]);
+      }
     }
   });
 }
@@ -85,10 +100,16 @@ function iterateObjectProperties(value, pattern) {
 }
 
 function reduceValue(value, pattern) {
-  console.log(`Reducing value: Type = ${type(value)}, Value = ${JSON.stringify(value)}, Pattern = ${JSON.stringify(pattern)}`);
+  log(`Reducing value: Type = ${type(value)}, Value = ${JSON.stringify(value)}, Pattern = ${JSON.stringify(pattern)}`);
   switch(type(value)) {
     case "Array":
-      iterateArrayItems(value, pattern);
+      if (Array.isArray(pattern[0])) {
+        // Handling for tuple arrays
+        iterateArrayItems(value, pattern[0]);
+      } else {
+        // Regular array handling
+        iterateArrayItems(value, pattern);
+      }
       break;
     case "Object":
       iterateObjectProperties(value, pattern);
@@ -109,7 +130,7 @@ function reduceValue(value, pattern) {
       unsupportedType(type(value));
   }
 }
-
+ 
 function evaluateResponse({ response, pattern, expectNullResult = false }) {
   const { jsonrpc, id, result: value, error } = response;
   if (error) throw new Error(`Error: ${JSON.stringify(error, null, 2)}`);
@@ -127,10 +148,8 @@ function evaluateResponse({ response, pattern, expectNullResult = false }) {
     reduceValue(value, pattern);
   }
 
-  if (process.env.DEV_MODE === "true") {
-    console.log("response:", response, "\n", "pattern:",pattern);
-  }
+  log(`response: ${JSON.stringify(response, null, 2)}\npattern: ${JSON.stringify(pattern, null, 2)}`);
 }
 
-
 export default evaluateResponse;
+ 

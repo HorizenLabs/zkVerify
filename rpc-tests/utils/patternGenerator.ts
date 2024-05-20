@@ -32,10 +32,25 @@ function isBaseType(type) {
 function getPattern(type) {
   const schema = getSchema();
   const schemaType = schema[type];
+  
   if (isBaseType(type) && schemaType) return new RegExp(schemaType.pattern);
 
-  const { properties } = schemaType;
+  const { properties, items, anyOf } = schemaType;
+
   if (properties) return iterateObjectProperties(properties);
+  if (items) {
+    if (Array.isArray(items)) {
+      // Tuple return pattern for each item in the tuple
+      return [items.map(item => getPattern(getType(item.$ref)))];
+    } else {
+      // Regular array handling
+      return [getPattern(getType(items.$ref))];
+    }
+  }
+
+  if (anyOf) {
+    return { any: anyOf.map(item => getPattern(getType(item.$ref))) };
+  }
 
   let combinedPattern = {};
   let combinedProperties;
@@ -43,7 +58,7 @@ function getPattern(type) {
   if (allOf || oneOf) {
     combinedProperties = allOf || oneOf;
     combinedProperties.forEach((item) => {
-      if (item.properties) combinedPattern = { ...iterateObjectProperties(item.properties) }
+      if (item.properties) combinedPattern = { ...iterateObjectProperties(item.properties) };
     });
     return combinedPattern;
   }
@@ -58,20 +73,21 @@ function iterateObjectProperties(properties) {
     const { items, anyOf } = propertyValue;
 
     if (propertyValue.$ref) {
-      // string
       pattern[key] = getPattern(getType(propertyValue.$ref));
       continue;
     }
-    
-    if (items) {
-      if (items.items) {
-        // array.array
-        pattern[key] = [[getPattern(getType(propertyValue.items.items.$ref))]];
-        continue;
-      }
 
-      // array
-      pattern[key] = [getPattern(getType(propertyValue.items.$ref))];
+    if (items) {
+      if (Array.isArray(items)) {
+        // array of tuples: pattern for each item in the tuple
+        pattern[key] = items.map(item => getPattern(getType(item.$ref)));
+      } else if (items.items) {
+        // array of arrays: each item in the array is another array
+        pattern[key] = [[getPattern(getType(items.items.$ref))]];
+      } else {
+        // regular array: each item in the array follows the same pattern
+        pattern[key] = [getPattern(getType(items.$ref))];
+      }
       continue;
     }
 

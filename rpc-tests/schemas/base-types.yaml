@@ -67,7 +67,7 @@ unknownHex:
 string:
   title: Non-hex normal string
   type: string
-  pattern: ^[A-Za-z0-9,.'\s\-!?]+$
+  pattern: ^(?!0x)[A-Za-z0-9,.'\s\-!?]+$
 number:
   title: Integer Value
   type: integer
