@@ -1,4 +1,4 @@
-// Copyright 2024, The Horizen Foundation
+// Copyright 2024, Horizen Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,43 +36,43 @@ use sp_core::parameter_types;
 use sp_weights::{constants::WEIGHT_REF_TIME_PER_NANOS, Weight};
 
 parameter_types! {
-	/// Time to execute an empty block.
-	/// Calculated by multiplying the *Average* with `1.0` and adding `0`.
-	///
-	/// Stats nanoseconds:
-	///   Min, Max: 403_715, 816_581
-	///   Average:  439_188
-	///   Median:   411_105
-	///   Std-Dev:  72209.37
-	///
-	/// Percentiles nanoseconds:
-	///   99th: 737_269
-	///   95th: 588_598
-	///   75th: 419_546
-	pub const BlockExecutionWeight: Weight =
-		Weight::from_parts(WEIGHT_REF_TIME_PER_NANOS.saturating_mul(439_188), 0);
+    /// Time to execute an empty block.
+    /// Calculated by multiplying the *Average* with `1.0` and adding `0`.
+    ///
+    /// Stats nanoseconds:
+    ///   Min, Max: 403_715, 816_581
+    ///   Average:  439_188
+    ///   Median:   411_105
+    ///   Std-Dev:  72209.37
+    ///
+    /// Percentiles nanoseconds:
+    ///   99th: 737_269
+    ///   95th: 588_598
+    ///   75th: 419_546
+    pub const BlockExecutionWeight: Weight =
+        Weight::from_parts(WEIGHT_REF_TIME_PER_NANOS.saturating_mul(439_188), 0);
 }
 
 #[cfg(test)]
 mod test_weights {
-	use sp_weights::constants;
+    use sp_weights::constants;
 
-	/// Checks that the weight exists and is sane.
-	// NOTE: If this test fails but you are sure that the generated values are fine,
-	// you can delete it.
-	#[test]
-	fn sane() {
-		let w = super::BlockExecutionWeight::get();
+    /// Checks that the weight exists and is sane.
+    // NOTE: If this test fails but you are sure that the generated values are fine,
+    // you can delete it.
+    #[test]
+    fn sane() {
+        let w = super::BlockExecutionWeight::get();
 
-		// At least 100 µs.
-		assert!(
-			w.ref_time() >= 100u64 * constants::WEIGHT_REF_TIME_PER_MICROS,
-			"Weight should be at least 100 µs."
-		);
-		// At most 50 ms.
-		assert!(
-			w.ref_time() <= 50u64 * constants::WEIGHT_REF_TIME_PER_MILLIS,
-			"Weight should be at most 50 ms."
-		);
-	}
+        // At least 100 µs.
+        assert!(
+            w.ref_time() >= 100u64 * constants::WEIGHT_REF_TIME_PER_MICROS,
+            "Weight should be at least 100 µs."
+        );
+        // At most 50 ms.
+        assert!(
+            w.ref_time() <= 50u64 * constants::WEIGHT_REF_TIME_PER_MILLIS,
+            "Weight should be at most 50 ms."
+        );
+    }
 }
