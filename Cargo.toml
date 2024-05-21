@@ -1,7 +1,7 @@
 [workspace.package]
 authors = ["Horizen Labs <admin@horizenlabs.io>"]
 edition = "2021"
-repository = "https://github.com/HorizenLabs/NH-core"
+repository = "https://github.com/HorizenLabs/zkVerify"
 homepage = "https://horizenlabs.io"
 
 [workspace]

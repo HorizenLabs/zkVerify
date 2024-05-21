@@ -24,7 +24,7 @@ SHELL ["/bin/bash", "-c"]
 
 # That can be a single one or a comma separated list
 ARG BINARY=nh-node
-ARG DESCRIPTION="New Horizen Core"
+ARG DESCRIPTION="zkVerify Core"
 ARG AUTHORS="mainchain-team@horizenlabs.io"
 ARG VENDOR="Horizen Labs"
 ARG PROFILE="release"

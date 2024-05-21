@@ -1,13 +1,13 @@
-# NH-core
+# zkVerify
 
-Implementation of a node for the **New Horizen Proof Verification Layer**.
+Implementation of a node for the **zkVerify Proof Verification Layer**.
 
 It is based on the [Substrate](https://substrate.io/) framework.
 
 > [!IMPORTANT]
-> ***NH-core*** is currently in an early **testnet** stage.
+> ***zkVerify*** is currently in an early **testnet** stage.
 > The plan for going live on Mainnet will be communicated later.
-> For more information see [horizen.io](https://www.horizen.io/).
+> For more information see [zkVerify.io](https://zkverify.io/).
 
 ## Building and running
 
@@ -102,15 +102,18 @@ The client will run a chain with a single validator (Alice) and start producing 
 2024-03-28 11:49:18 ✨ Imported #2 (0x8226…df51)
 2024-03-28 11:49:19 💤 Idle (0 peers), best: #2 (0x8226…df51), finalized #1 (0x89e3…c6c4), ⬇ 0 ⬆ 0
 ```
+## Documentation
+
+The official documentation is available at [docs.zkverify.io](https://docs.zkverify.io/).
 
 ## Docker
 
-NH-core includes some Docker files for building the client and running one or more nodes locally.
+zkVerify includes some Docker files for building the client and running one or more nodes locally.
 For more information, see [docker/README.md](docker/README.md).
 
 ## License
 
-NH-core as a whole is released under the [GPL 3.0 license](LICENSE-GPL3). This is mostly due to the fact that the proof verification implemented by the `settlement-fflonk` pallet is based on GPL 3.0 software.
+zkVerify as a whole is released under the [GPL 3.0 license](LICENSE-GPL3). This is mostly due to the fact that the proof verification implemented by the `settlement-fflonk` pallet is based on GPL 3.0 software.
 
 For this reason, all the crates that include such dependency are GPL 3.0 licensed:
 
