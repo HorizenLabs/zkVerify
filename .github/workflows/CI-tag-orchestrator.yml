@@ -33,10 +33,20 @@ jobs:
     uses: ./.github/workflows/CI-rustdoc.yml
 
   notify-slack:
-    if: ${{ failure() }}
     runs-on: ubuntu-latest
+    needs: [ docker-job, rustdoc-job ]
+    if: ${{ always() }}
     steps:
+      - name: Check previous job status
+        id: job_status
+        run: |
+          if [ "${{ needs.docker-job.result }}" == "failure" ] || [ "${{ needs.rustdoc-job.result }}" == "failure" ]; then
+            echo "JOB_STATUS=failed" >> $GITHUB_ENV
+          else
+            echo "JOB_STATUS=success" >> $GITHUB_ENV
+
       - name: Notify Slack
+        if: env.JOB_STATUS == 'failed'
         uses: slackapi/slack-github-action@v1.25.0
         with:
           payload: |
