@@ -1,13 +1,13 @@
-# NH-core
+# zkVerify
 
-Implementation of a node for the **New Horizen Proof Verification Layer**.
+Implementation of a node for the **zkVerify Proof Verification Layer**.
 
 It is based on the [Substrate](https://substrate.io/) framework.
 
 > [!IMPORTANT]
-> ***NH-core*** is currently in an early **testnet** stage.
+> ***zkVerify*** is currently in an early **testnet** stage.
 > The plan for going live on Mainnet will be communicated later.
-> For more information see [horizen.io](https://www.horizen.io/).
+> For more information see [zkVerify.io](https://zkverify.io/).
 
 ## Building and running
 
@@ -90,6 +90,9 @@ The client will run a chain with a single validator (Alice) and start producing 
 2024-03-28 11:49:18 ✨ Imported #2 (0x8226…df51)
 2024-03-28 11:49:19 💤 Idle (0 peers), best: #2 (0x8226…df51), finalized #1 (0x89e3…c6c4), ⬇ 0 ⬆ 0
 ```
+## Documentation
+
+The official documentation is available at [docs.zkverify.io](https://docs.zkverify.io/).
 
 ## Docker
 
