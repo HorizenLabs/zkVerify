@@ -1,14 +1,14 @@
 #!/bin/bash
 # This script is used to run the e2e tests locally or in the CI pipeline.
-# If runned locally, be sure that the following applications are present on
+# If run locally, be sure that the following applications are present on
 # the target system:
 # - node
 # - npm
 # - yarn
-# The script automatically downloads zombienet binary and save it into the e2e-tests/bin folder.
+# The script automatically downloads zombienet binary and saves it into the e2e-tests/bin folder.
 # It also looks for a compiled nh-node binary in the folder target/release, hence make sure to 
 # have a freshly compiled version of nh-node in this folder.
-# Optionally, this script can be launched with the '--debug' switch, which makes it looks for
+# Optionally, this script can be launched with the '--debug' switch, which makes it look for
 # the nh-node binary in the target/debug folder instead.
 
 # ANSI color handles
@@ -22,12 +22,13 @@ TXT_NORML="\033[0m"
 # Please do not exceed 64 chars for each test filename - including the .zndsl extension
 IFS=$'\n' TEST_LIST=($(find . -name "*.zndsl" | sort))
 
-# The return value of each zombinet invocation is always equal to the
+# The return value of each zombienet invocation is always equal to the
 # number of failed tests among those listed in each .zndsl.
 # For this reason, we keep track of each .zndsl whose return value is not 0.
 FAILED_TESTS=()
 TOT_EXEC_TESTS=0
 TOT_FAIL_TESTS=0
+EXIT_STATUS=0
 
 # Check operating system and set variables for binary name
 OS="$(uname)"
@@ -57,21 +58,18 @@ fi
 # Check if we requested a run over a debug build
 BUILDSUBPATH="release"
 for ARG in "$@"; do
-    if [[ "${ARG}" == "--debug" ]]
-    then
+    if [[ "${ARG}" == "--debug" ]]; then
         BUILDSUBPATH="debug"
     fi
 done
 
 echo -e "${TXT_BIGRN}INFO: ${TXT_BIBLK}Running tests with a ${BUILDSUBPATH} build${TXT_NORML}"
 
-# Check if nh-node executable exists according tho the requested mode and print error/info messages otherwise
-if [[ ${BUILDSUBPATH} == "debug" ]]
-then
-    if [ ! -f ../target/debug/nh-node ]
-    then
+# Check if nh-node executable exists according to the requested mode and print error/info messages otherwise
+if [[ ${BUILDSUBPATH} == "debug" ]]; then
+    if [ ! -f ../target/debug/nh-node ]; then
         if [ -f ../target/release/nh-node ]; then
-            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}debug binary not found; however a release binary is present. Compile nh-node in debug mode${TXT_NORML}"
+            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}debug binary not found; however, a release binary is present. Compile nh-node in debug mode${TXT_NORML}"
             echo -e "${TXT_BIRED}       ${TXT_BIBLK}or relaunch the test runner without the '--debug' switch${TXT_NORML}"
             exit 2
         else
@@ -81,12 +79,10 @@ then
     fi
 fi
 
-if [[ ${BUILDSUBPATH} == "release" ]]
-then
-    if [ ! -f ../target/release/nh-node ]
-    then
+if [[ ${BUILDSUBPATH} == "release" ]]; then
+    if [ ! -f ../target/release/nh-node ]; then
         if [ -f ../target/debug/nh-node ]; then
-            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}release binary not found; however a debug binary is present. Compile nh-node in release mode${TXT_NORML}"
+            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}release binary not found; however, a debug binary is present. Compile nh-node in release mode${TXT_NORML}"
             echo -e "${TXT_BIRED}       ${TXT_BIBLK}or relaunch the test runner with the '--debug' switch${TXT_NORML}"
             exit 2
         else
@@ -111,9 +107,9 @@ for TESTNAME in "${TEST_LIST[@]}"; do
     if [ ${current_exit_code} -ne 0 ]; then
         FAILED_TESTS+=("$TESTNAME")
         TOT_FAIL_TESTS=$((TOT_FAIL_TESTS+1))
+        EXIT_STATUS=1
     fi
 done
-
 
 # Print a fancy table summarizing the test suit run
 echo -e "\n\n\n"
@@ -132,4 +128,5 @@ if [ ${TOT_FAIL_TESTS} -ne 0 ]; then
     done
 fi
 echo -e "└────────────────────────────────────────────────────────────────────────┘"
-exit 0
+
+exit ${EXIT_STATUS}
