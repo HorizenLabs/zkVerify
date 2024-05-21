@@ -34,27 +34,30 @@ jobs:
 
   notify-slack:
     if: ${{ failure() }}
-    uses: slackapi/slack-github-action@v1.25.0
-    with:
-      payload: |
-        {
-          "blocks": [
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
             {
-              "type": "header",
-              "text": {
-                "type": "plain_text",
-                "text": "ALERT - ZkVerify CI/CD Tag Orchestrator"
-              }
-            },
-            {
-              "type": "section",
-              "text": {
-                "type": "mrkdwn",
-                "text": ":alert: *ZkVerify Tag Orchestrator job: ${{ github.run_id}} has failed*\nPull Request:* ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
-              }
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "ALERT - ZkVerify CI/CD Tag Orchestrator"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":alert: *ZkVerify Tag Orchestrator job: ${{ github.run_id }} has failed*\nPull Request: ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                  }
+                }
+              ]
             }
-          ]
-        }
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.YURI_SLACK_WEBHOOK_URL }}
-      SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.YURI_SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
