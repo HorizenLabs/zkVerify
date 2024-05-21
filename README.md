@@ -96,12 +96,12 @@ The official documentation is available at [docs.zkverify.io](https://docs.zkver
 
 ## Docker
 
-NH-core includes some Docker files for building the client and running one or more nodes locally.
+zkVerify includes some Docker files for building the client and running one or more nodes locally.
 For more information, see [docker/README.md](docker/README.md).
 
 ## License
 
-NH-core as a whole is released under the [GPL 3.0 license](LICENSE-GPL3). This is mostly due to the fact that the proof verification implemented by the `settlement-fflonk` pallet is based on GPL 3.0 software.
+zkVerify as a whole is released under the [GPL 3.0 license](LICENSE-GPL3). This is mostly due to the fact that the proof verification implemented by the `settlement-fflonk` pallet is based on GPL 3.0 software.
 
 For this reason, all the crates that include such dependency are GPL 3.0 licensed:
 

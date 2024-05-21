@@ -1,4 +1,4 @@
-# NH-core end-to-end tests
+# zkVerify end-to-end tests
 
 ## Summary: requirements for a local run
 - node
@@ -6,7 +6,7 @@
 - yarn
 
 ## Summary: brief instructions for executing the tests
-- Compile NH-core (debug or release mode).
+- Compile zkVerify (debug or release mode).
 - Run from within the `e2e-tests` directory:
 - - `yarn install`
 - - `yarn test`
@@ -19,9 +19,9 @@ It will then execute all the end to end test (all the `.zndsl` file listed in `t
 ---
 
 
-# NH-core end-to-end tests
+# zkVerify end-to-end tests
 
-This folder contains the `NH-core` end-to-end tests written for the Polkadot zombienet testing framework.
+This folder contains the `zkVerify` end-to-end tests written for the Polkadot zombienet testing framework.
 
 Each end-to-end test requires the following files:
 - A network configuration specification file, in `.toml` format; these are stored in the `e2e-tests/network_defs`.
@@ -32,7 +32,7 @@ Each end-to-end test requires the following files:
 
 ### Prerequisites
 
-All tests are executed by running actual `NH-core` nodes, so an instance of the `nh-node` executable must be present on the target system. This can be obtained by compiling this repository, as the test runner script looks for the compiled binary in the `target/debug/` or `target/release/` directories. Optionally, it is possible to download the pre-compiled binary from our official `NH-core` repository, and copy that in the `e2e-tests/bin` directory.
+All tests are executed by running actual `zkVerify` nodes, so an instance of the `nh-node` executable must be present on the target system. This can be obtained by compiling this repository, as the test runner script looks for the compiled binary in the `target/debug/` or `target/release/` directories. Optionally, it is possible to download the pre-compiled binary from our official `zkVerify` repository, and copy that in the `e2e-tests/bin` directory.
 
 The test runner script also automatically downloads the `zombienet` executable from the official GitHub repo: https://github.com/paritytech/zombienet/releases and places that in the `e2e-tests/bin` as well.
 
