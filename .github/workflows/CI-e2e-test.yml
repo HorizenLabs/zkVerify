@@ -54,6 +54,7 @@ jobs:
 
       # Ready to run the test suite: this calls test_runner.sh script after installing the required dependencies
       - name: Run end-to-end tests
+        shell: bash
         run: yarn test 2>&1 | tee e2e_test_output.txt
         working-directory: ./e2e-tests
 

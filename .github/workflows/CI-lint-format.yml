@@ -39,6 +39,7 @@ jobs:
             rustup target add wasm32-unknown-unknown
             rustup component add rust-src
       - name: Linting
+        shell: bash
         run: cargo clippy --release -- --deny warnings 2>&1 | tee linting_output.txt
       - name: Upload Linting Output
         uses: actions/upload-artifact@v4
@@ -50,6 +51,7 @@ jobs:
           compression-level: 0
           overwrite: true
       - name: Formatting
+        shell: bash
         run: cargo fmt --check 2>&1 | tee formatting_output.txt
       - name: Upload Formatting Output
         uses: actions/upload-artifact@v4
