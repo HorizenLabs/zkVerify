@@ -11,12 +11,24 @@ It is based on the [Substrate](https://substrate.io/) framework.
 
 ## Building and running
 
+### Prerequisites
+
+Mac
+
+1. brew install protobuf
+2. rustup target add wasm32-unknown-unknown
+
+
+### Build
+
 To build the client from source, clone this repository and run the following commands from the root of the project:
 
 ```bash
 git checkout <latest tagged release>
 cargo build --release
 ```
+
+### Run
 
 It is possible to run tests with:
 
