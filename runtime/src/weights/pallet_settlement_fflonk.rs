@@ -55,21 +55,23 @@ use core::marker::PhantomData;
 pub struct NHWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> pallet_settlement_fflonk::WeightInfo for NHWeight<T> {
-	/// Storage: `Poe::NextAttestation` (r:1 w:0)
-	/// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-	/// Storage: `Poe::Values` (r:1 w:1)
-	/// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
-	/// Storage: `Timestamp::Now` (r:1 w:0)
-	/// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-	/// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-	/// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-	fn submit_proof() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `74`
-		//  Estimated: `3537`
-		// Minimum execution time: 37_288_622_000 picoseconds.
-		Weight::from_parts(37_764_018_000, 3537)
-			.saturating_add(T::DbWeight::get().reads(3_u64))
-			.saturating_add(T::DbWeight::get().writes(2_u64))
+	/// FAKE
+    fn submit_proof_default() -> Weight {
+        Weight::from_parts(24_298_389_000, 3537)
+            .saturating_add(RocksDbWeight::get().reads(3_u64))
+            .saturating_add(RocksDbWeight::get().writes(2_u64))
+    }
+	/// FAKE
+    fn submit_proof_with_vk() -> Weight {
+        Weight::from_parts(28_337_409_300, 4010)
+            // Standard Error: 330_221
+            .saturating_add(Weight::from_parts(1_065_666, 0))
+            .saturating_add(RocksDbWeight::get().reads(4_u64))
+            .saturating_add(RocksDbWeight::get().writes(2_u64))
+    }
+
+	/// FAKE
+	fn register_vk() -> Weight {
+		Weight::from_parts(21345, 3214)
 	}
 }

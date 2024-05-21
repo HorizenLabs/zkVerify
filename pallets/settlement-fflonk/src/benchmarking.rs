@@ -14,27 +14,59 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Benchmarking setup for pallet-settlement-fflonk
+
+#![cfg(feature = "runtime-benchmarks")]
+
 use super::*;
 
 #[allow(unused)]
 use crate::Pallet as SettlementFFlonkPallet;
-use frame_benchmarking::{benchmarks, impl_benchmark_test_suite, whitelisted_caller};
+use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 
-include!("proof.rs");
+include!("resources.rs");
 
-benchmarks! {
-    submit_proof {
-        // we can use a single input rather than complexity parameters
-        // (https://paritytech.github.io/polkadot-sdk/master/frame_benchmarking/macro.benchmarks.html),
-        // as the `submit_proof` extrinsic should have O(1) complexity
+#[benchmarks]
+mod benchmarks {
+    use super::*;
 
-        let caller: T::AccountId = whitelisted_caller();
-    }: _(RawOrigin::Signed(caller), VALID_PROOF.into(), None)
+    #[benchmark]
+    fn submit_proof_default() {
+        // setup code
+        let caller = whitelisted_caller();
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), VALID_PROOF.into(), None);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk() {
+        // setup code
+        let caller = whitelisted_caller();
+        let vk: crate::vk::Vk = fflonk_verifier::VerificationKey::default().into();
+        Vks::<T>::insert(DEFAULT_VK_HASH.clone(), vk);
+        let h = Some(DEFAULT_VK_HASH.clone());
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), VALID_PROOF.into(), h);
+    }
+
+    #[benchmark]
+    fn register_vk() {
+        // setup code
+        let caller = whitelisted_caller();
+        let vk = fflonk_verifier::VerificationKey::default().into();
+
+        #[extrinsic_call]
+        register_vk(RawOrigin::Signed(caller), vk);
+
+        // Verify
+        assert!(Vks::<T>::get(&DEFAULT_VK_HASH.clone()).is_some());
+    }
+
+    impl_benchmark_test_suite!(
+        SettlementFFlonkPallet,
+        crate::mock::test_ext(),
+        crate::mock::Test,
+    );
 }
-
-impl_benchmark_test_suite!(
-    SettlementFFlonkPallet,
-    crate::mock::new_test_ext(),
-    crate::mock::Test,
-);

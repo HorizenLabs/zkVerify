@@ -18,15 +18,12 @@
 /// This pallet provides FFlonk verification for CDK prover.
 pub use pallet::*;
 
+mod benchmarking;
 #[cfg(test)]
 pub mod mock;
-
 #[cfg(test)]
 mod tests;
-
-#[cfg(feature = "runtime-benchmarks")]
-mod benchmarking;
-
+mod vk;
 mod weight;
 
 pub use weight::WeightInfo;
@@ -37,13 +34,12 @@ pub type Proof = [u8; FULL_PROOF_SIZE];
 
 #[frame_support::pallet]
 pub mod pallet {
-    use super::{Proof, WeightInfo, FULL_PROOF_SIZE, PROOF_SIZE};
-    use codec::{Decode, Encode};
-    use frame_support::dispatch::DispatchResultWithPostInfo;
+    use super::{vk::Vk, Proof, WeightInfo, FULL_PROOF_SIZE, PROOF_SIZE};
+    use codec::Encode;
+    use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*, Identity};
     use frame_system::pallet_prelude::*;
     use hp_poe::OnProofVerified;
-    use scale_info::TypeInfo;
-    use sp_core::{H256, U256};
+    use sp_core::H256;
     use sp_io::hashing::keccak_256;
     use sp_std::boxed::Box;
 
@@ -53,119 +49,12 @@ pub mod pallet {
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
     pub trait Config: frame_system::Config {
+        /// Because this pallet emits events, it depends on the runtime's definition of an event.
+        type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
         /// Proof verified call back
         type OnProofVerified: OnProofVerified;
         /// The weight definition for this pallet
         type WeightInfo: WeightInfo;
-    }
-
-    #[derive(Clone, Debug, Encode, Decode, PartialEq, TypeInfo)]
-    struct Fr(U256);
-    #[derive(Clone, Debug, Encode, Decode, PartialEq, TypeInfo)]
-    struct Fq(U256);
-    #[derive(Clone, Debug, Encode, Decode, PartialEq, TypeInfo)]
-    struct Fq2(Fq, Fq);
-    #[derive(Clone, Debug, Encode, Decode, PartialEq, TypeInfo)]
-    struct G1(Fq, Fq, Fq);
-    #[derive(Clone, Debug, Encode, Decode, PartialEq, TypeInfo)]
-    struct G2(Fq2, Fq2, Fq2);
-
-    #[derive(Clone, Debug, Encode, Decode, PartialEq, TypeInfo)]
-    pub struct Vk {
-        power: u8,
-        k1: Fr,
-        k2: Fr,
-        w: Fr,
-        w3: Fr,
-        w4: Fr,
-        w8: Fr,
-        wr: Fr,
-        x2: G2,
-        c0: G1,
-    }
-
-    trait IntoBytes {
-        fn into_bytes(self) -> [u8; 32];
-    }
-
-    impl IntoBytes for U256 {
-        fn into_bytes(self) -> [u8; 32] {
-            let mut out = [0; 32];
-            self.to_big_endian(&mut out);
-            out
-        }
-    }
-
-    impl Into<substrate_bn::Fr> for Fr {
-        fn into(self) -> substrate_bn::Fr {
-            substrate_bn::Fr::from_slice(&self.0.into_bytes())
-                .expect("BUG: should be hardcoded. qed")
-        }
-    }
-
-    impl Into<substrate_bn::Fq> for Fq {
-        fn into(self) -> substrate_bn::Fq {
-            substrate_bn::Fq::from_slice(&self.0.into_bytes())
-                .expect("BUG: should be hardcoded. qed")
-        }
-    }
-
-    impl Into<substrate_bn::Fq2> for Fq2 {
-        fn into(self) -> substrate_bn::Fq2 {
-            substrate_bn::Fq2::new(self.0.into(), self.1.into())
-        }
-    }
-
-    pub enum ConvertError {
-        InvalidG1Point,
-        InvalidG2Point,
-    }
-
-    impl TryInto<substrate_bn::G1> for G1 {
-        type Error = ConvertError;
-
-        fn try_into(self) -> Result<substrate_bn::G1, Self::Error> {
-            let g1 = substrate_bn::G1::new(self.0.into(), self.1.into(), self.2.into());
-            let mut check = g1.clone();
-            use substrate_bn::Group;
-            check.normalize();
-            substrate_bn::AffineG1::new(check.x(), check.y())
-                .map_err(|_e| ConvertError::InvalidG1Point)?;
-            Ok(g1)
-        }
-    }
-
-    impl TryInto<substrate_bn::G2> for G2 {
-        type Error = ConvertError;
-
-        fn try_into(self) -> Result<substrate_bn::G2, Self::Error> {
-            let g2 = substrate_bn::G2::new(self.0.into(), self.1.into(), self.2.into());
-            let mut check = g2.clone();
-            use substrate_bn::Group;
-            check.normalize();
-            substrate_bn::AffineG2::new(check.x(), check.y())
-                .map_err(|_e| ConvertError::InvalidG2Point)?;
-            Ok(g2)
-        }
-    }
-
-    impl TryInto<fflonk_verifier::VerificationKey> for Vk {
-        type Error = ConvertError;
-
-        fn try_into(self) -> Result<fflonk_verifier::VerificationKey, Self::Error> {
-            Ok(fflonk_verifier::VerificationKey {
-                power: self.power,
-                k1: self.k1.into(),
-                k2: self.k2.into(),
-                w: self.w.into(),
-                w3: self.w3.into(),
-                w4: self.w4.into(),
-                w8: self.w8.into(),
-                wr: self.wr.into(),
-                x2: self.x2.try_into()?,
-                c0: self.c0.try_into()?,
-            })
-        }
     }
 
     pub fn verify_proof<T: Config>(
@@ -191,16 +80,26 @@ pub mod pallet {
         );
 
         fflonk_verifier::verify(vk, &proof, &pubs)
-            .map(|_x| T::OnProofVerified::on_proof_verified(compute_fflonk_hash(full_proof)))
             .map_err(|e| log::debug!("Cannot verify proof: {:?}", e))
             .map_err(|_| Error::<T>::VerifyError)
     }
 
     const PREFIX: &[u8; 7] = b"fflonk-";
-    fn compute_fflonk_hash(full_proof: Proof) -> H256 {
+    fn compute_fflonk_hash(full_proof: Proof, vk_hash: Option<H256>) -> H256 {
         let mut data_to_hash = PREFIX.to_vec();
+        if let Some(hash) = vk_hash {
+            data_to_hash.extend_from_slice(b"-");
+            data_to_hash.extend_from_slice(hash.as_bytes());
+        }
         data_to_hash.extend_from_slice(&full_proof[PROOF_SIZE..]);
         H256(keccak_256(data_to_hash.as_slice()))
+    }
+
+    /// Pallet specific events.
+    #[pallet::event]
+    #[pallet::generate_deposit(fn deposit_event)]
+    pub enum Event<T: Config> {
+        VkRegistered { hash: H256 },
     }
 
     // Errors inform users that something went wrong.
@@ -214,7 +113,13 @@ pub mod pallet {
         VerifyError,
         /// Provided an invalid verification key.
         InvalidVerificationKey,
+        /// Provided an unregistered verification key hash.
+        VerificationKeyNotFound,
     }
+
+    #[pallet::storage]
+    #[pallet::getter(fn vks)]
+    pub type Vks<T> = StorageMap<Hasher = Identity, Key = H256, Value = Vk>;
 
     // Dispatchable functions allows users to interact with the pallet and invoke state changes.
     // These functions materialize as "extrinsics", which are often compared to transactions.
@@ -222,39 +127,59 @@ pub mod pallet {
     #[pallet::call(weight(<T as Config>::WeightInfo))]
     impl<T: Config> Pallet<T> {
         #[pallet::call_index(0)]
+        #[pallet::weight(
+            match vk_hash.is_some() {
+                true => T::WeightInfo::submit_proof_with_vk(),
+                false => T::WeightInfo::submit_proof_default(),
+            })]
         pub fn submit_proof(
             _origin: OriginFor<T>,
             raw_proof: Box<Proof>,
-            vk: Option<Vk>,
+            vk_hash: Option<H256>,
         ) -> DispatchResultWithPostInfo {
             log::trace!("Submitting proof");
-            let vk: fflonk_verifier::VerificationKey = match vk {
-                Some(vk) => vk
+            let vk = match vk_hash {
+                Some(h) => Vks::<T>::get(h)
+                    .ok_or(Error::<T>::VerificationKeyNotFound)?
                     .try_into()
                     .map_err(|_| Error::<T>::InvalidVerificationKey)?,
                 None => fflonk_verifier::VerificationKey::default(),
             };
             verify_proof::<T>(&vk, *raw_proof)
+                .map(|_x| {
+                    T::OnProofVerified::on_proof_verified(compute_fflonk_hash(*raw_proof, vk_hash))
+                })
                 .map(Into::into)
                 .map_err(Into::into)
         }
 
-        // #[pallet::call_index(0)]
-        // pub fn submit_proof_fid7(
-        //     _origin: OriginFor<T>,
-        //     raw_proof: Box<Proof>,
-        // ) -> DispatchResultWithPostInfo {
-        //     log::trace!("Submitting proof");
-        //     verify_proof::<T>(*raw_proof)
-        //         .map(Into::into)
-        //         .map_err(Into::into)
-        // }
+        #[pallet::call_index(1)]
+        pub fn register_vk(_origin: OriginFor<T>, vk: Vk) -> DispatchResultWithPostInfo {
+            log::trace!("Register vk");
+            let _: fflonk_verifier::VerificationKey = vk
+                .clone()
+                .try_into()
+                .map_err(|_| Error::<T>::InvalidVerificationKey)?;
+            let encoded = vk.encode();
+            let hash = H256(keccak_256(encoded.as_slice()));
+            Vks::<T>::insert(hash, vk);
+            Self::deposit_event(Event::VkRegistered { hash });
+            Ok(().into())
+        }
     }
 
-    #[test]
-    fn fflonk_hash_as_expected() {
-        let hash = compute_fflonk_hash(crate::tests::VALID_PROOF);
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use rstest::rstest;
 
-        assert_eq!(hash, H256(crate::tests::VALID_HASH));
+        #[rstest]
+        #[case::no_vk(None, crate::tests::VALID_HASH)]
+        #[case::default_vk(Some(crate::tests::DEFAULT_VK_HASH), crate::tests::VALID_HASH_WITH_VK)]
+        fn fflonk_hash_as_expected(#[case] vk_hash: Option<H256>, #[case] expected: H256) {
+            let hash = compute_fflonk_hash(crate::tests::VALID_PROOF, vk_hash);
+
+            assert_eq!(hash, expected);
+        }
     }
 }
