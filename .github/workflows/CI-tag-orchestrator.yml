@@ -44,6 +44,7 @@ jobs:
             echo "JOB_STATUS=failed" >> $GITHUB_ENV
           else
             echo "JOB_STATUS=success" >> $GITHUB_ENV
+          fi
 
       - name: Notify Slack
         if: env.JOB_STATUS == 'failed'
