@@ -50,31 +50,31 @@ jobs:
         if: env.JOB_STATUS == 'failed'
         uses: slackapi/slack-github-action@v1.25.0
         with:
-        payload: |
-          {
-            "blocks": [
-              {
-                "type": "header",
-                "text": {
-                  "type": "plain_text",
-                  "text": "🚨 ALERT - ZkVerify CI/CD Tag Orchestrator Job Failed! 🚨"
-                }
-              },
-              {
-                "type": "section",
-                "fields": [
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Job URL:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Job>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Pull Request:* <${{ github.event.pull_request.html_url || github.event.head_commit.url }}|View PR/Commit>"
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "🚨 ALERT - ZkVerify CI/CD Tag Orchestrator Job Failed! 🚨"
                   }
-                ]
-              }
-            ]
-          }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Job URL:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Job>"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Pull Request:* <${{ github.event.pull_request.html_url || github.event.head_commit.url }}|View PR/Commit>"
+                    }
+                  ]
+                }
+              ]
+            }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.YURI_SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
