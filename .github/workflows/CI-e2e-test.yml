@@ -1,26 +1,28 @@
-name: CI-e2e-test
+name: End-to-end-test
 
-run-name: "Workflow performing CI steps: end-to-end tests on zombienet"
+run-name: "Workflow CI/CD Steps: end-to-end test on zombienet"
 
 on:
   workflow_call:
 
 env:
-  RUST_BACKTRACE: 1
+  IMAGE_NAME: zencash/sc-ci-base
+  IMAGE_TAG: noble_rust-stable_latest
+  DOCKER_COMPOSE_CMD: "docker compose -f ${GITHUB_WORKSPACE}/ci/docker-compose.yml run --rm cargo-container"
+  DOCKER_BUILD_DIR: /build
+  DOCKER_CARGO_HOME: /tmp/.cargo
 
 jobs:
-  build-test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+  e2e-test:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout branch
+      - name: Git checkout
         uses: actions/checkout@v4
+
       - name: Set up cargo cache
         uses: actions/cache@v4
-        continue-on-error: false
+        if: ${{ !env.ACT }}
+        continue-on-error: true
         with:
           path: |
             ~/.cargo/bin/
@@ -28,37 +30,28 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-build-test-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-build-test-cargo-
-      - name: Install deps
-      # required by sc-network-sync (wget by zombienet)
-      # required by nh-runtime
-      # required by nh-runtime
+          key: e2e-test-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Set docker env vars
         run: |
-            sudo apt-get install protobuf-compiler wget
-            rustup target add wasm32-unknown-unknown
-            rustup component add rust-src
-      - name: Build
-        run: cargo build --release
+          echo "USER_ID=$(id -u)" >> $GITHUB_ENV
+          echo "GRP_ID=$(id -g)" >> $GITHUB_ENV
 
-      # Prepare for zombienet exec
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 18.x
-      - name: Install yarn
+      - name: Cargo build
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build --release
+
+      - name: Yarn install and test
+        env:
+          NODEJS_VERSION_INSTALL: 18
         run: |
-          npm install -g yarn
-          yarn install
-        working-directory: ./e2e-tests
+          ${{ env.DOCKER_COMPOSE_CMD }} sh -c '
+            cd ${{ env.DOCKER_BUILD_DIR }}/e2e-tests \
+            && yarn install \
+            && yarn test 2>&1 | tee ${{ env.DOCKER_BUILD_DIR }}/e2e_test_output.txt
+          '
 
-      # Ready to run the test suite: this calls test_runner.sh script after installing the required dependencies
-      - name: Run end-to-end tests
-        shell: bash
-        run: yarn test 2>&1 | tee e2e_test_output.txt
-        working-directory: ./e2e-tests
-
-      - name: Upload E2E Test Output
+      - name: Upload output(s)
+        if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v4
         with:
           name: e2e-test-output

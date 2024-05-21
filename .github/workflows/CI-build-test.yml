@@ -1,26 +1,28 @@
-name: CI-build-test
+name: Build-and-Test
 
-run-name: "Workflow performing CI steps: build, unit testing, integration testing"
+run-name: "Workflow CI/CD Steps: build, unit and integration testing"
 
 on:
   workflow_call:
 
 env:
-  RUST_BACKTRACE: 1
+  IMAGE_NAME: zencash/sc-ci-base
+  IMAGE_TAG: noble_rust-stable_latest
+  DOCKER_COMPOSE_CMD: "docker compose -f ${GITHUB_WORKSPACE}/ci/docker-compose.yml run --rm cargo-container"
+  DOCKER_BUILD_DIR: /build
+  DOCKER_CARGO_HOME: /tmp/.cargo
 
 jobs:
-  build-test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+  build-and-test:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout branch
+      - name: Git checkout
         uses: actions/checkout@v4
+
       - name: Set up cargo cache
         uses: actions/cache@v4
-        continue-on-error: false
+        if: ${{ !env.ACT }}
+        continue-on-error: true
         with:
           path: |
             ~/.cargo/bin/
@@ -28,42 +30,36 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-build-test-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-build-test-cargo-
-      - name: Install deps
-      # required by sc-network-sync
-      # required by nh-runtime
-      # required by nh-runtime
+          key: build-test-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Set docker env vars
         run: |
-            sudo apt-get install protobuf-compiler
-            rustup target add wasm32-unknown-unknown
-            rustup component add rust-src
-      - name: Check
-        run: cargo check --all-features --all-targets --release
-      - name: Build
-        run: cargo build --release
-      - name: Unit tests
+          echo "USER_ID=$(id -u)" >> $GITHUB_ENV
+          echo "GRP_ID=$(id -g)" >> $GITHUB_ENV
+
+      - name: Cargo check
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo check --all-features --all-targets --release
+
+      - name: Cargo build
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build --release
+
+      - name: Cargo unit tests
         shell: bash
-        run: cargo test --lib --bins --all-features --no-fail-fast --release 2>&1 | tee unit_tests_output.txt
-      - name: Integration tests
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo test --lib --bins --all-features --no-fail-fast --release 2>&1 | tee unit_tests_output.txt
+
+      - name: Cargo integration tests
         shell: bash
-        run: cargo test --test '*' --all-features --no-fail-fast --release 2>&1 | tee integration_tests_output.txt
-      - name: Upload Unit Test Output
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo test --test '*' --all-features --no-fail-fast --release 2>&1 | tee integration_tests_output.txt
+
+      - name: Upload output(s)
+        if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v4
         with:
-          name: unit-test-output
-          path: unit_tests_output.txt
+          name: build-and-test-output
+          path: |
+            unit_tests_output.txt
+            integration_tests_output.txt
           if-no-files-found: warn
           retention-days: 1
           compression-level: 0
           overwrite: true
-
-      - name: Upload Integration Test Output
-        uses: actions/upload-artifact@v4
-        with:
-          name: integration-test-output
-          path: integration_tests_output.txt
-          if-no-files-found: warn
-          retention-days: 1
-          compression-level: 0
-          overwrite: true 

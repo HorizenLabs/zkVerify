@@ -2,8 +2,8 @@
 set -eEuo pipefail
 
 # Set output file locations
-unit_test_file="./unit-test-output/unit_tests_output.txt"
-integration_test_file="./integration-test-output/integration_tests_output.txt"
+unit_test_file="./build-and-test-output/unit_tests_output.txt"
+integration_test_file="./build-and-test-output/integration_tests_output.txt"
 coverage_report_file="./coverage-output/coverage_report.json"
 
 # Initialize counters for unit tests

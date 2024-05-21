@@ -1,26 +1,28 @@
-name: CI-lint-format
+name: Lint-and-Format
 
-run-name: "Workflow performing CI steps: linting and formatting"
+run-name: "Workflow CI/CD Steps: lint and format"
 
 on:
   workflow_call:
 
 env:
-  RUST_BACKTRACE: 1
+  IMAGE_NAME: zencash/sc-ci-base
+  IMAGE_TAG: noble_rust-stable_latest
+  DOCKER_COMPOSE_CMD: "docker compose -f ${GITHUB_WORKSPACE}/ci/docker-compose.yml run --rm cargo-container"
+  DOCKER_BUILD_DIR: /build
+  DOCKER_CARGO_HOME: /tmp/.cargo
 
 jobs:
-  lint-format:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+  lint-and-format:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout branch
+      - name: Git checkout
         uses: actions/checkout@v4
+
       - name: Set up cargo cache
         uses: actions/cache@v4
-        continue-on-error: false
+        if: ${{ !env.ACT }}
+        continue-on-error: true
         with:
           path: |
             ~/.cargo/bin/
@@ -28,36 +30,27 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-lint-format-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-lint-format-cargo-
-      - name: Install deps
-      # required by sc-network-sync
-      # required by nh-runtime
-      # required by nh-runtime
+          key: lint-format-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Set docker env vars
         run: |
-            sudo apt-get install protobuf-compiler
-            rustup target add wasm32-unknown-unknown
-            rustup component add rust-src
+          echo "USER_ID=$(id -u)" >> $GITHUB_ENV
+          echo "GRP_ID=$(id -g)" >> $GITHUB_ENV
+
       - name: Linting
-        shell: bash
-        run: cargo clippy --release -- --deny warnings 2>&1 | tee linting_output.txt
-      - name: Upload Linting Output
-        uses: actions/upload-artifact@v4
-        with:
-          name: linting-output
-          path: linting_output.txt
-          if-no-files-found: warn
-          retention-days: 1
-          compression-level: 0
-          overwrite: true
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo clippy --release -- --deny warnings 2>&1 | tee linting_output.txt
+
       - name: Formatting
-        shell: bash
-        run: cargo fmt --check 2>&1 | tee formatting_output.txt
-      - name: Upload Formatting Output
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo fmt --check 2>&1 | tee formatting_output.txt
+
+      - name: Upload output(s)
+        if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v4
         with:
-          name: formatting-output
-          path: formatting_output.txt
+          name: lint-and-format-output
+          path: |
+            linting_output.txt
+            formatting_output.txt
           if-no-files-found: warn
           retention-days: 1
           compression-level: 0

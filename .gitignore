@@ -10,3 +10,10 @@ e2e-tests/yarn.lock
 e2e-tests/bin
 lcov.info
 benchmarking_errors.txt
+
+# Ignore coverage reports
+coverage_report.json
+coverage_summary.txt
+
+# Ignore output reports
+*_output.txt
