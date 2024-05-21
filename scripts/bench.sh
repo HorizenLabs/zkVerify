@@ -80,12 +80,17 @@ if [ "${SKIP_BUILD}" = "false" ];
 then
     check_cargo
 
-    cargo -C "${PROJECT_ROOT}" build \
+    cd "${PROJECT_ROOT}" &&
+    cargo build \
         --profile production \
         --locked \
         --features=runtime-benchmarks \
-        --bin nh-node \
-        || exit 1
+        --bin nh-node
+    FAILED=$?
+    cd - || exit 1
+    if [ "${FAILED}" -ne 0 ]; then
+        exit 1
+    fi
 fi
 
 ${NH_NODE_EXE} \
