@@ -96,7 +96,7 @@ EXCLUDED_PALLETS=(
         # "pallet_im_online" "frame_benchmarking" "frame_system" "pallet_balances"
     )
 
-echo "[+] Benchmarking ${#PALLETS[@]} nh-core pallets. (IGNORE SET [${#EXCLUDED_PALLETS[@]}])"
+echo "[+] Benchmarking ${#PALLETS[@]} zkVerify pallets. (IGNORE SET [${#EXCLUDED_PALLETS[@]}])"
 
 
 is_pallet_excluded() {
