@@ -118,3 +118,4 @@ elif [ "${IS_A_RELEASE}" = "false" ]; then
 fi
 
 set +eo pipefail
+exit 1
