@@ -4,10 +4,6 @@ run-name: "Workflow performing CI step: Docker Image Build and Publish"
 on:
   workflow_dispatch:
 
-env:
-  RUST_BACKTRACE: 1
-  RELEASE_BRANCH: release
-
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -20,6 +16,7 @@ jobs:
 
       - name: Build/Publish Docker image
         env:
+          RELEASE_BRANCH: release
           MAINTAINERS_KEYS: ${{ vars.MAINTAINERS_KEYS }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}

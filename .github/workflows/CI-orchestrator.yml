@@ -3,7 +3,7 @@ name: Orchestrator
 on:
   pull_request:
     types: [opened, synchronize]
-    branches: 
+    branches:
       - main
   push:
     branches:
