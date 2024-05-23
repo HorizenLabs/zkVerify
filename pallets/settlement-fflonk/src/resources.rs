@@ -50,7 +50,7 @@ pub static VALID_HASH: sp_core::H256 = sp_core::H256(hex_literal::hex!(
 ));
 #[allow(dead_code)]
 pub static VALID_HASH_WITH_VK: sp_core::H256 = sp_core::H256(hex_literal::hex!(
-    "99dccad77ed9bf61410f649b9358603a91a603ae51b28dd76db4d1410b186b58"
+    "2bb91e5bddf3be5ed011bcbfb27414b858b88f66270db91b727892cb7b70a37f"
 ));
 #[allow(dead_code)]
 pub static DEFAULT_VK_HASH: sp_core::H256 = sp_core::H256(hex_literal::hex!(

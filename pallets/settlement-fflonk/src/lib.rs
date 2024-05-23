@@ -84,13 +84,14 @@ pub mod pallet {
             .map_err(|_| Error::<T>::VerifyError)
     }
 
-    const PREFIX: &[u8; 7] = b"fflonk-";
+    const PREFIX: &[u8; 6] = b"fflonk";
     fn compute_fflonk_hash(full_proof: Proof, vk_hash: Option<H256>) -> H256 {
         let mut data_to_hash = PREFIX.to_vec();
         if let Some(hash) = vk_hash {
             data_to_hash.extend_from_slice(b"-");
             data_to_hash.extend_from_slice(hash.as_bytes());
         }
+        data_to_hash.extend_from_slice(b"-");
         data_to_hash.extend_from_slice(&full_proof[PROOF_SIZE..]);
         H256(keccak_256(data_to_hash.as_slice()))
     }
