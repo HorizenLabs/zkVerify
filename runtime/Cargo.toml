@@ -80,6 +80,7 @@ frame-system-benchmarking = { workspace = true, default-features = false, option
 # Custom logic
 pallet-settlement-fflonk = { default-features = false, workspace = true }
 pallet-settlement-zksync = { default-features = false, workspace = true }
+pallet-settlement-groth16 = { default-features = false, workspace = true }
 pallet-poe = { default-features = false, workspace = true }
 static_assertions = "1.1.0"
 proof-of-existence-rpc-runtime-api = { default-features = false, workspace = true }
@@ -104,6 +105,7 @@ runtime-benchmarks = [
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-settlement-fflonk/runtime-benchmarks",
 	"pallet-settlement-zksync/runtime-benchmarks",
+	"pallet-settlement-groth16/runtime-benchmarks",
 	"pallet-poe/runtime-benchmarks",
 	"pallet-staking/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
@@ -134,6 +136,7 @@ std = [
 	"pallet-transaction-payment/std",
 	"pallet-settlement-fflonk/std",
 	"pallet-settlement-zksync/std",
+	"pallet-settlement-groth16/std",
 	"pallet-poe/std",
 	"proof-of-existence-rpc-runtime-api/std",
 	"scale-info/std",
@@ -176,6 +179,7 @@ try-runtime = [
 	"pallet-transaction-payment/try-runtime",
 	"pallet-settlement-fflonk/try-runtime",
 	"pallet-settlement-zksync/try-runtime",
+	"pallet-settlement-groth16/try-runtime",
 	"pallet-poe/try-runtime",
 	"sp-runtime/try-runtime",
 ]

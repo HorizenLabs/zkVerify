@@ -5,6 +5,7 @@ pub mod pallet_balances;
 pub mod pallet_im_online;
 pub mod pallet_poe;
 pub mod pallet_settlement_fflonk;
+pub mod pallet_settlement_groth16;
 pub mod pallet_settlement_zksync;
 pub mod pallet_sudo;
 pub mod pallet_timestamp;

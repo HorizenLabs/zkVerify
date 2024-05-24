@@ -14,21 +14,21 @@
 // limitations under the License.
 
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 31.0.0
-//! DATE: 2024-05-10 (Y/M/D)
-//! HOSTNAME: `87ffc04f77c9`, CPU: `AMD EPYC 7571`
+//! DATE: 2024-05-28 (Y/M/D)
+//! HOSTNAME: `lucag-laptop`, CPU: `Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz`
 //!
 //! SHORT-NAME: `block`, LONG-NAME: `BlockExecution`, RUNTIME: `Development`
 //! WARMUPS: `10`, REPEAT: `100`
-//! WEIGHT-PATH: `/data/benchmark/runtime/src/weights`
+//! WEIGHT-PATH: `/home/lucag/repos/NH-core/runtime/src/weights`
 //! WEIGHT-METRIC: `Average`, WEIGHT-MUL: `1.0`, WEIGHT-ADD: `0`
 
 // Executed Command:
-//   /usr/local/bin/nh-node
+//   /home/lucag/repos/NH-core/target/debug/nh-node
 //   benchmark
 //   overhead
 //   --chain=dev
-//   --weight-path=/data/benchmark/runtime/src/weights
-//   --header=/data/benchmark/HEADER-APACHE2
+//   --weight-path=/home/lucag/repos/NH-core/runtime/src/weights
+//   --header=/home/lucag/repos/NH-core/HEADER-APACHE2
 //   --warmup=10
 //   --repeat=100
 
@@ -36,43 +36,43 @@ use sp_core::parameter_types;
 use sp_weights::{constants::WEIGHT_REF_TIME_PER_NANOS, Weight};
 
 parameter_types! {
-    /// Time to execute an empty block.
-    /// Calculated by multiplying the *Average* with `1.0` and adding `0`.
-    ///
-    /// Stats nanoseconds:
-    ///   Min, Max: 403_715, 816_581
-    ///   Average:  439_188
-    ///   Median:   411_105
-    ///   Std-Dev:  72209.37
-    ///
-    /// Percentiles nanoseconds:
-    ///   99th: 737_269
-    ///   95th: 588_598
-    ///   75th: 419_546
-    pub const BlockExecutionWeight: Weight =
-        Weight::from_parts(WEIGHT_REF_TIME_PER_NANOS.saturating_mul(439_188), 0);
+	/// Time to execute an empty block.
+	/// Calculated by multiplying the *Average* with `1.0` and adding `0`.
+	///
+	/// Stats nanoseconds:
+	///   Min, Max: 4_851_290, 11_799_331
+	///   Average:  6_956_554
+	///   Median:   6_790_813
+	///   Std-Dev:  1420332.6
+	///
+	/// Percentiles nanoseconds:
+	///   99th: 11_739_892
+	///   95th: 9_353_870
+	///   75th: 7_700_906
+	pub const BlockExecutionWeight: Weight =
+		Weight::from_parts(WEIGHT_REF_TIME_PER_NANOS.saturating_mul(6_956_554), 0);
 }
 
 #[cfg(test)]
 mod test_weights {
-    use sp_weights::constants;
+	use sp_weights::constants;
 
-    /// Checks that the weight exists and is sane.
-    // NOTE: If this test fails but you are sure that the generated values are fine,
-    // you can delete it.
-    #[test]
-    fn sane() {
-        let w = super::BlockExecutionWeight::get();
+	/// Checks that the weight exists and is sane.
+	// NOTE: If this test fails but you are sure that the generated values are fine,
+	// you can delete it.
+	#[test]
+	fn sane() {
+		let w = super::BlockExecutionWeight::get();
 
-        // At least 100 µs.
-        assert!(
-            w.ref_time() >= 100u64 * constants::WEIGHT_REF_TIME_PER_MICROS,
-            "Weight should be at least 100 µs."
-        );
-        // At most 50 ms.
-        assert!(
-            w.ref_time() <= 50u64 * constants::WEIGHT_REF_TIME_PER_MILLIS,
-            "Weight should be at most 50 ms."
-        );
-    }
+		// At least 100 µs.
+		assert!(
+			w.ref_time() >= 100u64 * constants::WEIGHT_REF_TIME_PER_MICROS,
+			"Weight should be at least 100 µs."
+		);
+		// At most 50 ms.
+		assert!(
+			w.ref_time() <= 50u64 * constants::WEIGHT_REF_TIME_PER_MILLIS,
+			"Weight should be at most 50 ms."
+		);
+	}
 }
