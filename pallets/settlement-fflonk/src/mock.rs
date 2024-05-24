@@ -63,11 +63,15 @@ impl crate::weight::WeightInfo for MockWeightInfo {
     }
 
     fn submit_proof_with_vk() -> Weight {
-        Weight::from_parts(3, 6)
+        Weight::from_parts(3, 4)
+    }
+
+    fn submit_proof_with_vk_hash() -> Weight {
+        Weight::from_parts(5, 6)
     }
 
     fn register_vk() -> Weight {
-        Weight::from_parts(5, 6)
+        Weight::from_parts(7, 8)
     }
 }
 

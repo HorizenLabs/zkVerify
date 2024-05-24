@@ -40,15 +40,27 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn submit_proof_with_vk() {
+    fn submit_proof_with_vk_hash() {
         // setup code
         let caller = whitelisted_caller();
         let vk: crate::vk::Vk = fflonk_verifier::VerificationKey::default().into();
         Vks::<T>::insert(DEFAULT_VK_HASH.clone(), vk);
-        let h = Some(DEFAULT_VK_HASH.clone());
+        let vk_or_hash = Some(VkOrHash::Hash(DEFAULT_VK_HASH.clone()));
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), VALID_PROOF.into(), h);
+        submit_proof(RawOrigin::Signed(caller), VALID_PROOF.into(), vk_or_hash);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk() {
+        // setup code
+        let caller = whitelisted_caller();
+        let vk_or_hash = Some(VkOrHash::Vk(
+            fflonk_verifier::VerificationKey::default().into(),
+        ));
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), VALID_PROOF.into(), vk_or_hash);
     }
 
     #[benchmark]

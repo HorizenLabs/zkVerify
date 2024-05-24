@@ -43,6 +43,12 @@ pub mod pallet {
     use sp_io::hashing::keccak_256;
     use sp_std::boxed::Box;
 
+    #[derive(Debug, Clone, PartialEq, Encode, Decode, TypeInfo, MaxEncodedLen)]
+    pub enum VkOrHash {
+        Vk(Vk),
+        Hash(H256),
+    }
+
     #[pallet::pallet]
     pub struct Pallet<T>(_);
 
@@ -84,18 +90,6 @@ pub mod pallet {
             .map_err(|_| Error::<T>::VerifyError)
     }
 
-    const PREFIX: &[u8; 6] = b"fflonk";
-    fn compute_fflonk_hash(full_proof: Proof, vk_hash: Option<H256>) -> H256 {
-        let mut data_to_hash = PREFIX.to_vec();
-        if let Some(hash) = vk_hash {
-            data_to_hash.extend_from_slice(b"-");
-            data_to_hash.extend_from_slice(hash.as_bytes());
-        }
-        data_to_hash.extend_from_slice(b"-");
-        data_to_hash.extend_from_slice(&full_proof[PROOF_SIZE..]);
-        H256(keccak_256(data_to_hash.as_slice()))
-    }
-
     /// Pallet specific events.
     #[pallet::event]
     #[pallet::generate_deposit(fn deposit_event)]
@@ -129,26 +123,33 @@ pub mod pallet {
     impl<T: Config> Pallet<T> {
         #[pallet::call_index(0)]
         #[pallet::weight(
-            match vk_hash.is_some() {
-                true => T::WeightInfo::submit_proof_with_vk(),
-                false => T::WeightInfo::submit_proof_default(),
+            match &vk_or_hash {
+                Some(VkOrHash::Vk(_)) => T::WeightInfo::submit_proof_with_vk(),
+                Some(VkOrHash::Hash(_)) => T::WeightInfo::submit_proof_with_vk_hash(),
+                None => T::WeightInfo::submit_proof_default(),
             })]
         pub fn submit_proof(
             _origin: OriginFor<T>,
             raw_proof: Box<Proof>,
-            vk_hash: Option<H256>,
+            vk_or_hash: Option<VkOrHash>,
         ) -> DispatchResultWithPostInfo {
             log::trace!("Submitting proof");
-            let vk = match vk_hash {
-                Some(h) => Vks::<T>::get(h)
+            let vk = match &vk_or_hash {
+                Some(VkOrHash::Hash(h)) => Vks::<T>::get(h)
                     .ok_or(Error::<T>::VerificationKeyNotFound)?
+                    .try_into()
+                    .map_err(|_| Error::<T>::InvalidVerificationKey)?,
+                Some(VkOrHash::Vk(vk)) => vk
+                    .clone()
                     .try_into()
                     .map_err(|_| Error::<T>::InvalidVerificationKey)?,
                 None => fflonk_verifier::VerificationKey::default(),
             };
             verify_proof::<T>(&vk, *raw_proof)
                 .map(|_x| {
-                    T::OnProofVerified::on_proof_verified(compute_fflonk_hash(*raw_proof, vk_hash))
+                    T::OnProofVerified::on_proof_verified(compute_fflonk_hash(
+                        *raw_proof, vk_or_hash,
+                    ))
                 })
                 .map(Into::into)
                 .map_err(Into::into)
@@ -161,12 +162,31 @@ pub mod pallet {
                 .clone()
                 .try_into()
                 .map_err(|_| Error::<T>::InvalidVerificationKey)?;
-            let encoded = vk.encode();
-            let hash = H256(keccak_256(encoded.as_slice()));
+            let hash = hash_vk(&vk);
             Vks::<T>::insert(hash, vk);
             Self::deposit_event(Event::VkRegistered { hash });
             Ok(().into())
         }
+    }
+
+    const PREFIX: &[u8; 6] = b"fflonk";
+    fn compute_fflonk_hash(full_proof: Proof, vk_or_hash: Option<VkOrHash>) -> H256 {
+        let mut data_to_hash = PREFIX.to_vec();
+        if let Some(vk_or_hash) = vk_or_hash {
+            let hash = match vk_or_hash {
+                VkOrHash::Vk(vk) => hash_vk(&vk),
+                VkOrHash::Hash(hash) => hash,
+            };
+            data_to_hash.extend_from_slice(b"-");
+            data_to_hash.extend_from_slice(hash.as_bytes());
+        }
+        data_to_hash.extend_from_slice(b"-");
+        data_to_hash.extend_from_slice(&full_proof[PROOF_SIZE..]);
+        H256(keccak_256(data_to_hash.as_slice()))
+    }
+
+    fn hash_vk(vk: &Vk) -> H256 {
+        H256(keccak_256(vk.encode().as_slice()))
     }
 
     #[cfg(test)]
@@ -176,8 +196,11 @@ pub mod pallet {
 
         #[rstest]
         #[case::no_vk(None, crate::tests::VALID_HASH)]
-        #[case::default_vk(Some(crate::tests::DEFAULT_VK_HASH), crate::tests::VALID_HASH_WITH_VK)]
-        fn fflonk_hash_as_expected(#[case] vk_hash: Option<H256>, #[case] expected: H256) {
+        #[case::default_vk_hash(
+            Some(VkOrHash::Hash(crate::tests::DEFAULT_VK_HASH)),
+            crate::tests::VALID_HASH_WITH_VK
+        )]
+        fn fflonk_hash_as_expected(#[case] vk_hash: Option<VkOrHash>, #[case] expected: H256) {
             let hash = compute_fflonk_hash(crate::tests::VALID_PROOF, vk_hash);
 
             assert_eq!(hash, expected);

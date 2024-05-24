@@ -27,176 +27,199 @@ use rstest::{fixture, rstest};
 
 include!("resources.rs");
 
-#[fixture]
-fn def_vk(mut test_ext: sp_io::TestExternalities) -> sp_io::TestExternalities {
-    test_ext.execute_with(|| {
-        SettlementFFlonkPallet::register_vk(
-            RuntimeOrigin::signed(1),
-            fflonk_verifier::VerificationKey::default().into(),
-        )
-        .unwrap();
-    });
-    test_ext
+mod register_should {
+    use super::*;
+
+    #[rstest]
+    #[case::default_vk(fflonk_verifier::VerificationKey::default(), DEFAULT_VK_HASH)]
+    #[case::other_vk(other_vk().0, other_vk().1)]
+    fn accept_valid_vk(
+        mut test_ext: sp_io::TestExternalities,
+        #[case] vk: fflonk_verifier::VerificationKey,
+        #[case] expected_hash: H256,
+    ) {
+        test_ext.execute_with(|| {
+            let vk: Vk = vk.into();
+            assert_ok!(SettlementFFlonkPallet::register_vk(
+                RuntimeOrigin::signed(1),
+                vk
+            ));
+
+            mock::System::assert_last_event(
+                Event::VkRegistered {
+                    hash: expected_hash,
+                }
+                .into(),
+            );
+        });
+    }
+
+    #[rstest]
+    fn reject_invalid_vk(mut test_ext: sp_io::TestExternalities) {
+        let mut vk: Vk = fflonk_verifier::VerificationKey::default().into();
+        *vk.mut_c0_x() = sp_core::U256::zero();
+
+        test_ext.execute_with(|| {
+            // Dispatch a signed extrinsic.
+            assert_noop!(
+                SettlementFFlonkPallet::register_vk(RuntimeOrigin::signed(1), vk),
+                Error::<Test>::InvalidVerificationKey
+            );
+        });
+    }
+
+    #[test]
+    fn use_the_configured_weights() {
+        let info = Call::<Test>::register_vk {
+            vk: fflonk_verifier::VerificationKey::default().into(),
+        }
+        .get_dispatch_info();
+
+        assert_eq!(info.pays_fee, Pays::Yes);
+        assert_eq!(info.weight, MockWeightInfo::register_vk());
+    }
 }
 
-#[rstest]
-fn valid_proof_passes_verification_and_is_notified(mut test_ext: sp_io::TestExternalities) {
-    test_ext.execute_with(|| {
-        // Dispatch a signed extrinsic.
-        assert_ok!(SettlementFFlonkPallet::submit_proof(
-            RuntimeOrigin::signed(1),
-            VALID_PROOF.into(),
-            None
-        ));
+mod submit_proof_should {
+    use super::*;
 
-        assert_eq!(System::events().len(), 1);
+    /// Provide an environment with a registered vk (use used the default vk)
+    #[fixture]
+    fn def_vk(mut test_ext: sp_io::TestExternalities) -> sp_io::TestExternalities {
+        test_ext.execute_with(|| {
+            SettlementFFlonkPallet::register_vk(
+                RuntimeOrigin::signed(1),
+                fflonk_verifier::VerificationKey::default().into(),
+            )
+            .unwrap();
+            System::reset_events();
+        });
+        test_ext
+    }
 
-        System::assert_last_event(new_proof_event(VALID_HASH).into());
-    });
-}
-
-#[rstest]
-#[case::default_vk(fflonk_verifier::VerificationKey::default(), DEFAULT_VK_HASH)]
-#[case::other_vk(other_vk().0, other_vk().1)]
-fn should_register_valid_vk(
-    mut test_ext: sp_io::TestExternalities,
-    #[case] vk: fflonk_verifier::VerificationKey,
-    #[case] expected_hash: H256,
-) {
-    test_ext.execute_with(|| {
-        let vk: Vk = vk.into();
-        assert_ok!(SettlementFFlonkPallet::register_vk(
-            RuntimeOrigin::signed(1),
-            vk
-        ));
-
-        mock::System::assert_last_event(
-            Event::VkRegistered {
-                hash: expected_hash,
-            }
-            .into(),
-        );
-    });
-}
-
-#[rstest]
-fn should_reject_invalid_vk(mut test_ext: sp_io::TestExternalities) {
-    let mut vk: Vk = fflonk_verifier::VerificationKey::default().into();
-    *vk.mut_c0_x() = sp_core::U256::zero();
-
-    test_ext.execute_with(|| {
-        // Dispatch a signed extrinsic.
-        assert_noop!(
-            SettlementFFlonkPallet::register_vk(RuntimeOrigin::signed(1), vk),
-            Error::<Test>::InvalidVerificationKey
-        );
-    });
-}
-
-#[rstest]
-fn should_use_the_registered_vk(mut def_vk: sp_io::TestExternalities) {
-    def_vk.execute_with(|| {
-        assert_ok!(SettlementFFlonkPallet::submit_proof(
-            RuntimeOrigin::signed(1),
-            VALID_PROOF.into(),
-            Some(DEFAULT_VK_HASH)
-        ));
-
-        System::assert_last_event(new_proof_event(VALID_HASH_WITH_VK).into());
-    });
-}
-
-#[rstest]
-fn should_return_error_if_request_an_unregisterd_vk(mut test_ext: sp_io::TestExternalities) {
-    test_ext.execute_with(|| {
-        assert_noop!(
-            SettlementFFlonkPallet::submit_proof(
+    #[rstest]
+    #[case::no_given_vk(None, VALID_HASH)]
+    #[case::provide_vk(Some(VkOrHash::Vk(fflonk_verifier::VerificationKey::default().into())), VALID_HASH_WITH_VK)]
+    #[case::use_registered_vk(Some(VkOrHash::Hash(DEFAULT_VK_HASH)), VALID_HASH_WITH_VK)]
+    fn validate_proof_and_notify_execution_when(
+        mut def_vk: sp_io::TestExternalities,
+        #[case] vk_or_hash: Option<VkOrHash>,
+        #[case] expected_hash: H256,
+    ) {
+        def_vk.execute_with(|| {
+            // Dispatch a signed extrinsic.
+            assert_ok!(SettlementFFlonkPallet::submit_proof(
                 RuntimeOrigin::signed(1),
                 VALID_PROOF.into(),
-                Some(DEFAULT_VK_HASH)
-            ),
-            Error::<Test>::VerificationKeyNotFound
-        );
-    });
-}
+                vk_or_hash
+            ));
 
-#[rstest]
-fn malformed_proof_fails_verification_and_is_not_notified(mut test_ext: sp_io::TestExternalities) {
-    let mut malformed_proof: Proof = VALID_PROOF;
-    // first byte changed from '0x17' to '0x07' (raw proof data)
-    malformed_proof[0] = 0x07;
+            assert_eq!(System::events().len(), 1);
 
-    test_ext.execute_with(|| {
-        assert_noop!(
-            SettlementFFlonkPallet::submit_proof(
-                RuntimeOrigin::signed(1),
-                malformed_proof.into(),
-                None
-            ),
-            Error::<Test>::InvalidProofData
-        );
-    });
-}
+            System::assert_last_event(new_proof_event(expected_hash).into());
+        });
+    }
 
-#[rstest]
-fn invalid_proof_fails_verification_and_is_not_notified(mut test_ext: sp_io::TestExternalities) {
-    let mut invalid_proof: Proof = VALID_PROOF;
-    // last byte changed from '0x06' to '0x00' (public inputs)
+    #[rstest]
+    #[case::submit_proof_default_vk(None, MockWeightInfo::submit_proof_default())]
+    #[case::submit_proof_with_vk_hash(
+        Some(VkOrHash::Hash(DEFAULT_VK_HASH)),
+        MockWeightInfo::submit_proof_with_vk_hash()
+    )]
+    #[case::submit_proof_with_vk(
+        Some(VkOrHash::Vk(fflonk_verifier::VerificationKey::default().into())),
+        MockWeightInfo::submit_proof_with_vk()
+    )]
+    fn use_the_configured_weights(
+        #[case] vk_or_hash: Option<VkOrHash>,
+        #[case] weight: frame_support::weights::Weight,
+    ) {
+        let info = Call::<Test>::submit_proof {
+            raw_proof: Box::new(VALID_PROOF),
+            vk_or_hash,
+        }
+        .get_dispatch_info();
 
-    invalid_proof[invalid_proof.len() - 1] = 0x00;
-    test_ext.execute_with(|| {
-        // Dispatch a signed extrinsic.
-        assert_noop!(
-            SettlementFFlonkPallet::submit_proof(
-                RuntimeOrigin::signed(1),
-                invalid_proof.into(),
-                None
-            ),
-            Error::<Test>::VerifyError
-        );
-    });
-}
+        assert_eq!(info.pays_fee, Pays::Yes);
+        assert_eq!(info.weight, weight);
+    }
 
-#[rstest]
-fn should_fail_if_try_to_verify_a_proof_providing_a_not_related_vk(
-    mut test_ext: sp_io::TestExternalities,
-) {
-    let (vk, h) = other_vk();
-    test_ext.execute_with(|| {
-        SettlementFFlonkPallet::register_vk(RuntimeOrigin::signed(1), vk.into()).unwrap();
-    });
+    mod reject {
+        use super::*;
 
-    test_ext.execute_with(|| {
-        assert_noop!(
-            SettlementFFlonkPallet::submit_proof(
-                RuntimeOrigin::signed(1),
-                VALID_PROOF.into(),
-                Some(h)
-            ),
-            Error::<Test>::VerifyError
-        );
-    });
-}
+        #[rstest]
+        fn proof_if_request_to_use_an_unregisterd_vk(mut test_ext: sp_io::TestExternalities) {
+            test_ext.execute_with(|| {
+                assert_noop!(
+                    SettlementFFlonkPallet::submit_proof(
+                        RuntimeOrigin::signed(1),
+                        VALID_PROOF.into(),
+                        Some(VkOrHash::Hash(DEFAULT_VK_HASH))
+                    ),
+                    Error::<Test>::VerificationKeyNotFound
+                );
+            });
+        }
 
-#[rstest]
-#[case::submit_proof_default_vk(Call::<Test>::submit_proof {
-        raw_proof: Box::new(VALID_PROOF),
-        vk_hash: None,
-    }, MockWeightInfo::submit_proof_default(), Pays::Yes)]
-#[case::submit_proof_with_vk(Call::<Test>::submit_proof {
-        raw_proof: Box::new(VALID_PROOF),
-        vk_hash: Some(DEFAULT_VK_HASH),
-    }, MockWeightInfo::submit_proof_with_vk(), Pays::Yes)]
-#[case::register_vk(Call::<Test>::register_vk {
-        vk: fflonk_verifier::VerificationKey::default().into(),
-    }, MockWeightInfo::register_vk(), Pays::Yes)]
-fn should_use_the_configured_weights(
-    #[case] call: Call<Test>,
-    #[case] weight: frame_support::weights::Weight,
-    #[case] pay: Pays,
-) {
-    let info = call.get_dispatch_info();
+        #[rstest]
+        fn malformed_proof(mut test_ext: sp_io::TestExternalities) {
+            let mut malformed_proof: Proof = VALID_PROOF;
+            // first byte changed from '0x17' to '0x07' (raw proof data)
+            malformed_proof[0] = 0x07;
 
-    assert_eq!(info.pays_fee, pay);
-    assert_eq!(info.weight, weight);
+            test_ext.execute_with(|| {
+                assert_noop!(
+                    SettlementFFlonkPallet::submit_proof(
+                        RuntimeOrigin::signed(1),
+                        malformed_proof.into(),
+                        None
+                    ),
+                    Error::<Test>::InvalidProofData
+                );
+            });
+        }
+
+        #[rstest]
+        fn invalid_proof(mut test_ext: sp_io::TestExternalities) {
+            let mut invalid_proof: Proof = VALID_PROOF;
+            // last byte changed from '0x06' to '0x00' (public inputs)
+
+            invalid_proof[invalid_proof.len() - 1] = 0x00;
+            test_ext.execute_with(|| {
+                // Dispatch a signed extrinsic.
+                assert_noop!(
+                    SettlementFFlonkPallet::submit_proof(
+                        RuntimeOrigin::signed(1),
+                        invalid_proof.into(),
+                        None
+                    ),
+                    Error::<Test>::VerifyError
+                );
+            });
+        }
+
+        #[rstest]
+        #[case::other_hash(VkOrHash::Hash(other_vk().1))]
+        #[case::other_vk(VkOrHash::Vk(other_vk().0.into()))]
+        fn proof_provided_with_not_related_vk(
+            mut test_ext: sp_io::TestExternalities,
+            #[case] vk_or_hash: VkOrHash,
+        ) {
+            let (vk, _h) = other_vk();
+            test_ext.execute_with(|| {
+                SettlementFFlonkPallet::register_vk(RuntimeOrigin::signed(1), vk.into()).unwrap();
+            });
+
+            test_ext.execute_with(|| {
+                assert_noop!(
+                    SettlementFFlonkPallet::submit_proof(
+                        RuntimeOrigin::signed(1),
+                        VALID_PROOF.into(),
+                        Some(vk_or_hash)
+                    ),
+                    Error::<Test>::VerifyError
+                );
+            });
+        }
+    }
 }
