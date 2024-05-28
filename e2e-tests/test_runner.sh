@@ -19,9 +19,6 @@ TXT_BIRED="\033[91;1m"
 TXT_BIBLK="\033[90;1m"
 TXT_NORML="\033[0m"
 
-# Please do not exceed 64 chars for each test filename - including the .zndsl extension
-IFS=$'\n' TEST_LIST=($(find . -name "*.zndsl" | sort))
-
 # The return value of each zombienet invocation is always equal to the
 # number of failed tests among those listed in each .zndsl.
 # For this reason, we keep track of each .zndsl whose return value is not 0.
@@ -55,13 +52,22 @@ if [ ! -f "bin/$ZOMBIENET_BINARY" ]; then
     chmod +x "bin/$ZOMBIENET_BINARY"
 fi
 
+declare -a TEST_LIST=()
+
 # Check if we requested a run over a debug build
 BUILDSUBPATH="release"
 for ARG in "$@"; do
     if [[ "${ARG}" == "--debug" ]]; then
         BUILDSUBPATH="debug"
+    else
+        TEST_LIST+=("${ARG}")    
     fi
 done
+
+if [ ${#TEST_LIST[@]} -eq 0 ]; then
+    # Please do not exceed 64 chars for each test filename - including the .zndsl extension
+    IFS=$'\n' TEST_LIST=($(find . -name "*.zndsl" | sort))
+fi
 
 echo -e "${TXT_BIGRN}INFO: ${TXT_BIBLK}Running tests with a ${BUILDSUBPATH} build${TXT_NORML}"
 
