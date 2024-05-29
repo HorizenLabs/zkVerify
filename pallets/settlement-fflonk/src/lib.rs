@@ -45,7 +45,7 @@ pub mod pallet {
 
     #[derive(Debug, Clone, PartialEq, Encode, Decode, TypeInfo, MaxEncodedLen)]
     pub enum VkOrHash {
-        Vk(Vk),
+        Vk(Box<Vk>),
         Hash(H256),
     }
 
@@ -139,8 +139,7 @@ pub mod pallet {
                     .ok_or(Error::<T>::VerificationKeyNotFound)?
                     .try_into()
                     .map_err(|_| Error::<T>::InvalidVerificationKey)?,
-                Some(VkOrHash::Vk(vk)) => vk
-                    .clone()
+                Some(VkOrHash::Vk(vk)) => (*vk.clone())
                     .try_into()
                     .map_err(|_| Error::<T>::InvalidVerificationKey)?,
                 None => fflonk_verifier::VerificationKey::default(),
@@ -156,10 +155,9 @@ pub mod pallet {
         }
 
         #[pallet::call_index(1)]
-        pub fn register_vk(_origin: OriginFor<T>, vk: Vk) -> DispatchResultWithPostInfo {
+        pub fn register_vk(_origin: OriginFor<T>, vk: Box<Vk>) -> DispatchResultWithPostInfo {
             log::trace!("Register vk");
-            let _: fflonk_verifier::VerificationKey = vk
-                .clone()
+            let _: fflonk_verifier::VerificationKey = (*vk.clone())
                 .try_into()
                 .map_err(|_| Error::<T>::InvalidVerificationKey)?;
             let hash = hash_vk(&vk);

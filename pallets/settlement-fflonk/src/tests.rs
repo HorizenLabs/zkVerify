@@ -42,7 +42,7 @@ mod register_should {
             let vk: Vk = vk.into();
             assert_ok!(SettlementFFlonkPallet::register_vk(
                 RuntimeOrigin::signed(1),
-                vk
+                Box::new(vk)
             ));
 
             mock::System::assert_last_event(
@@ -62,7 +62,7 @@ mod register_should {
         test_ext.execute_with(|| {
             // Dispatch a signed extrinsic.
             assert_noop!(
-                SettlementFFlonkPallet::register_vk(RuntimeOrigin::signed(1), vk),
+                SettlementFFlonkPallet::register_vk(RuntimeOrigin::signed(1), Box::new(vk)),
                 Error::<Test>::InvalidVerificationKey
             );
         });
@@ -71,7 +71,7 @@ mod register_should {
     #[test]
     fn use_the_configured_weights() {
         let info = Call::<Test>::register_vk {
-            vk: fflonk_verifier::VerificationKey::default().into(),
+            vk: Box::new(fflonk_verifier::VerificationKey::default().into()),
         }
         .get_dispatch_info();
 
@@ -89,7 +89,7 @@ mod submit_proof_should {
         test_ext.execute_with(|| {
             SettlementFFlonkPallet::register_vk(
                 RuntimeOrigin::signed(1),
-                fflonk_verifier::VerificationKey::default().into(),
+                Box::new(fflonk_verifier::VerificationKey::default().into()),
             )
             .unwrap();
             System::reset_events();
@@ -99,7 +99,7 @@ mod submit_proof_should {
 
     #[rstest]
     #[case::no_given_vk(None, VALID_HASH)]
-    #[case::provide_vk(Some(VkOrHash::Vk(fflonk_verifier::VerificationKey::default().into())), VALID_HASH_WITH_VK)]
+    #[case::provide_vk(Some(VkOrHash::Vk(Box::new(fflonk_verifier::VerificationKey::default().into()))), VALID_HASH_WITH_VK)]
     #[case::use_registered_vk(Some(VkOrHash::Hash(DEFAULT_VK_HASH)), VALID_HASH_WITH_VK)]
     fn validate_proof_and_notify_execution_when(
         mut def_vk: sp_io::TestExternalities,
@@ -127,7 +127,7 @@ mod submit_proof_should {
         MockWeightInfo::submit_proof_with_vk_hash()
     )]
     #[case::submit_proof_with_vk(
-        Some(VkOrHash::Vk(fflonk_verifier::VerificationKey::default().into())),
+        Some(VkOrHash::Vk(Box::new(fflonk_verifier::VerificationKey::default().into()))),
         MockWeightInfo::submit_proof_with_vk()
     )]
     fn use_the_configured_weights(
@@ -200,14 +200,15 @@ mod submit_proof_should {
 
         #[rstest]
         #[case::other_hash(VkOrHash::Hash(other_vk().1))]
-        #[case::other_vk(VkOrHash::Vk(other_vk().0.into()))]
+        #[case::other_vk(VkOrHash::Vk(Box::new(other_vk().0.into())))]
         fn proof_provided_with_not_related_vk(
             mut test_ext: sp_io::TestExternalities,
             #[case] vk_or_hash: VkOrHash,
         ) {
             let (vk, _h) = other_vk();
             test_ext.execute_with(|| {
-                SettlementFFlonkPallet::register_vk(RuntimeOrigin::signed(1), vk.into()).unwrap();
+                SettlementFFlonkPallet::register_vk(RuntimeOrigin::signed(1), Box::new(vk.into()))
+                    .unwrap();
             });
 
             test_ext.execute_with(|| {

@@ -55,9 +55,9 @@ mod benchmarks {
     fn submit_proof_with_vk() {
         // setup code
         let caller = whitelisted_caller();
-        let vk_or_hash = Some(VkOrHash::Vk(
+        let vk_or_hash = Some(VkOrHash::Vk(Box::new(
             fflonk_verifier::VerificationKey::default().into(),
-        ));
+        )));
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), VALID_PROOF.into(), vk_or_hash);
@@ -67,7 +67,7 @@ mod benchmarks {
     fn register_vk() {
         // setup code
         let caller = whitelisted_caller();
-        let vk = fflonk_verifier::VerificationKey::default().into();
+        let vk = Box::new(fflonk_verifier::VerificationKey::default().into());
 
         #[extrinsic_call]
         register_vk(RawOrigin::Signed(caller), vk);

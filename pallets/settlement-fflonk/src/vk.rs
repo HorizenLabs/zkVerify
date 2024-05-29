@@ -38,9 +38,9 @@ impl IntoBytes for U256 {
     }
 }
 
-impl Into<substrate_bn::Fr> for Fr {
-    fn into(self) -> substrate_bn::Fr {
-        substrate_bn::Fr::from_slice(&self.0.into_bytes()).expect("BUG: should be hardcoded. qed")
+impl From<Fr> for substrate_bn::Fr {
+    fn from(value: Fr) -> Self {
+        substrate_bn::Fr::from_slice(&value.0.into_bytes()).expect("BUG: should be hardcoded. qed")
     }
 }
 
@@ -77,7 +77,7 @@ impl TryInto<substrate_bn::G1> for G1 {
 
     fn try_into(self) -> Result<substrate_bn::G1, Self::Error> {
         let g1 = substrate_bn::G1::new(self.0.try_into()?, self.1.try_into()?, self.2.try_into()?);
-        let mut check = g1.clone();
+        let mut check = g1;
         use substrate_bn::Group;
         check.normalize();
         substrate_bn::AffineG1::new(check.x(), check.y())
@@ -91,7 +91,7 @@ impl TryInto<substrate_bn::G2> for G2 {
 
     fn try_into(self) -> Result<substrate_bn::G2, Self::Error> {
         let g2 = substrate_bn::G2::new(self.0.try_into()?, self.1.try_into()?, self.2.try_into()?);
-        let mut check = g2.clone();
+        let mut check = g2;
         use substrate_bn::Group;
         check.normalize();
         substrate_bn::AffineG2::new(check.x(), check.y())
