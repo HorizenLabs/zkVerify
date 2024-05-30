@@ -53,7 +53,7 @@ Run from within the `e2e-tests` directory:
 - `yarn test`
 
 The last command invokes the script `test_runner.sh`. If you want to use the binary compiled in
-debug flavor you can use `--debug` switch. Follow line execute all tests running the node binary
+debug flavor you can use `--debug` switch. The following line executes all the tests running the node binary
 from `target/debug` folder.
 
 ```sh
@@ -62,7 +62,7 @@ yarn test --debug
 
 ### Execute a single test
 
-You can run a list of tests simply by indicate the names while running tests:
+You can run a list of tests by simply specifying the names while running the tests:
 
 ```sh
 yarn test 0005-proofPath_rpc.zndsl 0006-proof_should_pay.zndsl
@@ -70,7 +70,7 @@ yarn test 0005-proofPath_rpc.zndsl 0006-proof_should_pay.zndsl
 
 Execute exactly `0005-proofPath_rpc.zndsl`, `0006-proof_should_pay.zndsl` and nothing else.
 
-Anyway you can call directly _zompinet_ binary to execute a test: The following instructions are for the
+Anyway you can call directly _zombienet_ binary to execute a test: The following instructions are for the
 local execution environment only, without taking into account Kubernetes or Podman - supported by zombienet, 
 but not mandatory.
 
