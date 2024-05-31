@@ -87,6 +87,8 @@ pallet-poe = { default-features = false, workspace = true }
 static_assertions = "1.1.0"
 proof-of-existence-rpc-runtime-api = { default-features = false, workspace = true }
 
+pallet-verifiers = { default-features = false, workspace = true }
+
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
 
@@ -141,6 +143,7 @@ std = [
 	"pallet-transaction-payment/std",
 	"pallet-settlement-fflonk/std",
 	"pallet-settlement-zksync/std",
+	"pallet-verifiers/std",
 	"pallet-settlement-groth16/std",
 	"pallet-settlement-risc0/std",
 	"pallet-poe/std",
@@ -186,6 +189,7 @@ try-runtime = [
 	"pallet-transaction-payment/try-runtime",
 	"pallet-settlement-fflonk/try-runtime",
 	"pallet-settlement-zksync/try-runtime",
+	"pallet-verifiers/try-runtime",
 	"pallet-settlement-groth16/try-runtime",
 	"pallet-settlement-risc0/try-runtime",
 	"pallet-poe/try-runtime",

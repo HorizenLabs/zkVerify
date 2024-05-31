@@ -4867,6 +4867,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-verifiers",
  "parity-scale-codec",
  "proof-of-existence-rpc-runtime-api",
  "scale-info",
@@ -5303,7 +5304,7 @@ dependencies = [
  "hp-poe",
  "log",
  "parity-scale-codec",
- "rstest",
+ "rstest 0.19.0",
  "scale-info",
  "serde_json",
  "sp-core",
@@ -5333,7 +5334,7 @@ dependencies = [
  "hp-poe",
  "log",
  "parity-scale-codec",
- "rstest",
+ "rstest 0.19.0",
  "rstest_reuse",
  "scale-info",
  "sp-core",
@@ -5355,7 +5356,7 @@ dependencies = [
  "log",
  "native",
  "parity-scale-codec",
- "rstest",
+ "rstest 0.19.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -5376,7 +5377,7 @@ dependencies = [
  "log",
  "native",
  "parity-scale-codec",
- "rstest",
+ "rstest 0.19.0",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -5503,6 +5504,24 @@ dependencies = [
  "sp-api",
  "sp-runtime",
  "sp-weights",
+]
+
+[[package]]
+name = "pallet-verifiers"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "hp-poe",
+ "log",
+ "parity-scale-codec",
+ "rstest 0.20.0",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -6693,7 +6712,19 @@ checksum = "9d5316d2a1479eeef1ea21e7f9ddc67c191d497abc8fc3ba2467857abbb68330"
 dependencies = [
  "futures",
  "futures-timer",
- "rstest_macros",
+ "rstest_macros 0.19.0",
+ "rustc_version",
+]
+
+[[package]]
+name = "rstest"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27059f51958c5f8496a6f79511e7c0ac396dd815dc8894e9b6e2efb5779cf6f0"
+dependencies = [
+ "futures",
+ "futures-timer",
+ "rstest_macros 0.20.0",
  "rustc_version",
 ]
 
@@ -6705,6 +6736,24 @@ checksum = "04a9df72cc1f67020b0d63ad9bfe4a323e459ea7eb68e03bd9824db49f9a4c25"
 dependencies = [
  "cfg-if 1.0.0",
  "glob",
+ "proc-macro2",
+ "quote",
+ "regex",
+ "relative-path",
+ "rustc_version",
+ "syn 2.0.61",
+ "unicode-ident",
+]
+
+[[package]]
+name = "rstest_macros"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6132d64df104c0b3ea7a6ad7766a43f587bd773a4a9cf4cd59296d426afaf3a"
+dependencies = [
+ "cfg-if 1.0.0",
+ "glob",
+ "proc-macro-crate 3.1.0",
  "proc-macro2",
  "quote",
  "regex",

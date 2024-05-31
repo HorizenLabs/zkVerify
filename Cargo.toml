@@ -16,6 +16,7 @@ members = [
     "pallets/settlement-zksync",
     "pallets/settlement-groth16",
     "native",
+    "pallets/verifiers",
     "pallets/settlement-risc0",
 ]
 exclude = ["zksync-era-verifier"]
@@ -60,6 +61,7 @@ pallet-settlement-zksync = { path = "pallets/settlement-zksync", default-feature
 pallet-settlement-groth16 = { path = "pallets/settlement-groth16", default-features = false }
 pallet-settlement-risc0 = { path = "pallets/settlement-risc0", default-features = false }
 pallet-poe = { path = "pallets/proof_of_existence", default-features = false }
+pallet-verifiers = { path = "pallets/verifiers", default-features = false }
 nh-runtime = { path = "runtime", default-features = false }
 
 # These dependencies are used for the node template's RPCs
