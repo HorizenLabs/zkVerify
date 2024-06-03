@@ -37,8 +37,9 @@ const ReturnCode = {
     ErrProofVerificationFailed: 2,
     ErrAcceptAnUnregisteredHash: 3,
     ErrVkRegistrationFailed: 4,
-    ErrProofVerificationHashFailed: 5,
-    ErrWrongStatementHash: 6,
+    ErrWrongKeyHash: 5,
+    ErrProofVerificationHashFailed: 6,
+    ErrWrongStatementHash: 7,
 };
 
 const { init_api, submitProof, registerVk, receivedEvents } = require('zkv-lib')
@@ -76,6 +77,9 @@ async function run(nodeName, networkInfo, args) {
         return ReturnCode.ErrVkRegistrationFailed;
     };
     const vkHash = events[0].data[0];
+    if (VKEY_HASH != vkHash) {
+        return ReturnCode.ErrWrongKeyHash;
+    }
 
     events = await submitProof(api.tx.settlementFFlonkPallet, alice, VALID_PROOF, { Hash: vkHash })
     if (!receivedEvents(events)) {
