@@ -2235,6 +2235,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "fflonk-verifier"
+version = "0.1.0"
+dependencies = [
+ "fflonk_verifier 0.3.0",
+ "hp-verifiers",
+ "log",
+]
+
+[[package]]
+name = "fflonk_verifier"
+version = "0.3.0"
+source = "git+https://github.com/HorizenLabs/fflonk_verifier.git?tag=v0.3.0#ed74fb5eccb2af07cb178823b04e71af3a129a7a"
+dependencies = [
+ "digest 0.10.7",
+ "sha3",
+ "snafu 0.7.5",
+ "substrate-bn",
+]
+
+[[package]]
 name = "fflonk_verifier"
 version = "0.4.0"
 source = "git+https://github.com/HorizenLabs/fflonk_verifier.git?tag=v0.4.0#aa848aa56114c9e002c5b41a2822c7043d19b501"
@@ -3142,6 +3162,17 @@ dependencies = [
  "sp-core",
  "sp-inherents",
  "sp-runtime",
+]
+
+[[package]]
+name = "hp-verifiers"
+version = "0.1.0"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-std",
+ "sp-weights",
 ]
 
 [[package]]
@@ -4845,6 +4876,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
+ "hp-verifiers",
  "log",
  "pallet-authorship",
  "pallet-babe",
@@ -5296,7 +5328,7 @@ dependencies = [
 name = "pallet-settlement-fflonk"
 version = "0.1.0"
 dependencies = [
- "fflonk_verifier",
+ "fflonk_verifier 0.4.0",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -5510,10 +5542,12 @@ dependencies = [
 name = "pallet-verifiers"
 version = "0.1.0"
 dependencies = [
+ "fflonk-verifier",
  "frame-support",
  "frame-system",
  "hex-literal",
  "hp-poe",
+ "hp-verifiers",
  "log",
  "parity-scale-codec",
  "rstest 0.20.0",

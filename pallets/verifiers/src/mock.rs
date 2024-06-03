@@ -18,7 +18,7 @@ use frame_system;
 use rstest::fixture;
 use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
-use crate::{Verifier, VerifyError};
+use hp_verifiers::{Verifier, VerifyError, WeightInfo};
 
 pub mod on_proof_verified {
     pub use pallet::*;
@@ -82,7 +82,7 @@ impl FakeVerifier {
 
 pub struct MockWeightInfo;
 
-impl crate::Verifier for FakeVerifier {
+impl Verifier for FakeVerifier {
     type Proof = u64;
 
     type Pubs = u64;
@@ -119,7 +119,7 @@ impl crate::Verifier for FakeVerifier {
     }
 }
 
-impl crate::WeightInfo<FakeVerifier> for MockWeightInfo {
+impl WeightInfo<FakeVerifier> for MockWeightInfo {
     fn submit_proof(_proof: &u64, _pubs: &u64) -> Weight {
         Weight::from_parts(1, 2)
     }

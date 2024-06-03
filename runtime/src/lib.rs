@@ -540,6 +540,33 @@ impl pallet_offences::Config for Runtime {
     type OnOffenceHandler = Staking;
 }
 
+pub struct FflonkWeight;
+impl pallet_verifiers::WeightInfo<pallet_verifiers::Fflonk> for FflonkWeight {
+    fn submit_proof(
+        _proof: &<pallet_verifiers::Fflonk as hp_verifiers::Verifier>::Proof,
+        _pubs: &<pallet_verifiers::Fflonk as hp_verifiers::Verifier>::Pubs,
+    ) -> Weight {
+        Weight::from_parts(1, 2)
+    }
+
+    fn submit_proof_with_vk_hash(
+        _proof: &<pallet_verifiers::Fflonk as hp_verifiers::Verifier>::Proof,
+        _pubs: &<pallet_verifiers::Fflonk as hp_verifiers::Verifier>::Pubs,
+    ) -> Weight {
+        Weight::from_parts(3, 4)
+    }
+
+    fn register_vk(_vk: &<pallet_verifiers::Fflonk as hp_verifiers::Verifier>::Vk) -> Weight {
+        Weight::from_parts(5, 6)
+    }
+}
+
+impl pallet_verifiers::Config<pallet_verifiers::Fflonk> for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type OnProofVerified = Poe;
+    type WeightInfo = FflonkWeight;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub struct Runtime {
@@ -560,6 +587,7 @@ construct_runtime!(
         SettlementFFlonkPallet: pallet_settlement_fflonk,
         Poe: pallet_poe,
         SettlementZksyncPallet: pallet_settlement_zksync,
+        FFlonkVerifier: pallet_verifiers::<Fflonk>,
         SettlementGroth16Pallet: pallet_settlement_groth16,
         SettlementRisc0Pallet: pallet_settlement_risc0,
     }

@@ -16,6 +16,7 @@
 use frame_support::dispatch::{GetDispatchInfo, Pays};
 use frame_support::{assert_noop, assert_ok};
 
+use hp_verifiers::{Verifier, WeightInfo};
 use sp_core::H256;
 
 use super::*;

@@ -1,0 +1,22 @@
+[package]
+name = "fflonk-verifier"
+version = "0.1.0"
+description = "A fflonk verifier pallet implementation."
+homepage.workspace = true
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+license = "GPL-3.0"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", default-features = false, tag = "v0.3.0" }
+hp-verifiers = { workspace = true }
+log = "0.4.20"
+
+
+[features]
+default = ["std"]
+std = ["hp-verifiers/std", "fflonk_verifier/std"]

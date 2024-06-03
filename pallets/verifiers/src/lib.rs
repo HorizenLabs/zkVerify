@@ -1,11 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use codec::{Decode, Encode, EncodeLike};
-use frame_support::weights::Weight;
 pub use pallet::*;
-use scale_info::TypeInfo;
-use sp_core::MaxEncodedLen;
-use sp_std::fmt::Debug;
 
 #[cfg(test)]
 pub mod mock;
@@ -15,81 +10,9 @@ mod tests;
 #[cfg(test)]
 pub use mock::FakeVerifier;
 
-#[derive(Debug)]
-pub enum VerifyError {
-    /// Provided data has not valid public inputs.
-    InvalidInput,
-    /// Provided data has not valid proof.
-    InvalidProofData,
-    /// Verify proof failed.
-    VerifyError,
-    /// Provided an invalid verification key.
-    InvalidVerificationKey,
-}
+pub use fflonk_verifier::Fflonk;
 
-pub trait Arg: Debug + Clone + PartialEq + Encode + Decode + TypeInfo + MaxEncodedLen {}
-impl<T: Debug + Clone + PartialEq + Encode + Decode + TypeInfo + MaxEncodedLen> Arg for T {}
-pub trait Vk: Arg + EncodeLike {}
-impl<T: Arg + EncodeLike> Vk for T {}
-
-pub trait Verifier: 'static {
-    /// The proof format type accepted by the verifier
-    type Proof: Arg;
-    /// The public inputs format
-    type Pubs: Arg;
-    /// The verification key format
-    type Vk: Vk;
-
-    fn hash_context_data() -> &'static [u8];
-
-    fn verify_proof(
-        vk: &Self::Vk,
-        proof: &Self::Proof,
-        pubs: &Self::Pubs,
-    ) -> Result<(), VerifyError>;
-
-    fn validate_vk(vk: &Self::Vk) -> Result<(), VerifyError>;
-
-    fn pubs_bytes(pubs: &Self::Pubs) -> sp_std::borrow::Cow<[u8]>;
-}
-
-pub trait WeightInfo<V: Verifier> {
-    fn submit_proof(proof: &V::Proof, pubs: &V::Pubs) -> Weight;
-
-    fn submit_proof_with_vk_hash(proof: &V::Proof, pubs: &V::Pubs) -> Weight;
-
-    fn register_vk(vk: &V::Vk) -> Weight;
-}
-
-/// `()` is a verifier that reject the proof and returns `VerifyError::VerifyError`.
-impl Verifier for () {
-    type Proof = ();
-    type Pubs = ();
-    type Vk = ();
-
-    fn hash_context_data() -> &'static [u8] {
-        b"()"
-    }
-
-    fn verify_proof(
-        _vk: &Self::Vk,
-        _proof: &Self::Proof,
-        _pubs: &Self::Pubs,
-    ) -> Result<(), VerifyError> {
-        Err(VerifyError::VerifyError)
-    }
-
-    fn validate_vk(_vk: &Self::Vk) -> Result<(), VerifyError> {
-        Ok(())
-    }
-
-    fn pubs_bytes(_pubs: &Self::Pubs) -> sp_std::borrow::Cow<[u8]> {
-        static EMPTY: [u8; 0] = [];
-        // Example: If you would use something computed here you can use
-        // sp_std::borrow::Cow::Owned(_pubs.encode())
-        sp_std::borrow::Cow::Borrowed(&EMPTY)
-    }
-}
+pub use hp_verifiers::WeightInfo;
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
@@ -100,8 +23,9 @@ pub mod pallet {
     use hp_poe::OnProofVerified;
     use sp_core::H256;
     use sp_io::hashing::keccak_256;
+    use sp_std::boxed::Box;
 
-    use crate::{Verifier, Vk, WeightInfo};
+    use hp_verifiers::{Verifier, VerifyError, WeightInfo};
 
     #[pallet::pallet]
     pub struct Pallet<T, I = ()>(_);
@@ -140,7 +64,7 @@ pub mod pallet {
         /// Proof verified call back
         type OnProofVerified: OnProofVerified;
         /// Weights
-        type WeightInfo: crate::WeightInfo<I>;
+        type WeightInfo: hp_verifiers::WeightInfo<I>;
     }
 
     fn statement_hash(ctx: &[u8], vk_hash: &H256, pubs: &[u8]) -> H256 {
@@ -155,7 +79,7 @@ pub mod pallet {
     fn compute_hash<I: Verifier>(pubs: &I::Pubs, vk_or_hash: &VkOrHash<I::Vk>) -> H256 {
         let hash = match vk_or_hash {
             VkOrHash::Hash(h) => sp_std::borrow::Cow::Borrowed(h),
-            VkOrHash::Vk(vk) => sp_std::borrow::Cow::Owned(hash_key(vk)),
+            VkOrHash::Vk(vk) => sp_std::borrow::Cow::Owned(hash_key::<I>(vk)),
         };
         statement_hash(
             I::hash_context_data(),
@@ -189,14 +113,13 @@ pub mod pallet {
         VerificationKeyNotFound,
     }
 
-    impl<T, I> From<super::VerifyError> for Error<T, I> {
-        fn from(e: super::VerifyError) -> Self {
-            use super::VerifyError::*;
+    impl<T, I> From<VerifyError> for Error<T, I> {
+        fn from(e: VerifyError) -> Self {
             match e {
-                InvalidInput => Error::<T, I>::InvalidInput,
-                InvalidProofData => Error::<T, I>::InvalidProofData,
-                VerifyError => Error::<T, I>::VerifyError,
-                InvalidVerificationKey => Error::<T, I>::InvalidVerificationKey,
+                VerifyError::InvalidInput => Error::<T, I>::InvalidInput,
+                VerifyError::InvalidProofData => Error::<T, I>::InvalidProofData,
+                VerifyError::VerifyError => Error::<T, I>::VerifyError,
+                VerifyError::InvalidVerificationKey => Error::<T, I>::InvalidVerificationKey,
             }
         }
     }
@@ -250,16 +173,15 @@ pub mod pallet {
         pub fn register_vk(_origin: OriginFor<T>, vk: Box<I::Vk>) -> DispatchResultWithPostInfo {
             log::trace!("Register vk");
             I::validate_vk(&vk).map_err(Error::<T, I>::from)?;
-            let hash = hash_key(&vk);
+            let hash = hash_key::<I>(&vk);
             Vks::<T, I>::insert(hash, vk);
             Self::deposit_event(Event::VkRegistered { hash });
             Ok(().into())
         }
     }
 
-    fn hash_key(vk: &impl Vk) -> H256 {
-        let encoded = vk.encode();
-        H256(keccak_256(encoded.as_slice()))
+    fn hash_key<I: Verifier>(vk: &I::Vk) -> H256 {
+        H256(keccak_256(&I::vk_bytes(vk)))
     }
 
     #[cfg(test)]
@@ -270,10 +192,11 @@ pub mod pallet {
             tests::submit_proof_should::{
                 REGISTERED_VK, REGISTERED_VK_HASH, VALID_HASH_REGISTERED_VK,
             },
-            FakeVerifier, VerifyError,
+            FakeVerifier,
         };
 
         use super::*;
+        use hp_verifiers::Verifier;
         use rstest::rstest;
         use sp_core::U256;
 
@@ -360,12 +283,38 @@ pub mod pallet {
             assert_eq!(hash, expected);
         }
 
+        struct Other2Verifier;
+        impl Verifier for Other2Verifier {
+            type Proof = ();
+            type Pubs = ();
+            type Vk = U256;
+            fn hash_context_data() -> &'static [u8] {
+                b"more"
+            }
+
+            fn verify_proof(
+                _vk: &Self::Vk,
+                _proof: &Self::Proof,
+                _pubs: &Self::Pubs,
+            ) -> Result<(), VerifyError> {
+                Ok(())
+            }
+
+            fn pubs_bytes(_pubs: &Self::Pubs) -> hp_verifiers::Cow<[u8]> {
+                hp_verifiers::Cow::Borrowed(&[])
+            }
+        }
+
         #[rstest]
-        #[case::vk_used_in_test(REGISTERED_VK, REGISTERED_VK_HASH)]
+        #[case::vk_used_in_test(PhantomData::<FakeVerifier>, REGISTERED_VK, REGISTERED_VK_HASH)]
         #[should_panic]
-        #[case::u256_vk_changed(U256::from(REGISTERED_VK), REGISTERED_VK_HASH)]
-        fn hash_vk_as_expected(#[case] vk: impl Vk, #[case] expected: H256) {
-            let hash = hash_key(&vk);
+        #[case::u256_vk_changed(PhantomData::<Other2Verifier>, U256::from(REGISTERED_VK), REGISTERED_VK_HASH)]
+        fn hash_vk_as_expected<V: Verifier>(
+            #[case] _verifier: PhantomData<V>,
+            #[case] vk: V::Vk,
+            #[case] expected: H256,
+        ) {
+            let hash = hash_key::<V>(&vk);
 
             assert_eq!(hash, expected);
         }

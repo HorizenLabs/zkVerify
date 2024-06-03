@@ -13,16 +13,19 @@ targets = ["x86_64-unknown-linux-gnu"]
 [dependencies]
 codec = { workspace = true }
 scale-info = { workspace = true }
+frame-support = { workspace = true }
+
 log = "0.4.20"
 
-frame-support = { workspace = true }
 frame-system = { workspace = true }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 
-hp-poe = { default-features = false, workspace = true }
+hp-poe = { workspace = true }
+hp-verifiers = { workspace = true }
+fflonk-verifier = { workspace = true }
 
 [dev-dependencies]
 rstest = "0.20.0"
@@ -39,5 +42,7 @@ std = [
     "sp-core/std",
     "sp-runtime/std",
     "sp-io/std",
+    "hp-verifiers/std",
+    "hp-poe/std",
 ]
 try-runtime = ["frame-support/try-runtime", "frame-system/try-runtime"]

@@ -88,6 +88,7 @@ static_assertions = "1.1.0"
 proof-of-existence-rpc-runtime-api = { default-features = false, workspace = true }
 
 pallet-verifiers = { default-features = false, workspace = true }
+hp-verifiers = { default-features = false, workspace = true }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -167,6 +168,8 @@ std = [
 	"sp-transaction-pool/std",
 	"sp-version/std",
 	"sp-weights/std",
+	"pallet-verifiers/std",
+	"hp-verifiers/std",
 	"substrate-wasm-builder",
 ]
 try-runtime = [
@@ -194,4 +197,5 @@ try-runtime = [
 	"pallet-settlement-risc0/try-runtime",
 	"pallet-poe/try-runtime",
 	"sp-runtime/try-runtime",
+	"pallet-verifiers/try-runtime",
 ]
