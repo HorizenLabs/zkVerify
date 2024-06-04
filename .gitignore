@@ -1,7 +1,6 @@
 target/
 **/*.rs.bk
 .idea
-.env
 *.iml
 .vscode
 docker/resources/deploy
@@ -9,6 +8,9 @@ docker/resources/envs/.env
 e2e-tests/node_modules
 e2e-tests/yarn.lock
 e2e-tests/bin
+lcov.info
+benchmarking_errors.txt
+.env
 rpc-tests/node_modules
 rpc-tests//reports
 test-report-*.html
