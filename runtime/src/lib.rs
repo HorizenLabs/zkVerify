@@ -330,6 +330,7 @@ impl pallet_sudo::Config for Runtime {
 }
 
 impl pallet_settlement_fflonk::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
     type WeightInfo = weights::pallet_settlement_fflonk::NHWeight<Runtime>;
 }

@@ -14,176 +14,213 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use frame_support::dispatch::{GetDispatchInfo, Pays};
-use hex_literal::hex;
+use frame_support::{assert_noop, assert_ok};
 
+use mock::on_proof_verified::new_proof_event;
 use sp_core::H256;
 
-use super::Proof;
-use crate::mock;
+use super::*;
 use crate::mock::*;
+use crate::vk::Vk;
 use crate::weight::WeightInfo;
+use rstest::{fixture, rstest};
 
-include!("proof.rs");
-pub static VALID_HASH: [u8; 32] =
-    hex!("337d23faf65147cd3a2cc495aac5cfbe44fe55b17c83990f43f3e5663b0ff248");
+include!("resources.rs");
 
-#[test]
-fn valid_proof_passes_verification_and_is_notified() {
-    new_test_ext().execute_with(|| {
-        // Dispatch a signed extrinsic.
-        assert!(
-            SettlementFFlonkPallet::submit_proof(RuntimeOrigin::signed(1), VALID_PROOF.into())
-                .is_ok()
-        );
-
-        let events = mock::System::events();
-        assert_eq!(events.len(), 1);
-
-        mock::System::assert_last_event(
-            crate::mock::on_proof_verified::pallet::Event::NewProof {
-                value: H256(VALID_HASH),
-            }
-            .into(),
-        );
-    });
-}
-
-#[test]
-fn malformed_proof_fails_verification_and_is_not_notified() {
-    new_test_ext().execute_with(|| {
-        let mut malformed_proof: Proof = VALID_PROOF;
-        // first byte changed from '0x17' to '0x07' (raw proof data)
-        malformed_proof[0] = 0x07;
-
-        // Dispatch a signed extrinsic.
-        assert!(SettlementFFlonkPallet::submit_proof(
-            RuntimeOrigin::signed(1),
-            malformed_proof.into()
-        )
-        .is_err());
-
-        let events = mock::System::events();
-        assert_eq!(events.len(), 0);
-    });
-}
-
-#[test]
-fn invalid_proof_fails_verification_and_is_not_notified() {
-    new_test_ext().execute_with(|| {
-        let mut invalid_proof: Proof = VALID_PROOF;
-        // last byte changed from '0x06' to '0x00' (public inputs)
-        invalid_proof[invalid_proof.len() - 1] = 0x00;
-
-        // Dispatch a signed extrinsic.
-        assert!(SettlementFFlonkPallet::submit_proof(
-            RuntimeOrigin::signed(1),
-            invalid_proof.into()
-        )
-        .is_err());
-
-        let events = mock::System::events();
-        assert_eq!(events.len(), 0);
-    });
-}
-
-#[test]
-fn should_use_the_configured_weights() {
-    let proof: Proof = VALID_PROOF;
-    let info = crate::pallet::Call::<Test>::submit_proof {
-        raw_proof: Box::new(proof),
-    }
-    .get_dispatch_info();
-
-    assert_eq!(info.pays_fee, Pays::Yes);
-    assert_eq!(info.weight, MockWeightInfo::submit_proof());
-}
-
-mod another_way_of_testing {
-    use hp_poe::OnProofVerified;
-
+mod register_should {
     use super::*;
-    use frame_support::derive_impl;
-    use frame_system;
-    use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
-    pub struct Crash {}
+    #[rstest]
+    #[case::default_vk(fflonk_verifier::VerificationKey::default(), DEFAULT_VK_HASH)]
+    #[case::other_vk(other_vk().0, other_vk().1)]
+    fn accept_valid_vk(
+        mut test_ext: sp_io::TestExternalities,
+        #[case] vk: fflonk_verifier::VerificationKey,
+        #[case] expected_hash: H256,
+    ) {
+        test_ext.execute_with(|| {
+            let vk: Vk = vk.into();
+            assert_ok!(SettlementFFlonkPallet::register_vk(
+                RuntimeOrigin::signed(1),
+                Box::new(vk)
+            ));
 
-    // Configure a mock runtime to test the pallet.
-    frame_support::construct_runtime!(
-        pub enum Test
-        {
-            System: frame_system,
-            SettlementFFlonkPallet: crate,
-        }
-    );
-
-    #[derive_impl(frame_system::config_preludes::SolochainDefaultConfig as frame_system::DefaultConfig)]
-    impl frame_system::Config for Test {
-        type Block = frame_system::mocking::MockBlockU32<Test>;
-        type AccountId = u64;
-        type Lookup = IdentityLookup<Self::AccountId>;
+            mock::System::assert_last_event(
+                Event::VkRegistered {
+                    hash: expected_hash,
+                }
+                .into(),
+            );
+        });
     }
 
-    impl crate::Config for Test {
-        type OnProofVerified = Crash;
-        type WeightInfo = ();
-    }
+    #[rstest]
+    fn reject_invalid_vk(mut test_ext: sp_io::TestExternalities) {
+        let mut vk: Vk = fflonk_verifier::VerificationKey::default().into();
+        *vk.mut_c0_x() = sp_core::U256::zero();
 
-    impl OnProofVerified for Crash {
-        fn on_proof_verified(_pubs_hash: H256) {
-            panic!("should never be called");
-        }
-    }
-
-    // Build genesis storage according to the mock runtime.
-    pub fn new_test_ext() -> sp_io::TestExternalities {
-        frame_system::GenesisConfig::<Test>::default()
-            .build_storage()
-            .unwrap()
-            .into()
-    }
-
-    #[test]
-    #[should_panic(expected = "should never be called")]
-    fn valid_proof_passes_verification_and_is_notified_another() {
-        new_test_ext().execute_with(|| {
+        test_ext.execute_with(|| {
             // Dispatch a signed extrinsic.
-            let _ =
-                SettlementFFlonkPallet::submit_proof(RuntimeOrigin::signed(1), VALID_PROOF.into());
+            assert_noop!(
+                SettlementFFlonkPallet::register_vk(RuntimeOrigin::signed(1), Box::new(vk)),
+                Error::<Test>::InvalidVerificationKey
+            );
         });
     }
 
     #[test]
-    fn malformed_proof_fails_verification_and_is_not_notified_another() {
-        new_test_ext().execute_with(|| {
+    fn use_the_configured_weights() {
+        let info = Call::<Test>::register_vk {
+            vk: Box::new(fflonk_verifier::VerificationKey::default().into()),
+        }
+        .get_dispatch_info();
+
+        assert_eq!(info.pays_fee, Pays::Yes);
+        assert_eq!(info.weight, MockWeightInfo::register_vk());
+    }
+}
+
+mod submit_proof_should {
+    use super::*;
+
+    /// Provide an environment with a registered vk (use used the default vk)
+    #[fixture]
+    fn def_vk(mut test_ext: sp_io::TestExternalities) -> sp_io::TestExternalities {
+        test_ext.execute_with(|| {
+            SettlementFFlonkPallet::register_vk(
+                RuntimeOrigin::signed(1),
+                Box::new(fflonk_verifier::VerificationKey::default().into()),
+            )
+            .unwrap();
+            System::reset_events();
+        });
+        test_ext
+    }
+
+    #[rstest]
+    #[case::no_given_vk(None, VALID_HASH)]
+    #[case::provide_vk(Some(VkOrHash::Vk(Box::new(fflonk_verifier::VerificationKey::default().into()))), VALID_HASH_WITH_VK)]
+    #[case::use_registered_vk(Some(VkOrHash::Hash(DEFAULT_VK_HASH)), VALID_HASH_WITH_VK)]
+    fn validate_proof_and_notify_execution_when(
+        mut def_vk: sp_io::TestExternalities,
+        #[case] vk_or_hash: Option<VkOrHash>,
+        #[case] expected_hash: H256,
+    ) {
+        def_vk.execute_with(|| {
+            // Dispatch a signed extrinsic.
+            assert_ok!(SettlementFFlonkPallet::submit_proof(
+                RuntimeOrigin::signed(1),
+                VALID_PROOF.into(),
+                vk_or_hash
+            ));
+
+            assert_eq!(System::events().len(), 1);
+
+            System::assert_last_event(new_proof_event(expected_hash).into());
+        });
+    }
+
+    #[rstest]
+    #[case::submit_proof_default_vk(None, MockWeightInfo::submit_proof_default())]
+    #[case::submit_proof_with_vk_hash(
+        Some(VkOrHash::Hash(DEFAULT_VK_HASH)),
+        MockWeightInfo::submit_proof_with_vk_hash()
+    )]
+    #[case::submit_proof_with_vk(
+        Some(VkOrHash::Vk(Box::new(fflonk_verifier::VerificationKey::default().into()))),
+        MockWeightInfo::submit_proof_with_vk()
+    )]
+    fn use_the_configured_weights(
+        #[case] vk_or_hash: Option<VkOrHash>,
+        #[case] weight: frame_support::weights::Weight,
+    ) {
+        let info = Call::<Test>::submit_proof {
+            raw_proof: Box::new(VALID_PROOF),
+            vk_or_hash,
+        }
+        .get_dispatch_info();
+
+        assert_eq!(info.pays_fee, Pays::Yes);
+        assert_eq!(info.weight, weight);
+    }
+
+    mod reject {
+        use super::*;
+
+        #[rstest]
+        fn proof_if_request_to_use_an_unregisterd_vk(mut test_ext: sp_io::TestExternalities) {
+            test_ext.execute_with(|| {
+                assert_noop!(
+                    SettlementFFlonkPallet::submit_proof(
+                        RuntimeOrigin::signed(1),
+                        VALID_PROOF.into(),
+                        Some(VkOrHash::Hash(DEFAULT_VK_HASH))
+                    ),
+                    Error::<Test>::VerificationKeyNotFound
+                );
+            });
+        }
+
+        #[rstest]
+        fn malformed_proof(mut test_ext: sp_io::TestExternalities) {
             let mut malformed_proof: Proof = VALID_PROOF;
             // first byte changed from '0x17' to '0x07' (raw proof data)
             malformed_proof[0] = 0x07;
 
-            // Dispatch a signed extrinsic.
-            let _ = SettlementFFlonkPallet::submit_proof(
-                RuntimeOrigin::signed(1),
-                malformed_proof.into(),
-            );
+            test_ext.execute_with(|| {
+                assert_noop!(
+                    SettlementFFlonkPallet::submit_proof(
+                        RuntimeOrigin::signed(1),
+                        malformed_proof.into(),
+                        None
+                    ),
+                    Error::<Test>::InvalidProofData
+                );
+            });
+        }
 
-            // should not panic
-        });
-    }
-
-    #[test]
-    fn invalid_proof_fails_verification_and_is_not_notified_another() {
-        new_test_ext().execute_with(|| {
+        #[rstest]
+        fn invalid_proof(mut test_ext: sp_io::TestExternalities) {
             let mut invalid_proof: Proof = VALID_PROOF;
             // last byte changed from '0x06' to '0x00' (public inputs)
+
             invalid_proof[invalid_proof.len() - 1] = 0x00;
+            test_ext.execute_with(|| {
+                // Dispatch a signed extrinsic.
+                assert_noop!(
+                    SettlementFFlonkPallet::submit_proof(
+                        RuntimeOrigin::signed(1),
+                        invalid_proof.into(),
+                        None
+                    ),
+                    Error::<Test>::VerifyError
+                );
+            });
+        }
 
-            // Dispatch a signed extrinsic.
-            let _ = SettlementFFlonkPallet::submit_proof(
-                RuntimeOrigin::signed(1),
-                invalid_proof.into(),
-            );
+        #[rstest]
+        #[case::other_hash(VkOrHash::Hash(other_vk().1))]
+        #[case::other_vk(VkOrHash::Vk(Box::new(other_vk().0.into())))]
+        fn proof_provided_with_not_related_vk(
+            mut test_ext: sp_io::TestExternalities,
+            #[case] vk_or_hash: VkOrHash,
+        ) {
+            let (vk, _h) = other_vk();
+            test_ext.execute_with(|| {
+                SettlementFFlonkPallet::register_vk(RuntimeOrigin::signed(1), Box::new(vk.into()))
+                    .unwrap();
+            });
 
-            // should not panic
-        });
+            test_ext.execute_with(|| {
+                assert_noop!(
+                    SettlementFFlonkPallet::submit_proof(
+                        RuntimeOrigin::signed(1),
+                        VALID_PROOF.into(),
+                        Some(vk_or_hash)
+                    ),
+                    Error::<Test>::VerifyError
+                );
+            });
+        }
     }
 }
