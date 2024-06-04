@@ -19,6 +19,7 @@ jobs:
 
       - name: Build Docker image
         run: |
+          cd rpc-tests
           docker build -t rpc-tests:latest .
 
       - name: Run RPC tests
