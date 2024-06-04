@@ -31,6 +31,7 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: rustdoc-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: rustdoc-cargo-
 
       - name: Set docker env vars
         run: |

@@ -31,6 +31,7 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: e2e-test-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: e2e-test-cargo-
 
       - name: Set docker env vars
         run: |

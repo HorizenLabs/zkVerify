@@ -63,9 +63,6 @@ fi
 
 # System info
 rustup show
-if command -v java; then
-  echo -e "\n$(java --version)"
-fi
 num_cpus=$(lscpu | grep '^CPU(s):' | awk '{print $2}')
 total_ram=$(free -h | grep '^Mem:' | awk '{print $2}')
 echo -e "\nCPU count: ${num_cpus}\nTotal RAM: ${total_ram}"

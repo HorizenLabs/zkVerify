@@ -31,6 +31,7 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: lint-format-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: lint-format-cargo-
 
       - name: Set docker env vars
         run: |

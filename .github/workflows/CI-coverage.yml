@@ -20,6 +20,9 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v4
 
+      - name: Free up disk space
+        run: ${GITHUB_WORKSPACE}/.github/scripts/clean_ci.sh
+
       - name: Set up cargo cache
         uses: actions/cache@v4
         if: ${{ !env.ACT }}
@@ -32,6 +35,7 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: coverage-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: coverage-cargo-
 
       - name: Set docker env vars
         run: |
