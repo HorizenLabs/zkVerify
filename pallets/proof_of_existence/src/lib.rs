@@ -1,4 +1,4 @@
-// Copyright 2024, The Horizen Foundation
+// Copyright 2024, Horizen Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,11 +26,11 @@ pub mod mock;
 mod benchmarking;
 
 mod weight;
+pub use weight::WeightInfo;
 
 #[frame_support::pallet]
 pub mod pallet {
-    use super::weight::SubstrateWeight;
-    use super::weight::WeightInfo;
+    use super::WeightInfo;
     use binary_merkle_tree::MerkleProof;
     use pallet_timestamp::{self as timestamp};
 
@@ -57,6 +57,8 @@ pub mod pallet {
         type MinProofsForPublishing: Get<u32>;
         /// Maximum time (ms) that an element can wait in a tree before the tree is published
         type MaxElapsedTimeMs: Get<Self::Moment>;
+        /// The weight definition for this pallet
+        type WeightInfo: WeightInfo;
     }
 
     impl<T: Config> hp_poe::OnProofVerified for Pallet<T> {
@@ -99,11 +101,10 @@ pub mod pallet {
         TooEarlyForASmallTree,
     }
 
-    #[pallet::call]
+    #[pallet::call(weight(<T as Config>::WeightInfo))]
     impl<T: Config> Pallet<T> {
         /// Publish the attestation of Merkle tree and move to the next tree.
         #[pallet::call_index(0)]
-        #[pallet::weight(SubstrateWeight::<T>::publish_attestation())]
         pub fn publish_attestation(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
             ensure_none(origin.clone()).or_else(|_| ensure_root(origin.clone()))?;
             if ensure_none(origin.clone()).is_ok() && !Self::should_publish(Self::now()) {

@@ -1,4 +1,4 @@
-// Copyright 2024, The Horizen Foundation
+// Copyright 2024, Horizen Labs, Inc.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,7 +19,8 @@ use crate::{
     cli::{Cli, Subcommand},
     service,
 };
-use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
+use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory};
+use native::HLNativeHostFunctions;
 use nh_runtime::{Block, EXISTENTIAL_DEPOSIT};
 use sc_cli::SubstrateCli;
 use sc_service::PartialComponents;
@@ -54,6 +55,7 @@ impl SubstrateCli for Cli {
         Ok(match id {
             "dev" => Box::new(chain_spec::development_config()?),
             "local" => Box::new(chain_spec::local_config()?),
+            "test_build" => Box::new(chain_spec::testnet_config_build()?),
             "" | "test" => Box::new(chain_spec::testnet_config()?),
             path => Box::new(chain_spec::ChainSpec::from_json_file(
                 std::path::PathBuf::from(path),
@@ -154,7 +156,7 @@ pub fn run() -> sc_cli::Result<()> {
                             );
                         }
 
-                        cmd.run::<Block, ()>(config)
+                        cmd.run::<Block, HLNativeHostFunctions>(config)
                     }
                     BenchmarkCmd::Block(cmd) => {
                         let PartialComponents { client, .. } = service::new_partial(&config)?;
@@ -202,7 +204,7 @@ pub fn run() -> sc_cli::Result<()> {
                         cmd.run(client, inherent_benchmark_data()?, Vec::new(), &ext_factory)
                     }
                     BenchmarkCmd::Machine(cmd) => {
-                        cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())
+                        cmd.run(&config, crate::hardware::nh_reference_hardware().clone())
                     }
                 }
             })

@@ -1,4 +1,4 @@
-// Copyright 2024, The Horizen Foundation
+// Copyright 2024, Horizen Labs, Inc.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,11 +21,11 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use pallet_babe::AuthorityId as BabeId;
 use pallet_grandpa::AuthorityId as GrandpaId;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use proof_of_existence_rpc_runtime_api::MerkleProof;
 use sp_api::impl_runtime_apis;
-use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
     create_runtime_str, generic, impl_opaque_keys,
@@ -48,15 +48,15 @@ use frame_support::genesis_builder_helper::{build_config, create_default_config}
 
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
-    construct_runtime, derive_impl, parameter_types,
+    construct_runtime, derive_impl,
+    dispatch::DispatchClass,
+    parameter_types,
     traits::{
         ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, KeyOwnerProofSystem, Randomness,
         StorageInfo,
     },
     weights::{
-        constants::{
-            BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND,
-        },
+        constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
         IdentityFee, Weight,
     },
     StorageValue,
@@ -66,6 +66,8 @@ use frame_system::EnsureRoot;
 pub use pallet_balances::Call as BalancesCall;
 use pallet_session::historical as pallet_session_historical;
 pub use pallet_timestamp::Call as TimestampCall;
+use weights::block_weights::BlockExecutionWeight;
+use weights::extrinsic_weights::ExtrinsicBaseWeight;
 
 use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier};
 #[cfg(any(feature = "std", test))]
@@ -74,6 +76,7 @@ pub use sp_runtime::{Perbill, Permill};
 
 #[cfg(test)]
 mod tests;
+mod weights;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -87,9 +90,9 @@ pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::Account
 
 pub mod currency {
     pub type Balance = u128;
-    pub const NZEN: Balance = 1_000_000_000_000_000_000;
-    pub const CENTS: Balance = NZEN / 100;
-    pub const THOUSANDS: Balance = 1_000 * NZEN;
+    pub const ACME: Balance = 1_000_000_000_000_000_000;
+    pub const CENTS: Balance = ACME / 100;
+    pub const THOUSANDS: Balance = 1_000 * ACME;
     pub const MILLIONS: Balance = 1_000 * THOUSANDS;
 }
 
@@ -128,7 +131,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     // The version of the runtime specification. A full node will not attempt to use its native
     //   runtime in substitute for the on-chain Wasm runtime unless all of `spec_name`,
     //   `spec_version`, and `authoring_version` are the same between Wasm and native.
-    spec_version: 1_000,
+    spec_version: 2_001,
     impl_version: 1,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -138,7 +141,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 /// This determines the average expected block time that we are targeting.
 /// Blocks will be produced at a minimum duration defined by `SLOT_DURATION`.
 /// `SLOT_DURATION` is picked up by `pallet_timestamp` which is in turn picked
-/// up by `pallet_aura` to implement `fn slot_duration()`.
+/// up by `pallet_babe` to implement `fn slot_duration()`.
 ///
 /// Change this to adjust the block time.
 pub const MILLISECS_PER_BLOCK: u64 = 6000;
@@ -152,6 +155,9 @@ pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 
+// 1 in 4 blocks will be primary babe blocks.
+pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
+
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
@@ -161,17 +167,38 @@ pub fn native_version() -> NativeVersion {
     }
 }
 
+/// We assume that ~10% of the block weight is consumed by `on_initialize` handlers.
+/// This is used to limit the maximal weight of a single extrinsic.
+const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_percent(10);
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+/// We allow for 2 seconds of compute with a 6 second average block time, with maximum proof size.
+const MAXIMUM_BLOCK_WEIGHT: Weight =
+    Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2), u64::MAX);
 
 parameter_types! {
     pub const BlockHashCount: BlockNumber = 2400;
     pub const Version: RuntimeVersion = VERSION;
-    /// We allow for 2 seconds of compute with a 6 second average block time.
+
     pub BlockWeights: frame_system::limits::BlockWeights =
-        frame_system::limits::BlockWeights::with_sensible_defaults(
-            Weight::from_parts(2u64 * WEIGHT_REF_TIME_PER_SECOND, u64::MAX),
-            NORMAL_DISPATCH_RATIO,
-        );
+        frame_system::limits::BlockWeights::builder()
+        .base_block(BlockExecutionWeight::get())
+        .for_class(DispatchClass::all(), |weights| {
+            weights.base_extrinsic = ExtrinsicBaseWeight::get();
+        })
+        .for_class(DispatchClass::Normal, |weights| {
+            weights.max_total = Some(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT);
+        })
+        .for_class(DispatchClass::Operational, |weights| {
+            weights.max_total = Some(MAXIMUM_BLOCK_WEIGHT);
+            // Operational transactions have some extra reserved space, so that they
+            // are included even if block reached `MAXIMUM_BLOCK_WEIGHT`.
+            weights.reserved = Some(
+                MAXIMUM_BLOCK_WEIGHT - NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT
+            );
+        })
+        .avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
+        .build_or_panic();
+
     pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
         ::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
     pub const SS58Prefix: u8 = 42;
@@ -205,36 +232,52 @@ impl frame_system::Config for Runtime {
     /// This is used as an identifier of the chain. 42 is the generic substrate prefix.
     type SS58Prefix = SS58Prefix;
     type MaxConsumers = frame_support::traits::ConstU32<16>;
+    type SystemWeightInfo = weights::frame_system::NHWeight<Runtime>;
 }
 
-impl pallet_aura::Config for Runtime {
-    type AuthorityId = AuraId;
-    type DisabledValidators = ();
-    type MaxAuthorities = ConstU32<32>;
-    type AllowMultipleBlocksPerSlot = ConstBool<false>;
+parameter_types! {
+    pub const ExpectedBlockTime: u64 = MILLISECS_PER_BLOCK; // Should use primitives::Moment
+    pub const EpochDurationInBlocks: BlockNumber = HOURS; // TODO: use prod_or_fast!
 
-    #[cfg(feature = "experimental")]
-    type SlotDuration = pallet_aura::MinimumPeriodTimesTwo<Runtime>;
+    /// How long (in blocks) an equivocation report is valid for
+    pub ReportLongevity: u64 = EpochDurationInBlocks::get() as u64 * 10;
+    /// How many authorities BABE and GRANDPA have storage for
+    pub const MaxAuthorities: u32 = MaxActiveValidators::get();
+}
+
+impl pallet_babe::Config for Runtime {
+    type EpochDuration = EpochDurationInBlocks;
+    type ExpectedBlockTime = ExpectedBlockTime;
+    // session module is the trigger
+    type EpochChangeTrigger = pallet_babe::ExternalTrigger;
+    type DisabledValidators = Session;
+    type WeightInfo = ();
+    type MaxAuthorities = MaxAuthorities;
+    type MaxNominators = ConstU32<0>;
+    type KeyOwnerProof = sp_session::MembershipProof;
+    type EquivocationReportSystem =
+        pallet_babe::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
 }
 
 impl pallet_grandpa::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
 
     type WeightInfo = ();
-    type MaxAuthorities = ConstU32<32>;
+    type MaxAuthorities = MaxAuthorities;
     type MaxNominators = ConstU32<0>;
     type MaxSetIdSessionEntries = ConstU64<0>;
 
-    type KeyOwnerProof = sp_core::Void;
-    type EquivocationReportSystem = ();
+    type KeyOwnerProof = sp_session::MembershipProof;
+    type EquivocationReportSystem =
+        pallet_grandpa::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
 }
 
 impl pallet_timestamp::Config for Runtime {
     /// A timestamp: milliseconds since the unix epoch.
     type Moment = u64;
-    type OnTimestampSet = Aura;
-    type MinimumPeriod = ConstU64<{ SLOT_DURATION / 2 }>;
-    type WeightInfo = ();
+    type OnTimestampSet = Babe;
+    type MinimumPeriod = ConstU64<{ SLOT_DURATION / 2 }>; // this is a Babe assumption
+    type WeightInfo = weights::pallet_timestamp::NHWeight<Runtime>;
 }
 
 /// Existential deposit.
@@ -251,7 +294,7 @@ impl pallet_balances::Config for Runtime {
     type DustRemoval = ();
     type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;
     type AccountStore = System;
-    type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+    type WeightInfo = weights::pallet_balances::NHWeight<Runtime>;
     type FreezeIdentifier = ();
     type MaxFreezes = ();
     type RuntimeHoldReason = ();
@@ -265,7 +308,7 @@ parameter_types! {
 
 impl_opaque_keys! {
     pub struct SessionKeys {
-        pub aura: Aura,
+        pub babe: Babe,
         pub grandpa: Grandpa,
         pub im_online: ImOnline,
     }
@@ -283,11 +326,18 @@ impl pallet_transaction_payment::Config for Runtime {
 impl pallet_sudo::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type RuntimeCall = RuntimeCall;
-    type WeightInfo = pallet_sudo::weights::SubstrateWeight<Runtime>;
+    type WeightInfo = weights::pallet_sudo::NHWeight<Runtime>;
 }
 
 impl pallet_settlement_fflonk::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
+    type WeightInfo = weights::pallet_settlement_fflonk::NHWeight<Runtime>;
+}
+
+impl pallet_settlement_zksync::Config for Runtime {
+    type OnProofVerified = Poe;
+    type WeightInfo = weights::pallet_settlement_zksync::NHWeight<Runtime>;
 }
 
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
@@ -299,11 +349,7 @@ impl pallet_poe::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type MinProofsForPublishing = ConstU32<MIN_PROOFS_FOR_ROOT_PUBLISHING>;
     type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
-}
-
-parameter_types! {
-    pub const Period: u32 = 10 * MINUTES; // Blocks per session
-    pub const Offset: u32 = 0;
+    type WeightInfo = weights::pallet_poe::NHWeight<Runtime>;
 }
 
 pub struct ValidatorIdOf;
@@ -317,34 +363,31 @@ impl pallet_session::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type ValidatorId = AccountId;
     type ValidatorIdOf = ValidatorIdOf;
-    type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
-    type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
+    type ShouldEndSession = Babe;
+    type NextSessionRotation = Babe;
     type SessionManager = Staking;
     type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
     type Keys = SessionKeys;
-    type WeightInfo = ();
+    type WeightInfo = pallet_session::weights::SubstrateWeight<Runtime>;
 }
 
-pub struct ZendPayout;
-impl pallet_staking::EraPayout<Balance> for ZendPayout {
-    fn era_payout(
-        _total_staked: Balance,
-        _total_issuance: Balance,
-        era_duration_millis: u64,
-    ) -> (Balance, Balance) {
-        let era_reward: u128 = 625 * CENTS * u128::from(era_duration_millis / MILLISECS_PER_BLOCK); // 6.25nZEN per block
-        pub const TENTH_TO_MINERS: u128 = 10;
-        pub const TENTH_TO_REST: u128 = 0;
-
-        (
-            era_reward * TENTH_TO_MINERS / 10,
-            era_reward * TENTH_TO_REST / 10,
-        )
-    }
+//TODO: Set these parameters appropriately.
+pallet_staking_reward_curve::build! {
+    const REWARD_CURVE: sp_runtime::curve::PiecewiseLinear<'static> = curve!(
+        min_inflation: 0_025_000,
+        max_inflation: 0_100_000,
+        ideal_stake: 0_500_000,
+        falloff: 0_050_000,
+        max_piece_count: 40,
+        test_precision: 0_005_000,
+    );
 }
 
 parameter_types! {
-    pub const SessionsPerEra: sp_staking::SessionIndex = 6 * HOURS / Period::get(); // number of sessions in 1 era, 6h
+    pub const SessionsPerEra: sp_staking::SessionIndex = 6 * HOURS / EpochDurationInBlocks::get(); // number of sessions in 1 era, 6h
+
+    pub const RewardCurve: &'static sp_runtime::curve::PiecewiseLinear<'static> = &REWARD_CURVE;
+
     pub const BondingDuration: sp_staking::EraIndex = 1; // number of sessions for which staking
                                                          // remains locked
     pub const SlashDeferDuration: sp_staking::EraIndex = 0; // eras to wait before slashing is
@@ -353,12 +396,14 @@ parameter_types! {
     pub HistoryDepth: u32 = 30; // Number of eras to keep in history. Older eras cannot be claimed.
 }
 
-pub const MAX_AUTHORITIES: u32 = 10;
-pub const MAX_VOTERS: u32 = 10;
+/// Maximum number of election targets (eligible authorities) to account for
+pub const MAX_TARGETS: u32 = 32;
+/// Maximum number of election voters to account for
+pub const MAX_VOTERS: u32 = 32;
 
 parameter_types! {
-    pub ElectionBoundsOnChain: ElectionBounds = ElectionBoundsBuilder::default().voters_count(MAX_VOTERS.into()).targets_count(MAX_AUTHORITIES.into()).build();
-    pub const MaxActiveValidators: u32 = MAX_AUTHORITIES;
+    pub ElectionBoundsOnChain: ElectionBounds = ElectionBoundsBuilder::default().voters_count((MAX_TARGETS + MAX_VOTERS).into()).targets_count(MAX_TARGETS.into()).build();
+    pub const MaxActiveValidators: u32 = MAX_TARGETS;
 }
 
 pub struct OnChainSeqPhragmen;
@@ -377,7 +422,7 @@ impl onchain::Config for OnChainSeqPhragmen {
 pub struct ElectionProviderBenchmarkConfig;
 impl pallet_staking::BenchmarkingConfig for ElectionProviderBenchmarkConfig {
     type MaxNominators = ConstU32<MAX_VOTERS>;
-    type MaxValidators = ConstU32<MAX_AUTHORITIES>;
+    type MaxValidators = ConstU32<MAX_TARGETS>;
 }
 
 impl pallet_staking::Config for Runtime {
@@ -395,7 +440,7 @@ impl pallet_staking::Config for Runtime {
     /// A super-majority of the council can cancel the slash.
     type AdminOrigin = EnsureRoot<AccountId>;
     type SessionInterface = Self;
-    type EraPayout = ZendPayout; // Just an example, we probably should use pallet_staking::ConvertCurve<RewardCurve>;
+    type EraPayout = pallet_staking::ConvertCurve<RewardCurve>;
     type NextNewSession = Session;
     type OffendingValidatorsThreshold = OffendingValidatorsThreshold; // Exceeding this threshold would force a new era
     type ElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
@@ -408,13 +453,13 @@ impl pallet_staking::Config for Runtime {
     type MaxUnlockingChunks = ConstU32<32>;
     type HistoryDepth = HistoryDepth; // Number of eras to keep in history
     type EventListeners = (); // NominationPools;
-    type WeightInfo = (); //pallet_staking::weights::SubstrateWeight<Runtime>;
+    type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
     type BenchmarkingConfig = ElectionProviderBenchmarkConfig;
     type MaxExposurePageSize = ConstU32<64>;
 }
 
 impl pallet_authorship::Config for Runtime {
-    type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
+    type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Babe>;
     type EventHandler = (Staking, ImOnline);
 }
 
@@ -432,18 +477,18 @@ impl pallet_session::historical::Config for Runtime {
 }
 
 parameter_types! {
-    pub const MaxKeys: u32 = MAX_AUTHORITIES; // only account for validators
-    pub const MaxPeerInHeartbeats: u32 = MAX_AUTHORITIES;
+    pub const MaxKeys: u32 = 10_000; // We need them for benchmarking
+    pub const MaxPeerInHeartbeats: u32 = 10_000;
 }
 
 impl pallet_im_online::Config for Runtime {
     type AuthorityId = ImOnlineId;
     type RuntimeEvent = RuntimeEvent;
-    type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
+    type NextSessionRotation = Babe;
     type ValidatorSet = Historical;
     type ReportUnresponsiveness = Offences;
     type UnsignedPriority = ();
-    type WeightInfo = ();
+    type WeightInfo = weights::pallet_im_online::NHWeight<Runtime>;
     type MaxKeys = MaxKeys;
     type MaxPeerInHeartbeats = MaxPeerInHeartbeats;
 }
@@ -463,7 +508,7 @@ construct_runtime!(
         Authorship: pallet_authorship,
         Staking: pallet_staking,
         Session: pallet_session,
-        Aura: pallet_aura,
+        Babe: pallet_babe,
         Grandpa: pallet_grandpa,
         TransactionPayment: pallet_transaction_payment,
         Sudo: pallet_sudo,
@@ -472,6 +517,7 @@ construct_runtime!(
         ImOnline: pallet_im_online,
         SettlementFFlonkPallet: pallet_settlement_fflonk,
         Poe: pallet_poe,
+        SettlementZksyncPallet: pallet_settlement_zksync,
     }
 );
 
@@ -524,12 +570,26 @@ mod benches {
         [frame_benchmarking, BaselineBench::<Runtime>]
         [frame_system, SystemBench::<Runtime>]
         [pallet_balances, Balances]
+        [pallet_babe, crate::Babe]
+        [pallet_grandpa, crate::Grandpa]
         [pallet_timestamp, Timestamp]
         [pallet_sudo, Sudo]
-        [pallet_settlement_fflonk, SettlementFFlonkPallet]
+        [pallet_session, SessionBench::<Runtime>]
+        [pallet_staking, Staking]
+        [pallet_im_online, ImOnline]
+        [pallet_election_provider_support_benchmarking, ElectionProviderBench::<Runtime>]
         [pallet_poe, Poe]
+        [pallet_settlement_fflonk, SettlementFFlonkPallet]
+        [pallet_settlement_zksync, SettlementZksyncPallet]
     );
 }
+
+/// The BABE epoch configuration at genesis.
+pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
+    sp_consensus_babe::BabeEpochConfiguration {
+        c: PRIMARY_PROBABILITY,
+        allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryVRFSlots,
+    };
 
 impl_runtime_apis! {
     impl sp_api::Core<Block> for Runtime {
@@ -597,13 +657,52 @@ impl_runtime_apis! {
         }
     }
 
-    impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
-        fn slot_duration() -> sp_consensus_aura::SlotDuration {
-            sp_consensus_aura::SlotDuration::from_millis(Aura::slot_duration())
+    impl sp_consensus_babe::BabeApi<Block> for Runtime {
+        fn configuration() -> sp_consensus_babe::BabeConfiguration {
+            let epoch_config = Babe::epoch_config().unwrap_or(BABE_GENESIS_EPOCH_CONFIG);
+            sp_consensus_babe::BabeConfiguration {
+                slot_duration: Babe::slot_duration(),
+                epoch_length: EpochDurationInBlocks::get().into(),
+                c: epoch_config.c,
+                authorities: Babe::authorities().to_vec(),
+                randomness: Babe::randomness(),
+                allowed_slots: epoch_config.allowed_slots,
+            }
         }
 
-        fn authorities() -> Vec<AuraId> {
-            Aura::authorities().into_inner()
+        fn current_epoch_start() -> sp_consensus_babe::Slot {
+            Babe::current_epoch_start()
+        }
+
+        fn current_epoch() -> sp_consensus_babe::Epoch {
+            Babe::current_epoch()
+        }
+
+        fn next_epoch() -> sp_consensus_babe::Epoch {
+            Babe::next_epoch()
+        }
+
+        fn generate_key_ownership_proof(
+            _slot: sp_consensus_babe::Slot,
+            authority_id: BabeId,
+        ) -> Option<sp_consensus_babe::OpaqueKeyOwnershipProof> {
+            use codec::Encode;
+
+            Historical::prove((sp_consensus_babe::KEY_TYPE, authority_id))
+                .map(|p| p.encode())
+                .map(sp_consensus_babe::OpaqueKeyOwnershipProof::new)
+        }
+
+        fn submit_report_equivocation_unsigned_extrinsic(
+            equivocation_proof: sp_consensus_babe::EquivocationProof<<Block as BlockT>::Header>,
+            key_owner_proof: sp_consensus_babe::OpaqueKeyOwnershipProof,
+        ) -> Option<()> {
+            let key_owner_proof = key_owner_proof.decode()?;
+
+            Babe::submit_unsigned_equivocation_report(
+                equivocation_proof,
+                key_owner_proof,
+            )
         }
     }
 
@@ -629,13 +728,18 @@ impl_runtime_apis! {
         }
 
         fn submit_report_equivocation_unsigned_extrinsic(
-            _equivocation_proof: sp_consensus_grandpa::EquivocationProof<
+            equivocation_proof: sp_consensus_grandpa::EquivocationProof<
                 <Block as BlockT>::Hash,
                 NumberFor<Block>,
             >,
-            _key_owner_proof: sp_consensus_grandpa::OpaqueKeyOwnershipProof,
+            key_owner_proof: sp_consensus_grandpa::OpaqueKeyOwnershipProof,
         ) -> Option<()> {
-            None
+            let key_owner_proof = key_owner_proof.decode()?;
+
+            Grandpa::submit_unsigned_equivocation_report(
+                equivocation_proof,
+                key_owner_proof,
+            )
         }
 
         fn generate_key_ownership_proof(
@@ -718,6 +822,8 @@ impl_runtime_apis! {
             use frame_support::traits::StorageInfoTrait;
             use frame_system_benchmarking::Pallet as SystemBench;
             use baseline::Pallet as BaselineBench;
+            use pallet_election_provider_support_benchmarking::Pallet as ElectionProviderBench;
+            use pallet_session_benchmarking::Pallet as SessionBench;
 
             let mut list = Vec::<BenchmarkList>::new();
             list_benchmarks!(list, extra);
@@ -734,9 +840,14 @@ impl_runtime_apis! {
             use sp_storage::TrackedStorageKey;
             use frame_system_benchmarking::Pallet as SystemBench;
             use baseline::Pallet as BaselineBench;
+            use pallet_election_provider_support_benchmarking::Pallet as ElectionProviderBench;
+            use pallet_session_benchmarking::Pallet as SessionBench;
 
             impl frame_system_benchmarking::Config for Runtime {}
             impl baseline::Config for Runtime {}
+            impl pallet_election_provider_support_benchmarking::Config for Runtime {}
+
+            impl pallet_session_benchmarking::Config for Runtime {}
 
             use frame_support::traits::WhitelistedStorageKeys;
             let whitelist: Vec<TrackedStorageKey> = AllPalletsWithSystem::whitelisted_storage_keys();

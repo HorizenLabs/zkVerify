@@ -1,0 +1,171 @@
+name: Orchestrator
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test-job:
+    uses: ./.github/workflows/CI-build-test.yml
+  test-coverage-job:
+    uses: ./.github/workflows/CI-coverage.yml
+  lint-format-job:
+    uses: ./.github/workflows/CI-lint-format.yml
+  e2e-test-job:
+    uses: ./.github/workflows/CI-e2e-test.yml
+
+  notify-slack:
+    runs-on: ubuntu-latest
+    needs: [build-test-job,test-coverage-job,lint-format-job, e2e-test-job]
+    if: ${{ always() }}
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+      - name: Report Job Statuses
+        run: |
+          echo "Build and Test Job Status: ${{ needs.build-test-job.result }}"
+          echo "Test Coverage Job Status: ${{ needs.test-coverage-job.result }}"
+          echo "Lint and Format Job Status: ${{ needs.lint-format-job.result }}"
+          echo "E2E Test Job Status: ${{ needs.e2e-test-job.result }}"
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+      - name: Display structure of downloaded files
+        run: ls -R
+      - name: Summarize Test Data
+        run: ./.github/scripts/summarize_tests.sh
+      - name: Display unit test output
+        run: |
+          if [ -f "./unit-test-output/unit_tests_output.txt" ]; then
+            cat "./unit-test-output/unit_tests_output.txt"
+          else
+            echo "Unit test output not found."
+          fi
+      - name: Display integration test output
+        run: |
+          if [ -f "./integration-test-output/integration_tests_output.txt" ]; then
+            cat "./integration-test-output/integration_tests_output.txt"
+          else
+            echo "Integration test output not found."
+          fi
+      - name: Display test coverage output
+        run: |
+          if [ -f "./coverage-output/coverage_report.json" ]; then
+            cat "./coverage-output/coverage_report.json"
+          else
+            echo "Test Coverage output not found."
+          fi
+      - name: Display linting output
+        run: |
+          if [ -f "./linting-output/linting_output.txt" ]; then
+            cat "./linting-output/linting_output.txt"
+          else
+            echo "Linting output not found."
+          fi
+      - name: Display formatting output
+        run: |
+          if [ -f "./formatting-output/formatting_output.txt" ]; then
+            cat "./formatting-output/formatting_output.txt"
+          else
+            echo "Formatting output not found."
+          fi
+      - name: Prepare Slack Notification Data
+        run: |
+          OVERALL_STATUS="success"
+
+          if [ "${{ needs.build-test-job.result }}" != "success" ] || 
+              [ "${{ needs.test-coverage-job.result }}" != "success" ] ||
+              [ "${{ needs.lint-format-job.result }}" != "success" ] || 
+              [ "${{ needs.e2e-test-job.result }}" != "success" ]; then
+            OVERALL_STATUS="failure"
+          fi
+          
+          if [ "$OVERALL_STATUS" = "success" ]; then
+          echo "OVERALL_STATUS_EMOJI=:large_green_circle:" >> $GITHUB_ENV
+          else
+            echo "OVERALL_STATUS_EMOJI=:alert:" >> $GITHUB_ENV
+          fi
+
+          if [[ "${{ needs.build-test-job.result }}" == "success" ]]; then
+            echo "BUILD_TEST_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
+          else
+            echo "BUILD_TEST_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
+          fi
+
+          if [[ -z "${LINE_COVERAGE_PERCENT}" ]]; then
+            if [[ "${{ needs.test-coverage-job.result }}" == "success" ]]; then
+              echo "TEST_COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
+            else
+              echo "TEST_COVERAGE_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
+            fi
+          elif [[ "${{ needs.test-coverage-job.result }}" == "success" ]] && (( $(echo "$LINE_COVERAGE_PERCENT >= 70" | bc -l) )); then
+            echo "TEST_COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
+          elif [[ "${{ needs.test-coverage-job.result }}" == "success" ]]; then
+            echo "TEST_COVERAGE_JOB_EMOJI=:large_yellow_circle:" >> $GITHUB_ENV
+          else
+            echo "TEST_COVERAGE_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
+          fi
+
+          if [[ "${{ needs.lint-format-job.result }}" == "success" ]]; then
+            echo "LINT_FORMAT_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
+          else
+            echo "LINT_FORMAT_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
+          fi
+
+          if [[ "${{ needs.e2e-test-job.result }}" == "success" ]]; then
+            echo "E2E_TEST_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
+          else
+            echo "E2E_TEST_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
+          fi
+          echo "OVERALL_STATUS=$OVERALL_STATUS" >> $GITHUB_ENV
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ env.OVERALL_STATUS_EMOJI }} *NH-CORE BUILD STATUS:* ${{ env.OVERALL_STATUS }} ${{ env.OVERALL_STATUS_EMOJI }}\n*Pull Request:* ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ env.BUILD_TEST_JOB_EMOJI }} *Build & Test:* ${{ needs.build-test-job.result }}\n\n${{ env.UNIT_TEST_SUMMARY }}\n${{ env.INTEGRATION_TEST_SUMMARY }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ env.TEST_COVERAGE_JOB_EMOJI }} *Test Coverage:* ${{ needs.test-coverage-job.result }}\n\n${{ env.COVERAGE_TEST_SUMMARY }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ env.LINT_FORMAT_JOB_EMOJI }} *Lint & Format:*  ${{ needs.lint-format-job.result }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ env.E2E_TEST_JOB_EMOJI }} *Zombienet Tests:* ${{ needs.e2e-test-job.result }}"
+                  }
+                }
+              ]
+            }
+
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

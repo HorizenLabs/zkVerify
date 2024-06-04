@@ -1,7 +1,8 @@
 [workspace.package]
 authors = ["Horizen Labs <admin@horizenlabs.io>"]
 edition = "2021"
-repository = "https://github.com/HorizenLabs/NH-core"
+repository = "https://github.com/HorizenLabs/zkVerify"
+homepage = "https://horizenlabs.io"
 
 [workspace]
 resolver = "2"
@@ -12,7 +13,10 @@ members = [
     "pallets/settlement-fflonk",
     "pallets/proof_of_existence",
     "primitives/hp-proof-of-existence",
+    "pallets/settlement-zksync",
+    "native",
 ]
+exclude = ["zksync-era-verifier"]
 
 [workspace.dependencies]
 clap = { version = "4.4.10", features = ["derive"] }
@@ -22,6 +26,7 @@ binary-merkle-tree = { default-features = false, version = "12.0.0" }
 snafu = { version = "0.8.0", default-features = false }
 async-trait = { version = "0.1.57" }
 serde = { version = "1.0.197" }
+rstest = { version = "0.19.0" }
 
 sc-cli = { version = "0.35.0" }
 sc-executor = { version = "0.31.0" }
@@ -31,42 +36,56 @@ sc-telemetry = { version = "14.0.0" }
 sc-transaction-pool = { version = "27.0.0" }
 sc-transaction-pool-api = { version = "27.0.0" }
 sc-offchain = { version = "28.0.0" }
-sc-consensus-aura = { version = "0.33.0" }
+sc-consensus-babe = { version = "0.33.0" }
+sc-consensus-babe-rpc = { version = "0.33.0" }
 sc-consensus = { version = "0.32.0" }
 sc-consensus-grandpa = { version = "0.18.0" }
 sc-client-api = { version = "27.0.0" }
+sc-sysinfo = { version = "26.0.0" }
 
 pallet-transaction-payment = { default-features = false, version = "27.0.0" }
 
 sp-io = { default-features = false, version = "29.0.0" }
 sp-timestamp = { default-features = false, version = "25.0.0" }
 sp-keyring = { version = "30.0.0" }
+sp-keystore = { version = "0.33.0" }
 
+native = { default-features = false, path = "native" }
 pallet-settlement-fflonk = { path = "pallets/settlement-fflonk", default-features = false }
-pallet-poe = { path= "pallets/proof_of_existence", default-features = false }
+pallet-settlement-zksync = { path = "pallets/settlement-zksync", default-features = false }
+pallet-poe = { path = "pallets/proof_of_existence", default-features = false }
 
 # These dependencies are used for the node template's RPCs
-sc-rpc-api = { version = "0.32.0"}
-sp-blockchain = { version = "27.0.0"}
-sc-basic-authorship = { version = "0.33.0"}
-substrate-frame-rpc-system = { version = "27.0.0"}
+sc-rpc = { version = "28.0.0" }
+sc-rpc-api = { version = "0.32.0" }
+sp-blockchain = { version = "27.0.0" }
+sc-basic-authorship = { version = "0.33.0" }
+substrate-frame-rpc-system = { version = "27.0.0" }
 frame-election-provider-support = { version = "27.0.0", default-features = false }
-pallet-transaction-payment-rpc = { version = "29.0.0"}
-frame-benchmarking-cli = { version = "31.0.0"}
-nh-runtime = { path = "runtime", version = "0.1.0" }
+pallet-election-provider-support-benchmarking = { version = "26.0.0", default-features = false }
+pallet-session-benchmarking = { version = "27.0.0", default-features = false }
+pallet-transaction-payment-rpc = { version = "29.0.0" }
+frame-benchmarking-cli = { version = "31.0.0" }
+nh-runtime = { path = "runtime", version = "0.2.0" }
 
 # CLI-specific dependencies
 try-runtime-cli = { version = "0.37.0" }
 
-codec = { package = "parity-scale-codec", version = "3.6.1", default-features = false, features = ["derive"] }
-scale-info = { version = "2.10.0", default-features = false, features = ["derive", "serde"] }
+codec = { package = "parity-scale-codec", version = "3.6.12", default-features = false, features = [
+    "derive",
+] }
+scale-info = { version = "2.10.0", default-features = false, features = [
+    "derive",
+    "serde",
+] }
 
 pallet-offences = { default-features = false, version = "26.0.0" }
 pallet-im-online = { default-features = false, version = "26.0.0" }
 pallet-authorship = { default-features = false, version = "27.0.0" }
 pallet-session = { default-features = false, version = "27.0.0" }
 pallet-staking = { default-features = false, version = "27.0.0" }
-pallet-aura = { default-features = false, version = "26.0.0" }
+pallet-staking-reward-curve = { default-features = false, version = "10.0.0" }
+pallet-babe = { default-features = false, version = "27.0.0" }
 pallet-balances = { default-features = false, version = "27.0.0" }
 frame-support = { default-features = false, version = "27.0.0" }
 pallet-grandpa = { default-features = false, version = "27.0.0" }
@@ -77,21 +96,35 @@ pallet-timestamp = { default-features = false, version = "26.0.0" }
 frame-executive = { default-features = false, version = "27.0.0" }
 sp-api = { default-features = false, version = "25.0.0" }
 sp-block-builder = { default-features = false, version = "25.0.0" }
-sp-consensus-aura = { default-features = false, features = ["serde"], version = "0.31.0" }
-sp-consensus-grandpa = { default-features = false, features = ["serde"], version = "12.0.0" }
+sp-consensus = { default-features = false, version = "0.31.0" }
+sp-consensus-babe = { default-features = false, features = [
+    "serde",
+], version = "0.31.0" }
+finality-grandpa = { default-features = false, version = "0.16.2" }
+sp-consensus-grandpa = { default-features = false, features = [
+    "serde",
+], version = "12.0.0" }
 sp-core = { default-features = false, features = ["serde"], version = "27.0.0" }
 sp-inherents = { default-features = false, version = "25.0.0" }
 sp-offchain = { default-features = false, version = "25.0.0" }
-sp-runtime = { default-features = false, features = ["serde"], version = "30.0.1" }
+sp-runtime = { default-features = false, features = [
+    "serde",
+], version = "30.0.1" }
+sp-runtime-interface = { version = "23.0.0", default-features = false }
 sp-session = { default-features = false, version = "26.0.0" }
 sp-staking = { default-features = false, version = "25.0.0" }
 sp-std = { default-features = false, version = "13.0.0" }
 sp-storage = { default-features = false, version = "18.0.0" }
 sp-transaction-pool = { default-features = false, version = "25.0.0" }
-sp-version = { default-features = false, features = ["serde"], version = "28.0.0" }
-serde_json = { version = "1.0.108", default-features = false, features = ["alloc"] }
+sp-version = { default-features = false, features = [
+    "serde",
+], version = "28.0.0" }
+serde_json = { version = "1.0.108", default-features = false, features = [
+    "alloc",
+] }
+sp-weights = { default-features = false, version = "26.0.0" }
 sp-genesis-builder = { default-features = false, version = "0.6.0" }
-hp-poe = { default-features = false, path = "primitives/hp-proof-of-existence"}
+hp-poe = { default-features = false, path = "primitives/hp-proof-of-existence" }
 proof-of-existence-rpc = { default-features = false, path = "rpc/proof_of_existence" }
 proof-of-existence-rpc-runtime-api = { default-features = false, path = "rpc/proof_of_existence/runtime-api" }
 

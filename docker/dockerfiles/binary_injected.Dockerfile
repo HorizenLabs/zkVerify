@@ -11,9 +11,9 @@ ARG IMAGE_NAME
 ARG BINARY=nh-node
 
 ARG BIN_FOLDER=.
-ARG DOC_URL=https://github.com/HorizenLabs/NH-core
-ARG DESCRIPTION="NH-core"
-ARG AUTHORS="devops@horizenlabs.io"
+ARG DOC_URL=https://github.com/HorizenLabs/zkVerify
+ARG DESCRIPTION="zkVerify"
+ARG AUTHORS="mainchain-team@horizenlabs.io"
 ARG VENDOR="Horizen Labs"
 
 LABEL io.hl.image.authors=${AUTHORS} \
@@ -23,7 +23,7 @@ LABEL io.hl.image.authors=${AUTHORS} \
 	io.hl.image.created="${BUILD_DATE}" \
 	io.hl.image.documentation="${DOC_URL}" \
 	io.hl.image.description="${DESCRIPTION}" \
-	io.hl.image.source="https://github.com/HorizenLabs/NH-core/blob/${VCS_REF}/docker/dockerfiles/binary_injected.Dockerfile"
+	io.hl.image.source="https://github.com/HorizenLabs/zkVerify/blob/${VCS_REF}/docker/dockerfiles/binary_injected.Dockerfile"
 
 USER root
 WORKDIR /app

@@ -1,0 +1,10 @@
+Description: Testing that a proof submission for fflonk pallet can accept vkey or the hash of registered one
+Network: ./network_defs/single_node.toml
+Creds: config
+
+alice: is up
+
+alice: reports node_roles is 4
+
+### Javascript test invocation
+alice: js-script ./js_scripts/0007-proof_with_vk.js return is equal to 1 within 30 seconds

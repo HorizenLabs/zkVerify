@@ -1,9 +1,9 @@
 [package]
 name = "mainchain"
-version = "0.1.0"
+version = "0.2.0"
 description = "New Horizen Mainchain."
 authors.workspace = true
-homepage = "https://github.com/HorizenLabs/NH-core"
+homepage = "https://github.com/HorizenLabs/zkVerify"
 edition.workspace = true
 publish = false
 repository.workspace = true
@@ -21,51 +21,58 @@ path = "src/main.rs"
 clap = { workspace = true, features = ["derive"] }
 futures = { workspace = true, features = ["thread-pool"] }
 serde_json = { workspace = true, features = ["arbitrary_precision"] }
-sc-cli = { workspace = true}
-sp-core = { workspace = true}
-sc-executor = { workspace = true}
-sc-network = { workspace = true}
-sc-service = { workspace = true}
-sc-telemetry = { workspace = true}
-sc-transaction-pool = { workspace = true}
-sc-transaction-pool-api = { workspace = true}
-sc-offchain = { workspace = true}
-sc-consensus-aura = { workspace = true}
-sp-consensus-aura = { workspace = true}
-sc-consensus = { workspace = true}
-sc-consensus-grandpa = { workspace = true}
-sp-consensus-grandpa = { workspace = true}
-sc-client-api = { workspace = true}
-sp-runtime = { workspace = true}
-sp-io = { workspace = true}
-sp-timestamp = { workspace = true}
-sp-inherents = { workspace = true}
-sp-keyring = { workspace = true}
-frame-system = { workspace = true}
+sc-cli = { workspace = true }
+sp-core = { workspace = true }
+sc-executor = { workspace = true }
+sc-network = { workspace = true }
+sc-service = { workspace = true }
+sc-telemetry = { workspace = true }
+sc-transaction-pool = { workspace = true }
+sc-transaction-pool-api = { workspace = true }
+sc-offchain = { workspace = true }
+sc-sysinfo = { workspace = true }
+sp-consensus = { workspace = true }
+sc-consensus-babe = { workspace = true }
+sc-consensus-babe-rpc = { workspace = true }
+sp-consensus-babe = { workspace = true }
+sc-consensus = { workspace = true }
+sc-consensus-grandpa = { workspace = true }
+sp-consensus-grandpa = { workspace = true }
+sc-client-api = { workspace = true }
+sp-runtime = { workspace = true }
+sp-runtime-interface = { workspace = true }
+sp-io = { workspace = true }
+sp-timestamp = { workspace = true }
+sp-inherents = { workspace = true }
+sp-keyring = { workspace = true }
+sp-keystore = { workspace = true }
+frame-system = { workspace = true }
 pallet-transaction-payment = { workspace = true, default-features = false }
-sp-staking = { workspace = true}
+sp-staking = { workspace = true }
 pallet-im-online = { workspace = true, default-features = false }
 
 # These dependencies are used for the node template's RPCs
 jsonrpsee = { workspace = true, features = ["server"] }
-sp-api = { workspace = true}
-sc-rpc-api = { workspace = true}
-sp-blockchain = { workspace = true}
-sp-block-builder = { workspace = true}
-sc-basic-authorship = { workspace = true}
-substrate-frame-rpc-system = { workspace = true}
-pallet-transaction-payment-rpc = { workspace = true}
-frame-benchmarking = { workspace = true}
-frame-benchmarking-cli = { workspace = true}
-nh-runtime = { workspace = true}
+sp-api = { workspace = true }
+sc-rpc = { workspace = true }
+sc-rpc-api = { workspace = true }
+sp-blockchain = { workspace = true }
+sp-block-builder = { workspace = true }
+sc-basic-authorship = { workspace = true }
+substrate-frame-rpc-system = { workspace = true }
+pallet-transaction-payment-rpc = { workspace = true }
+frame-benchmarking = { workspace = true }
+frame-benchmarking-cli = { workspace = true }
+nh-runtime = { workspace = true }
 hp-poe = { workspace = true }
 proof-of-existence-rpc = { workspace = true }
+native = { workspace = true, features = ["std"] }
 
 # CLI-specific dependencies
 try-runtime-cli = { workspace = true, optional = true }
 
 [build-dependencies]
-substrate-build-script-utils = { workspace = true}
+substrate-build-script-utils = { workspace = true }
 
 [features]
 default = []

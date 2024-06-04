@@ -1,21 +1,17 @@
 version: '3'
 services:
   local_node:
-    image: hl/nh-node
+    image: horizenlabs/zkverify:latest
     env_file:
       - ../resources/envs/.env.local
     ports:
       - 9944:9944
       - 30333:30333
   node_alice:
-    image: hl/nh-node
-    command: |
-      --alice
+    image: horizenlabs/zkverify:latest
     env_file:
       - ../resources/envs/.env.alice
   node_bob:
-    image: hl/nh-node
+    image: horizenlabs/zkverify:latest
     env_file:
       - ../resources/envs/.env.bob
-    command: |
-      --bob

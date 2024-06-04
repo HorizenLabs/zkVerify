@@ -1,4 +1,4 @@
-// Copyright 2024, The Horizen Foundation
+// Copyright 2024, Horizen Labs, Inc.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,13 +13,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Substrate Node Template CLI library.
+//! New Horizen node implementation.
 #![warn(missing_docs)]
 
 mod benchmarking;
 mod chain_spec;
 mod cli;
 mod command;
+mod hardware;
 mod rpc;
 mod service;
 

@@ -1,0 +1,71 @@
+name: CI-rustdoc
+
+run-name: "Workflow performing CI step: Rust doc generation"
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  rustdoc-generation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up cargo cache
+        uses: actions/cache@v4
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-build-test-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-build-test-cargo-
+
+      - name: Install deps
+      # required by sc-network-sync
+      # required by nh-runtime
+      # required by nh-runtime
+        run: |
+            sudo apt-get update -qq && sudo apt-get install protobuf-compiler
+            rustup target add wasm32-unknown-unknown
+            rustup component add rust-src
+
+      - name: Generate Rust documentation
+        run: cargo doc --no-deps --release
+
+      - name: Remove lock file
+        run: rm target/doc/.lock
+
+      - name: Add redirect
+        run: echo '<meta http-equiv="refresh" content="0;url=nh_node/index.html">' > target/doc/index.html
+
+      - name: Upload documentation
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/doc
+
+
+  rustdoc-deployment:
+    needs: rustdoc-generation
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

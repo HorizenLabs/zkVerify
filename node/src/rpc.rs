@@ -1,4 +1,4 @@
-// Copyright 2024, The Horizen Foundation
+// Copyright 2024, Horizen Labs, Inc.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,50 +24,83 @@ use std::sync::Arc;
 
 use jsonrpsee::RpcModule;
 use nh_runtime::{currency::Balance, opaque::Block, AccountId, Nonce};
+use sc_consensus_babe::BabeApi;
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
+use sp_consensus::SelectChain;
+use sp_keystore::KeystorePtr;
 
 pub use sc_rpc_api::DenyUnsafe;
 
+#[derive(Clone)]
+pub struct BabeDeps {
+    pub babe_worker_handle: sc_consensus_babe::BabeWorkerHandle<Block>,
+    pub keystore: KeystorePtr,
+}
+
 /// Full client dependencies.
-pub struct FullDeps<C, P> {
+pub struct FullDeps<C, P, SC> {
     /// The client instance to use.
     pub client: Arc<C>,
     /// Transaction pool instance.
     pub pool: Arc<P>,
+    /// The SelectChain Strategy
+    pub select_chain: SC,
     /// Whether to deny unsafe calls
     pub deny_unsafe: DenyUnsafe,
+    /// BABE specific dependencies
+    pub babe: BabeDeps,
 }
 
 /// Instantiate all full RPC extensions.
-pub fn create_full<C, P>(
-    deps: FullDeps<C, P>,
+pub fn create_full<C, P, SC>(
+    deps: FullDeps<C, P, SC>,
 ) -> Result<RpcModule<()>, Box<dyn std::error::Error + Send + Sync>>
 where
     C: ProvideRuntimeApi<Block>,
     C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
     C: Send + Sync + 'static,
+    C::Api: BabeApi<Block>,
     C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
     C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
     C::Api: proof_of_existence_rpc::PoERuntimeApi<Block>,
     C::Api: BlockBuilder<Block>,
     P: TransactionPool + 'static,
+    SC: SelectChain<Block> + 'static,
 {
     use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
     use proof_of_existence_rpc::{PoE, PoEApiServer};
+    use sc_consensus_babe_rpc::{Babe, BabeApiServer};
     use substrate_frame_rpc_system::{System, SystemApiServer};
 
     let mut module = RpcModule::new(());
     let FullDeps {
         client,
         pool,
+        select_chain,
         deny_unsafe,
+        babe,
     } = deps;
+
+    let BabeDeps {
+        babe_worker_handle,
+        keystore,
+    } = babe;
 
     module.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
     module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
+    module.merge(
+        Babe::new(
+            client.clone(),
+            babe_worker_handle.clone(),
+            keystore,
+            select_chain,
+            deny_unsafe,
+        )
+        .into_rpc(),
+    )?;
     module.merge(PoE::new(client).into_rpc())?;
 
     // Extend this RPC with a custom API by using the following syntax.

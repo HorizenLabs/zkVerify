@@ -24,7 +24,7 @@ DOCKERFILE=${DOCKERFILE:-docker/dockerfiles/binary_injected.Dockerfile}
 VERSION_TOML=$(grep "^version " "${PROJECT_ROOT}/node/Cargo.toml" | grep -oE "([0-9\.]+-?[0-9]+)")
 
 #n The following VAR have default that can be overriden
-DOCKER_OWNER=${DOCKER_OWNER:-hl}
+DOCKER_OWNER=${DOCKER_OWNER:-horizenlabs}
 
 # We may get 1..n binaries, comma separated
 BINARY=${BINARY:-nh-node}
@@ -34,7 +34,7 @@ VERSION=${VERSION:-$VERSION_TOML}
 ARTIFACTS_FOLDER=${ARTIFACTS_FOLDER:-.}
 SPEC_FOLDER=${SPEC_FOLDER:-${ARTIFACTS_FOLDER}/specs}
 
-IMAGE=${IMAGE:-${REGISTRY}/${DOCKER_OWNER}/${BINARIES[0]}}
+IMAGE=${IMAGE:-${REGISTRY}/${DOCKER_OWNER}/zkverify}
 DESCRIPTION_DEFAULT="Injected Container image built for ${BINARY}"
 DESCRIPTION=${DESCRIPTION:-$DESCRIPTION_DEFAULT}
 
