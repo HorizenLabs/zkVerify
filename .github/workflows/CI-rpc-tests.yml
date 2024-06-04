@@ -1,0 +1,76 @@
+name: zkVerify RPC Tests
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+  
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t rpc-tests:latest .
+
+      - name: Run RPC tests
+        id: run-tests
+        run: |
+          TEST_OUTPUT=$(docker run -e PRIVATE_KEY=${{ secrets.QA_PRIVATE_KEY }} rpc-tests:latest)
+          echo "$TEST_OUTPUT"
+          echo "::set-output name=test-output::$TEST_OUTPUT"
+
+      - name: Parse Test Results
+        id: parse-results
+        run: |
+          TEST_OUTPUT="${{ steps.run-tests.outputs.test-output }}"
+          PASSED=$(echo "$TEST_OUTPUT" | grep -oP 'Tests:\s+\K\d+(?=\s+passed)')
+          FAILED=$(echo "$TEST_OUTPUT" | grep -oP 'Tests:\s+\d+\s+passed,\s+\K\d+(?=\s+failed)')
+          SKIPPED=$(echo "$TEST_OUTPUT" | grep -oP 'Tests:\s+\d+\s+passed,\s+\d+\s+failed,\s+\K\d+(?=\s+skipped)')
+          
+          if [ -z "$FAILED" ]; then
+            FAILED=0
+          fi
+          if [ -z "$SKIPPED" ]; then
+            SKIPPED=0
+          fi
+
+          if [ "$FAILED" -eq 0 ]; then
+            OVERALL_STATUS="success"
+            OVERALL_STATUS_EMOJI=":large_green_circle:"
+          else
+            OVERALL_STATUS="failure"
+            OVERALL_STATUS_EMOJI=":red_circle:"
+          fi
+
+          echo "PASSED=$PASSED" >> $GITHUB_ENV
+          echo "FAILED=$FAILED" >> $GITHUB_ENV
+          echo "SKIPPED=$SKIPPED" >> $GITHUB_ENV
+          echo "OVERALL_STATUS=$OVERALL_STATUS" >> $GITHUB_ENV
+          echo "OVERALL_STATUS_EMOJI=$OVERALL_STATUS_EMOJI" >> $GITHUB_ENV
+
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ env.OVERALL_STATUS_EMOJI }} *NH-CORE BUILD STATUS:* ${{ env.OVERALL_STATUS }} ${{ env.OVERALL_STATUS_EMOJI }}\n*Test Results:*\n*Passed:* ${{ env.PASSED }}\n*Failed:* ${{ env.FAILED }}\n*Skipped:* ${{ env.SKIPPED }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.QA_SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
