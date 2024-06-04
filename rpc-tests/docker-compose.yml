@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  rpc-tests:
+    build: .
+    volumes:
+      - ./reports:/usr/src/app/reports
+    environment:
+      - RPC_URL=${RPC_URL}
+      - WEBSOCKET=${WEBSOCKET}
+      - PRIVATE_KEY=${PRIVATE_KEY}
+    command: >
+      sh -c "if [ \"$TEST_ENV\" = 'local' ]; then npm run test-local; else npm run test-testnet; fi"

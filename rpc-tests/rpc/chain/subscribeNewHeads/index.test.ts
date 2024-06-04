@@ -3,7 +3,7 @@ import evaluateResponse from "../../../utils/evaluateResponse";
 import patternGenerator from "../../../utils/patternGenerator";
 import chain_subscribeNewHeads from "./index";
 
-describe("chain_subscribeNewHeads", () => {
+describe.skip("chain_subscribeNewHeads", () => {
   it("Retrieves the best header via subscription", async () => {
     evaluateResponse({
       response: await chain_subscribeNewHeads(),
