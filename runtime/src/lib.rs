@@ -131,7 +131,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     // The version of the runtime specification. A full node will not attempt to use its native
     //   runtime in substitute for the on-chain Wasm runtime unless all of `spec_name`,
     //   `spec_version`, and `authoring_version` are the same between Wasm and native.
-    spec_version: 2_000,
+    spec_version: 2_001,
     impl_version: 1,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -241,7 +241,8 @@ parameter_types! {
 
     /// How long (in blocks) an equivocation report is valid for
     pub ReportLongevity: u64 = EpochDurationInBlocks::get() as u64 * 10;
-    pub const MaxAuthorities: u32 = 32;
+    /// How many authorities BABE and GRANDPA have storage for
+    pub const MaxAuthorities: u32 = MaxActiveValidators::get();
 }
 
 impl pallet_babe::Config for Runtime {
@@ -329,6 +330,7 @@ impl pallet_sudo::Config for Runtime {
 }
 
 impl pallet_settlement_fflonk::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
     type WeightInfo = weights::pallet_settlement_fflonk::NHWeight<Runtime>;
 }
@@ -394,12 +396,14 @@ parameter_types! {
     pub HistoryDepth: u32 = 30; // Number of eras to keep in history. Older eras cannot be claimed.
 }
 
-pub const MAX_AUTHORITIES: u32 = 10;
-pub const MAX_VOTERS: u32 = 10;
+/// Maximum number of election targets (eligible authorities) to account for
+pub const MAX_TARGETS: u32 = 32;
+/// Maximum number of election voters to account for
+pub const MAX_VOTERS: u32 = 32;
 
 parameter_types! {
-    pub ElectionBoundsOnChain: ElectionBounds = ElectionBoundsBuilder::default().voters_count(MAX_VOTERS.into()).targets_count(MAX_AUTHORITIES.into()).build();
-    pub const MaxActiveValidators: u32 = MAX_AUTHORITIES;
+    pub ElectionBoundsOnChain: ElectionBounds = ElectionBoundsBuilder::default().voters_count((MAX_TARGETS + MAX_VOTERS).into()).targets_count(MAX_TARGETS.into()).build();
+    pub const MaxActiveValidators: u32 = MAX_TARGETS;
 }
 
 pub struct OnChainSeqPhragmen;
@@ -418,7 +422,7 @@ impl onchain::Config for OnChainSeqPhragmen {
 pub struct ElectionProviderBenchmarkConfig;
 impl pallet_staking::BenchmarkingConfig for ElectionProviderBenchmarkConfig {
     type MaxNominators = ConstU32<MAX_VOTERS>;
-    type MaxValidators = ConstU32<MAX_AUTHORITIES>;
+    type MaxValidators = ConstU32<MAX_TARGETS>;
 }
 
 impl pallet_staking::Config for Runtime {
@@ -473,8 +477,8 @@ impl pallet_session::historical::Config for Runtime {
 }
 
 parameter_types! {
-    pub const MaxKeys: u32 = MAX_AUTHORITIES; // only account for validators
-    pub const MaxPeerInHeartbeats: u32 = MAX_AUTHORITIES;
+    pub const MaxKeys: u32 = 10_000; // We need them for benchmarking
+    pub const MaxPeerInHeartbeats: u32 = 10_000;
 }
 
 impl pallet_im_online::Config for Runtime {
@@ -485,7 +489,7 @@ impl pallet_im_online::Config for Runtime {
     type ReportUnresponsiveness = Offences;
     type UnsignedPriority = ();
     type WeightInfo = weights::pallet_im_online::NHWeight<Runtime>;
-    type MaxKeys = ConstU32<10_000>; // We need them form benchmarking
+    type MaxKeys = MaxKeys;
     type MaxPeerInHeartbeats = MaxPeerInHeartbeats;
 }
 

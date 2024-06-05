@@ -169,7 +169,8 @@ fn pallet_fflonk_availability() {
             [0; pallet_settlement_fflonk::FULL_PROOF_SIZE];
         assert!(SettlementFFlonkPallet::submit_proof(
             RuntimeOrigin::signed(dummy_origin),
-            dummy_raw_proof.into()
+            dummy_raw_proof.into(),
+            None
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -258,8 +259,8 @@ mod use_correct_weights {
         use pallet_settlement_fflonk::WeightInfo;
 
         assert_eq!(
-            <Runtime as pallet_settlement_fflonk::Config>::WeightInfo::submit_proof(),
-            crate::weights::pallet_settlement_fflonk::NHWeight::<Runtime>::submit_proof()
+            <Runtime as pallet_settlement_fflonk::Config>::WeightInfo::submit_proof_default(),
+            crate::weights::pallet_settlement_fflonk::NHWeight::<Runtime>::submit_proof_default()
         );
     }
 

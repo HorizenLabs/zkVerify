@@ -1,0 +1,8 @@
+{
+  "name": "zkv-lib",
+  "version": "1.0.0",
+  "description": "ZkVerify js lib provide some utilities for interact with Zkv chain",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {}
+}

@@ -16,6 +16,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 codec = { workspace = true }
 scale-info = { workspace = true }
 hex-literal = { version = "0.4.1", optional = true }
+serde_json = { version = "1.0.117", optional = true, default-features = false }
 
 # Substrate
 frame-benchmarking = { workspace = true, optional = true }
@@ -26,14 +27,19 @@ sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 
 # Pallet specific
-fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", default-features = false, tag = "v0.3.0" }
+fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", default-features = false, tag = "v0.4.0" }
+substrate-bn = "0.6.0"
 log = "0.4.20"
 sp-std = { workspace = true }
 hp-poe = { default-features = false, workspace = true }
 
 [dev-dependencies]
-serde = { version = "1.0.188" }
+fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", features = [
+	"serde",
+], tag = "v0.4.0" }
+serde_json = { version = "1.0.117" }
 hex-literal = { version = "0.4.1" }
+rstest.workspace = true
 
 [features]
 default = ["std"]
@@ -41,7 +47,9 @@ runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
+	"fflonk_verifier/serde",
 	"dep:hex-literal",
+	"dep:serde_json",
 ]
 std = [
 	"codec/std",
@@ -54,5 +62,6 @@ std = [
 	"sp-runtime/std",
 	"sp-io/std",
 	"fflonk_verifier/std",
+	"serde_json/std",
 ]
 try-runtime = ["frame-support/try-runtime", "frame-system/try-runtime"]

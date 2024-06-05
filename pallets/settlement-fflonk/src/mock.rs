@@ -15,6 +15,7 @@
 
 use frame_support::{derive_impl, weights::Weight};
 use frame_system;
+use rstest::fixture;
 use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
 pub mod on_proof_verified {
@@ -47,19 +48,30 @@ pub mod on_proof_verified {
                 Self::deposit_event(Event::NewProof { value });
             }
         }
+
+        pub fn new_proof_event<T: Config>(h: H256) -> Event<T> {
+            Event::NewProof { value: h }
+        }
     }
 }
 
 pub struct MockWeightInfo;
 
-impl MockWeightInfo {
-    pub const REF_TIME: u64 = 42;
-    pub const PROOF_SIZE: u64 = 24;
-}
-
 impl crate::weight::WeightInfo for MockWeightInfo {
-    fn submit_proof() -> Weight {
-        Weight::from_parts(Self::REF_TIME, Self::PROOF_SIZE)
+    fn submit_proof_default() -> Weight {
+        Weight::from_parts(1, 2)
+    }
+
+    fn submit_proof_with_vk() -> Weight {
+        Weight::from_parts(3, 4)
+    }
+
+    fn submit_proof_with_vk_hash() -> Weight {
+        Weight::from_parts(5, 6)
+    }
+
+    fn register_vk() -> Weight {
+        Weight::from_parts(7, 8)
     }
 }
 
@@ -81,6 +93,7 @@ impl frame_system::Config for Test {
 }
 
 impl crate::Config for Test {
+    type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = OnProofVerifiedMock;
     type WeightInfo = MockWeightInfo;
 }
@@ -89,8 +102,9 @@ impl on_proof_verified::pallet::Config for Test {
     type RuntimeEvent = RuntimeEvent;
 }
 
-// Build genesis storage according to the mock runtime.
-pub fn new_test_ext() -> sp_io::TestExternalities {
+/// Build genesis storage according to the mock runtime.
+#[fixture]
+pub fn test_ext() -> sp_io::TestExternalities {
     let mut ext = sp_io::TestExternalities::from(
         frame_system::GenesisConfig::<Test>::default()
             .build_storage()

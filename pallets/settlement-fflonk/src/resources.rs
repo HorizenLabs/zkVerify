@@ -1,4 +1,4 @@
-// Copyright 2024, Horizen Labs, Inc.
+// Copyright 2024, The Horizen Foundation
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[allow(dead_code)]
 pub static VALID_PROOF: crate::Proof = hex_literal::hex!(
     "
         283e3f25323d02dabdb94a897dc2697a3b930d8781381ec574af89a201a91d5a
@@ -42,3 +43,62 @@ pub static VALID_PROOF: crate::Proof = hex_literal::hex!(
         0d69b94acdfaca5bacc248a60b35b925a2374644ce0c1205db68228c8921d9d9
 "
 );
+
+#[allow(dead_code)]
+pub static VALID_HASH: sp_core::H256 = sp_core::H256(hex_literal::hex!(
+    "337d23faf65147cd3a2cc495aac5cfbe44fe55b17c83990f43f3e5663b0ff248"
+));
+#[allow(dead_code)]
+pub static VALID_HASH_WITH_VK: sp_core::H256 = sp_core::H256(hex_literal::hex!(
+    "2bb91e5bddf3be5ed011bcbfb27414b858b88f66270db91b727892cb7b70a37f"
+));
+#[allow(dead_code)]
+pub static DEFAULT_VK_HASH: sp_core::H256 = sp_core::H256(hex_literal::hex!(
+    "6fc9745758412a2fd89c21be8542239c860a076620d44a8c7ee933539c0581f7"
+));
+
+#[allow(dead_code)]
+fn other_vk() -> (fflonk_verifier::VerificationKey, sp_core::H256) {
+    (
+        serde_json::from_str(
+            r#"
+        {
+            "protocol": "fflonk",
+            "curve": "bn128",
+            "nPublic": 1,
+            "power": 8,
+            "k1": "2",
+            "k2": "3",
+            "w": "3478517300119284901893091970156912948790432420133812234316178878452092729974",
+            "w3": "21888242871839275217838484774961031246154997185409878258781734729429964517155",
+            "w4": "21888242871839275217838484774961031246007050428528088939761107053157389710902",
+            "w8": "19540430494807482326159819597004422086093766032135589407132600596362845576832",
+            "wr": "3934201997113527301378493790887117043297977683138175158026010558961874847407",
+            "X_2": [
+            [
+            "18029695676650738226693292988307914797657423701064905010927197838374790804409",
+            "14583779054894525174450323658765874724019480979794335525732096752006891875705"
+            ],
+            [
+            "2140229616977736810657479771656733941598412651537078903776637920509952744750",
+            "11474861747383700316476719153975578001603231366361248090558603872215261634898"
+            ],
+            [
+            "1",
+            "0"
+            ]
+            ],
+            "C0": [
+            "11542342760076629271055423140504027081105481381456687208035580820299274289807",
+            "4515654398511679460717994398421754391839000188428897061830765916152718260236",
+            "1"
+            ]
+        }
+    "#,
+        )
+        .unwrap(),
+        sp_core::H256(hex_literal::hex!(
+            "a3ea24b827d4e9735fe06a69ea9a58025b50d7c06ce2ca04e26c778a655fdc3c"
+        )),
+    )
+}
