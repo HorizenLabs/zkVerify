@@ -1,4 +1,4 @@
-name: CI-tag-orchestrator
+name: Tag-orchestrator
 
 on:
   push:

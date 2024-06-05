@@ -1,4 +1,4 @@
-name: CI-docker
+name: Docker-packaging
 run-name: "Workflow performing CI step: Docker Image Build and Publish"
 
 on:

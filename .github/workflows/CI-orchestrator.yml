@@ -2,12 +2,12 @@ name: Orchestrator
 
 on:
   pull_request:
-    types: [opened, synchronize]
-    branches:
-      - main
+    types: [opened]
   push:
     branches:
       - main
+      - release/*
+  workflow_dispatch:
 
 jobs:
   build-test-job:
@@ -19,10 +19,24 @@ jobs:
   e2e-test-job:
     uses: ./.github/workflows/CI-e2e-test.yml
 
+  check-act:
+    runs-on: ubuntu-latest
+    outputs:
+      act: ${{ steps.check.outputs.act }}
+    steps:
+      - name: Check if ACT exists
+        id: check
+        run: |
+          if [ -n "${{ env.ACT }}" ]; then
+            echo "act=true" >> $GITHUB_OUTPUT
+          else
+            echo "act=false" >> $GITHUB_OUTPUT
+          fi
+
   notify-slack:
     runs-on: ubuntu-latest
-    needs: [build-test-job,test-coverage-job,lint-format-job, e2e-test-job]
-    if: ${{ always() }}
+    needs: [build-test-job, test-coverage-job, lint-format-job, e2e-test-job, check-act]
+    if: ${{ always() && needs.check-act.outputs.act == 'false' }}
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
@@ -40,15 +54,15 @@ jobs:
         run: ./.github/scripts/summarize_tests.sh
       - name: Display unit test output
         run: |
-          if [ -f "./unit-test-output/unit_tests_output.txt" ]; then
-            cat "./unit-test-output/unit_tests_output.txt"
+          if [ -f "./build-and-test-output/unit_tests_output.txt" ]; then
+            cat "./build-and-test-output/unit_tests_output.txt"
           else
             echo "Unit test output not found."
           fi
       - name: Display integration test output
         run: |
-          if [ -f "./integration-test-output/integration_tests_output.txt" ]; then
-            cat "./integration-test-output/integration_tests_output.txt"
+          if [ -f "./build-and-test-output/integration_tests_output.txt" ]; then
+            cat "./build-and-test-output/integration_tests_output.txt"
           else
             echo "Integration test output not found."
           fi
@@ -61,15 +75,15 @@ jobs:
           fi
       - name: Display linting output
         run: |
-          if [ -f "./linting-output/linting_output.txt" ]; then
-            cat "./linting-output/linting_output.txt"
+          if [ -f "./lint-and-format-output/linting_output.txt" ]; then
+            cat "./lint-and-format-output/linting_output.txt"
           else
             echo "Linting output not found."
           fi
       - name: Display formatting output
         run: |
-          if [ -f "./formatting-output/formatting_output.txt" ]; then
-            cat "./formatting-output/formatting_output.txt"
+          if [ -f "./lint-and-format-output/formatting_output.txt" ]; then
+            cat "./lint-and-format-output/formatting_output.txt"
           else
             echo "Formatting output not found."
           fi
