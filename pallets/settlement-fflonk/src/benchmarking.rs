@@ -23,6 +23,7 @@ use super::*;
 use crate::Pallet as SettlementFFlonkPallet;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
+use sp_std::boxed::Box;
 
 include!("resources.rs");
 
