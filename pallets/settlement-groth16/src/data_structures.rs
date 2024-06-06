@@ -139,7 +139,7 @@ mod test {
     use super::*;
     use ark_bls12_381::Bls12_381;
     use ark_bn254::Bn254;
-    use ark_ec::{pairing::Pairing, CurveGroup, Group};
+    use ark_ec::pairing::Pairing;
     use ark_ff::UniformRand;
     use ark_std::rand::{rngs::StdRng, SeedableRng};
 
