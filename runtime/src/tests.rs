@@ -57,8 +57,8 @@ fn new_test_ext() -> sp_io::TestExternalities {
 
     pallet_balances::GenesisConfig::<super::Runtime> {
         balances: testsfixtures::SAMPLE_USERS
-            .to_vec()
-            .into_iter()
+            .iter()
+            .cloned()
             .map(|user| (user.raw_account.into(), user.starting_balance))
             .collect(),
     }
@@ -76,8 +76,8 @@ fn new_test_ext() -> sp_io::TestExternalities {
     // Add authorities
     pallet_session::GenesisConfig::<super::Runtime> {
         keys: testsfixtures::SAMPLE_USERS
-            .to_vec()
-            .into_iter()
+            .iter()
+            .cloned()
             .map(|user| {
                 (
                     user.raw_account.into(),
@@ -97,8 +97,8 @@ fn new_test_ext() -> sp_io::TestExternalities {
 
     pallet_staking::GenesisConfig::<super::Runtime> {
         stakers: testsfixtures::SAMPLE_USERS
-            .to_vec()
-            .into_iter()
+            .iter()
+            .cloned()
             .map(|user| {
                 (
                     user.raw_account.into(),
@@ -429,7 +429,7 @@ mod pallets_interact {
 
     fn new_test_ext() -> sp_io::TestExternalities {
         let mut ex = super::new_test_ext();
-        ex.execute_with(|| initialize());
+        ex.execute_with(initialize);
         ex
     }
 
@@ -466,9 +466,7 @@ mod pallets_interact {
                 assert_eq!(
                     Authorship::author(),
                     Some(AccountId32::new(
-                        testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
-                            .raw_account
-                            .into()
+                        testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].raw_account
                     ))
                 );
             });
@@ -569,9 +567,7 @@ mod pallets_interact {
         fn notifies_staking() {
             new_test_ext().execute_with(|| {
                 let offender_account = sp_runtime::AccountId32::new(
-                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
-                        .raw_account
-                        .into(),
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].raw_account,
                 );
 
                 let expected_slashing_event = EventRecord {
@@ -604,9 +600,7 @@ mod pallets_interact {
             new_test_ext().execute_with(|| {
                 let session = Session::current_index();
                 let offender_account = AccountId32::new(
-                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
-                        .raw_account
-                        .into(),
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].raw_account,
                 );
 
                 const EQUIVOCATION_KIND: &offence::Kind = b"im-online:offlin";
@@ -637,9 +631,7 @@ mod pallets_interact {
         fn notified_by_grandpa() {
             new_test_ext().execute_with(|| {
                 let offender_account = AccountId32::new(
-                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
-                        .raw_account
-                        .into(),
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].raw_account,
                 );
                 let offender = get_from_seed::<GrandpaId>(
                     testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].session_key_seed,
@@ -669,7 +661,7 @@ mod pallets_interact {
                     let prevote_msg = finality_grandpa::Message::Prevote(prevote.clone());
                     let payload =
                         sp_consensus_grandpa::localized_payload(round, set_id, &prevote_msg);
-                    let signed = offender.sign(&payload).into();
+                    let signed = offender.sign(&payload);
                     (prevote, signed)
                 };
                 let first_vote = create_signed_prevote(H256::random());
@@ -705,9 +697,7 @@ mod pallets_interact {
         fn notified_by_babe() {
             new_test_ext().execute_with(|| {
                 let offender_account = AccountId32::new(
-                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
-                        .raw_account
-                        .into(),
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].raw_account,
                 );
                 let offender = get_from_seed::<BabeId>(
                     testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].session_key_seed,

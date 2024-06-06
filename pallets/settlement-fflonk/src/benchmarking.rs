@@ -45,8 +45,8 @@ mod benchmarks {
         // setup code
         let caller = whitelisted_caller();
         let vk: crate::vk::Vk = fflonk_verifier::VerificationKey::default().into();
-        Vks::<T>::insert(DEFAULT_VK_HASH.clone(), vk);
-        let vk_or_hash = Some(VkOrHash::Hash(DEFAULT_VK_HASH.clone()));
+        Vks::<T>::insert(DEFAULT_VK_HASH, vk);
+        let vk_or_hash = Some(VkOrHash::Hash(DEFAULT_VK_HASH));
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), VALID_PROOF.into(), vk_or_hash);
@@ -74,7 +74,7 @@ mod benchmarks {
         register_vk(RawOrigin::Signed(caller), vk);
 
         // Verify
-        assert!(Vks::<T>::get(&DEFAULT_VK_HASH.clone()).is_some());
+        assert!(Vks::<T>::get(DEFAULT_VK_HASH).is_some());
     }
 
     impl_benchmark_test_suite!(
