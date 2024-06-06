@@ -1,0 +1,19 @@
+[package]
+name = "pallet-verifiers-macros"
+version = "0.1.0"
+description = "A procedural macro pallet that implements some simple utilities for a new verifier pallet"
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+license = "Apache-2.0"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1.0.36"
+syn = "2.0.66"
+derive-syn-parse = "0.2.0"
+proc-macro-crate = "3.1.0"
+rstest.workspace = true

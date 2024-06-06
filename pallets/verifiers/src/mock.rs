@@ -12,10 +12,9 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+#![cfg(test)]
 
 use frame_support::{derive_impl, weights::Weight};
-use frame_system;
-use rstest::fixture;
 use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
 use hp_verifiers::{Verifier, VerifyError, WeightInfo};
@@ -24,7 +23,8 @@ pub mod on_proof_verified {
     pub use pallet::*;
 
     #[frame_support::pallet]
-    pub mod pallet {
+    #[allow(unused_imports)]
+    mod pallet {
         use frame_support::pallet_prelude::*;
         use sp_core::H256;
 
@@ -57,68 +57,73 @@ pub mod on_proof_verified {
     }
 }
 
-/// - Accept Proof iff proof == pubs and vk != 0.
-/// - If vk == 0 the vk is invalid and raise InvalidVerificationKey
-/// - If proof == 0 the proof is invalid and raise InvalidProofData
-/// - If pubs == 0 pubs are invalid raise InvalidInput
-/// - Otherwise
-///     - proof != pubs the proof raise a VerifyError
-///
-pub struct FakeVerifier;
+pub mod fake_pallet {
+    use super::*;
 
-impl FakeVerifier {
-    pub fn malformed_vk() -> Box<<Self as Verifier>::Vk> {
-        Box::new(0)
+    /// - Accept Proof iff proof == pubs and vk != 0.
+    /// - If vk == 0 the vk is invalid and raise InvalidVerificationKey
+    /// - If proof == 0 the proof is invalid and raise InvalidProofData
+    /// - If pubs == 0 pubs are invalid raise InvalidInput
+    /// - Otherwise
+    ///     - proof != pubs the proof raise a VerifyError
+    ///
+    #[crate::verifier]
+    pub struct FakeVerifier;
+
+    impl FakeVerifier {
+        pub fn malformed_vk() -> Box<<Self as Verifier>::Vk> {
+            Box::new(0)
+        }
+
+        pub fn malformed_proof() -> Box<<Self as Verifier>::Proof> {
+            Box::new(0)
+        }
+
+        pub fn malformed_pubs() -> Box<<Self as Verifier>::Pubs> {
+            Box::new(0)
+        }
     }
 
-    pub fn malformed_proof() -> Box<<Self as Verifier>::Proof> {
-        Box::new(0)
-    }
+    impl Verifier for FakeVerifier {
+        type Proof = u64;
 
-    pub fn malformed_pubs() -> Box<<Self as Verifier>::Pubs> {
-        Box::new(0)
+        type Pubs = u64;
+
+        type Vk = u64;
+
+        fn hash_context_data() -> &'static [u8] {
+            b"fake"
+        }
+
+        fn verify_proof(
+            vk: &Self::Vk,
+            proof: &Self::Proof,
+            pubs: &Self::Pubs,
+        ) -> Result<(), VerifyError> {
+            match (*vk, *proof, *pubs) {
+                (0, _, _) => Err(VerifyError::InvalidVerificationKey),
+                (_, 0, _) => Err(VerifyError::InvalidProofData),
+                (_, _, 0) => Err(VerifyError::InvalidInput),
+                (_vk, proof, pubs) if proof == pubs => Ok(()),
+                _ => Err(VerifyError::VerifyError),
+            }
+        }
+
+        fn validate_vk(vk: &Self::Vk) -> Result<(), VerifyError> {
+            if *vk == 0 {
+                Err(VerifyError::InvalidVerificationKey)
+            } else {
+                Ok(())
+            }
+        }
+        fn pubs_bytes(pubs: &Self::Pubs) -> sp_std::borrow::Cow<[u8]> {
+            sp_std::borrow::Cow::Owned(pubs.to_be_bytes().into())
+        }
     }
 }
 
+pub use fake_pallet::FakeVerifier;
 pub struct MockWeightInfo;
-
-impl Verifier for FakeVerifier {
-    type Proof = u64;
-
-    type Pubs = u64;
-
-    type Vk = u64;
-
-    fn hash_context_data() -> &'static [u8] {
-        b"fake"
-    }
-
-    fn verify_proof(
-        vk: &Self::Vk,
-        proof: &Self::Proof,
-        pubs: &Self::Pubs,
-    ) -> Result<(), VerifyError> {
-        match (*vk, *proof, *pubs) {
-            (0, _, _) => Err(VerifyError::InvalidVerificationKey),
-            (_, 0, _) => Err(VerifyError::InvalidProofData),
-            (_, _, 0) => Err(VerifyError::InvalidInput),
-            (_vk, proof, pubs) if proof == pubs => Ok(()),
-            _ => Err(VerifyError::VerifyError),
-        }
-    }
-
-    fn validate_vk(vk: &Self::Vk) -> Result<(), VerifyError> {
-        if *vk == 0 {
-            Err(VerifyError::InvalidVerificationKey)
-        } else {
-            Ok(())
-        }
-    }
-    fn pubs_bytes(pubs: &Self::Pubs) -> sp_std::borrow::Cow<[u8]> {
-        sp_std::borrow::Cow::Owned(pubs.to_be_bytes().into())
-    }
-}
-
 impl WeightInfo<FakeVerifier> for MockWeightInfo {
     fn submit_proof(_proof: &u64, _pubs: &u64) -> Weight {
         Weight::from_parts(1, 2)
@@ -138,7 +143,7 @@ frame_support::construct_runtime!(
     pub enum Test
     {
         System: frame_system,
-        FakeVerifierPallet: crate::<FakeVerifier>,
+        FakeVerifierPallet: fake_pallet,
         OnProofVerifiedMock: on_proof_verified,
     }
 );
@@ -156,12 +161,11 @@ impl crate::Config<FakeVerifier> for Test {
     type WeightInfo = MockWeightInfo;
 }
 
-impl on_proof_verified::pallet::Config for Test {
+impl on_proof_verified::Config for Test {
     type RuntimeEvent = RuntimeEvent;
 }
 
 /// Build genesis storage according to the mock runtime.
-#[fixture]
 pub fn test_ext() -> sp_io::TestExternalities {
     let mut ext = sp_io::TestExternalities::from(
         frame_system::GenesisConfig::<Test>::default()

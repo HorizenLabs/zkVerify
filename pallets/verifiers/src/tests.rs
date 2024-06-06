@@ -12,6 +12,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+#![cfg(test)]
 
 use frame_support::dispatch::{GetDispatchInfo, Pays};
 use frame_support::{assert_noop, assert_ok};
@@ -26,6 +27,11 @@ use rstest::{fixture, rstest};
 type Vk = <FakeVerifier as Verifier>::Vk;
 type RError = Error<Test, FakeVerifier>;
 type VkOrHash = super::VkOrHash<Vk>;
+
+#[fixture]
+pub fn test_ext() -> sp_io::TestExternalities {
+    crate::mock::test_ext()
+}
 
 mod register_should {
     use hex_literal::hex;

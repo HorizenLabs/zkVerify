@@ -1,20 +1,73 @@
+// Copyright 2024, Horizen Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #![cfg_attr(not(feature = "std"), no_std)]
+#![deny(missing_docs)]
 
+//! This crate abstract the implementation of a new verifier pallet.
+//! ```ignore
+//! use pallet_verifiers::verifier;
+//! use hp_verifiers::{Verifier, VerifyError};
+//! /// Follow attribute generate a new verifier pallet in this crate.
+//! #[verifier]
+//! pub struct MyVerifier;
+//!
+//! /// Implement the `Verifier` trait: the verifier business logic.
+//! impl Verifier for MyVerifier {
+//!     type Proof = u64;
+//!
+//!     type Pubs = u64;
+//!
+//!     type Vk = u64;
+//!
+//!     fn hash_context_data() -> &'static [u8] {
+//!         b"my"
+//!     }
+//!
+//!     fn verify_proof(
+//!         vk: &Self::Vk,
+//!         proof: &Self::Proof,
+//!         pubs: &Self::Pubs,
+//!     ) -> Result<(), VerifyError> {
+//!         (vk == proof && pubs == proof).then_some(()).ok_or(VerifyError::VerifyError)
+//!     }
+//!
+//!     fn validate_vk(vk: &Self::Vk) -> Result<(), VerifyError> {
+//!         if *vk == 0 {
+//!             Err(VerifyError::InvalidVerificationKey)
+//!         } else {
+//!             Ok(())
+//!         }
+//!     }
+//!        
+//!     fn pubs_bytes(pubs: &Self::Pubs) -> sp_std::borrow::Cow<[u8]> {
+//!         sp_std::borrow::Cow::Owned(pubs.to_be_bytes().into())
+//!     }
+//! }
+//! ```
+//! Your crate should also implement a struct that implement `hp_verifiers::WeightInfo<YourVerifierStruct>`
+//! trait. This struct is used to define the weight of the verifier pallet and should map the generic
+//! request in you weight implementation computed with your benchmark.
 pub use pallet::*;
-
-#[cfg(test)]
-pub mod mock;
-#[cfg(test)]
+pub use pallet_verifiers_macros::*;
+mod mock;
 mod tests;
-
-#[cfg(test)]
-pub use mock::FakeVerifier;
-
-pub use fflonk_verifier::Fflonk;
 
 pub use hp_verifiers::WeightInfo;
 
-#[frame_support::pallet(dev_mode)]
+#[frame_support::pallet]
 pub mod pallet {
 
     use codec::Encode;
@@ -28,14 +81,18 @@ pub mod pallet {
     use hp_verifiers::{Verifier, VerifyError, WeightInfo};
 
     #[pallet::pallet]
+    /// The pallet component.
     pub struct Pallet<T, I = ()>(_);
 
+    /// A complete Verification Key or its hash.
     #[derive(Debug, Clone, PartialEq, Encode, Decode, TypeInfo, MaxEncodedLen)]
     pub enum VkOrHash<K>
     where
         K: sp_std::fmt::Debug + Clone + PartialEq + Encode + Decode + TypeInfo + MaxEncodedLen,
     {
+        /// The Vk hash
         Hash(H256),
+        /// The Vk
         Vk(Box<K>),
     }
 
@@ -43,10 +100,12 @@ pub mod pallet {
     where
         K: sp_std::fmt::Debug + Clone + PartialEq + Encode + Decode + TypeInfo + MaxEncodedLen,
     {
+        /// Take a verification key and return a `VkOrHash`
         pub fn from_vk(vk: K) -> Self {
             VkOrHash::Vk(Box::new(vk))
         }
 
+        /// Take an hash and return a `VkOrHash`
         pub fn from_hash(hash: H256) -> Self {
             VkOrHash::Hash(hash)
         }
@@ -95,7 +154,11 @@ pub mod pallet {
     where
         I: Verifier,
     {
-        VkRegistered { hash: H256 },
+        /// The Vk has been registered.
+        VkRegistered {
+            /// Verification key hash
+            hash: H256,
+        },
     }
 
     // Errors inform users that something went wrong.
@@ -126,7 +189,7 @@ pub mod pallet {
 
     #[pallet::storage]
     #[pallet::getter(fn vks)]
-    type Vks<T: Config<I>, I: 'static = ()>
+    pub type Vks<T: Config<I>, I: 'static = ()>
     where
         I: Verifier,
     = StorageMap<Hasher = Identity, Key = H256, Value = I::Vk>;
@@ -139,6 +202,10 @@ pub mod pallet {
     where
         I: Verifier,
     {
+        /// Submit a proof and accept it if and only if is valid.
+        /// On success emit a `poe::NewElement` event.
+        /// Accept either a Vk or its hash. If you use the Vk hash the Vk should be already registered
+        /// with `register_vk` extrinsic.
         #[pallet::call_index(0)]
         #[pallet::weight(match &vk_or_hash {
                 VkOrHash::Vk(_) => T::WeightInfo::submit_proof(proof, pubs),
@@ -168,6 +235,8 @@ pub mod pallet {
             Ok(().into())
         }
 
+        /// Register a new verification key.
+        /// On success emit a `VkRegistered` event that contain the hash to use on `submit_proof`.
         #[pallet::call_index(1)]
         #[pallet::weight(T::WeightInfo::register_vk(vk))]
         pub fn register_vk(_origin: OriginFor<T>, vk: Box<I::Vk>) -> DispatchResultWithPostInfo {
@@ -180,7 +249,8 @@ pub mod pallet {
         }
     }
 
-    fn hash_key<I: Verifier>(vk: &I::Vk) -> H256 {
+    /// Compute the Vk hash
+    pub fn hash_key<I: Verifier>(vk: &I::Vk) -> H256 {
         H256(keccak_256(&I::vk_bytes(vk)))
     }
 
@@ -189,10 +259,10 @@ pub mod pallet {
         use core::marker::PhantomData;
 
         use crate::{
+            mock::FakeVerifier,
             tests::submit_proof_should::{
                 REGISTERED_VK, REGISTERED_VK_HASH, VALID_HASH_REGISTERED_VK,
             },
-            FakeVerifier,
         };
 
         use super::*;

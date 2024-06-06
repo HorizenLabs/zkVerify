@@ -540,31 +540,10 @@ impl pallet_offences::Config for Runtime {
     type OnOffenceHandler = Staking;
 }
 
-pub struct FflonkWeight;
-impl pallet_verifiers::WeightInfo<pallet_verifiers::Fflonk> for FflonkWeight {
-    fn submit_proof(
-        _proof: &<pallet_verifiers::Fflonk as hp_verifiers::Verifier>::Proof,
-        _pubs: &<pallet_verifiers::Fflonk as hp_verifiers::Verifier>::Pubs,
-    ) -> Weight {
-        Weight::from_parts(1, 2)
-    }
-
-    fn submit_proof_with_vk_hash(
-        _proof: &<pallet_verifiers::Fflonk as hp_verifiers::Verifier>::Proof,
-        _pubs: &<pallet_verifiers::Fflonk as hp_verifiers::Verifier>::Pubs,
-    ) -> Weight {
-        Weight::from_parts(3, 4)
-    }
-
-    fn register_vk(_vk: &<pallet_verifiers::Fflonk as hp_verifiers::Verifier>::Vk) -> Weight {
-        Weight::from_parts(5, 6)
-    }
-}
-
-impl pallet_verifiers::Config<pallet_verifiers::Fflonk> for Runtime {
+impl pallet_verifiers::Config<pallet_fflonk_verifier::Fflonk> for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
-    type WeightInfo = FflonkWeight;
+    type WeightInfo = pallet_fflonk_verifier::FflonkWeight<(), Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -587,7 +566,7 @@ construct_runtime!(
         SettlementFFlonkPallet: pallet_settlement_fflonk,
         Poe: pallet_poe,
         SettlementZksyncPallet: pallet_settlement_zksync,
-        FFlonkVerifier: pallet_verifiers::<Fflonk>,
+        FFlonkVerifier: pallet_fflonk_verifier,
         SettlementGroth16Pallet: pallet_settlement_groth16,
         SettlementRisc0Pallet: pallet_settlement_risc0,
     }
@@ -654,6 +633,7 @@ mod benches {
         [pallet_poe, Poe]
         [pallet_settlement_fflonk, SettlementFFlonkPallet]
         [pallet_settlement_zksync, SettlementZksyncPallet]
+        [palllet_verifier_fflonk, FflonkVerifierBench::<Runtime>]
         [pallet_settlement_groth16, SettlementGroth16Pallet]
         [pallet_settlement_risc0, SettlementRisc0Pallet]
     );
@@ -899,10 +879,11 @@ impl_runtime_apis! {
             use baseline::Pallet as BaselineBench;
             use pallet_election_provider_support_benchmarking::Pallet as ElectionProviderBench;
             use pallet_session_benchmarking::Pallet as SessionBench;
+            use pallet_fflonk_verifier::benchmarking::Pallet as FflonkVerifierBench;
 
             let mut list = Vec::<BenchmarkList>::new();
-            list_benchmarks!(list, extra);
 
+            list_benchmarks!(list, extra);
             let storage_info = AllPalletsWithSystem::storage_info();
 
             (list, storage_info)
@@ -917,6 +898,7 @@ impl_runtime_apis! {
             use baseline::Pallet as BaselineBench;
             use pallet_election_provider_support_benchmarking::Pallet as ElectionProviderBench;
             use pallet_session_benchmarking::Pallet as SessionBench;
+            use pallet_fflonk_verifier::benchmarking::Pallet as FflonkVerifierBench;
 
             impl frame_system_benchmarking::Config for Runtime {}
             impl baseline::Config for Runtime {}

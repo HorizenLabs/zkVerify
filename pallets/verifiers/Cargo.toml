@@ -1,5 +1,6 @@
 [package]
 name = "pallet-verifiers"
+description = "Abstract verification pallets and provide the commons extrinsics"
 version = "0.1.0"
 edition.workspace = true
 authors.workspace = true
@@ -14,6 +15,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 codec = { workspace = true }
 scale-info = { workspace = true }
 frame-support = { workspace = true }
+frame-benchmarking = { workspace = true, optional = true }
 
 log = "0.4.20"
 
@@ -25,10 +27,10 @@ sp-std = { workspace = true }
 
 hp-poe = { workspace = true }
 hp-verifiers = { workspace = true }
-fflonk-verifier = { workspace = true }
+pallet-verifiers-macros = { workspace = true }
 
 [dev-dependencies]
-rstest = "0.20.0"
+rstest = { workspace = true }
 hex-literal = { version = "0.4.1" }
 
 [features]
@@ -37,6 +39,7 @@ std = [
     "codec/std",
     "frame-support/std",
     "frame-system/std",
+    "frame-benchmarking/std",
     "scale-info/std",
     "sp-std/std",
     "sp-core/std",
@@ -46,3 +49,8 @@ std = [
     "hp-poe/std",
 ]
 try-runtime = ["frame-support/try-runtime", "frame-system/try-runtime"]
+runtime-benchmarks = [
+    "frame-benchmarking/runtime-benchmarks",
+    "frame-system/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
+]

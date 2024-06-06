@@ -17,6 +17,7 @@ members = [
     "pallets/settlement-groth16",
     "native",
     "pallets/verifiers",
+    "pallets/verifiers/macros",
     "primitives/hp-verifiers",
     "verifiers/fflonk",
     "pallets/settlement-risc0",
@@ -64,8 +65,9 @@ pallet-settlement-groth16 = { path = "pallets/settlement-groth16", default-featu
 pallet-settlement-risc0 = { path = "pallets/settlement-risc0", default-features = false }
 pallet-poe = { path = "pallets/proof_of_existence", default-features = false }
 pallet-verifiers = { path = "pallets/verifiers", default-features = false }
+pallet-verifiers-macros = { path = "pallets/verifiers/macros" }
 hp-verifiers = { path = "primitives/hp-verifiers", default-features = false }
-fflonk-verifier = { path = "verifiers/fflonk", default-features = false }
+pallet-fflonk-verifier = { path = "verifiers/fflonk", default-features = false }
 
 nh-runtime = { path = "runtime", default-features = false }
 

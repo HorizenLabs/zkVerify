@@ -89,6 +89,7 @@ proof-of-existence-rpc-runtime-api = { default-features = false, workspace = tru
 
 pallet-verifiers = { default-features = false, workspace = true }
 hp-verifiers = { default-features = false, workspace = true }
+pallet-fflonk-verifier = { default-features = false, workspace = true }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -116,6 +117,8 @@ runtime-benchmarks = [
 	"pallet-poe/runtime-benchmarks",
 	"pallet-staking/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
+	"pallet-verifiers/runtime-benchmarks",
+	"pallet-fflonk-verifier/runtime-benchmarks",
 ]
 default = ["std"]
 std = [
@@ -169,6 +172,7 @@ std = [
 	"sp-version/std",
 	"sp-weights/std",
 	"pallet-verifiers/std",
+	"pallet-fflonk-verifier/std",
 	"hp-verifiers/std",
 	"substrate-wasm-builder",
 ]
