@@ -4,7 +4,8 @@ use ark_serialize::SerializationError;
 use codec::{Decode, Encode};
 use core::fmt::Debug;
 use scale_info::TypeInfo;
-
+use sp_std::vec;
+use sp_std::vec::Vec;
 #[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
 pub struct G1(pub Vec<u8>);
 
@@ -138,7 +139,7 @@ mod test {
     use super::*;
     use ark_bls12_381::Bls12_381;
     use ark_bn254::Bn254;
-    use ark_ec::pairing::Pairing;
+    use ark_ec::{pairing::Pairing, CurveGroup, Group};
     use ark_ff::UniformRand;
     use ark_std::rand::{rngs::StdRng, SeedableRng};
 

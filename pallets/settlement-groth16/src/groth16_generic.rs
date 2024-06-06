@@ -1,6 +1,7 @@
 use ark_ec::pairing::Pairing;
 use ark_groth16::prepare_verifying_key;
 use core::marker::PhantomData;
+use sp_std::vec::Vec;
 
 pub use crate::data_structures::{Proof, Scalar, VerificationKey};
 

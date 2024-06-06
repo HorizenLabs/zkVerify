@@ -3,7 +3,7 @@
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
-#[cfg(any(test, feature = "runtime-benchmarks"))]
+#[cfg(test)]
 pub mod mock;
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
@@ -32,6 +32,7 @@ pub mod pallet {
     use hp_poe::OnProofVerified;
     use sp_core::H256;
     use sp_io::hashing::keccak_256;
+    use sp_std::vec::Vec;
 
     #[pallet::pallet]
     pub struct Pallet<T>(_);

@@ -3,6 +3,7 @@ use ark_bn254::Bn254;
 use codec::{Decode, Encode, MaxEncodedLen};
 use core::fmt::Debug;
 use scale_info::TypeInfo;
+use sp_std::vec::Vec;
 
 pub use crate::data_structures::{Proof, Scalar};
 pub use crate::groth16_generic::Groth16Error;

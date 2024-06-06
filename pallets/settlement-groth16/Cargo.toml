@@ -15,8 +15,6 @@ targets = ["x86_64-unknown-linux-gnu"]
 [dependencies]
 codec = { workspace = true }
 scale-info = { workspace = true }
-hex = "0.4"
-paste = { version = "1.0.6" }
 
 # frame deps
 frame-benchmarking = { workspace = true, optional = true }
@@ -47,10 +45,11 @@ rstest.workspace = true
 default = ["std"]
 std = [
 	"codec/std",
-	"frame-benchmarking?/std",
+	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
 	"scale-info/std",
+	"sp-std/std",
 	"sp-core/std",
 	"sp-io/std",
 	"sp-runtime/std",
