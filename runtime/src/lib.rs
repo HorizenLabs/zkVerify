@@ -340,10 +340,11 @@ impl pallet_settlement_zksync::Config for Runtime {
     type WeightInfo = weights::pallet_settlement_zksync::NHWeight<Runtime>;
 }
 
+pub const GROTH16_MAX_NUM_INPUTS: u32 = 16;
 impl pallet_settlement_groth16::Config for Runtime {
     type OnProofVerified = Poe;
     type WeightInfo = weights::pallet_settlement_groth16::NHWeight<Runtime>;
-    const MAX_NUM_INPUTS: usize = 16;
+    type MaxNumInputs = ConstU32<GROTH16_MAX_NUM_INPUTS>;
 }
 
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;

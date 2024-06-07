@@ -41,7 +41,8 @@ pub mod pallet {
     pub trait Config: frame_system::Config {
         type OnProofVerified: OnProofVerified;
         type WeightInfo: WeightInfo;
-        const MAX_NUM_INPUTS: usize;
+        #[pallet::constant]
+        type MaxNumInputs: Get<u32>;
     }
 
     #[pallet::error]

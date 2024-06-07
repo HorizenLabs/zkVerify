@@ -10,8 +10,10 @@ use frame_system::RawOrigin;
 mod benchmarks {
     use super::*;
 
+    const MAX_NUM_INPUTS: u32 = T::MaxNumInputs::get();
+
     #[benchmark]
-    fn submit_proof_bn254(n: Linear<0, 16>) {
+    fn submit_proof_bn254(n: Linear<0, MAX_NUM_INPUTS>) {
         // setup code
         let caller = whitelisted_caller();
         let (proof, vk, inputs) = Groth16::get_instance(n as usize, None, Curve::Bn254);
@@ -21,7 +23,7 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn submit_proof_bls12_381(n: Linear<0, 16>) {
+    fn submit_proof_bls12_381(n: Linear<0, MAX_NUM_INPUTS>) {
         // setup code
         let caller = whitelisted_caller();
         let (proof, vk, inputs) = Groth16::get_instance(n as usize, None, Curve::Bls12_381);
