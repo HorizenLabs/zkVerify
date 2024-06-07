@@ -19,7 +19,6 @@ use futures::FutureExt;
 use nh_runtime::{self, opaque::Block, RuntimeApi};
 use sc_client_api::{Backend, BlockBackend};
 use sc_consensus_babe::{BabeBlockImport, SlotProportion};
-use sc_consensus_grandpa::SharedVoterState;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager, WarpSyncParams};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
@@ -337,15 +336,18 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 
         let grandpa_config = sc_consensus_grandpa::Config {
             // FIXME #1578 make this available through chainspec
-            gossip_duration: Duration::from_millis(333),
+            gossip_duration: Duration::from_millis(1000),
             justification_generation_period: GRANDPA_JUSTIFICATION_PERIOD,
             name: Some(name),
-            observer_enabled: false,
+            observer_enabled: false, // not needed, as all the nodes run the full protocol
             keystore,
             local_role: role,
             telemetry: telemetry.as_ref().map(|x| x.handle()),
             protocol_name: grandpa_protocol_name,
         };
+
+        // Defaults to using BeforeBestBlockBy(2) (for the upper bound) plus ThreeQuartersOfTheUnfinalizedChain (for the lower bound)
+        let voting_rule_builder = sc_consensus_grandpa::VotingRulesBuilder::default();
 
         // start the full GRANDPA voter
         // NOTE: non-authorities could run the GRANDPA observer protocol, but at
@@ -359,9 +361,9 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
             network,
             sync: Arc::new(sync_service),
             notification_service: grandpa_notification_service,
-            voting_rule: (),
+            voting_rule: voting_rule_builder.build(),
             prometheus_registry,
-            shared_voter_state: SharedVoterState::empty(),
+            shared_voter_state: sc_consensus_grandpa::SharedVoterState::empty(),
             telemetry: telemetry.as_ref().map(|x| x.handle()),
             offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool),
         };
