@@ -41,8 +41,7 @@ pub mod pallet {
     pub trait Config: frame_system::Config {
         type OnProofVerified: OnProofVerified;
         type WeightInfo: WeightInfo;
-        #[pallet::constant]
-        type MaxNumInputs: Get<u32>;
+        const MAX_NUM_INPUTS: u32;
     }
 
     #[pallet::error]
@@ -73,33 +72,30 @@ pub mod pallet {
         pub fn submit_proof(
             _origin: OriginFor<T>,
             proof: Proof,
-            vk: VerificationKeyWithCurve,
+            vk: Box<VerificationKeyWithCurve>,
             input: Vec<Scalar>,
         ) -> DispatchResult {
-            if input.len() > T::MAX_NUM_INPUTS {
-                return Err(Error::<T>::TooManyInputs).map_err(Into::into);
+            if input.len() > T::MAX_NUM_INPUTS as usize {
+                return Err(Into::into(Error::<T>::TooManyInputs));
             }
             if input.len() + 1 != vk.gamma_abc_g1.len() {
-                return Err(Error::<T>::VkAndInputsMismatch).map_err(Into::into);
+                return Err(Into::into(Error::<T>::VkAndInputsMismatch));
             }
 
-            let result = Groth16::verify_proof(proof, vk.clone(), &input);
+            let result = Groth16::verify_proof(proof, *vk.clone(), &input);
 
             match result {
-                Ok(true) => Ok(T::OnProofVerified::on_proof_verified(compute_groth16_hash(
-                    &vk, &input,
-                ))),
-                Ok(false) => Err(Error::<T>::VerifyError).map_err(Into::into),
-                Err(Groth16Error::InvalidProof) => {
-                    Err(Error::<T>::InvalidProof).map_err(Into::into)
+                Ok(true) => {
+                    T::OnProofVerified::on_proof_verified(compute_groth16_hash(&vk, &input));
+                    Ok(())
                 }
+                Ok(false) => Err(Into::into(Error::<T>::VerifyError)),
+                Err(Groth16Error::InvalidProof) => Err(Into::into(Error::<T>::InvalidProof)),
                 Err(Groth16Error::InvalidVerificationKey) => {
-                    Err(Error::<T>::InvalidVerificationKey).map_err(Into::into)
+                    Err(Into::into(Error::<T>::InvalidVerificationKey))
                 }
-                Err(Groth16Error::VerifyError) => Err(Error::<T>::VerifyError).map_err(Into::into),
-                Err(Groth16Error::InvalidInput) => {
-                    Err(Error::<T>::InvalidInput).map_err(Into::into)
-                }
+                Err(Groth16Error::VerifyError) => Err(Into::into(Error::<T>::VerifyError)),
+                Err(Groth16Error::InvalidInput) => Err(Into::into(Error::<T>::InvalidInput)),
             }
         }
     }

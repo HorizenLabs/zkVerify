@@ -75,7 +75,7 @@ impl frame_system::Config for Test {
 impl crate::Config for Test {
     type OnProofVerified = OnProofVerifiedMock;
     type WeightInfo = MockWeightInfo;
-    type MaxNumInputs = ConstU32<16>;
+    const MAX_NUM_INPUTS: u32 = 16;
 }
 
 impl on_proof_verified::pallet::Config for Test {
