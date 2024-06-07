@@ -23,8 +23,12 @@
 use std::sync::Arc;
 
 use jsonrpsee::RpcModule;
-use nh_runtime::{currency::Balance, opaque::Block, AccountId, Nonce};
-use sc_consensus_babe::BabeApi;
+use nh_runtime::{currency::Balance, opaque::Block, AccountId, BlockNumber, Hash, Nonce};
+use sc_consensus_babe::{BabeApi, BabeWorkerHandle};
+use sc_consensus_grandpa::{
+    FinalityProofProvider, GrandpaJustificationStream, SharedAuthoritySet, SharedVoterState,
+};
+pub use sc_rpc::SubscriptionTaskExecutor;
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
@@ -36,12 +40,26 @@ pub use sc_rpc_api::DenyUnsafe;
 
 #[derive(Clone)]
 pub struct BabeDeps {
-    pub babe_worker_handle: sc_consensus_babe::BabeWorkerHandle<Block>,
+    pub babe_worker_handle: BabeWorkerHandle<Block>,
     pub keystore: KeystorePtr,
 }
 
+/// Extra dependencies for GRANDPA
+pub struct GrandpaDeps<B> {
+    /// Voting round info.
+    pub shared_voter_state: SharedVoterState,
+    /// Authority set info.
+    pub shared_authority_set: SharedAuthoritySet<Hash, BlockNumber>,
+    /// Receives notifications about justification events from Grandpa.
+    pub justification_stream: GrandpaJustificationStream<Block>,
+    /// Executor to drive the subscription manager in the Grandpa RPC handler.
+    pub subscription_executor: SubscriptionTaskExecutor,
+    /// Finality proof provider.
+    pub finality_provider: Arc<FinalityProofProvider<B, Block>>,
+}
+
 /// Full client dependencies.
-pub struct FullDeps<C, P, SC> {
+pub struct FullDeps<C, P, SC, B> {
     /// The client instance to use.
     pub client: Arc<C>,
     /// Transaction pool instance.
@@ -52,11 +70,13 @@ pub struct FullDeps<C, P, SC> {
     pub deny_unsafe: DenyUnsafe,
     /// BABE specific dependencies
     pub babe: BabeDeps,
+    /// GRANDPA specific dependencies
+    pub grandpa: GrandpaDeps<B>,
 }
 
 /// Instantiate all full RPC extensions.
-pub fn create_full<C, P, SC>(
-    deps: FullDeps<C, P, SC>,
+pub fn create_full<C, P, SC, B>(
+    deps: FullDeps<C, P, SC, B>,
 ) -> Result<RpcModule<()>, Box<dyn std::error::Error + Send + Sync>>
 where
     C: ProvideRuntimeApi<Block>,
@@ -69,10 +89,13 @@ where
     C::Api: BlockBuilder<Block>,
     P: TransactionPool + 'static,
     SC: SelectChain<Block> + 'static,
+    B: sc_client_api::Backend<Block> + Send + Sync + 'static,
+    B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashingFor<Block>>,
 {
     use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
     use proof_of_existence_rpc::{PoE, PoEApiServer};
     use sc_consensus_babe_rpc::{Babe, BabeApiServer};
+    use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
     use substrate_frame_rpc_system::{System, SystemApiServer};
 
     let mut module = RpcModule::new(());
@@ -82,12 +105,21 @@ where
         select_chain,
         deny_unsafe,
         babe,
+        grandpa,
     } = deps;
 
     let BabeDeps {
         babe_worker_handle,
         keystore,
     } = babe;
+
+    let GrandpaDeps {
+        shared_voter_state,
+        shared_authority_set,
+        justification_stream,
+        subscription_executor,
+        finality_provider,
+    } = grandpa;
 
     module.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
     module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
@@ -98,6 +130,16 @@ where
             keystore,
             select_chain,
             deny_unsafe,
+        )
+        .into_rpc(),
+    )?;
+    module.merge(
+        Grandpa::new(
+            subscription_executor,
+            shared_authority_set.clone(),
+            shared_voter_state,
+            justification_stream,
+            finality_provider,
         )
         .into_rpc(),
     )?;

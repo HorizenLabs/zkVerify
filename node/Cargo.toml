@@ -37,6 +37,7 @@ sc-consensus-babe-rpc = { workspace = true }
 sp-consensus-babe = { workspace = true }
 sc-consensus = { workspace = true }
 sc-consensus-grandpa = { workspace = true }
+sc-consensus-grandpa-rpc = { workspace = true }
 sp-consensus-grandpa = { workspace = true }
 sc-client-api = { workspace = true }
 sp-runtime = { workspace = true }

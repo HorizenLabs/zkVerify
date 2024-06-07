@@ -40,6 +40,7 @@ sc-consensus-babe = { version = "0.33.0" }
 sc-consensus-babe-rpc = { version = "0.33.0" }
 sc-consensus = { version = "0.32.0" }
 sc-consensus-grandpa = { version = "0.18.0" }
+sc-consensus-grandpa-rpc = { version = "0.18.0" }
 sc-client-api = { version = "27.0.0" }
 sc-sysinfo = { version = "26.0.0" }
 
