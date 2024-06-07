@@ -150,15 +150,25 @@ impl<E: Pairing> TryFrom<ark_groth16::VerifyingKey<E>> for VerificationKey {
 
 #[cfg(test)]
 #[macro_use]
-mod test {
+mod serialize_deserialize {
     use super::*;
     use ark_bls12_381::Bls12_381;
     use ark_bn254::Bn254;
     use ark_ec::pairing::Pairing;
     use ark_ff::UniformRand;
     use ark_std::rand::{rngs::StdRng, SeedableRng};
+    use core::marker::PhantomData;
+    use rstest::rstest;
+    use rstest_reuse::{apply, template};
 
-    fn serialize_deserialize_g1<E: Pairing>() {
+    #[template]
+    #[rstest]
+    #[case::bn254(PhantomData::<Bn254>)]
+    #[case::bls12_381(PhantomData::<Bls12_381>)]
+    fn curves<P: Pairing>(#[case] _p: P) {}
+
+    #[apply(curves)]
+    fn g1<E: Pairing>(_p: PhantomData<E>) {
         let mut rng = StdRng::seed_from_u64(0);
 
         let point: E::G1Affine = <E::G1 as UniformRand>::rand(&mut rng).into();
@@ -168,7 +178,8 @@ mod test {
         assert_eq!(point, deserialized_point);
     }
 
-    fn serialize_deserialize_g2<E: Pairing>() {
+    #[apply(curves)]
+    fn g2<E: Pairing>(_p: PhantomData<E>) {
         let mut rng = StdRng::seed_from_u64(0);
 
         let point: E::G2Affine = <E::G2 as UniformRand>::rand(&mut rng).into();
@@ -178,7 +189,8 @@ mod test {
         assert_eq!(point, deserialized_point);
     }
 
-    fn serialize_deserialize_scalar<E: Pairing>() {
+    #[apply(curves)]
+    fn scalar<E: Pairing>(_p: PhantomData<E>) {
         let mut rng = StdRng::seed_from_u64(0);
 
         let scalar: E::ScalarField = <E::ScalarField as UniformRand>::rand(&mut rng);
@@ -188,7 +200,8 @@ mod test {
         assert_eq!(scalar, deserialized_scalar);
     }
 
-    fn serialize_deserialize_proof<E: Pairing>() {
+    #[apply(curves)]
+    fn proof<E: Pairing>(_p: PhantomData<E>) {
         let mut rng = StdRng::seed_from_u64(0);
 
         let proof = ark_groth16::Proof::<E> {
@@ -203,7 +216,8 @@ mod test {
         assert_eq!(proof, deserialized_proof);
     }
 
-    fn serialize_deserialize_verification_key<E: Pairing>() {
+    #[apply(curves)]
+    fn verification_key<E: Pairing>(_p: PhantomData<E>) {
         let mut rng = StdRng::seed_from_u64(0);
 
         let vk = ark_groth16::VerifyingKey::<E> {
@@ -221,40 +235,5 @@ mod test {
         let deserialized_vk: ark_groth16::VerifyingKey<E> = serialized_vk.try_into().unwrap();
 
         assert_eq!(vk, deserialized_vk);
-    }
-
-    #[test]
-    fn serialize_deserialize_g1_bn254() {
-        serialize_deserialize_g1::<Bn254>()
-    }
-
-    #[test]
-    fn serialize_deserialize_g2_bn254() {
-        serialize_deserialize_g2::<Bn254>()
-    }
-
-    #[test]
-    fn serialize_deserialize_scalar_bn254() {
-        serialize_deserialize_scalar::<Bn254>()
-    }
-
-    #[test]
-    fn serialize_deserialize_proof_bn254() {
-        serialize_deserialize_proof::<Bn254>()
-    }
-
-    #[test]
-    fn serialize_deserialize_verification_key_bn254() {
-        serialize_deserialize_verification_key::<Bn254>()
-    }
-
-    #[test]
-    fn serialize_deserialize_proof_bls12_381() {
-        serialize_deserialize_proof::<Bls12_381>()
-    }
-
-    #[test]
-    fn serialize_deserialize_verification_key_bls12_381() {
-        serialize_deserialize_verification_key::<Bls12_381>()
     }
 }

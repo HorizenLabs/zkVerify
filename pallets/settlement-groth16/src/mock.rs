@@ -17,6 +17,8 @@ use frame_support::{derive_impl, weights::Weight};
 use frame_system;
 use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
+use crate::Config;
+
 pub mod on_proof_verified {
     pub use pallet::*;
 
@@ -53,20 +55,37 @@ pub mod on_proof_verified {
 pub struct MockWeightInfo;
 
 impl MockWeightInfo {
-    pub const REF_TIME: u64 = 42;
-    pub const PROOF_SIZE: u64 = 24;
-    pub const REF_INPUT_TIME: u64 = 3;
+    pub const BN254: MockWeights = MockWeights {
+        ref_time: 10,
+        proof_size: 10,
+        ref_input_time: 1,
+    };
+    pub const BLS12381: MockWeights = MockWeights {
+        ref_time: Self::BN254.ref_time
+            + Self::BN254.ref_input_time * Test::MAX_NUM_INPUTS as u64
+            + 1,
+        proof_size: 100,
+        ref_input_time: 1,
+    };
+}
+
+pub struct MockWeights {
+    pub ref_time: u64,
+    pub proof_size: u64,
+    pub ref_input_time: u64,
 }
 
 impl crate::weight::WeightInfo for MockWeightInfo {
     fn submit_proof_bn254(n: u32) -> Weight {
-        Weight::from_parts(Self::REF_TIME, Self::PROOF_SIZE)
-            .saturating_add(Weight::from_parts(Self::REF_INPUT_TIME, 0).saturating_mul(n.into()))
+        Weight::from_parts(Self::BN254.ref_time, Self::BN254.proof_size).saturating_add(
+            Weight::from_parts(Self::BN254.ref_input_time, 0).saturating_mul(n.into()),
+        )
     }
 
     fn submit_proof_bls12_381(n: u32) -> Weight {
-        Weight::from_parts(Self::REF_TIME, Self::PROOF_SIZE)
-            .saturating_add(Weight::from_parts(Self::REF_INPUT_TIME, 0).saturating_mul(n.into()))
+        Weight::from_parts(Self::BLS12381.ref_time, Self::BLS12381.proof_size).saturating_add(
+            Weight::from_parts(Self::BLS12381.ref_input_time, 0).saturating_mul(n.into()),
+        )
     }
 }
 

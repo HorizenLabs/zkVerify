@@ -40,6 +40,7 @@ hp-poe = { default-features = false, workspace = true }
 
 [dev-dependencies]
 rstest.workspace = true
+rstest_reuse.workspace = true
 
 [features]
 default = ["std"]

@@ -55,41 +55,54 @@ impl<E: Pairing> Groth16Generic<E> {
 }
 
 #[cfg(test)]
-mod test {
+mod verify_proof_should {
     use super::*;
     use ark_bls12_381::Bls12_381;
     use ark_bn254::Bn254;
     use ark_ec::pairing::Pairing;
-    use ark_std::One;
+    use ark_ff::One;
+    use rstest::rstest;
+    use rstest_reuse::{apply, template};
 
-    fn verify_succeeds<E: Pairing>() {
+    #[template]
+    #[rstest]
+    #[case::bn254(PhantomData::<Bn254>)]
+    #[case::bls12_381(PhantomData::<Bls12_381>)]
+    fn curves<P: Pairing>(#[case] _p: P) {}
+
+    #[apply(curves)]
+    fn succeed<E: Pairing>(#[case] _p: PhantomData<E>) {
         let (proof, vk, inputs) = Groth16Generic::<E>::get_instance(10, None);
 
         assert!(Groth16Generic::<E>::verify_proof(proof, vk, &inputs).unwrap())
     }
 
-    fn verify_with_wrong_vk_fails<E: Pairing>() {
+    #[apply(curves)]
+    fn fail_with_wrong_vk<E: Pairing>(#[case] _p: PhantomData<E>) {
         let (proof, _, inputs) = Groth16Generic::<E>::get_instance(10, Some(0));
         let (_, vk, _) = Groth16Generic::<E>::get_instance(10, Some(42));
 
         assert!(!Groth16Generic::<E>::verify_proof(proof, vk, &inputs).unwrap())
     }
 
-    fn verify_with_wrong_inputs_fails<E: Pairing>() {
+    #[apply(curves)]
+    fn fail_with_wrong_inputs<E: Pairing>(#[case] _p: PhantomData<E>) {
         let (proof, vk, _) = Groth16Generic::<E>::get_instance(10, Some(0));
         let (_, _, inputs) = Groth16Generic::<E>::get_instance(10, Some(42));
 
         assert!(!Groth16Generic::<E>::verify_proof(proof, vk, &inputs).unwrap())
     }
 
-    fn verify_with_wrong_proof_fails<E: Pairing>() {
+    #[apply(curves)]
+    fn fail_with_wrong_proof<E: Pairing>(#[case] _p: PhantomData<E>) {
         let (_, vk, inputs) = Groth16Generic::<E>::get_instance(10, Some(0));
         let (proof, _, _) = Groth16Generic::<E>::get_instance(10, Some(42));
 
         assert!(!Groth16Generic::<E>::verify_proof(proof, vk, &inputs).unwrap())
     }
 
-    fn verify_with_malformed_proof_fails_with_correct_error<E: Pairing>() {
+    #[apply(curves)]
+    fn fail_with_malformed_proof<E: Pairing>(#[case] _p: PhantomData<E>) {
         let (mut proof, vk, inputs) = Groth16Generic::<E>::get_instance(10, None);
         proof.a.0[0] += 1;
 
@@ -101,7 +114,8 @@ mod test {
         )
     }
 
-    fn verify_with_malformed_vk_fails_with_correct_error<E: Pairing>() {
+    #[apply(curves)]
+    fn fail_with_malformed_vk<E: Pairing>(#[case] _p: PhantomData<E>) {
         let (proof, mut vk, inputs) = Groth16Generic::<E>::get_instance(10, None);
         vk.alpha_g1.0[0] += 1;
 
@@ -113,7 +127,8 @@ mod test {
         )
     }
 
-    fn verify_with_malformed_inputs_fails_with_correct_error<E: Pairing>() {
+    #[apply(curves)]
+    fn fail_with_malformed_inputs<E: Pairing>(#[case] _p: PhantomData<E>) {
         let (proof, vk, mut inputs) = Groth16Generic::<E>::get_instance(10, None);
         // tamper input so that it overflows scalar modulus
         for v in &mut inputs {
@@ -130,7 +145,8 @@ mod test {
         )
     }
 
-    fn verify_with_too_many_inputs_fails_with_correct_error<E: Pairing>() {
+    #[apply(curves)]
+    fn fail_with_too_many_inputs<E: Pairing>(#[case] _p: PhantomData<E>) {
         let (proof, vk, mut inputs) = Groth16Generic::<E>::get_instance(10, None);
         inputs.push(Scalar::try_from_scalar(E::ScalarField::one()).unwrap());
 
@@ -142,7 +158,8 @@ mod test {
         )
     }
 
-    fn verify_with_too_few_inputs_fails_with_correct_error<E: Pairing>() {
+    #[apply(curves)]
+    fn fail_with_too_few_inputs<E: Pairing>(#[case] _p: PhantomData<E>) {
         let (proof, vk, mut inputs) = Groth16Generic::<E>::get_instance(10, None);
         inputs.pop();
 
@@ -152,95 +169,5 @@ mod test {
                 .unwrap(),
             Groth16Error::VerifyError
         )
-    }
-
-    #[test]
-    fn verify_succeeds_bn254() {
-        verify_succeeds::<Bn254>()
-    }
-
-    #[test]
-    fn verify_with_wrong_vk_fails_bn254() {
-        verify_with_wrong_vk_fails::<Bn254>()
-    }
-
-    #[test]
-    fn verify_with_wrong_inputs_fails_bn254() {
-        verify_with_wrong_inputs_fails::<Bn254>()
-    }
-
-    #[test]
-    fn verify_with_wrong_proof_fails_bn254() {
-        verify_with_wrong_proof_fails::<Bn254>()
-    }
-
-    #[test]
-    fn verify_with_malformed_proof_fails_with_correct_error_bn254() {
-        verify_with_malformed_proof_fails_with_correct_error::<Bn254>()
-    }
-
-    #[test]
-    fn verify_with_malformed_vk_fails_with_correct_error_bn254() {
-        verify_with_malformed_vk_fails_with_correct_error::<Bn254>()
-    }
-
-    #[test]
-    fn verify_with_malformed_inputs_fails_with_correct_error_bn254() {
-        verify_with_malformed_inputs_fails_with_correct_error::<Bn254>()
-    }
-
-    #[test]
-    fn verify_with_too_many_inputs_fails_with_correct_error_bn254() {
-        verify_with_too_many_inputs_fails_with_correct_error::<Bn254>()
-    }
-
-    #[test]
-    fn verify_with_too_few_inputs_fails_with_correct_error_bn254() {
-        verify_with_too_few_inputs_fails_with_correct_error::<Bn254>()
-    }
-
-    #[test]
-    fn verify_succeeds_bls12_381() {
-        verify_succeeds::<Bls12_381>()
-    }
-
-    #[test]
-    fn verify_with_wrong_vk_fails_bls12_381() {
-        verify_with_wrong_vk_fails::<Bls12_381>()
-    }
-
-    #[test]
-    fn verify_with_wrong_inputs_fails_bls12_381() {
-        verify_with_wrong_inputs_fails::<Bls12_381>()
-    }
-
-    #[test]
-    fn verify_with_wrong_proof_fails_bls12_381() {
-        verify_with_wrong_proof_fails::<Bls12_381>()
-    }
-
-    #[test]
-    fn verify_with_malformed_proof_fails_with_correct_error_bls12_381() {
-        verify_with_malformed_proof_fails_with_correct_error::<Bls12_381>()
-    }
-
-    #[test]
-    fn verify_with_malformed_vk_fails_with_correct_error_bls12_381() {
-        verify_with_malformed_vk_fails_with_correct_error::<Bls12_381>()
-    }
-
-    #[test]
-    fn verify_with_malformed_inputs_fails_with_correct_error_bls12_381() {
-        verify_with_malformed_inputs_fails_with_correct_error::<Bls12_381>()
-    }
-
-    #[test]
-    fn verify_with_too_many_inputs_fails_with_correct_error_bls12_381() {
-        verify_with_too_many_inputs_fails_with_correct_error::<Bls12_381>()
-    }
-
-    #[test]
-    fn verify_with_too_few_inputs_fails_with_correct_error_bls12_381() {
-        verify_with_too_few_inputs_fails_with_correct_error::<Bls12_381>()
     }
 }
