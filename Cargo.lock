@@ -4316,6 +4316,7 @@ dependencies = [
  "sc-consensus-babe",
  "sc-consensus-babe-rpc",
  "sc-consensus-grandpa",
+ "sc-consensus-grandpa-rpc",
  "sc-executor",
  "sc-network",
  "sc-offchain",
@@ -6906,6 +6907,27 @@ dependencies = [
  "sp-keystore",
  "sp-runtime",
  "substrate-prometheus-endpoint",
+ "thiserror",
+]
+
+[[package]]
+name = "sc-consensus-grandpa-rpc"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a173af14cfdf8bb5ac073261ca09292a1e9534c815532e34180aee8a9417804"
+dependencies = [
+ "finality-grandpa",
+ "futures",
+ "jsonrpsee",
+ "log",
+ "parity-scale-codec",
+ "sc-client-api",
+ "sc-consensus-grandpa",
+ "sc-rpc",
+ "serde",
+ "sp-blockchain",
+ "sp-core",
+ "sp-runtime",
  "thiserror",
 ]
 
