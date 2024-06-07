@@ -43,10 +43,10 @@ impl<E: Pairing> Groth16Generic<E> {
         let inputs: Vec<Scalar> = circuit
             .inputs
             .into_iter()
-            .map(|v| Scalar::try_from_scalar(v))
+            .map(Scalar::try_from_scalar)
             .collect::<Result<Vec<_>, _>>()
             .unwrap();
 
-        return (proof, vk, inputs);
+        (proof, vk, inputs)
     }
 }

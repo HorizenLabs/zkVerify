@@ -30,7 +30,7 @@ impl<E: Pairing> Groth16Generic<E> {
             .map_err(|_| Groth16Error::InvalidVerificationKey)?;
         let pvk = prepare_verifying_key::<E>(&vk);
         let inputs = inputs
-            .into_iter()
+            .iter()
             .map(|v| v.clone().try_into_scalar::<E::ScalarField>())
             .collect::<Result<Vec<_>, _>>()
             .map_err(|_| Groth16Error::InvalidInput)?;

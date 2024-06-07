@@ -9,10 +9,13 @@ fn valid_proof_passes_verification_and_is_notified() {
     new_test_ext().execute_with(|| {
         let (proof, vk, inputs) = Groth16::get_instance(10, None, Curve::Bls12_381);
         let hash = compute_groth16_hash(&vk, &inputs);
-        assert!(
-            SettlementGroth16Pallet::submit_proof(RuntimeOrigin::signed(1), proof, vk, inputs)
-                .is_ok()
-        );
+        assert!(SettlementGroth16Pallet::submit_proof(
+            RuntimeOrigin::signed(1),
+            proof,
+            vk.into(),
+            inputs
+        )
+        .is_ok());
 
         let events = mock::System::events();
         assert_eq!(events.len(), 1);
@@ -29,10 +32,13 @@ fn invalid_proof_fails_verification_and_is_not_notified() {
         let (proof, _, _) = Groth16::get_instance(10, Some(0), Curve::Bn254);
         let (_, vk, inputs) = Groth16::get_instance(10, Some(42), Curve::Bn254);
 
-        assert!(
-            SettlementGroth16Pallet::submit_proof(RuntimeOrigin::signed(1), proof, vk, inputs,)
-                .is_err()
-        );
+        assert!(SettlementGroth16Pallet::submit_proof(
+            RuntimeOrigin::signed(1),
+            proof,
+            vk.into(),
+            inputs,
+        )
+        .is_err());
 
         let events = mock::System::events();
         assert_eq!(events.len(), 0);
@@ -46,7 +52,7 @@ fn should_use_the_configured_weights() {
 
     let info = crate::pallet::Call::<Test>::submit_proof {
         proof,
-        vk,
+        vk: vk.into(),
         input: inputs,
     }
     .get_dispatch_info();

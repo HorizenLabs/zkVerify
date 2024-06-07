@@ -127,7 +127,7 @@ impl<E: Pairing> TryFrom<ark_groth16::VerifyingKey<E>> for VerificationKey {
             gamma_abc_g1: value
                 .gamma_abc_g1
                 .into_iter()
-                .map(|v| G1::try_from_affine(v))
+                .map(G1::try_from_affine)
                 .collect::<Result<Vec<_>, _>>()?,
         })
     }
@@ -147,7 +147,7 @@ mod test {
         let mut rng = StdRng::seed_from_u64(0);
 
         let point: E::G1Affine = <E::G1 as UniformRand>::rand(&mut rng).into();
-        let serialized_point = G1::try_from_affine(point.clone()).unwrap();
+        let serialized_point = G1::try_from_affine(point).unwrap();
         let deserialized_point: E::G1Affine = serialized_point.try_into_affine().unwrap();
 
         assert_eq!(point, deserialized_point);
@@ -157,7 +157,7 @@ mod test {
         let mut rng = StdRng::seed_from_u64(0);
 
         let point: E::G2Affine = <E::G2 as UniformRand>::rand(&mut rng).into();
-        let serialized_point = G2::try_from_affine(point.clone()).unwrap();
+        let serialized_point = G2::try_from_affine(point).unwrap();
         let deserialized_point: E::G2Affine = serialized_point.try_into_affine().unwrap();
 
         assert_eq!(point, deserialized_point);
@@ -166,8 +166,8 @@ mod test {
     fn serialize_deserialize_scalar<E: Pairing>() {
         let mut rng = StdRng::seed_from_u64(0);
 
-        let scalar: E::ScalarField = <E::ScalarField as UniformRand>::rand(&mut rng).into();
-        let serialized_scalar = Scalar::try_from_scalar(scalar.clone()).unwrap();
+        let scalar: E::ScalarField = <E::ScalarField as UniformRand>::rand(&mut rng);
+        let serialized_scalar = Scalar::try_from_scalar(scalar).unwrap();
         let deserialized_scalar: E::ScalarField = serialized_scalar.try_into_scalar().unwrap();
 
         assert_eq!(scalar, deserialized_scalar);
