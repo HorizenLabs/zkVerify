@@ -60,6 +60,17 @@ pub mod pallet {
         VerifyError,
     }
 
+    impl<T> From<Groth16Error> for Error<T> {
+        fn from(e: Groth16Error) -> Self {
+            match e {
+                Groth16Error::InvalidInput => Error::<T>::InvalidInput,
+                Groth16Error::InvalidProof => Error::<T>::InvalidProof,
+                Groth16Error::VerifyError => Error::<T>::VerifyError,
+                Groth16Error::InvalidVerificationKey => Error::<T>::InvalidVerificationKey,
+            }
+        }
+    }
+
     #[pallet::call(weight(<T as Config>::WeightInfo))]
     impl<T: Config> Pallet<T> {
         #[pallet::call_index(0)]
@@ -82,20 +93,14 @@ pub mod pallet {
                 return Err(Into::into(Error::<T>::VkAndInputsMismatch));
             }
 
-            let result = Groth16::verify_proof(proof, *vk.clone(), &input);
+            let successful_verification = Groth16::verify_proof(proof, *vk.clone(), &input)
+                .map_err(<Groth16Error as Into<Error<T>>>::into)?;
 
-            match result {
-                Ok(true) => {
-                    T::OnProofVerified::on_proof_verified(compute_groth16_hash(&vk, &input));
-                    Ok(())
-                }
-                Ok(false) => Err(Into::into(Error::<T>::VerifyError)),
-                Err(Groth16Error::InvalidProof) => Err(Into::into(Error::<T>::InvalidProof)),
-                Err(Groth16Error::InvalidVerificationKey) => {
-                    Err(Into::into(Error::<T>::InvalidVerificationKey))
-                }
-                Err(Groth16Error::VerifyError) => Err(Into::into(Error::<T>::VerifyError)),
-                Err(Groth16Error::InvalidInput) => Err(Into::into(Error::<T>::InvalidInput)),
+            if successful_verification {
+                T::OnProofVerified::on_proof_verified(compute_groth16_hash(&vk, &input));
+                Ok(())
+            } else {
+                Err(Into::into(Error::<T>::VerifyError))
             }
         }
     }
