@@ -54,8 +54,11 @@ pub mod pallet {
 
     #[pallet::config]
     pub trait Config: frame_system::Config {
+        /// Proof verification call back.
         type OnProofVerified: OnProofVerified;
+        /// Weight configuration for this pallet.
         type WeightInfo: WeightInfo;
+        /// Maximum supported number of public inputs.
         const MAX_NUM_INPUTS: u32;
     }
 
@@ -95,6 +98,7 @@ pub mod pallet {
                 Curve::Bls12_381 => T::WeightInfo::submit_proof_bls12_381(input.len() as u32 ),
             }
         )]
+        /// Submit a Groth16 proof for verification.
         pub fn submit_proof(
             _origin: OriginFor<T>,
             proof: Proof,
@@ -120,6 +124,7 @@ pub mod pallet {
         }
     }
 
+    /// Compute the unique hash identifier for a verification event.
     pub fn compute_groth16_hash(vk: &VerificationKeyWithCurve, input: &[Scalar]) -> H256 {
         const PREFIX: &str = "groth16-";
         let vk_hash = keccak_256(vk.encode().as_slice());
