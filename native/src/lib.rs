@@ -11,6 +11,21 @@ pub enum VerifyError {
     VerifyError,
 }
 
+#[cfg(feature = "std")]
+impl From<risc0_verifier::VerifyError> for VerifyError {
+    fn from(value: risc0_verifier::VerifyError) -> Self {
+        match value {
+            risc0_verifier::VerifyError::InvalidData {
+                cause: risc0_verifier::DeserializeError::InvalidProof,
+            } => VerifyError::InvalidProofData,
+            risc0_verifier::VerifyError::InvalidData {
+                cause: risc0_verifier::DeserializeError::InvalidPublicInputs,
+            } => VerifyError::InvalidInput,
+            _ => VerifyError::VerifyError,
+        }
+    }
+}
+
 pub const ZKSYNC_PUBS_SIZE: usize = 32;
 pub const ZKSYNC_PROOF_SIZE: usize = 44 * 32;
 
@@ -42,8 +57,21 @@ pub trait ZksyncVerify {
     }
 }
 
+#[runtime_interface]
+pub trait Risc0Verify {
+    fn verify(vk: [u8; 32], proof: &[u8], pubs: &[u8]) -> Result<(), VerifyError> {
+        risc0_verifier::verify(vk.into(), &proof, &pubs)
+            .inspect_err(|e| log::debug!("Cannot verify proof: {:?}", e))
+            .map_err(Into::into)
+            .map(|_| log::trace!("verified"))
+    }
+}
+
 #[cfg(feature = "std")]
 pub use zksync_verify::HostFunctions as ZksyncVerifierHostFunctions;
 
 #[cfg(feature = "std")]
-pub type HLNativeHostFunctions = (ZksyncVerifierHostFunctions,);
+pub use risc_0_verify::HostFunctions as Risc0VerifierHostFunctions;
+
+#[cfg(feature = "std")]
+pub type HLNativeHostFunctions = (ZksyncVerifierHostFunctions, Risc0VerifierHostFunctions);
