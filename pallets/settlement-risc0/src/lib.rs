@@ -106,12 +106,12 @@ pub mod pallet {
         #[pallet::call_index(0)]
         pub fn submit_proof(
             _origin: OriginFor<T>,
-            vk_u8: Box<[u8; 32]>,
+            vk_u8: [u8; 32],
             proof: Box<Vec<u8>>,
             pubs: Box<Vec<u8>>,
         ) -> DispatchResultWithPostInfo {
             log::trace!("Submitting proof");
-            verify_proof::<T>(*vk_u8, *proof, *pubs)
+            verify_proof::<T>(vk_u8, *proof, *pubs)
                 .map(Into::into)
                 .map_err(Into::into)
         }

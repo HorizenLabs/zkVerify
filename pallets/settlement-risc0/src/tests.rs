@@ -33,7 +33,7 @@ fn valid_proof_passes_verification_and_is_notified() {
         // Dispatch a signed extrinsic.
         assert!(SettlementRisc0Pallet::submit_proof(
             RuntimeOrigin::signed(1),
-            VALID_VK.into(),
+            VALID_VK,
             VALID_PROOF.to_vec().into(),
             VALID_PUBS.to_vec().into()
         )
@@ -74,7 +74,7 @@ fn malformed_data_fails_verification_and_is_not_notified(
         assert_noop!(
             SettlementRisc0Pallet::submit_proof(
                 RuntimeOrigin::signed(1),
-                VALID_VK.into(),
+                VALID_VK,
                 proof.to_vec().into(),
                 pubs.to_vec().into()
             ),
@@ -97,7 +97,7 @@ fn false_proof_fails_verification_and_is_not_notified(
         assert_noop!(
             SettlementRisc0Pallet::submit_proof(
                 RuntimeOrigin::signed(1),
-                VALID_VK.into(),
+                VALID_VK,
                 VALID_PROOF.to_vec().into(),
                 pubs.to_vec().into()
             ),
@@ -130,7 +130,7 @@ fn excessive_size_data_fails_verification_and_is_not_notified(
         assert_noop!(
             SettlementRisc0Pallet::submit_proof(
                 RuntimeOrigin::signed(1),
-                VALID_VK.into(),
+                VALID_VK,
                 proof.to_vec().into(),
                 pubs.to_vec().into()
             ),

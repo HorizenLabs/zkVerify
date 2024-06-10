@@ -26,7 +26,7 @@ include!("data.rs");
 benchmarks! {
     submit_proof {
         let caller: T::AccountId = whitelisted_caller();
-    }: _(RawOrigin::Signed(caller), VALID_VK.into(), VALID_PROOF.to_vec().into(), VALID_PUBS.to_vec().into())
+    }: _(RawOrigin::Signed(caller), VALID_VK, VALID_PROOF.to_vec().into(), VALID_PUBS.to_vec().into())
 }
 
 impl_benchmark_test_suite!(

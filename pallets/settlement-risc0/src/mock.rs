@@ -59,8 +59,6 @@ impl MockWeightInfo {
 
 impl crate::weight::WeightInfo for MockWeightInfo {
     fn submit_proof() -> Weight {
-        // Weight::from_parts(Self::REF_TIME, Self::PROOF_SIZE)
-
         Weight::from_parts(Self::REF_TIME, Self::PROOF_SIZE)
     }
 }

@@ -60,7 +60,7 @@ pub trait ZksyncVerify {
 #[runtime_interface]
 pub trait Risc0Verify {
     fn verify(vk: [u8; 32], proof: &[u8], pubs: &[u8]) -> Result<(), VerifyError> {
-        risc0_verifier::verify(vk.into(), &proof, &pubs)
+        risc0_verifier::verify(vk.into(), proof, pubs)
             .inspect_err(|e| log::debug!("Cannot verify proof: {:?}", e))
             .map_err(Into::into)
             .map(|_| log::trace!("verified"))

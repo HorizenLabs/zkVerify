@@ -342,7 +342,7 @@ impl pallet_settlement_zksync::Config for Runtime {
 
 impl pallet_settlement_risc0::Config for Runtime {
     type OnProofVerified = Poe;
-    type WeightInfo = ();
+    type WeightInfo = weights::pallet_settlement_risc0::NHWeight<Runtime>;
 }
 
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
