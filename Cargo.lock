@@ -5417,6 +5417,57 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-settlement-groth16"
+version = "0.1.0"
+dependencies = [
+ "ark-bls12-381",
+ "ark-bn254",
+ "ark-crypto-primitives",
+ "ark-ec",
+ "ark-ff",
+ "ark-groth16",
+ "ark-relations",
+ "ark-serialize",
+ "ark-std",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "hp-poe",
+ "log",
+ "parity-scale-codec",
+ "rstest",
+ "rstest_reuse",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-settlement-risc0"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hex",
+ "hex-literal",
+ "hp-poe",
+ "log",
+ "native",
+ "parity-scale-codec",
+ "rstest",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-settlement-zksync"
 version = "0.1.0"
 dependencies = [
