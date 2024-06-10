@@ -192,6 +192,35 @@ fn pallet_zksync_availability() {
     });
 }
 
+#[test]
+fn pallet_groth16_availability() {
+    new_test_ext().execute_with(|| {
+        let dummy_origin = AccountId32::new([0; 32]);
+        let dummy_proof = pallet_settlement_groth16::Proof {
+            a: pallet_settlement_groth16::G1(Vec::new()),
+            b: pallet_settlement_groth16::G2(Vec::new()),
+            c: pallet_settlement_groth16::G1(Vec::new()),
+        };
+        let dummy_vk = pallet_settlement_groth16::VerificationKeyWithCurve {
+            curve: pallet_settlement_groth16::Curve::Bn254,
+            alpha_g1: pallet_settlement_groth16::G1(Vec::new()),
+            beta_g2: pallet_settlement_groth16::G2(Vec::new()),
+            gamma_g2: pallet_settlement_groth16::G2(Vec::new()),
+            delta_g2: pallet_settlement_groth16::G2(Vec::new()),
+            gamma_abc_g1: Vec::new(),
+        };
+        let dummy_input = Vec::new();
+        assert!(SettlementGroth16Pallet::submit_proof(
+            RuntimeOrigin::signed(dummy_origin),
+            dummy_proof,
+            dummy_vk.into(),
+            dummy_input,
+        )
+        .is_err());
+        // just checking code builds, hence the pallet is available to the runtime
+    });
+}
+
 // Test definition and execution. Test body must be written in the execute_with closure.
 #[test]
 fn pallet_poe_availability() {
@@ -271,6 +300,48 @@ mod use_correct_weights {
         assert_eq!(
             <Runtime as pallet_settlement_zksync::Config>::WeightInfo::submit_proof(),
             crate::weights::pallet_settlement_zksync::NHWeight::<Runtime>::submit_proof()
+        );
+    }
+
+    #[test]
+    fn pallet_settlement_groth16_bn254() {
+        use pallet_settlement_groth16::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_settlement_groth16::Config>::WeightInfo::submit_proof_bn254(0),
+            crate::weights::pallet_settlement_groth16::NHWeight::<Runtime>::submit_proof_bn254(0)
+        );
+
+        const MAX_NUM_INPUTS: u32 = <Runtime as pallet_settlement_groth16::Config>::MAX_NUM_INPUTS;
+        assert_eq!(
+            <Runtime as pallet_settlement_groth16::Config>::WeightInfo::submit_proof_bn254(
+                MAX_NUM_INPUTS
+            ),
+            crate::weights::pallet_settlement_groth16::NHWeight::<Runtime>::submit_proof_bn254(
+                MAX_NUM_INPUTS
+            )
+        );
+    }
+
+    #[test]
+    fn pallet_settlement_groth16_bls12_381() {
+        use pallet_settlement_groth16::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_settlement_groth16::Config>::WeightInfo::submit_proof_bls12_381(0),
+            crate::weights::pallet_settlement_groth16::NHWeight::<Runtime>::submit_proof_bls12_381(
+                0
+            )
+        );
+
+        const MAX_NUM_INPUTS: u32 = <Runtime as pallet_settlement_groth16::Config>::MAX_NUM_INPUTS;
+        assert_eq!(
+            <Runtime as pallet_settlement_groth16::Config>::WeightInfo::submit_proof_bls12_381(
+                MAX_NUM_INPUTS
+            ),
+            crate::weights::pallet_settlement_groth16::NHWeight::<Runtime>::submit_proof_bls12_381(
+                MAX_NUM_INPUTS
+            )
         );
     }
 

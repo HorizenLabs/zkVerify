@@ -20,12 +20,9 @@ use core::fmt::Debug;
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 
-pub use crate::data_structures::{Proof, Scalar};
+pub use crate::data_structures::{Proof, Scalar, G1, G2};
 pub use crate::groth16_generic::Groth16Error;
-use crate::{
-    data_structures::{G1, G2},
-    groth16_generic::{Groth16Generic, VerificationKey},
-};
+use crate::groth16_generic::{Groth16Generic, VerificationKey};
 
 #[derive(Copy, Clone, Debug, PartialEq, Encode, Decode, MaxEncodedLen, TypeInfo)]
 pub enum Curve {

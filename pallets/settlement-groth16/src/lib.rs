@@ -35,6 +35,7 @@ mod groth16;
 mod groth16_generic;
 mod weight;
 
+pub use groth16::*;
 pub use weight::WeightInfo;
 
 #[frame_support::pallet]
