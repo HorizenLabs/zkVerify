@@ -543,7 +543,8 @@ impl pallet_offences::Config for Runtime {
 impl pallet_verifiers::Config<pallet_fflonk_verifier::Fflonk> for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
-    type WeightInfo = pallet_fflonk_verifier::FflonkWeight<(), Runtime>;
+    type WeightInfo =
+        pallet_fflonk_verifier::FflonkWeight<weights::pallet_fflonk_verifier::NHWeight<Runtime>>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -563,10 +564,9 @@ construct_runtime!(
         Offences: pallet_offences,
         Historical: pallet_session_historical::{Pallet},
         ImOnline: pallet_im_online,
-        SettlementFFlonkPallet: pallet_settlement_fflonk,
+        SettlementFFlonkPallet: pallet_fflonk_verifier,
         Poe: pallet_poe,
         SettlementZksyncPallet: pallet_settlement_zksync,
-        FFlonkVerifier: pallet_fflonk_verifier,
         SettlementGroth16Pallet: pallet_settlement_groth16,
         SettlementRisc0Pallet: pallet_settlement_risc0,
     }
@@ -631,9 +631,8 @@ mod benches {
         [pallet_im_online, ImOnline]
         [pallet_election_provider_support_benchmarking, ElectionProviderBench::<Runtime>]
         [pallet_poe, Poe]
-        [pallet_settlement_fflonk, SettlementFFlonkPallet]
         [pallet_settlement_zksync, SettlementZksyncPallet]
-        [palllet_verifier_fflonk, FflonkVerifierBench::<Runtime>]
+        [pallet_verifier_fflonk, FflonkVerifierBench::<Runtime>]
         [pallet_settlement_groth16, SettlementGroth16Pallet]
         [pallet_settlement_risc0, SettlementRisc0Pallet]
     );

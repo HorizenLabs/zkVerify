@@ -74,7 +74,7 @@ pub mod pallet {
     use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*, Identity};
     use frame_system::pallet_prelude::*;
     use hp_poe::OnProofVerified;
-    use sp_core::H256;
+    use sp_core::{hexdisplay::AsBytesRef, H256};
     use sp_io::hashing::keccak_256;
     use sp_std::boxed::Box;
 
@@ -127,11 +127,9 @@ pub mod pallet {
     }
 
     fn statement_hash(ctx: &[u8], vk_hash: &H256, pubs: &[u8]) -> H256 {
-        let mut data_to_hash = ctx.to_vec();
-        data_to_hash.extend_from_slice(b"-");
+        let mut data_to_hash = keccak_256(ctx).to_vec();
         data_to_hash.extend_from_slice(vk_hash.as_bytes());
-        data_to_hash.extend_from_slice(b"-");
-        data_to_hash.extend_from_slice(pubs);
+        data_to_hash.extend_from_slice(keccak_256(pubs).as_bytes_ref());
         H256(keccak_256(data_to_hash.as_slice()))
     }
 
@@ -313,11 +311,9 @@ pub mod pallet {
             42,
             VkOrHash::from_vk(REGISTERED_VK),
             {
-                let mut data_to_hash = b"fake".to_vec();
-                data_to_hash.extend_from_slice(b"-");
+                let mut data_to_hash = keccak_256(b"fake").to_vec();
                 data_to_hash.extend_from_slice(REGISTERED_VK_HASH.as_bytes());
-                data_to_hash.extend_from_slice(b"-");
-                data_to_hash.extend_from_slice(42_u64.to_be_bytes().as_ref());
+                data_to_hash.extend_from_slice(&keccak_256(42_u64.to_be_bytes().as_ref()));
                 H256(keccak_256(data_to_hash.as_slice()))
             }
         )]

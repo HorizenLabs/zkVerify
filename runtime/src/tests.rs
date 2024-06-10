@@ -25,6 +25,7 @@ use frame_support::{
     },
 };
 use frame_system::{EventRecord, Phase};
+use pallet_verifiers::VkOrHash;
 use sp_consensus_babe::{Slot, BABE_ENGINE_ID};
 use sp_core::crypto::VrfSecret;
 use sp_core::{Pair, Public, H256};
@@ -172,12 +173,13 @@ fn check_starting_balances_and_existential_limit() {
 fn pallet_fflonk_availability() {
     new_test_ext().execute_with(|| {
         let dummy_origin = AccountId32::new([0; 32]);
-        let dummy_raw_proof: pallet_settlement_fflonk::Proof =
-            [0; pallet_settlement_fflonk::FULL_PROOF_SIZE];
+        let dummy_proof: pallet_fflonk_verifier::Proof = [0; pallet_fflonk_verifier::PROOF_SIZE];
+        let dummy_pubs: pallet_fflonk_verifier::Pubs = [0; pallet_fflonk_verifier::PUBS_SIZE];
         assert!(SettlementFFlonkPallet::submit_proof(
             RuntimeOrigin::signed(dummy_origin),
-            dummy_raw_proof.into(),
-            None
+            VkOrHash::from_hash(H256::zero()),
+            dummy_proof.into(),
+            dummy_pubs.into(),
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -345,12 +347,18 @@ mod use_correct_weights {
     }
 
     #[test]
-    fn pallet_settlement_fflonk() {
-        use pallet_settlement_fflonk::WeightInfo;
+    fn pallet_fflonk_verifier() {
+        use pallet_fflonk_verifier::Fflonk;
+        let dummy_proof: pallet_fflonk_verifier::Proof = [0; pallet_fflonk_verifier::PROOF_SIZE];
+        let dummy_pubs: pallet_fflonk_verifier::Pubs = [0; pallet_fflonk_verifier::PUBS_SIZE];
+        use pallet_fflonk_verifier::WeightInfo;
 
         assert_eq!(
-            <Runtime as pallet_settlement_fflonk::Config>::WeightInfo::submit_proof_default(),
-            crate::weights::pallet_settlement_fflonk::NHWeight::<Runtime>::submit_proof_default()
+            <<Runtime as pallet_verifiers::Config<Fflonk>>::WeightInfo as pallet_verifiers::WeightInfo<Fflonk>>::submit_proof(
+                &dummy_proof,
+                &dummy_pubs
+            ),
+            crate::weights::pallet_fflonk_verifier::NHWeight::<Runtime>::submit_proof()
         );
     }
 

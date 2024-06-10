@@ -14,6 +14,7 @@ pub const PUBS_SIZE: usize = 32;
 pub const PROOF_SIZE: usize = 24 * 32;
 pub type Pubs = [u8; PUBS_SIZE];
 pub type Proof = [u8; PROOF_SIZE];
+pub use weight::WeightInfo;
 
 #[pallet_verifiers::verifier]
 pub struct Fflonk;
@@ -74,11 +75,9 @@ impl Verifier for Fflonk {
 /// benchmarks to the weight needed by the `pallet-verifiers`.
 /// In this case the implementation doesn't depends from the kind of proof or public input and
 /// the crate's benchmarks are mapped 1-1 to the `pallet-verifiers`'s one.
-pub struct FflonkWeight<W: weight::WeightInfo, T: frame_system::Config>(W, PhantomData<T>);
+pub struct FflonkWeight<W: weight::WeightInfo>(PhantomData<W>);
 
-impl<W: weight::WeightInfo, T: frame_system::Config> pallet_verifiers::WeightInfo<Fflonk>
-    for FflonkWeight<W, T>
-{
+impl<W: weight::WeightInfo> pallet_verifiers::WeightInfo<Fflonk> for FflonkWeight<W> {
     fn submit_proof(
         _proof: &<Fflonk as hp_verifiers::Verifier>::Proof,
         _pubs: &<Fflonk as hp_verifiers::Verifier>::Pubs,

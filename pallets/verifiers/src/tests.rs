@@ -94,7 +94,7 @@ pub mod submit_proof_should {
         "7aeb79b96627dd87eac158bec5612ddb7f350513a179d9ab0daf4ab5788c3262"
     ));
     pub const VALID_HASH_REGISTERED_VK: H256 = H256(hex!(
-        "81c49e272050e47876317ebc4d283cb3db67a4707ff9c36ada9665ec820486de"
+        "a65dc57cd8f1e436aaa8a8a473005040a4594f5411e0d9c7c5d7f20630217b79"
     ));
 
     /// Provide an environment with a registered vk (use used the default vk)
