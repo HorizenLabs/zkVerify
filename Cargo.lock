@@ -5282,6 +5282,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "hex-literal",
  "hp-poe",
  "log",
  "parity-scale-codec",

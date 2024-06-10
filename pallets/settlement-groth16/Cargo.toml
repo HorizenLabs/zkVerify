@@ -41,6 +41,7 @@ hp-poe = { default-features = false, workspace = true }
 [dev-dependencies]
 rstest.workspace = true
 rstest_reuse.workspace = true
+hex-literal = { version = "0.4.1" }
 
 [features]
 default = ["std"]
