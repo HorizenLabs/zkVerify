@@ -116,21 +116,18 @@ function verifyProof(proof, publishedRoot) {
     let position = parseInt(proof['leaf_index'], 10);
     let width = parseInt(proof['number_of_leaves'], 10);
     let hash = Keccak256(proof['leaf'].toString('hex')).toString('hex');
-    i = 0
     proof['proof'].forEach(function (p) {
         p = stripHexPrefix(p);
-        if (position % 2 == 1 || position + 1 == width /*|| hash.startsWith("faaf")*/) {
+        if (position % 2 == 1 || position + 1 == width) {
             hash = Keccak256('0x' + p + hash).toString('hex');
         } else {
             hash = Keccak256('0x' + hash + p).toString('hex');
         }
         position = parseInt(Math.floor(position / 2), 10);
         width = parseInt(Math.floor((width - 1) / 2) + 1, 10);
-        i++;
     });
 
-    let variable = stripHexPrefix(publishedRoot)
-    return variable == hash;
+    return stripHexPrefix(publishedRoot) == hash;
 }
 
 module.exports = { run }

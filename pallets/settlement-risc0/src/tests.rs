@@ -34,8 +34,8 @@ fn valid_proof_passes_verification_and_is_notified() {
         assert!(SettlementRisc0Pallet::submit_proof(
             RuntimeOrigin::signed(1),
             VALID_VK,
-            VALID_PROOF.to_vec().into(),
-            VALID_PUBS.to_vec().into()
+            VALID_PROOF.to_vec(),
+            VALID_PUBS.to_vec()
         )
         .is_ok());
 
@@ -75,8 +75,8 @@ fn malformed_data_fails_verification_and_is_not_notified(
             SettlementRisc0Pallet::submit_proof(
                 RuntimeOrigin::signed(1),
                 VALID_VK,
-                proof.to_vec().into(),
-                pubs.to_vec().into()
+                proof.to_vec(),
+                pubs.to_vec()
             ),
             expected_error
         );
@@ -98,8 +98,8 @@ fn false_proof_fails_verification_and_is_not_notified(
             SettlementRisc0Pallet::submit_proof(
                 RuntimeOrigin::signed(1),
                 VALID_VK,
-                VALID_PROOF.to_vec().into(),
-                pubs.to_vec().into()
+                VALID_PROOF.to_vec(),
+                pubs.to_vec()
             ),
             expected_error
         );
@@ -131,8 +131,8 @@ fn excessive_size_data_fails_verification_and_is_not_notified(
             SettlementRisc0Pallet::submit_proof(
                 RuntimeOrigin::signed(1),
                 VALID_VK,
-                proof.to_vec().into(),
-                pubs.to_vec().into()
+                proof.to_vec(),
+                pubs.to_vec()
             ),
             expected_error
         );

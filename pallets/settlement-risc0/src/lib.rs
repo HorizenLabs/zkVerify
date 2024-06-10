@@ -38,7 +38,7 @@ pub mod pallet {
     use hp_poe::OnProofVerified;
     use sp_core::H256;
     use sp_io::hashing::keccak_256;
-    use sp_std::{boxed::Box, vec::Vec};
+    use sp_std::vec::Vec;
 
     #[pallet::pallet]
     pub struct Pallet<T>(_);
@@ -107,11 +107,11 @@ pub mod pallet {
         pub fn submit_proof(
             _origin: OriginFor<T>,
             vk_u8: [u8; 32],
-            proof: Box<Vec<u8>>,
-            pubs: Box<Vec<u8>>,
+            proof: Vec<u8>,
+            pubs: Vec<u8>,
         ) -> DispatchResultWithPostInfo {
             log::trace!("Submitting proof");
-            verify_proof::<T>(vk_u8, *proof, *pubs)
+            verify_proof::<T>(vk_u8, proof, pubs)
                 .map(Into::into)
                 .map_err(Into::into)
         }

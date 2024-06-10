@@ -204,8 +204,8 @@ fn pallet_risc0_availability() {
         assert!(SettlementRisc0Pallet::submit_proof(
             RuntimeOrigin::signed(dummy_origin),
             dummy_vk,
-            dummy_proof.into(),
-            dummy_pubs.into()
+            dummy_proof,
+            dummy_pubs
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
