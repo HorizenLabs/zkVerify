@@ -192,6 +192,26 @@ fn pallet_zksync_availability() {
     });
 }
 
+#[test]
+fn pallet_risc0_availability() {
+    new_test_ext().execute_with(|| {
+        let dummy_origin = AccountId32::new([0; 32]);
+
+        let dummy_vk = [0u8; 32];
+        let dummy_proof = vec![];
+        let dummy_pubs = vec![];
+
+        assert!(SettlementRisc0Pallet::submit_proof(
+            RuntimeOrigin::signed(dummy_origin),
+            dummy_vk,
+            dummy_proof,
+            dummy_pubs
+        )
+        .is_err());
+        // just checking code builds, hence the pallet is available to the runtime
+    });
+}
+
 // Test definition and execution. Test body must be written in the execute_with closure.
 #[test]
 fn pallet_poe_availability() {
@@ -271,6 +291,16 @@ mod use_correct_weights {
         assert_eq!(
             <Runtime as pallet_settlement_zksync::Config>::WeightInfo::submit_proof(),
             crate::weights::pallet_settlement_zksync::NHWeight::<Runtime>::submit_proof()
+        );
+    }
+
+    #[test]
+    fn pallet_settlement_risc0() {
+        use pallet_settlement_risc0::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_settlement_risc0::Config>::WeightInfo::submit_proof(),
+            crate::weights::pallet_settlement_risc0::NHWeight::<Runtime>::submit_proof()
         );
     }
 

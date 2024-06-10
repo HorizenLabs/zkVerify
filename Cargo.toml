@@ -15,6 +15,7 @@ members = [
     "primitives/hp-proof-of-existence",
     "pallets/settlement-zksync",
     "native",
+    "pallets/settlement-risc0",
 ]
 exclude = ["zksync-era-verifier"]
 
@@ -54,6 +55,7 @@ sp-keystore = { version = "0.33.0" }
 native = { default-features = false, path = "native" }
 pallet-settlement-fflonk = { path = "pallets/settlement-fflonk", default-features = false }
 pallet-settlement-zksync = { path = "pallets/settlement-zksync", default-features = false }
+pallet-settlement-risc0 = { path = "pallets/settlement-risc0", default-features = false }
 pallet-poe = { path = "pallets/proof_of_existence", default-features = false }
 
 # These dependencies are used for the node template's RPCs
