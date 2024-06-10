@@ -4,6 +4,7 @@ run-name: "Workflow CI/CD Steps: lint and format"
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 env:
   IMAGE_NAME: zencash/sc-ci-base

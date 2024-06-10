@@ -3,10 +3,6 @@ name: Orchestrator
 on:
   pull_request:
     types: [opened]
-  push:
-    branches:
-      - main
-      - release/*
   workflow_dispatch:
 
 jobs:
