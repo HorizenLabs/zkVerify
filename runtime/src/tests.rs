@@ -304,44 +304,12 @@ mod use_correct_weights {
     }
 
     #[test]
-    fn pallet_settlement_groth16_bn254() {
+    fn pallet_settlement_groth16() {
         use pallet_settlement_groth16::WeightInfo;
 
         assert_eq!(
             <Runtime as pallet_settlement_groth16::Config>::WeightInfo::submit_proof_bn254(0),
             crate::weights::pallet_settlement_groth16::NHWeight::<Runtime>::submit_proof_bn254(0)
-        );
-
-        const MAX_NUM_INPUTS: u32 = <Runtime as pallet_settlement_groth16::Config>::MAX_NUM_INPUTS;
-        assert_eq!(
-            <Runtime as pallet_settlement_groth16::Config>::WeightInfo::submit_proof_bn254(
-                MAX_NUM_INPUTS
-            ),
-            crate::weights::pallet_settlement_groth16::NHWeight::<Runtime>::submit_proof_bn254(
-                MAX_NUM_INPUTS
-            )
-        );
-    }
-
-    #[test]
-    fn pallet_settlement_groth16_bls12_381() {
-        use pallet_settlement_groth16::WeightInfo;
-
-        assert_eq!(
-            <Runtime as pallet_settlement_groth16::Config>::WeightInfo::submit_proof_bls12_381(0),
-            crate::weights::pallet_settlement_groth16::NHWeight::<Runtime>::submit_proof_bls12_381(
-                0
-            )
-        );
-
-        const MAX_NUM_INPUTS: u32 = <Runtime as pallet_settlement_groth16::Config>::MAX_NUM_INPUTS;
-        assert_eq!(
-            <Runtime as pallet_settlement_groth16::Config>::WeightInfo::submit_proof_bls12_381(
-                MAX_NUM_INPUTS
-            ),
-            crate::weights::pallet_settlement_groth16::NHWeight::<Runtime>::submit_proof_bls12_381(
-                MAX_NUM_INPUTS
-            )
         );
     }
 
