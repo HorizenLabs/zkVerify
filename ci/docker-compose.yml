@@ -1,0 +1,27 @@
+name: zkverify-ci
+
+services:
+  cargo-container:
+    image: ${IMAGE_NAME}:${IMAGE_TAG}
+    volumes:
+      - ${GITHUB_WORKSPACE}:${DOCKER_BUILD_DIR}
+      - ${HOME}/.cargo/registry/index/:${DOCKER_CARGO_HOME}/registry/index/:rw
+      - ${HOME}/.cargo/registry/cache/:${DOCKER_CARGO_HOME}/registry/cache/:rw
+      - ${HOME}/.cargo/git/db/:${DOCKER_CARGO_HOME}/git/db/:rw
+      - ${HOME}/.cargo/bin/:${DOCKER_CARGO_HOME}/bin/:rw
+      - ${GITHUB_WORKSPACE}/target/:${DOCKER_BUILD_DIR}/target/:rw
+    working_dir: ${DOCKER_BUILD_DIR}
+    environment:
+      - RUST_BACKTRACE=1
+      - "DOCKER_BUILD_DIR=${DOCKER_BUILD_DIR:-}"
+      - "DOCKER_CARGO_HOME=${DOCKER_CARGO_HOME:-}"
+      - "CARGO_BINARIES_INSTALL=${CARGO_BINARIES_INSTALL:-}"
+      - "NODEJS_VERSION_INSTALL=${NODEJS_VERSION_INSTALL:-}"
+      - "LOCAL_USER_ID=${USER_ID:-}"
+      - "LOCAL_GRP_ID=${GRP_ID:-}"
+    entrypoint: ${DOCKER_BUILD_DIR}/ci/entrypoint.sh
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "512m"
+        max-file: "4"

@@ -56,14 +56,8 @@ exports.init_api = async (zombie, nodeName, networkInfo) => {
     return api;
 }
 
-exports.submitProof = async (pallet, signer, proof, vk) => {
-    let validProofSubmission;
-    if (vk === undefined) {
-        validProofSubmission = pallet.submitProof(proof);
-    } else {
-        validProofSubmission = pallet.submitProof(proof, vk);
-    }
-
+exports.submitProof = async (pallet, signer, ...verifierArgs) => {
+    const validProofSubmission = pallet.submitProof(...verifierArgs);
     return await submitExtrinsic(validProofSubmission, signer, BlockUntil.InBlock, (event) => event.section == "poe" && event.method == "NewElement");
 }
 

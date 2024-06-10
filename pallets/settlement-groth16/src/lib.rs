@@ -49,6 +49,7 @@ pub mod pallet {
     use sp_core::H256;
     use sp_io::hashing::keccak_256;
     use sp_std::vec::Vec;
+    use sp_std::boxed::Box;
 
     #[pallet::pallet]
     pub struct Pallet<T>(_);

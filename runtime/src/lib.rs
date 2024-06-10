@@ -340,6 +340,11 @@ impl pallet_settlement_zksync::Config for Runtime {
     type WeightInfo = weights::pallet_settlement_zksync::NHWeight<Runtime>;
 }
 
+impl pallet_settlement_risc0::Config for Runtime {
+    type OnProofVerified = Poe;
+    type WeightInfo = weights::pallet_settlement_risc0::NHWeight<Runtime>;
+}
+
 pub const GROTH16_MAX_NUM_INPUTS: u32 = 16;
 impl pallet_settlement_groth16::Config for Runtime {
     type OnProofVerified = Poe;
@@ -526,6 +531,7 @@ construct_runtime!(
         Poe: pallet_poe,
         SettlementZksyncPallet: pallet_settlement_zksync,
         SettlementGroth16Pallet: pallet_settlement_groth16,
+        SettlementRisc0Pallet: pallet_settlement_risc0,
     }
 );
 
@@ -590,6 +596,7 @@ mod benches {
         [pallet_settlement_fflonk, SettlementFFlonkPallet]
         [pallet_settlement_zksync, SettlementZksyncPallet]
         [pallet_settlement_groth16, SettlementGroth16Pallet]
+        [pallet_settlement_risc0, SettlementRisc0Pallet]
     );
 }
 

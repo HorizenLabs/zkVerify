@@ -1,28 +1,32 @@
-name: CI-coverage
+name: Coverage
 
-run-name: "Workflow performing CI step: coverage"
+run-name: "Workflow CI/CD Steps: coverage"
 
 on:
   workflow_call:
 
 env:
-  RUST_BACKTRACE: 1
+  IMAGE_NAME: zencash/sc-ci-base
+  IMAGE_TAG: noble_rust-stable_latest
+  DOCKER_COMPOSE_CMD: "docker compose -f ${GITHUB_WORKSPACE}/ci/docker-compose.yml run --rm cargo-container"
+  DOCKER_BUILD_DIR: /build
+  DOCKER_CARGO_HOME: /tmp/.cargo
+  CARGO_BINARIES_INSTALL: "cargo-llvm-cov"
 
 jobs:
   coverage:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout branch
+      - name: Git checkout
         uses: actions/checkout@v4
-      - name: Clean CI
-        run: ./.github/scripts/clean_ci.sh
+
+      - name: Free up disk space
+        run: ${GITHUB_WORKSPACE}/.github/scripts/clean_ci.sh
+
       - name: Set up cargo cache
         uses: actions/cache@v4
-        continue-on-error: false
+        if: ${{ !env.ACT }}
+        continue-on-error: true
         with:
           path: |
             ~/.cargo/bin/
@@ -30,36 +34,32 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-coverage-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-coverage-cargo-
-      - name: Install deps
-      # required by sc-network-sync
-      # required by nh-runtime
-      # required by nh-runtime
+          key: coverage-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: coverage-cargo-
+
+      - name: Set docker env vars
         run: |
-            sudo apt-get install protobuf-compiler
-            rustup target add wasm32-unknown-unknown
-            rustup component add rust-src
-      - name: Install coverage tools
+          echo "USER_ID=$(id -u)" >> $GITHUB_ENV
+          echo "GRP_ID=$(id -g)" >> $GITHUB_ENV
+
+      - name: Cargo coverage
         run: |
-            cargo install --force cargo-llvm-cov
-      - name: Coverage tasks
-        run: |
-            cargo llvm-cov clean --workspace
-            find . -name "*.profraw" -delete
-            cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
-            cargo llvm-cov report --json --output-path coverage_report.json --summary-only
-            cargo llvm-cov report > coverage-summary.txt
-            cat coverage-summary.txt
-      - name: Upload json summary as Artifact
-        if: matrix.os == 'ubuntu-latest'
+          ${{ env.DOCKER_COMPOSE_CMD }} sh -c '
+            cargo llvm-cov clean --workspace \
+            && find . -name "*.profraw" -delete \
+            && cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info \
+            && cargo llvm-cov report --json --output-path coverage_report.json --summary-only \
+            && cargo llvm-cov report > coverage_summary.txt \
+            && cat coverage_summary.txt \
+          '
+
+      - name: Upload output(s)
+        if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage-output
-          path: ./coverage_report.json
+          path: coverage_report.json
           if-no-files-found: warn
           retention-days: 1
           compression-level: 0
           overwrite: true
-      # It is also possible to upload the generated lcov.info for later use with Codecov
-      # (see https://llvm.org/docs/CommandGuide/llvm-profdata.html)
