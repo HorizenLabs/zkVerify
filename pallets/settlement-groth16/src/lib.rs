@@ -126,11 +126,10 @@ pub mod pallet {
 
     /// Compute the unique hash identifier for a verification event.
     pub fn compute_groth16_hash(vk: &VerificationKeyWithCurve, input: &[Scalar]) -> H256 {
-        const PREFIX: &str = "groth16-";
-        let vk_hash = keccak_256(vk.encode().as_slice());
-        let input_hash = keccak_256(input.encode().as_slice());
-        H256(keccak_256(
-            &[PREFIX.as_bytes(), vk_hash.as_slice(), input_hash.as_slice()].concat(),
-        ))
+        let mut data_to_hash = Vec::with_capacity(32 * 3);
+        data_to_hash.extend_from_slice(&keccak_256(b"groth16"));
+        data_to_hash.extend_from_slice(&keccak_256(&vk.encode()));
+        data_to_hash.extend_from_slice(&keccak_256(&input.encode()));
+        H256(keccak_256(&data_to_hash))
     }
 }
