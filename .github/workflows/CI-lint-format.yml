@@ -4,6 +4,7 @@ run-name: "Workflow CI/CD Steps: lint and format"
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 env:
   IMAGE_NAME: zencash/sc-ci-base
@@ -39,9 +40,11 @@ jobs:
           echo "GRP_ID=$(id -g)" >> $GITHUB_ENV
 
       - name: Linting
+        shell: bash
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo clippy --release -- --deny warnings 2>&1 | tee linting_output.txt
 
       - name: Formatting
+        shell: bash
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo fmt --check 2>&1 | tee formatting_output.txt
 
       - name: Upload output(s)

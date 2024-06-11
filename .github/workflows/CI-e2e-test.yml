@@ -4,6 +4,7 @@ run-name: "Workflow CI/CD Steps: end-to-end test on zombienet"
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 env:
   IMAGE_NAME: zencash/sc-ci-base
@@ -42,6 +43,7 @@ jobs:
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build --release
 
       - name: Yarn install and test
+        shell: bash
         env:
           NODEJS_VERSION_INSTALL: 18
         run: |

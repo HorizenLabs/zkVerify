@@ -4,6 +4,7 @@ run-name: "Workflow CI/CD Steps: build, unit and integration testing"
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 env:
   IMAGE_NAME: zencash/sc-ci-base

@@ -3,6 +3,7 @@ name: Rustdoc
 run-name: "Workflow CI/CD Steps: rust doc generation"
 
 on:
+  workflow_call:
   workflow_dispatch:
 
 env:
