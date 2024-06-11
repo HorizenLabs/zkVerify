@@ -345,6 +345,13 @@ impl pallet_settlement_risc0::Config for Runtime {
     type WeightInfo = weights::pallet_settlement_risc0::NHWeight<Runtime>;
 }
 
+pub const GROTH16_MAX_NUM_INPUTS: u32 = 16;
+impl pallet_settlement_groth16::Config for Runtime {
+    type OnProofVerified = Poe;
+    type WeightInfo = weights::pallet_settlement_groth16::NHWeight<Runtime>;
+    const MAX_NUM_INPUTS: u32 = GROTH16_MAX_NUM_INPUTS;
+}
+
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
 pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 5;
 // We should avoid publishing attestations for empty trees
@@ -523,6 +530,7 @@ construct_runtime!(
         SettlementFFlonkPallet: pallet_settlement_fflonk,
         Poe: pallet_poe,
         SettlementZksyncPallet: pallet_settlement_zksync,
+        SettlementGroth16Pallet: pallet_settlement_groth16,
         SettlementRisc0Pallet: pallet_settlement_risc0,
     }
 );
@@ -587,6 +595,7 @@ mod benches {
         [pallet_poe, Poe]
         [pallet_settlement_fflonk, SettlementFFlonkPallet]
         [pallet_settlement_zksync, SettlementZksyncPallet]
+        [pallet_settlement_groth16, SettlementGroth16Pallet]
         [pallet_settlement_risc0, SettlementRisc0Pallet]
     );
 }

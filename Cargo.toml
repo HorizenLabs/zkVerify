@@ -14,6 +14,7 @@ members = [
     "pallets/proof_of_existence",
     "primitives/hp-proof-of-existence",
     "pallets/settlement-zksync",
+    "pallets/settlement-groth16",
     "native",
     "pallets/settlement-risc0",
 ]
@@ -28,6 +29,7 @@ snafu = { version = "0.8.0", default-features = false }
 async-trait = { version = "0.1.57" }
 serde = { version = "1.0.197" }
 rstest = { version = "0.19.0" }
+rstest_reuse = { version = "0.7.0" }
 
 sc-cli = { version = "0.35.0" }
 sc-executor = { version = "0.31.0" }
@@ -55,6 +57,7 @@ sp-keystore = { version = "0.33.0" }
 native = { default-features = false, path = "native" }
 pallet-settlement-fflonk = { path = "pallets/settlement-fflonk", default-features = false }
 pallet-settlement-zksync = { path = "pallets/settlement-zksync", default-features = false }
+pallet-settlement-groth16 = { path = "pallets/settlement-groth16", default-features = false }
 pallet-settlement-risc0 = { path = "pallets/settlement-risc0", default-features = false }
 pallet-poe = { path = "pallets/proof_of_existence", default-features = false }
 
