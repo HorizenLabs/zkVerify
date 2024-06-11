@@ -43,6 +43,7 @@ jobs:
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build --release
 
       - name: Yarn install and test
+        shell: bash
         env:
           NODEJS_VERSION_INSTALL: 18
         run: |
