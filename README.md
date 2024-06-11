@@ -28,6 +28,31 @@ git checkout <latest tagged release>
 cargo build --release
 ```
 
+#### Running GitHub workflows on local environment
+
+Use the `./ci/run_locally.sh` script to run GitHub actions workflows locally
+
+```bash
+$ ./ci/run_locally.sh
+
+=== Checking all the requirements ===
+
+Please select a workflow to run:
+1) CI-build-test
+2) CI-coverage
+3) CI-lint-format
+4) CI-e2e-test
+5) CI-rustdoc
+6) QUIT
+#?
+
+```
+To trigger a run of all the workflows listed under `CI-orchestrator.yml` file locally after the initial pull request and additional commits, the `./.githooks/pre-push` hook is being used. Execute the following command to activate the hook before pushing:
+```bash
+git config --local core.hooksPath .githooks/
+git remote set-url origin https://github.com/HorizenLabs/zkVerify.git
+```
+
 ### Run
 
 It is possible to run tests with:

@@ -44,7 +44,7 @@ ZOMBIENET_URL="${BASE_URL}/${ZOMBIENET_BINARY}"
 # Check if Zombienet executable exists, otherwise download it
 if [ ! -f "bin/$ZOMBIENET_BINARY" ]; then
     echo -e "${TXT_BIYLW}WARNING: ${TXT_BIBLK}Zombienet executable not found${TXT_NORML}"
-    curl -L $ZOMBIENET_URL -o "bin/$ZOMBIENET_BINARY"
+    curl -s -L $ZOMBIENET_URL -o "bin/$ZOMBIENET_BINARY"
     if [ $? -ne 0 ]; then
         echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}Failed to download Zombienet binary.${TXT_NORML}"
         exit 2
