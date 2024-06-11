@@ -329,6 +329,19 @@ impl pallet_sudo::Config for Runtime {
     type WeightInfo = weights::pallet_sudo::NHWeight<Runtime>;
 }
 
+parameter_types! {
+    pub const MaxSignatories: u32 = 100;
+}
+impl pallet_multisig::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeCall = RuntimeCall;
+    type Currency = Balances;
+    type DepositBase = ConstU128<EXISTENTIAL_DEPOSIT>;
+    type DepositFactor = ConstU128<0>;
+    type MaxSignatories = MaxSignatories;
+    type WeightInfo = weights::pallet_multisig::NHWeight<Runtime>;
+}
+
 impl pallet_settlement_fflonk::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
@@ -532,6 +545,7 @@ construct_runtime!(
         Grandpa: pallet_grandpa,
         TransactionPayment: pallet_transaction_payment,
         Sudo: pallet_sudo,
+        Multisig: pallet_multisig,
         Offences: pallet_offences,
         Historical: pallet_session_historical::{Pallet},
         ImOnline: pallet_im_online,
@@ -596,6 +610,7 @@ mod benches {
         [pallet_grandpa, crate::Grandpa]
         [pallet_timestamp, Timestamp]
         [pallet_sudo, Sudo]
+        [pallet_multisig, Multisig]
         [pallet_session, SessionBench::<Runtime>]
         [pallet_staking, Staking]
         [pallet_im_online, ImOnline]

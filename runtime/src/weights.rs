@@ -10,3 +10,4 @@ pub mod pallet_settlement_risc0;
 pub mod pallet_settlement_zksync;
 pub mod pallet_sudo;
 pub mod pallet_timestamp;
+pub mod pallet_multisig;

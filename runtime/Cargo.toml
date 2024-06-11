@@ -30,6 +30,7 @@ pallet-balances = { workspace = true, default-features = false }
 frame-support = { workspace = true, default-features = false }
 pallet-grandpa = { workspace = true, default-features = false }
 pallet-sudo = { workspace = true, default-features = false }
+pallet-multisig = { workspace = true, default-features = false }
 frame-system = { workspace = true, default-features = false }
 frame-try-runtime = { workspace = true, default-features = false, optional = true }
 pallet-timestamp = { workspace = true, default-features = false }
@@ -102,6 +103,7 @@ runtime-benchmarks = [
 	"pallet-babe/runtime-benchmarks",
 	"pallet-grandpa/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
+	"pallet-multisig/runtime-benchmarks",
 	"pallet-session-benchmarking/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-settlement-fflonk/runtime-benchmarks",
@@ -133,6 +135,7 @@ std = [
 	"pallet-balances/std",
 	"pallet-grandpa/std",
 	"pallet-sudo/std",
+	"pallet-multisig/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
@@ -178,6 +181,7 @@ try-runtime = [
 	"pallet-balances/try-runtime",
 	"pallet-grandpa/try-runtime",
 	"pallet-sudo/try-runtime",
+	"pallet-multisig/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-settlement-fflonk/try-runtime",
