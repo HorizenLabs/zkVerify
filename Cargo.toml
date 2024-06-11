@@ -60,6 +60,7 @@ pallet-settlement-zksync = { path = "pallets/settlement-zksync", default-feature
 pallet-settlement-groth16 = { path = "pallets/settlement-groth16", default-features = false }
 pallet-settlement-risc0 = { path = "pallets/settlement-risc0", default-features = false }
 pallet-poe = { path = "pallets/proof_of_existence", default-features = false }
+nh-runtime = { path = "runtime", default-features = false }
 
 # These dependencies are used for the node template's RPCs
 sc-rpc = { version = "28.0.0" }
@@ -72,7 +73,6 @@ pallet-election-provider-support-benchmarking = { version = "26.0.0", default-fe
 pallet-session-benchmarking = { version = "27.0.0", default-features = false }
 pallet-transaction-payment-rpc = { version = "29.0.0" }
 frame-benchmarking-cli = { version = "31.0.0" }
-nh-runtime = { path = "runtime", version = "0.2.0" }
 
 # CLI-specific dependencies
 try-runtime-cli = { version = "0.37.0" }

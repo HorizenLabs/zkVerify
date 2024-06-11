@@ -1,6 +1,6 @@
 [package]
 name = "mainchain"
-version = "0.2.0"
+version = "0.3.0"
 description = "New Horizen Mainchain."
 authors.workspace = true
 homepage = "https://github.com/HorizenLabs/zkVerify"
