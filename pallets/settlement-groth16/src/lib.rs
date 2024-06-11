@@ -48,8 +48,8 @@ pub mod pallet {
     use hp_poe::OnProofVerified;
     use sp_core::H256;
     use sp_io::hashing::keccak_256;
-    use sp_std::vec::Vec;
     use sp_std::boxed::Box;
+    use sp_std::vec::Vec;
 
     #[pallet::pallet]
     pub struct Pallet<T>(_);
