@@ -37,8 +37,10 @@ pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig>;
 
 const ENDOWMENT: Balance = 1_000_000 * ACME;
 const STASH_BOND: Balance = ENDOWMENT / 100;
-const DEFAULT_ENDOWED_SEEDS: [&str; 6] = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie"];
-const LOCAL_N_AUTH: usize = 2;
+const DEFAULT_ENDOWED_SEEDS: [&str; 10] = [
+    "Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie", "Mike", "Jack", "Dany", "DDB",
+];
+const LOCAL_N_AUTH: usize = 10;
 
 /// Generate a crypto pair from seed.
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -349,7 +351,7 @@ fn genesis(
         },
         "staking": {
             "minimumValidatorCount": initial_authorities.len(), // must be 1 for pallet-session benchmarks
-            "validatorCount": 3,
+            "validatorCount": 10,
             "stakers": initial_authorities.iter()
                 .cloned()
                 .map(|((account, _babe, _grandpa, _imonline), staking)| (account.clone(), account, staking, sp_staking::StakerStatus::Validator::<AccountId>))

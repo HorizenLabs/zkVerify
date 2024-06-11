@@ -1,0 +1,99 @@
+version: '3'
+services:
+  local_node:
+    image: horizenlabs/zkverify:latest
+    env_file:
+      - ../resources/envs/.env.local
+    volumes:
+      - data-local:/data
+      - ../resources/chain_local.json:/data/chain_local.json
+    ports:
+      - 9944:9944
+      - 30333:30333
+  node_01:
+    image: horizenlabs/zkverify:latest
+    volumes:
+      - data-01:/data
+      - ../resources/chain_local.json:/data/chain_local.json
+    env_file:
+      - ../resources/envs/.env.n01
+  node_02:
+    image: horizenlabs/zkverify:latest
+    volumes:
+      - data-02:/data
+      - ../resources/chain_local.json:/data/chain_local.json
+    env_file:
+      - ../resources/envs/.env.n02
+  node_03:
+    image: horizenlabs/zkverify:latest
+    volumes:
+      - data-03:/data
+      - ../resources/chain_local.json:/data/chain_local.json
+    env_file:
+      - ../resources/envs/.env.n03
+  node_04:
+    image: horizenlabs/zkverify:latest
+    volumes:
+      - data-04:/data
+      - ../resources/chain_local.json:/data/chain_local.json
+    env_file:
+      - ../resources/envs/.env.n04
+  node_05:
+    image: horizenlabs/zkverify:latest
+    volumes:
+      - data-05:/data
+      - ../resources/chain_local.json:/data/chain_local.json
+    env_file:
+      - ../resources/envs/.env.n05
+  node_06:
+    image: horizenlabs/zkverify:latest
+    volumes:
+      - data-06:/data
+      - ../resources/chain_local.json:/data/chain_local.json
+    env_file:
+      - ../resources/envs/.env.n06
+  node_07:
+    image: horizenlabs/zkverify:latest
+    volumes:
+      - data-07:/data
+      - ../resources/chain_local.json:/data/chain_local.json
+      - ../resources/envs/secret_n07.uri:/data/config/secret_phrase.dat
+    env_file:
+      - ../resources/envs/.env.n07
+  node_08:
+    image: horizenlabs/zkverify:latest
+    volumes:
+      - data-08:/data
+      - ../resources/chain_local.json:/data/chain_local.json
+      - ../resources/envs/secret_n08.uri:/data/config/secret_phrase.dat
+    env_file:
+      - ../resources/envs/.env.n08
+  node_09:
+    image: horizenlabs/zkverify:latest
+    volumes:
+      - data-09:/data
+      - ../resources/chain_local.json:/data/chain_local.json
+      - ../resources/envs/secret_n09.uri:/data/config/secret_phrase.dat
+    env_file:
+      - ../resources/envs/.env.n09
+  node_10:
+    image: horizenlabs/zkverify:latest
+    volumes:
+      - data-10:/data
+      - ../resources/chain_local.json:/data/chain_local.json
+      - ../resources/envs/secret_n10.uri:/data/config/secret_phrase.dat
+    env_file:
+      - ../resources/envs/.env.n10
+
+volumes:
+  data-local:
+  data-01:
+  data-02:
+  data-03:
+  data-04:
+  data-05:
+  data-06:
+  data-07:
+  data-08:
+  data-09:
+  data-10:
