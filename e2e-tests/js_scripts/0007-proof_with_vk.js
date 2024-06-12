@@ -9,7 +9,7 @@ const ReturnCode = {
 };
 
 const { init_api, submitProof, registerVk, receivedEvents } = require('zkv-lib')
-const { VALID_PROOF: VALID_FFLONK_PROOF, VALID_PUBS: VALID_FFLONK_PUBS, VK: VK_FFLONK, VKEY_HASH: VKEY_FFLONK_HASH,
+const { PROOF: FFLONK_PROOF, PUBS: FFLONK_PUBS, VK: VK_FFLONK, VKEY_HASH: FFLONK_VKEY_HASH,
     STATEMENT_HASH: FFLONK_STATEMENT_HASH } = require('./fflonk_data.js');
 
 async function run(nodeName, networkInfo, _args) {
@@ -20,7 +20,7 @@ async function run(nodeName, networkInfo, _args) {
     const alice = keyring.addFromUri('//Alice');
 
     // Should accept proof with valid VK
-    let events = await submitProof(api.tx.settlementFFlonkPallet, alice, { 'Vk': VK_FFLONK }, VALID_FFLONK_PROOF, VALID_FFLONK_PUBS)
+    let events = await submitProof(api.tx.settlementFFlonkPallet, alice, { 'Vk': VK_FFLONK }, FFLONK_PROOF, FFLONK_PUBS)
     if (!receivedEvents(events)) {
         return ReturnCode.ErrProofVerificationFailed;
     };
@@ -30,7 +30,7 @@ async function run(nodeName, networkInfo, _args) {
     }
 
     // Should reject proof with un unregistered VK hash
-    if (receivedEvents(await submitProof(api.tx.settlementFFlonkPallet, alice, { 'Hash': VKEY_FFLONK_HASH }, VALID_FFLONK_PROOF, VALID_FFLONK_PUBS))) {
+    if (receivedEvents(await submitProof(api.tx.settlementFFlonkPallet, alice, { 'Hash': FFLONK_VKEY_HASH }, FFLONK_PROOF, FFLONK_PUBS))) {
         return ReturnCode.ErrAcceptAnUnregisteredHash;
     };
 
@@ -39,11 +39,11 @@ async function run(nodeName, networkInfo, _args) {
         return ReturnCode.ErrVkRegistrationFailed;
     };
     const vkHash = events[0].data[0];
-    if (VKEY_FFLONK_HASH != vkHash) {
+    if (FFLONK_VKEY_HASH != vkHash) {
         return ReturnCode.ErrWrongKeyHash;
     }
 
-    events = await submitProof(api.tx.settlementFFlonkPallet, alice, { 'Hash': VKEY_FFLONK_HASH }, VALID_FFLONK_PROOF, VALID_FFLONK_PUBS)
+    events = await submitProof(api.tx.settlementFFlonkPallet, alice, { 'Hash': FFLONK_VKEY_HASH }, FFLONK_PROOF, FFLONK_PUBS)
     if (!receivedEvents(events)) {
         return ReturnCode.ErrProofVerificationHashFailed;
     };
