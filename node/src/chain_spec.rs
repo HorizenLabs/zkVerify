@@ -30,7 +30,7 @@ const BOOTNODE_2_DNS: &str = "bootnode-tn-2.zkverify.io";
 const BOOTNODE_2_PEER_ID: &str = "12D3KooWEjVadU1YWyfDGvyRXPbCq2rXhzJtXaG4RxJZBkGE9Aug";
 
 // The URL for the telemetry server.
-const STAGING_TELEMETRY_URL: &str = "wss://nh-telemetry.horizenlabs.io/submit/";
+const STAGING_TELEMETRY_URL: &str = "wss://testnet-telemetry.zkverify.io/submit/";
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig>;
@@ -187,6 +187,7 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
 }
 
 /// To be used when building new testnet chain-spec
+#[allow(dead_code)]
 pub fn testnet_config_build() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
