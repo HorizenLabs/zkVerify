@@ -30,16 +30,14 @@ fi
 ####
 # Running workflow(s)
 ####
-#workflows="CI-build-test CI-coverage CI-lint-format CI-e2e-test"
 workflows_orchestrator="CI-build-test CI-coverage CI-lint-format CI-e2e-test"
-extra_workflows="CI-rustdoc"
+workflows_extra="CI-rustdoc"
 if [ "${PRE_PUSH_HOOK}" == 'false' ];then
-  workflows="${workflows_orchestrator} ${extra_workflows}"
+  workflows="${workflows_orchestrator} ${workflows_extra}"
   while true; do
     # choose one of the available workflows
     log_warn "\nPlease select a workflow to run:"
     workflow="$(selection "${workflows}")" || fn_die "ERROR: Failed to execute 'selection' function for listing workflows to run. Exiting ..."
-
     if [ "${workflow}" == 'QUIT' ]; then
       break
     else
