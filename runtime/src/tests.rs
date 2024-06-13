@@ -16,6 +16,7 @@
 use super::*;
 
 use codec::Encode;
+use frame_support::dispatch::GetDispatchInfo;
 use frame_support::{
     assert_ok,
     traits::{
@@ -23,7 +24,6 @@ use frame_support::{
         ExistenceRequirement, OnInitialize, WithdrawReasons,
     },
 };
-use frame_support::dispatch::GetDispatchInfo;
 use frame_system::{EventRecord, Phase};
 use sp_consensus_babe::{Slot, BABE_ENGINE_ID};
 use sp_core::crypto::VrfSecret;
@@ -138,51 +138,78 @@ fn new_test_ext() -> sp_io::TestExternalities {
 }
 
 fn call_transfer(dest: AccountId32, value: u128) -> Box<RuntimeCall> {
-    Box::new(RuntimeCall::Balances(BalancesCall::transfer_allow_death { dest: MultiAddress::Id(dest), value }))
+    Box::new(RuntimeCall::Balances(BalancesCall::transfer_allow_death {
+        dest: MultiAddress::Id(dest),
+        value,
+    }))
 }
 #[test]
 fn test_multisig_send_and_return() {
     new_test_ext().execute_with(|| {
         // Extract the account IDs from SAMPLE_USERS
-        let account_ids: Vec<AccountId32> = testsfixtures::SAMPLE_USERS.iter().map(|user| AccountId32::from(user.raw_account)).collect();
+        let account_ids: Vec<AccountId32> = testsfixtures::SAMPLE_USERS
+            .iter()
+            .map(|user| AccountId32::from(user.raw_account))
+            .collect();
 
         let multi = Multisig::multi_account_id(&account_ids[..3], 2);
 
-        assert_ok!(Balances::transfer_allow_death(RuntimeOrigin::signed(account_ids[0].clone()), MultiAddress::Id(multi.clone()), 500));
-        assert_ok!(Balances::transfer_allow_death(RuntimeOrigin::signed(account_ids[1].clone()), MultiAddress::Id(multi.clone()), 500));
-        assert_ok!(Balances::transfer_allow_death(RuntimeOrigin::signed(account_ids[2].clone()), MultiAddress::Id(multi.clone()), 500));
+        assert_ok!(Balances::transfer_allow_death(
+            RuntimeOrigin::signed(account_ids[0].clone()),
+            MultiAddress::Id(multi.clone()),
+            500
+        ));
+        assert_ok!(Balances::transfer_allow_death(
+            RuntimeOrigin::signed(account_ids[1].clone()),
+            MultiAddress::Id(multi.clone()),
+            500
+        ));
+        assert_ok!(Balances::transfer_allow_death(
+            RuntimeOrigin::signed(account_ids[2].clone()),
+            MultiAddress::Id(multi.clone()),
+            500
+        ));
 
         // Balance for account 0 reduced by 500, after it was sent to the multisig
-        assert_eq!(Balances::free_balance(account_ids[0].clone()), testsfixtures::SAMPLE_USERS[0].starting_balance - 500);
+        assert_eq!(
+            Balances::free_balance(account_ids[0].clone()),
+            testsfixtures::SAMPLE_USERS[0].starting_balance - 500
+        );
         assert_eq!(Balances::reserved_balance(account_ids[0].clone()), 0);
 
         let call = call_transfer(account_ids[2].clone(), 500);
         let call_weight = call.get_dispatch_info().weight;
 
         assert_ok!(Multisig::as_multi(
-			RuntimeOrigin::signed(account_ids[0].clone()),
-			2,
-			vec![account_ids[1].clone(), account_ids[2].clone()],
-			None,
-			call.clone(),
-			Weight::zero()
-		));
+            RuntimeOrigin::signed(account_ids[0].clone()),
+            2,
+            vec![account_ids[1].clone(), account_ids[2].clone()],
+            None,
+            call.clone(),
+            Weight::zero()
+        ));
 
         // reserved amount = threshold * DepositFactor + DepositBase = (2 * 0) + 20 = 20
-        assert_eq!(Balances::free_balance(account_ids[0].clone()), testsfixtures::SAMPLE_USERS[0].starting_balance - 500 - 20);
+        assert_eq!(
+            Balances::free_balance(account_ids[0].clone()),
+            testsfixtures::SAMPLE_USERS[0].starting_balance - 500 - 20
+        );
         assert_eq!(Balances::reserved_balance(account_ids[0].clone()), 20);
 
         assert_ok!(Multisig::as_multi(
-			RuntimeOrigin::signed(account_ids[1].clone()),
-			2,
-			vec![account_ids[0].clone(), account_ids[2].clone()],
-			Some(Multisig::timepoint()),
-			call.clone(),
-			call_weight
-		));
+            RuntimeOrigin::signed(account_ids[1].clone()),
+            2,
+            vec![account_ids[0].clone(), account_ids[2].clone()],
+            Some(Multisig::timepoint()),
+            call.clone(),
+            call_weight
+        ));
 
         // Reserve balance was recovered, as this is just a safety measur until the tx is confirmed (the actual transfer comes from the multisig)
-        assert_eq!(Balances::free_balance(account_ids[0].clone()), testsfixtures::SAMPLE_USERS[0].starting_balance - 500);
+        assert_eq!(
+            Balances::free_balance(account_ids[0].clone()),
+            testsfixtures::SAMPLE_USERS[0].starting_balance - 500
+        );
         assert_eq!(Balances::reserved_balance(account_ids[0].clone()), 0);
     });
 }
@@ -345,8 +372,8 @@ mod use_correct_weights {
         use pallet_multisig::WeightInfo;
 
         assert_eq!(
-            <Runtime as pallet_multisig::Config>::WeightInfo::as_multi_approve(3,100),
-            crate::weights::pallet_multisig::NHWeight::<Runtime>::as_multi_approve(3,100)
+            <Runtime as pallet_multisig::Config>::WeightInfo::as_multi_approve(3, 100),
+            crate::weights::pallet_multisig::NHWeight::<Runtime>::as_multi_approve(3, 100)
         );
     }
 
@@ -798,17 +825,27 @@ mod pallets_interact {
         fn test_set_sudo_to_multisig() {
             new_test_ext().execute_with(|| {
                 // Extract the account IDs from SAMPLE_USERS
-                let account_ids: Vec<AccountId32> = testsfixtures::SAMPLE_USERS.iter().map(|user| AccountId32::from(user.raw_account)).collect();
+                let account_ids: Vec<AccountId32> = testsfixtures::SAMPLE_USERS
+                    .iter()
+                    .map(|user| AccountId32::from(user.raw_account))
+                    .collect();
                 let multi = Multisig::multi_account_id(&account_ids[..3], 2);
 
-                assert_ok!(Balances::transfer_allow_death(RuntimeOrigin::signed(account_ids[0].clone()), MultiAddress::Id(multi.clone()), 1000));
+                assert_ok!(Balances::transfer_allow_death(
+                    RuntimeOrigin::signed(account_ids[0].clone()),
+                    MultiAddress::Id(multi.clone()),
+                    1000
+                ));
 
                 // Check existing sudo key
                 let existing_sudo_key = Sudo::key();
                 assert_eq!(existing_sudo_key, Some(account_ids[0].clone()));
 
                 // Setting the multisig account as the new sudo account
-                assert_ok!(Sudo::set_key(RuntimeOrigin::signed(account_ids[0].clone()), MultiAddress::Id(multi.clone())));
+                assert_ok!(Sudo::set_key(
+                    RuntimeOrigin::signed(account_ids[0].clone()),
+                    MultiAddress::Id(multi.clone())
+                ));
 
                 // Ensure the sudo key is set correctly
                 assert_eq!(Sudo::key(), Some(multi.clone()));
@@ -829,7 +866,7 @@ mod pallets_interact {
                     Box::new(RuntimeCall::Sudo(sudo_call.clone())),
                     Weight::zero()
                 ));
-                    // Second part of multisig approval (approve the sudo call)
+                // Second part of multisig approval (approve the sudo call)
                 assert_ok!(Multisig::as_multi(
                     RuntimeOrigin::signed(account_ids[1].clone()),
                     2,
