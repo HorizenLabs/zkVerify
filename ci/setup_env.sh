@@ -114,7 +114,7 @@ elif [ "${DEV_RELEASE}" = "true" ]; then
 elif [ "${TEST_RELEASE}" = "true" ]; then
   echo "" && log_info "=== This is a Test release build ===" && echo ""
 elif [ "${IS_A_RELEASE}" = "false" ]; then
-  echo "" && log_info "WARNING: This is NOT a RELEASE build" && echo ""
+  echo "" && log_warn "WARNING: This is NOT a RELEASE build" && echo ""
 fi
 
 set +eo pipefail
