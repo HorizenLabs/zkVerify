@@ -1,4 +1,4 @@
-#!/bin/bash#
+#!/bin/bash
 
 log() {
   # Usage: log style color "message"
