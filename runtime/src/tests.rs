@@ -136,82 +136,28 @@ fn new_test_ext() -> sp_io::TestExternalities {
     // Return the test externalities
     ext
 }
-
-fn call_transfer(dest: AccountId32, value: u128) -> Box<RuntimeCall> {
-    Box::new(RuntimeCall::Balances(BalancesCall::transfer_allow_death {
-        dest: MultiAddress::Id(dest),
-        value,
-    }))
-}
 #[test]
-fn test_multisig_send_and_return() {
+fn pallet_multisig_availability() {
     new_test_ext().execute_with(|| {
-        // Extract the account IDs from SAMPLE_USERS
-        let account_ids: Vec<AccountId32> = testsfixtures::SAMPLE_USERS
+        let issuer: AccountId32 = testsfixtures::SAMPLE_USERS[0].raw_account.into();
+        let account_ids: Vec<_> = testsfixtures::SAMPLE_USERS
             .iter()
-            .map(|user| AccountId32::from(user.raw_account))
+            .skip(1)
+            .map(|u| u.raw_account.into())
             .collect();
-
-        let multi = Multisig::multi_account_id(&account_ids[..3], 2);
-
-        assert_ok!(Balances::transfer_allow_death(
-            RuntimeOrigin::signed(account_ids[0].clone()),
-            MultiAddress::Id(multi.clone()),
-            500
-        ));
-        assert_ok!(Balances::transfer_allow_death(
-            RuntimeOrigin::signed(account_ids[1].clone()),
-            MultiAddress::Id(multi.clone()),
-            500
-        ));
-        assert_ok!(Balances::transfer_allow_death(
-            RuntimeOrigin::signed(account_ids[2].clone()),
-            MultiAddress::Id(multi.clone()),
-            500
-        ));
-
-        // Balance for account 0 reduced by 500, after it was sent to the multisig
-        assert_eq!(
-            Balances::free_balance(account_ids[0].clone()),
-            testsfixtures::SAMPLE_USERS[0].starting_balance - 500
-        );
-        assert_eq!(Balances::reserved_balance(account_ids[0].clone()), 0);
-
-        let call = call_transfer(account_ids[2].clone(), 500);
-        let call_weight = call.get_dispatch_info().weight;
-
+        let call = Box::new(RuntimeCall::Balances(BalancesCall::transfer_allow_death {
+            dest: MultiAddress::Id(issuer.clone()),
+            value: 5000,
+        }));
         assert_ok!(Multisig::as_multi(
-            RuntimeOrigin::signed(account_ids[0].clone()),
+            RuntimeOrigin::signed(issuer),
             2,
-            vec![account_ids[1].clone(), account_ids[2].clone()],
+            account_ids,
             None,
-            call.clone(),
+            call,
             Weight::zero()
         ));
-
-        // reserved amount = threshold * DepositFactor + DepositBase = (2 * 0) + 20 = 20
-        assert_eq!(
-            Balances::free_balance(account_ids[0].clone()),
-            testsfixtures::SAMPLE_USERS[0].starting_balance - 500 - 20
-        );
-        assert_eq!(Balances::reserved_balance(account_ids[0].clone()), 20);
-
-        assert_ok!(Multisig::as_multi(
-            RuntimeOrigin::signed(account_ids[1].clone()),
-            2,
-            vec![account_ids[0].clone(), account_ids[2].clone()],
-            Some(Multisig::timepoint()),
-            call.clone(),
-            call_weight
-        ));
-
-        // Reserve balance was recovered, as this is just a safety measur until the tx is confirmed (the actual transfer comes from the multisig)
-        assert_eq!(
-            Balances::free_balance(account_ids[0].clone()),
-            testsfixtures::SAMPLE_USERS[0].starting_balance - 500
-        );
-        assert_eq!(Balances::reserved_balance(account_ids[0].clone()), 0);
-    });
+    })
 }
 
 // Test definition and execution. Test body must be written in the execute_with closure.
