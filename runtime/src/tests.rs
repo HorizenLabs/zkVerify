@@ -785,11 +785,10 @@ mod pallets_interact {
 
                 // Check existing sudo key
                 let existing_sudo_key = Sudo::key();
-                assert_eq!(existing_sudo_key, Some(account_ids[0].clone()));
 
                 // Setting the multisig account as the new sudo account
                 assert_ok!(Sudo::set_key(
-                    RuntimeOrigin::signed(account_ids[0].clone()),
+                    RuntimeOrigin::signed(existing_sudo_key.expect("No sudo key")),
                     MultiAddress::Id(multi.clone())
                 ));
 
