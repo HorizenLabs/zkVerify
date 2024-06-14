@@ -343,6 +343,8 @@ impl pallet_settlement_zksync::Config for Runtime {
 impl pallet_settlement_risc0::Config for Runtime {
     type OnProofVerified = Poe;
     type WeightInfo = weights::pallet_settlement_risc0::NHWeight<Runtime>;
+    type MaxProofSize = ConstU32<{ pallet_settlement_risc0::MAX_PROOF_SIZE }>;
+    type MaxPubsSize = ConstU32<{ pallet_settlement_risc0::MAX_PUBS_SIZE }>;
 }
 
 pub const GROTH16_MAX_NUM_INPUTS: u32 = 16;

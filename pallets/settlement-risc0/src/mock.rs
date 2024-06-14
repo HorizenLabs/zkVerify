@@ -15,6 +15,7 @@
 
 use frame_support::{derive_impl, weights::Weight};
 use frame_system;
+use sp_core::ConstU32;
 use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
 pub mod on_proof_verified {
@@ -83,6 +84,8 @@ impl frame_system::Config for Test {
 impl crate::Config for Test {
     type OnProofVerified = OnProofVerifiedMock;
     type WeightInfo = MockWeightInfo;
+    type MaxProofSize = ConstU32<{ crate::MAX_PROOF_SIZE }>;
+    type MaxPubsSize = ConstU32<{ crate::MAX_PUBS_SIZE }>;
 }
 
 impl on_proof_verified::pallet::Config for Test {

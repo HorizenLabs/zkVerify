@@ -27,13 +27,15 @@ mod tests;
 mod weight;
 
 pub use weight::WeightInfo;
-pub const MAX_PROOF_SIZE: usize = 1000000;
-pub const MAX_PUBS_SIZE: usize = 32;
+pub const MAX_PROOF_SIZE: u32 = 1000000; // arbitrary length
+pub const MAX_PUBS_SIZE: u32 = 8 + 4 + 32 * 64; // 8: for bincode::serialize,
+                                                // 4: bytes for payload length,
+                                                // 32 * 64: sufficient multiple of 32 bytes
 
 #[frame_support::pallet]
 pub mod pallet {
-    use super::{WeightInfo, MAX_PROOF_SIZE, MAX_PUBS_SIZE};
-    use frame_support::{dispatch::DispatchResultWithPostInfo, ensure};
+    use super::WeightInfo;
+    use frame_support::{dispatch::DispatchResultWithPostInfo, ensure, pallet_prelude::Get};
     use frame_system::pallet_prelude::OriginFor;
     use hp_poe::OnProofVerified;
     use sp_core::H256;
@@ -75,6 +77,10 @@ pub mod pallet {
         type OnProofVerified: OnProofVerified;
         /// The weight definition for this pallet
         type WeightInfo: WeightInfo;
+        /// Maximum number of bytes contained in the proof (otherwise rejected)
+        type MaxProofSize: Get<u32>;
+        /// Maximum number of bytes contained in the public inputs (otherwise rejected)
+        type MaxPubsSize: Get<u32>;
     }
 
     pub fn verify_proof<T: Config>(
@@ -84,11 +90,11 @@ pub mod pallet {
     ) -> Result<(), Error<T>> {
         log::trace!("Checking size");
         ensure!(
-            (proof).len() <= MAX_PROOF_SIZE,
+            (proof).len() <= T::MaxProofSize::get().try_into().unwrap(),
             Error::<T>::InvalidProofSize
         );
         ensure!(
-            (pubs).len() <= MAX_PUBS_SIZE,
+            (pubs).len() <= T::MaxPubsSize::get().try_into().unwrap(),
             Error::<T>::InvalidPublicInputsSize
         );
 
