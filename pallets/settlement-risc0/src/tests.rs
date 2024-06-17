@@ -21,7 +21,6 @@ use sp_core::H256;
 
 use crate::mock::*;
 use crate::{mock, Error};
-use crate::{MAX_PROOF_SIZE, MAX_PUBS_SIZE};
 
 include!("data.rs");
 pub static VALID_HASH: [u8; 32] =
@@ -112,8 +111,8 @@ fn extend_data(data: &mut Vec<u8>, size: usize) {
 }
 
 #[rstest]
-#[case::too_big_proof(MAX_PROOF_SIZE - VALID_PROOF.len() + 1, 0, Error::<Test>::InvalidProofSize)]
-#[case::too_big_pubs(0, MAX_PUBS_SIZE - VALID_PUBS.len() + 1, Error::<Test>::InvalidPublicInputsSize)]
+#[case::too_big_proof((MAX_PROOF_SIZE as usize) - VALID_PROOF.len() + 1, 0, Error::<Test>::InvalidProofSize)]
+#[case::too_big_pubs(0, (MAX_PUBS_SIZE as usize) - VALID_PUBS.len() + 1, Error::<Test>::InvalidPublicInputsSize)]
 fn excessive_size_data_fails_verification_and_is_not_notified(
     #[case] extend_proof: usize,
     #[case] extend_pubs: usize,

@@ -340,9 +340,17 @@ impl pallet_settlement_zksync::Config for Runtime {
     type WeightInfo = weights::pallet_settlement_zksync::NHWeight<Runtime>;
 }
 
+parameter_types! {
+    pub const Risc0MaxProofSize: u32 = 1000000; // arbitrary length
+    pub const Risc0MaxPubsSize: u32 = 8 + 4 + 32 * 64; // 8: for bincode::serialize,
+                                                       // 4: bytes for payload length,
+                                                       // 32 * 64: sufficient multiple of 32 bytes
+}
 impl pallet_settlement_risc0::Config for Runtime {
     type OnProofVerified = Poe;
     type WeightInfo = weights::pallet_settlement_risc0::NHWeight<Runtime>;
+    type MaxProofSize = Risc0MaxProofSize;
+    type MaxPubsSize = Risc0MaxPubsSize;
 }
 
 pub const GROTH16_MAX_NUM_INPUTS: u32 = 16;
