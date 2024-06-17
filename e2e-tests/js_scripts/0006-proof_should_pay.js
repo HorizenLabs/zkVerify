@@ -8,8 +8,8 @@ const ReturnCode = {
     ErrInvalidProofNotPay: 5,
 };
 
-const { init_api, submitProof, getBalance } = require('zkv-lib')
-const { VALID_PROOF, VALID_PUBS, VK } = require('./fflonk_data.js');
+const { init_api, submitProof, getBalance, receivedEvents } = require('zkv-lib')
+const { PROOF, PUBS, VK } = require('./fflonk_data.js');
 
 async function run(nodeName, networkInfo, _args) {
     const api = await init_api(zombie, nodeName, networkInfo);
@@ -21,7 +21,7 @@ async function run(nodeName, networkInfo, _args) {
     let balanceAlice = await getBalance(alice);
     console.log('Alice\'s balance: ' + balanceAlice.toHuman());
 
-    if (await submitProof(api.tx.settlementFFlonkPallet, alice, { 'Vk': VK }, VALID_PROOF, VALID_PUBS) == -1) {
+    if (!receivedEvents(await submitProof(api.tx.settlementFFlonkPallet, alice, { 'Vk': VK }, PROOF, PUBS))) {
         return ReturnCode.ErrProofVerificationFailed;
     };
 
@@ -34,7 +34,7 @@ async function run(nodeName, networkInfo, _args) {
 
     balanceAlice = newBalanceAlice;
 
-    if (await submitProof(api.tx.settlementFFlonkPallet, alice, { 'Vk': VK }, VALID_PROOF, 0) !== -1) {
+    if (receivedEvents(await submitProof(api.tx.settlementFFlonkPallet, alice, { 'Vk': VK }, PROOF, 0))) {
         return ReturnCode.ErrFalseProofVerified;
     };
 
