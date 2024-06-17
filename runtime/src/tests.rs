@@ -241,11 +241,13 @@ fn pallet_scheduler_availability() {
 fn pallet_zksync_availability() {
     new_test_ext().execute_with(|| {
         let dummy_origin = AccountId32::new([0; 32]);
-        let dummy_raw_proof: pallet_settlement_zksync::Proof =
-            [0; pallet_settlement_zksync::FULL_PROOF_SIZE];
+        let dummy_proof = [0; pallet_zksync_verifier::PROOF_SIZE];
+        let dummy_pubs = [0; pallet_zksync_verifier::PUBS_SIZE];
         assert!(SettlementZksyncPallet::submit_proof(
             RuntimeOrigin::signed(dummy_origin),
-            dummy_raw_proof.into()
+            VkOrHash::from_hash(H256::zero()),
+            dummy_proof.into(),
+            dummy_pubs.into(),
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -396,8 +398,8 @@ mod use_correct_weights {
     #[test]
     fn pallet_fflonk_verifier() {
         use pallet_fflonk_verifier::Fflonk;
-        let dummy_proof: pallet_fflonk_verifier::Proof = [0; pallet_fflonk_verifier::PROOF_SIZE];
-        let dummy_pubs: pallet_fflonk_verifier::Pubs = [0; pallet_fflonk_verifier::PUBS_SIZE];
+        let dummy_proof = [0; pallet_fflonk_verifier::PROOF_SIZE];
+        let dummy_pubs = [0; pallet_fflonk_verifier::PUBS_SIZE];
         use pallet_fflonk_verifier::WeightInfo;
 
         assert_eq!(
@@ -410,12 +412,18 @@ mod use_correct_weights {
     }
 
     #[test]
-    fn pallet_settlement_zksync() {
-        use pallet_settlement_zksync::WeightInfo;
+    fn pallet_zksync_verifier() {
+        use pallet_zksync_verifier::Zksync;
+        let dummy_proof = [0; pallet_zksync_verifier::PROOF_SIZE];
+        let dummy_pubs = [0; pallet_zksync_verifier::PUBS_SIZE];
+        use pallet_zksync_verifier::WeightInfo;
 
         assert_eq!(
-            <Runtime as pallet_settlement_zksync::Config>::WeightInfo::submit_proof(),
-            crate::weights::pallet_settlement_zksync::NHWeight::<Runtime>::submit_proof()
+            <<Runtime as pallet_verifiers::Config<Zksync>>::WeightInfo as pallet_verifiers::WeightInfo<Zksync>>::submit_proof(
+                &dummy_proof,
+                &dummy_pubs
+            ),
+            crate::weights::pallet_zksync_verifier::NHWeight::<Runtime>::submit_proof()
         );
     }
 

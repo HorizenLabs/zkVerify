@@ -680,8 +680,8 @@ mod benches {
         [pallet_im_online, ImOnline]
         [pallet_election_provider_support_benchmarking, ElectionProviderBench::<Runtime>]
         [pallet_poe, Poe]
-        [pallet_settlement_zksync, ZksyncVerifierBench<Runtime>]
-        [pallet_verifier_fflonk, FflonkVerifierBench::<Runtime>]
+        [pallet_zksync_verifier, ZksyncVerifierBench<Runtime>]
+        [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
         [pallet_settlement_groth16, SettlementGroth16Pallet]
         [pallet_settlement_risc0, SettlementRisc0Pallet]
     );
