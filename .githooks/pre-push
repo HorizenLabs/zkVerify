@@ -1,6 +1,5 @@
 #!/bin/bash
 set -eEuo pipefail
-log_debug "\n=== Pre-push hook start ==="
 
 root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." &>/dev/null && pwd)"
 common_file_location="${root_dir}/ci/common.sh"
@@ -22,6 +21,7 @@ fi
 ####
 # Main
 ####
+log_debug "\n=== Pre-push hook start ==="
 if ! "${root_dir}/ci/run_locally.sh"; then
   exit 1
 fi
