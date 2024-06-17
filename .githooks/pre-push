@@ -22,13 +22,8 @@ fi
 ####
 # Main
 ####
-current_branch="$(git rev-parse --abbrev-ref HEAD)" || fn_die "ERROR: Failed to retrieve current GitHub branch using 'git rev-parse' command. Exiting ..."
-
-if [[ "${current_branch}" != "main" ]] && ! [[ "${current_branch}" =~ ^release/.* ]]; then
-  # Run the script and exit if failed to prevent git from pushing to upstream
-  if ! "${root_dir}/ci/run_locally.sh"; then
-    exit 1
-  fi
+if ! "${root_dir}/ci/run_locally.sh"; then
+  exit 1
 fi
 
 

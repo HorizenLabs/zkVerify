@@ -29,11 +29,12 @@ cargo build --release
 ```
 
 #### Running GitHub workflows on local environment
+> ⚠️ It is currently supported only on Ubuntu Linux
 
 Use the `./ci/run_locally.sh` script to run GitHub actions workflows locally
 
 ```bash
-$ ./ci/run_locally.sh
+./ci/run_locally.sh
 ```
 
 To trigger a run of all the workflows listed under `CI-orchestrator.yml` file locally after the initial pull request and additional commits, the `./.githooks/pre-push` hook is being used. Execute the following commands to activate the hook before pushing:

@@ -88,10 +88,6 @@ selection() {
   local select_from_string="${1:-}"
   select item in ${select_from_string} "QUIT"; do
     case "${item}" in
-    "QUIT")
-      echo "QUIT"
-      break
-      ;;
     "")
       log_warn "\nInvalid selection. Please type the number of the option you want to choose."
       ;;
