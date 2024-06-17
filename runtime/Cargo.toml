@@ -81,7 +81,6 @@ frame-benchmarking = { workspace = true, default-features = false, optional = tr
 frame-system-benchmarking = { workspace = true, default-features = false, optional = true }
 
 # Custom logic
-pallet-settlement-zksync = { default-features = false, workspace = true }
 pallet-settlement-groth16 = { default-features = false, workspace = true }
 pallet-settlement-risc0 = { default-features = false, workspace = true }
 pallet-poe = { default-features = false, workspace = true }
@@ -91,6 +90,7 @@ proof-of-existence-rpc-runtime-api = { default-features = false, workspace = tru
 pallet-verifiers = { default-features = false, workspace = true }
 hp-verifiers = { default-features = false, workspace = true }
 pallet-fflonk-verifier = { default-features = false, workspace = true }
+pallet-zksync-verifier = { default-features = false, workspace = true }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -113,7 +113,6 @@ runtime-benchmarks = [
 	"pallet-preimage/runtime-benchmarks",
 	"pallet-session-benchmarking/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
-	"pallet-settlement-zksync/runtime-benchmarks",
 	"pallet-settlement-groth16/runtime-benchmarks",
 	"pallet-settlement-risc0/runtime-benchmarks",
 	"pallet-poe/runtime-benchmarks",
@@ -121,6 +120,7 @@ runtime-benchmarks = [
 	"sp-runtime/runtime-benchmarks",
 	"pallet-verifiers/runtime-benchmarks",
 	"pallet-fflonk-verifier/runtime-benchmarks",
+	"pallet-zksync-verifier/runtime-benchmarks",
 ]
 default = ["std"]
 std = [
@@ -149,7 +149,6 @@ std = [
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
-	"pallet-settlement-zksync/std",
 	"pallet-verifiers/std",
 	"pallet-settlement-groth16/std",
 	"pallet-settlement-risc0/std",
@@ -176,6 +175,7 @@ std = [
 	"sp-weights/std",
 	"pallet-verifiers/std",
 	"pallet-fflonk-verifier/std",
+	"pallet-zksync-verifier/std",
 	"hp-verifiers/std",
 	"substrate-wasm-builder",
 ]
@@ -199,7 +199,6 @@ try-runtime = [
 	"pallet-preimage/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
-	"pallet-settlement-zksync/try-runtime",
 	"pallet-verifiers/try-runtime",
 	"pallet-settlement-groth16/try-runtime",
 	"pallet-settlement-risc0/try-runtime",

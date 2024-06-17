@@ -4772,6 +4772,7 @@ dependencies = [
 name = "native"
 version = "0.2.0"
 dependencies = [
+ "hp-verifiers",
  "log",
  "parity-scale-codec",
  "risc0-verifier",
@@ -4877,7 +4878,6 @@ dependencies = [
  "pallet-session-benchmarking",
  "pallet-settlement-groth16",
  "pallet-settlement-risc0",
- "pallet-settlement-zksync",
  "pallet-staking",
  "pallet-staking-reward-curve",
  "pallet-sudo",
@@ -4885,6 +4885,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-verifiers",
+ "pallet-zksync-verifier",
  "parity-scale-codec",
  "proof-of-existence-rpc-runtime-api",
  "scale-info",
@@ -5638,6 +5639,21 @@ dependencies = [
  "quote",
  "rstest",
  "syn 2.0.66",
+]
+
+[[package]]
+name = "pallet-zksync-verifier"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "hp-verifiers",
+ "native",
+ "pallet-verifiers",
+ "scale-info",
+ "sp-core",
 ]
 
 [[package]]

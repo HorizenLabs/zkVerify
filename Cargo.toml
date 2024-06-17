@@ -12,16 +12,15 @@ members = [
     "runtime",
     "pallets/proof_of_existence",
     "primitives/hp-proof-of-existence",
-    "pallets/settlement-zksync",
     "pallets/settlement-groth16",
     "native",
     "pallets/verifiers",
     "pallets/verifiers/macros",
     "primitives/hp-verifiers",
-    "verifiers/fflonk",
     "pallets/settlement-risc0",
+    "verifiers/fflonk",
+    "verifiers/zksync",
 ]
-exclude = ["zksync-era-verifier"]
 
 [workspace.dependencies]
 clap = { version = "4.4.10", features = ["derive"] }
@@ -58,7 +57,6 @@ sp-keyring = { version = "30.0.0" }
 sp-keystore = { version = "0.33.0" }
 
 native = { default-features = false, path = "native" }
-pallet-settlement-zksync = { path = "pallets/settlement-zksync", default-features = false }
 pallet-settlement-groth16 = { path = "pallets/settlement-groth16", default-features = false }
 pallet-settlement-risc0 = { path = "pallets/settlement-risc0", default-features = false }
 pallet-poe = { path = "pallets/proof_of_existence", default-features = false }
@@ -66,6 +64,7 @@ pallet-verifiers = { path = "pallets/verifiers", default-features = false }
 pallet-verifiers-macros = { path = "pallets/verifiers/macros" }
 hp-verifiers = { path = "primitives/hp-verifiers", default-features = false }
 pallet-fflonk-verifier = { path = "verifiers/fflonk", default-features = false }
+pallet-zksync-verifier = { path = "verifiers/zksync", default-features = false }
 
 nh-runtime = { path = "runtime", default-features = false }
 

@@ -14,6 +14,7 @@ risc0-verifier = { git = "https://github.com/HorizenLabs/risc0-verifier.git", ta
 sp-runtime-interface = { workspace = true, default-features = false }
 codec = { workspace = true, default-features = false }
 log = "0.4.11"
+hp-verifiers = { workspace = true }
 
 [features]
 default = ["std"]

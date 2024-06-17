@@ -26,6 +26,16 @@ impl From<risc0_verifier::VerifyError> for VerifyError {
     }
 }
 
+impl From<VerifyError> for hp_verifiers::VerifyError {
+    fn from(value: VerifyError) -> Self {
+        match value {
+            VerifyError::InvalidInput => hp_verifiers::VerifyError::InvalidInput,
+            VerifyError::InvalidProofData => hp_verifiers::VerifyError::InvalidProofData,
+            VerifyError::VerifyError => hp_verifiers::VerifyError::VerifyError,
+        }
+    }
+}
+
 pub const ZKSYNC_PUBS_SIZE: usize = 32;
 pub const ZKSYNC_PROOF_SIZE: usize = 44 * 32;
 

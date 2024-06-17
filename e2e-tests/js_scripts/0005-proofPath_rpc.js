@@ -18,7 +18,7 @@ const ReturnCode = {
 };
 
 const { init_api, BLOCK_TIME, submitProof, waitForNewAttestation, receivedEvents } = require('zkv-lib');
-const { PROOF: ZKSYNC_PROOF } = require('./zksync_data.js');
+const { PROOF: ZKSYNC_PROOF, PUBS: ZKSYNC_PUBS } = require('./zksync_data.js');
 const { PROOF: FFLONK_PROOF, PUBS: FFLONK_PUBS, VK: FFLONK_VK } = require('./fflonk_data.js');
 const { PROOF: GROTH16_PROOF, PUBS: GROTH16_PUBS, VK: GROTH16_VK } = require('./groth16_data.js');
 const { PROOF: RISC0_PROOF, PUBS: RISC0_PUBS, VK: RISC0_VK } = require('./risc0_data.js');
@@ -42,7 +42,7 @@ async function run(nodeName, networkInfo, _args) {
         {
             name: "Zksync",
             pallet: api.tx.settlementZksyncPallet,
-            args: [ZKSYNC_PROOF],
+            args: [{ 'Vk': null }, ZKSYNC_PROOF, ZKSYNC_PUBS],
         },
         {
             name: "Risc0",

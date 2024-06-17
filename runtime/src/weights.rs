@@ -10,6 +10,6 @@ pub mod pallet_preimage;
 pub mod pallet_scheduler;
 pub mod pallet_settlement_groth16;
 pub mod pallet_settlement_risc0;
-pub mod pallet_settlement_zksync;
 pub mod pallet_sudo;
 pub mod pallet_timestamp;
+pub mod pallet_zksync_verifier;

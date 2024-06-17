@@ -79,6 +79,4 @@ mod benchmarks {
         // Verify
         assert!(Vks::<T, Fflonk>::get(pallet_verifiers::hash_key::<Fflonk>(&vk)).is_some());
     }
-
-    //impl_benchmark_test_suite!(Pallet, mock::test_ext(), mock::Test);
 }
