@@ -55,7 +55,7 @@ impl Verifier for Zksync {
     }
 
     fn vk_bytes(_vk: &Self::Vk) -> Cow<[u8]> {
-        static VOID: &'static [u8] = &[];
+        static VOID: &[u8] = &[];
         Cow::Borrowed(VOID)
     }
 }
