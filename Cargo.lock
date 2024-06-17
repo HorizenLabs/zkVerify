@@ -4870,7 +4870,6 @@ dependencies = [
  "pallet-poe",
  "pallet-session",
  "pallet-session-benchmarking",
- "pallet-settlement-fflonk",
  "pallet-settlement-groth16",
  "pallet-settlement-risc0",
  "pallet-settlement-zksync",
@@ -5322,28 +5321,6 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-std",
-]
-
-[[package]]
-name = "pallet-settlement-fflonk"
-version = "0.1.0"
-dependencies = [
- "fflonk_verifier",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hex-literal",
- "hp-poe",
- "log",
- "parity-scale-codec",
- "rstest",
- "scale-info",
- "serde_json",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "substrate-bn",
 ]
 
 [[package]]

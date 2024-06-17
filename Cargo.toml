@@ -10,7 +10,6 @@ resolver = "2"
 members = [
     "node",
     "runtime",
-    "pallets/settlement-fflonk",
     "pallets/proof_of_existence",
     "primitives/hp-proof-of-existence",
     "pallets/settlement-zksync",
@@ -59,7 +58,6 @@ sp-keyring = { version = "30.0.0" }
 sp-keystore = { version = "0.33.0" }
 
 native = { default-features = false, path = "native" }
-pallet-settlement-fflonk = { path = "pallets/settlement-fflonk", default-features = false }
 pallet-settlement-zksync = { path = "pallets/settlement-zksync", default-features = false }
 pallet-settlement-groth16 = { path = "pallets/settlement-groth16", default-features = false }
 pallet-settlement-risc0 = { path = "pallets/settlement-risc0", default-features = false }
