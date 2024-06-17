@@ -27,10 +27,6 @@ mod tests;
 mod weight;
 
 pub use weight::WeightInfo;
-pub const MAX_PROOF_SIZE: u32 = 1000000; // arbitrary length
-pub const MAX_PUBS_SIZE: u32 = 8 + 4 + 32 * 64; // 8: for bincode::serialize,
-                                                // 4: bytes for payload length,
-                                                // 32 * 64: sufficient multiple of 32 bytes
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -90,11 +86,11 @@ pub mod pallet {
     ) -> Result<(), Error<T>> {
         log::trace!("Checking size");
         ensure!(
-            (proof).len() <= T::MaxProofSize::get().try_into().unwrap(),
+            (proof).len() <= T::MaxProofSize::get() as usize,
             Error::<T>::InvalidProofSize
         );
         ensure!(
-            (pubs).len() <= T::MaxPubsSize::get().try_into().unwrap(),
+            (pubs).len() <= T::MaxPubsSize::get() as usize,
             Error::<T>::InvalidPublicInputsSize
         );
 
