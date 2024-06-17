@@ -209,6 +209,33 @@ fn pallet_multisig_availability() {
         ));
     })
 }
+#[test]
+fn pallet_preimage_availability() {
+    new_test_ext().execute_with(|| {
+        assert_ok!(Preimage::note_preimage(
+            RuntimeOrigin::root(),
+            vec![0xCA, 0xFE, 0xBA, 0xBE]
+        ));
+    });
+}
+
+#[test]
+fn pallet_scheduler_availability() {
+    new_test_ext().execute_with(|| {
+        let call = Box::new(RuntimeCall::Balances(BalancesCall::transfer_allow_death {
+            dest: MultiAddress::Id(testsfixtures::SAMPLE_USERS[2].raw_account.into()),
+            value: 5000 * currency::ACME,
+        }));
+
+        assert_ok!(Scheduler::schedule(
+            RuntimeOrigin::root(),
+            100,
+            None,
+            0,
+            call
+        ));
+    });
+}
 
 #[test]
 fn pallet_zksync_availability() {
@@ -323,6 +350,26 @@ mod use_correct_weights {
         assert_eq!(
             <Runtime as pallet_multisig::Config>::WeightInfo::as_multi_approve(3, 100),
             crate::weights::pallet_multisig::NHWeight::<Runtime>::as_multi_approve(3, 100)
+        );
+    }
+
+    #[test]
+    fn pallet_preimage() {
+        use pallet_preimage::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_preimage::Config>::WeightInfo::note_preimage(100),
+            crate::weights::pallet_preimage::NHWeight::<Runtime>::note_preimage(100)
+        );
+    }
+
+    #[test]
+    fn pallet_scheduler() {
+        use pallet_scheduler::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_scheduler::Config>::WeightInfo::schedule(10),
+            crate::weights::pallet_scheduler::NHWeight::<Runtime>::schedule(10)
         );
     }
 

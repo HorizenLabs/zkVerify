@@ -6,6 +6,8 @@ pub mod pallet_fflonk_verifier;
 pub mod pallet_im_online;
 pub mod pallet_multisig;
 pub mod pallet_poe;
+pub mod pallet_preimage;
+pub mod pallet_scheduler;
 pub mod pallet_settlement_groth16;
 pub mod pallet_settlement_risc0;
 pub mod pallet_settlement_zksync;

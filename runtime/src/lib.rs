@@ -47,6 +47,9 @@ use frame_election_provider_support::{
 use frame_support::genesis_builder_helper::{build_config, create_default_config};
 
 // A few exports that help ease life for downstream crates.
+use frame_support::traits::{EnsureOrigin, EqualPrivilegeOnly};
+
+use frame_support::dispatch::RawOrigin;
 pub use frame_support::{
     construct_runtime, derive_impl,
     dispatch::DispatchClass,
@@ -301,9 +304,9 @@ impl pallet_balances::Config for Runtime {
     type WeightInfo = weights::pallet_balances::NHWeight<Runtime>;
     type FreezeIdentifier = ();
     type MaxFreezes = ();
-    type RuntimeHoldReason = ();
+    type RuntimeHoldReason = RuntimeHoldReason;
     type RuntimeFreezeReason = ();
-    type MaxHolds = ();
+    type MaxHolds = ConstU32<1>;
 }
 
 parameter_types! {
@@ -348,6 +351,79 @@ impl pallet_multisig::Config for Runtime {
     type DepositFactor = MultisigDepositFactor;
     type MaxSignatories = MaxSignatories;
     type WeightInfo = weights::pallet_multisig::NHWeight<Runtime>;
+}
+
+parameter_types! {
+    pub const PreimageBaseDeposit: Balance = deposit(2, 64);
+    pub const PreimageByteDeposit: Balance = deposit(0, 1);
+    pub const PreimageHoldReason: RuntimeHoldReason = RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
+}
+
+impl pallet_preimage::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = weights::pallet_preimage::NHWeight<Runtime>;
+    type Currency = Balances;
+    type ManagerOrigin = EnsureRoot<AccountId>;
+    type Consideration = frame_support::traits::fungible::HoldConsideration<
+        AccountId,
+        Balances,
+        PreimageHoldReason,
+        frame_support::traits::LinearStoragePrice<
+            PreimageBaseDeposit,
+            PreimageByteDeposit,
+            Balance,
+        >,
+    >;
+}
+
+parameter_types! {
+    pub MaximumSchedulerWeight: Weight = BlockWeights::get().max_block;
+    pub MaxScheduledPerBlock: u32 = 50;
+}
+
+pub struct EnsureRootOrSudo<T>(sp_std::marker::PhantomData<T>);
+impl<T, O> EnsureOrigin<O> for EnsureRootOrSudo<T>
+where
+    T: frame_system::Config + pallet_sudo::Config,
+    O: Into<Result<RawOrigin<T::AccountId>, O>> + Clone + From<RawOrigin<T::AccountId>>,
+{
+    type Success = T::AccountId;
+
+    fn try_origin(o: O) -> Result<Self::Success, O> {
+        let origin_result: Result<RawOrigin<T::AccountId>, O> = o.clone().into(); // Clone `o` before converting
+        match origin_result {
+            Ok(RawOrigin::Root) => Ok(pallet_sudo::Pallet::<T>::key().expect("No sudo key set")),
+            Ok(RawOrigin::Signed(who)) => {
+                if Some(who.clone()) == pallet_sudo::Pallet::<T>::key() {
+                    Ok(who)
+                } else {
+                    Err(o)
+                }
+            }
+            _ => Err(o),
+        }
+    }
+
+    #[cfg(feature = "runtime-benchmarks")]
+    fn try_successful_origin() -> Result<O, ()> {
+        pallet_sudo::Pallet::<T>::key()
+            .map(|key| O::from(RawOrigin::Signed(key)))
+            .or_else(|| Some(O::from(RawOrigin::Root))) // Fallback to root if no sudo key
+            .ok_or(())
+    }
+}
+impl pallet_scheduler::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeOrigin = RuntimeOrigin;
+    type PalletsOrigin = OriginCaller;
+    type RuntimeCall = RuntimeCall;
+    type MaximumWeight = MaximumSchedulerWeight;
+    type ScheduleOrigin = EnsureRootOrSudo<Runtime>;
+
+    type OriginPrivilegeCmp = EqualPrivilegeOnly;
+    type MaxScheduledPerBlock = MaxScheduledPerBlock;
+    type WeightInfo = weights::pallet_scheduler::NHWeight<Runtime>;
+    type Preimages = Preimage;
 }
 
 parameter_types! {
@@ -555,6 +631,8 @@ construct_runtime!(
         TransactionPayment: pallet_transaction_payment,
         Sudo: pallet_sudo,
         Multisig: pallet_multisig,
+        Scheduler: pallet_scheduler,
+        Preimage: pallet_preimage,
         Offences: pallet_offences,
         Historical: pallet_session_historical::{Pallet},
         ImOnline: pallet_im_online,
@@ -620,6 +698,8 @@ mod benches {
         [pallet_timestamp, Timestamp]
         [pallet_sudo, Sudo]
         [pallet_multisig, Multisig]
+        [pallet_scheduler, Scheduler]
+        [pallet_preimage, Preimage]
         [pallet_session, SessionBench::<Runtime>]
         [pallet_staking, Staking]
         [pallet_im_online, ImOnline]
