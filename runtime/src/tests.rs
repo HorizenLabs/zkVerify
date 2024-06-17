@@ -16,6 +16,7 @@
 use super::*;
 
 use codec::Encode;
+use frame_support::dispatch::GetDispatchInfo;
 use frame_support::{
     assert_ok,
     traits::{
@@ -27,7 +28,7 @@ use frame_system::{EventRecord, Phase};
 use sp_consensus_babe::{Slot, BABE_ENGINE_ID};
 use sp_core::crypto::VrfSecret;
 use sp_core::{Pair, Public, H256};
-use sp_runtime::{AccountId32, Digest, DigestItem};
+use sp_runtime::{AccountId32, Digest, DigestItem, MultiAddress};
 use sp_staking::{offence, offence::ReportOffence, Exposure, SessionIndex};
 
 mod testsfixtures;
@@ -122,6 +123,12 @@ fn new_test_ext() -> sp_io::TestExternalities {
     .assimilate_storage(&mut t)
     .unwrap();
 
+    pallet_sudo::GenesisConfig::<super::Runtime> {
+        key: Some(testsfixtures::SAMPLE_USERS[0].raw_account.into()),
+    }
+    .assimilate_storage(&mut t)
+    .unwrap();
+
     let mut ext = sp_io::TestExternalities::from(t);
 
     ext.execute_with(|| System::set_block_number(1));
@@ -175,6 +182,30 @@ fn pallet_fflonk_availability() {
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
     });
+}
+
+#[test]
+fn pallet_multisig_availability() {
+    new_test_ext().execute_with(|| {
+        let issuer: AccountId32 = testsfixtures::SAMPLE_USERS[0].raw_account.into();
+        let account_ids: Vec<_> = testsfixtures::SAMPLE_USERS
+            .iter()
+            .skip(1)
+            .map(|u| u.raw_account.into())
+            .collect();
+        let call = Box::new(RuntimeCall::Balances(BalancesCall::transfer_allow_death {
+            dest: MultiAddress::Id(issuer.clone()),
+            value: 5000 * currency::ACME,
+        }));
+        assert_ok!(Multisig::as_multi(
+            RuntimeOrigin::signed(issuer),
+            2,
+            account_ids,
+            None,
+            call,
+            Weight::zero()
+        ));
+    })
 }
 
 #[test]
@@ -280,6 +311,16 @@ mod use_correct_weights {
         assert_eq!(
             <Runtime as pallet_sudo::Config>::WeightInfo::sudo(),
             crate::weights::pallet_sudo::NHWeight::<Runtime>::sudo()
+        );
+    }
+
+    #[test]
+    fn pallet_multisig() {
+        use pallet_multisig::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_multisig::Config>::WeightInfo::as_multi_approve(3, 100),
+            crate::weights::pallet_multisig::NHWeight::<Runtime>::as_multi_approve(3, 100)
         );
     }
 
@@ -720,6 +761,69 @@ mod pallets_interact {
                     &offender_account,
                     EQUIVOCATION_KIND
                 ));
+            });
+        }
+    }
+
+    mod sudo {
+        use super::*;
+
+        #[test]
+        fn test_set_sudo_to_multisig() {
+            new_test_ext().execute_with(|| {
+                // Extract the account IDs from SAMPLE_USERS
+                let account_ids: Vec<AccountId32> = testsfixtures::SAMPLE_USERS
+                    .iter()
+                    .map(|user| AccountId32::from(user.raw_account))
+                    .collect();
+                let multi = Multisig::multi_account_id(&account_ids[..3], 2);
+
+                assert_ok!(Balances::transfer_allow_death(
+                    RuntimeOrigin::signed(account_ids[0].clone()),
+                    MultiAddress::Id(multi.clone()),
+                    1000
+                ));
+
+                // Check existing sudo key
+                let existing_sudo_key = Sudo::key();
+
+                // Setting the multisig account as the new sudo account
+                assert_ok!(Sudo::set_key(
+                    RuntimeOrigin::signed(existing_sudo_key.expect("No sudo key")),
+                    MultiAddress::Id(multi.clone())
+                ));
+
+                // Ensure the sudo key is set correctly
+                assert_eq!(Sudo::key(), Some(multi.clone()));
+
+                // Prepare a sudo call to change the sudo key again to a new account (account_ids[1])
+                let sudo_call = pallet_sudo::Call::set_key {
+                    new: MultiAddress::Id(account_ids[1].clone()),
+                };
+
+                let sudo_call_weight = sudo_call.get_dispatch_info().weight;
+
+                // First part of multisig approval (propose the sudo call)
+                assert_ok!(Multisig::as_multi(
+                    RuntimeOrigin::signed(account_ids[0].clone()),
+                    2,
+                    vec![account_ids[1].clone(), account_ids[2].clone()],
+                    None,
+                    Box::new(RuntimeCall::Sudo(sudo_call.clone())),
+                    Weight::zero()
+                ));
+                // Second part of multisig approval (approve the sudo call)
+                assert_ok!(Multisig::as_multi(
+                    RuntimeOrigin::signed(account_ids[1].clone()),
+                    2,
+                    vec![account_ids[0].clone(), account_ids[2].clone()],
+                    Some(Multisig::timepoint()),
+                    Box::new(RuntimeCall::Sudo(sudo_call.clone())),
+                    sudo_call_weight
+                ));
+
+                // Ensure the sudo key has been updated correctly to account_ids[1]
+                assert_eq!(Sudo::key(), Some(account_ids[1].clone()));
             });
         }
     }

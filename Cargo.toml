@@ -96,6 +96,7 @@ pallet-balances = { default-features = false, version = "27.0.0" }
 frame-support = { default-features = false, version = "27.0.0" }
 pallet-grandpa = { default-features = false, version = "27.0.0" }
 pallet-sudo = { default-features = false, version = "27.0.0" }
+pallet-multisig = { default-features = false, version = "27.0.0" }
 frame-system = { default-features = false, version = "27.0.0" }
 frame-try-runtime = { default-features = false, version = "0.33.0" }
 pallet-timestamp = { default-features = false, version = "26.0.0" }

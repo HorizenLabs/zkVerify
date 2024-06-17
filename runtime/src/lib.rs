@@ -94,6 +94,10 @@ pub mod currency {
     pub const CENTS: Balance = ACME / 100;
     pub const THOUSANDS: Balance = 1_000 * ACME;
     pub const MILLIONS: Balance = 1_000 * THOUSANDS;
+    pub const MILLICENTS: Balance = CENTS / 1_000;
+    pub const fn deposit(items: u32, bytes: u32) -> Balance {
+        items as Balance * 2_000 * CENTS + (bytes as Balance) * 100 * MILLICENTS
+    }
 }
 
 use currency::*;
@@ -329,6 +333,23 @@ impl pallet_sudo::Config for Runtime {
     type WeightInfo = weights::pallet_sudo::NHWeight<Runtime>;
 }
 
+parameter_types! {
+    // One storage item; key size is 32; value is size 4+4+16+32 bytes = 56 bytes.
+    pub const MultisigDepositBase: Balance = currency::deposit(1, 88);
+    // Additional storage item size of 32 bytes.
+    pub const MultisigDepositFactor: Balance = currency::deposit(0, 32);
+    pub const MaxSignatories: u32 = 100;
+}
+impl pallet_multisig::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeCall = RuntimeCall;
+    type Currency = Balances;
+    type DepositBase = MultisigDepositBase;
+    type DepositFactor = MultisigDepositFactor;
+    type MaxSignatories = MaxSignatories;
+    type WeightInfo = weights::pallet_multisig::NHWeight<Runtime>;
+}
+
 impl pallet_settlement_fflonk::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
@@ -532,6 +553,7 @@ construct_runtime!(
         Grandpa: pallet_grandpa,
         TransactionPayment: pallet_transaction_payment,
         Sudo: pallet_sudo,
+        Multisig: pallet_multisig,
         Offences: pallet_offences,
         Historical: pallet_session_historical::{Pallet},
         ImOnline: pallet_im_online,
@@ -596,6 +618,7 @@ mod benches {
         [pallet_grandpa, crate::Grandpa]
         [pallet_timestamp, Timestamp]
         [pallet_sudo, Sudo]
+        [pallet_multisig, Multisig]
         [pallet_session, SessionBench::<Runtime>]
         [pallet_staking, Staking]
         [pallet_im_online, ImOnline]

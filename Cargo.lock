@@ -4852,6 +4852,7 @@ dependencies = [
  "pallet-election-provider-support-benchmarking",
  "pallet-grandpa",
  "pallet-im-online",
+ "pallet-multisig",
  "pallet-offences",
  "pallet-poe",
  "pallet-session",
@@ -5191,6 +5192,23 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-staking",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-multisig"
+version = "27.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d97de91a840d8fa4f2eb0dea5de7dd06221b39dd0955c3065ae4a10f63a0ba2c"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
+ "sp-runtime",
  "sp-std",
 ]
 
