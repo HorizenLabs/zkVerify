@@ -27,11 +27,11 @@ use sp_std::fmt::Debug;
 use sp_weights::Weight;
 
 /// Define the minimum traits that proofs and public inputs should implement.
-pub trait Arg: Debug + Clone + PartialEq + Encode + Decode + TypeInfo + MaxEncodedLen {}
-impl<T: Debug + Clone + PartialEq + Encode + Decode + TypeInfo + MaxEncodedLen> Arg for T {}
+pub trait Arg: Debug + Clone + PartialEq + Encode + Decode + TypeInfo {}
+impl<T: Debug + Clone + PartialEq + Encode + Decode + TypeInfo> Arg for T {}
 /// Define the minimum traits that verification keys should implement.
-pub trait VkArg: Arg + EncodeLike {}
-impl<T: Arg + EncodeLike> VkArg for T {}
+pub trait VkArg: Arg + MaxEncodedLen + EncodeLike {}
+impl<T: Arg + MaxEncodedLen + EncodeLike> VkArg for T {}
 
 /// The verification error type
 #[derive(Debug, PartialEq)]
