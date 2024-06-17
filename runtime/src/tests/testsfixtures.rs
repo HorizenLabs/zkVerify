@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Balance, currency, EXISTENTIAL_DEPOSIT};
+use crate::{currency, Balance, EXISTENTIAL_DEPOSIT};
 // Existential deposit used in pallet_balances
 pub const EXISTENTIAL_DEPOSIT_REMAINDER: Balance = 1;
 pub const NUM_TEST_ACCOUNTS: u32 = 4;
