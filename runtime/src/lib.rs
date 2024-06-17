@@ -335,9 +335,9 @@ impl pallet_sudo::Config for Runtime {
 
 parameter_types! {
     // One storage item; key size is 32; value is size 4+4+16+32 bytes = 56 bytes.
-    pub const MultisigDepositBase: Balance = currency::deposit(1, 88) / currency::ACME;
+    pub const MultisigDepositBase: Balance = currency::deposit(1, 88);
     // Additional storage item size of 32 bytes.
-    pub const MultisigDepositFactor: Balance = currency::deposit(0, 32) / currency::ACME;
+    pub const MultisigDepositFactor: Balance = currency::deposit(0, 32);
     pub const MaxSignatories: u32 = 100;
 }
 impl pallet_multisig::Config for Runtime {

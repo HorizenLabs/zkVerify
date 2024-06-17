@@ -136,29 +136,6 @@ fn new_test_ext() -> sp_io::TestExternalities {
     // Return the test externalities
     ext
 }
-#[test]
-fn pallet_multisig_availability() {
-    new_test_ext().execute_with(|| {
-        let issuer: AccountId32 = testsfixtures::SAMPLE_USERS[0].raw_account.into();
-        let account_ids: Vec<_> = testsfixtures::SAMPLE_USERS
-            .iter()
-            .skip(1)
-            .map(|u| u.raw_account.into())
-            .collect();
-        let call = Box::new(RuntimeCall::Balances(BalancesCall::transfer_allow_death {
-            dest: MultiAddress::Id(issuer.clone()),
-            value: 5000,
-        }));
-        assert_ok!(Multisig::as_multi(
-            RuntimeOrigin::signed(issuer),
-            2,
-            account_ids,
-            None,
-            call,
-            Weight::zero()
-        ));
-    })
-}
 
 // Test definition and execution. Test body must be written in the execute_with closure.
 #[test]
@@ -205,6 +182,30 @@ fn pallet_fflonk_availability() {
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
     });
+}
+
+#[test]
+fn pallet_multisig_availability() {
+    new_test_ext().execute_with(|| {
+        let issuer: AccountId32 = testsfixtures::SAMPLE_USERS[0].raw_account.into();
+        let account_ids: Vec<_> = testsfixtures::SAMPLE_USERS
+            .iter()
+            .skip(1)
+            .map(|u| u.raw_account.into())
+            .collect();
+        let call = Box::new(RuntimeCall::Balances(BalancesCall::transfer_allow_death {
+            dest: MultiAddress::Id(issuer.clone()),
+            value: 5000 * currency::ACME,
+        }));
+        assert_ok!(Multisig::as_multi(
+            RuntimeOrigin::signed(issuer),
+            2,
+            account_ids,
+            None,
+            call,
+            Weight::zero()
+        ));
+    })
 }
 
 #[test]
