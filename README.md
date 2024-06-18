@@ -9,17 +9,36 @@ It is based on the [Substrate](https://substrate.io/) framework.
 > The plan for going live on Mainnet will be communicated later.
 > For more information see [zkVerify.io](https://zkverify.io/).
 
+## What is zkVerify
+zkVerify is a blockchain designed to provide zero knowledge proof verifications for any project or dApp using zero knowledge proofs. A high performance, public, decentralized, reliable, and secure blockchain, zkVerify has dedicated proof verification methods written in Rust, and available to be used in a modular and composable way.
+
+## Motivation
+As execution and data availability have been offloaded from monolithic blockchain stacks, we believe that proof verification and settlement need specialization. This system provides such specialization and, by doing so, enables the next wave of innovation for ZK cryptography within Web3 and beyond.
+
+### Prohibitive Costs
+The proof verification market is estimated to incur $100+ million in security expenses alone for zkRollups in 2024, extending to $1.5 billion by 2028 when including ZK applications.
+The verification of a single ZK proof on Ethereum can consume upwards of 200,000 to 300,000 gas units, depending on the proof type. Beyond nominal fees today, the variability of future fees inhibits product adoption.
+
+### Hampering Innovation
+Ethereum Improvement Proposals (EIPs) are design documents that outline new features, standards, or processes for the Ethereum blockchain, serving as a primary mechanism for proposing changes to the network.
+However, the bottlenecks in approving and implementing EIPs hinder the adoption of cutting-edge proving systems, limiting the potential advancements in scalability and privacy. 
+
+For instance, the choice to standardize around the BN254 curve, while practical at the time of implementation, means that operations involving other elliptic curves are not directly supported and are prohibitively expensive to execute.
+
 ## Building and running
 
 ### Prerequisites
 
-Mac
+Install Rust toolchain. Instructions available [here](https://www.rust-lang.org/tools/install)
 
-1. brew install protobuf
-2. rustup target add wasm32-unknown-unknown
+For Mac users, after installation run:
 
+```bash
+brew install protobuf
+rustup target add wasm32-unknown-unknown
+```
 
-### Build
+### Build from source
 
 To build the client from source, clone this repository and run the following commands from the root of the project:
 
@@ -102,14 +121,17 @@ The client will run a chain with a single validator (Alice) and start producing 
 2024-03-28 11:49:18 ✨ Imported #2 (0x8226…df51)
 2024-03-28 11:49:19 💤 Idle (0 peers), best: #2 (0x8226…df51), finalized #1 (0x89e3…c6c4), ⬇ 0 ⬆ 0
 ```
-## Documentation
-
-The official documentation is available at [docs.zkverify.io](https://docs.zkverify.io/).
 
 ## Docker
 
 zkVerify includes some Docker files for building the client and running one or more nodes locally.
 For more information, see [docker/README.md](docker/README.md).
+
+We also provide Docker images to run a validator, boot or RPC node directly in the public testnet, via a user-friendly installation and deployment process. Please take a look at [How to run a node](https://docs.zkverify.io/tutorials/how_to_run_a_node/getting_started) section of the official documentation. 
+
+## Documentation
+
+The official documentation is available at [docs.zkverify.io](https://docs.zkverify.io/).
 
 ## License
 
