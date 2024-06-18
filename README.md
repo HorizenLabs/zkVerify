@@ -31,16 +31,17 @@ cargo build --release
 #### Running GitHub workflows on local environment
 > ⚠️ It is currently supported only on Ubuntu Linux
 
-Use the `./ci/run_locally.sh` script to run GitHub actions workflows locally
+Use the `./ci/run_locally.sh` script to run GitHub Actions workflows locally.
+By default, the script runs all the workflows listed under `.github/workflows/CI-orchestrator.yml` file.
+However, an interactive mode is available, allowing you to choose workflows to run individually if needed.
 
 ```bash
-./ci/run_locally.sh
-```
+./ci/run_locally.sh --help
+Usage: ./ci/run_locally.sh [-i | --help]
 
-To trigger a run of all the workflows listed under `CI-orchestrator.yml` file locally after the initial pull request and additional commits, the `./.githooks/pre-push` hook is being used. Execute the following commands to activate the hook before pushing:
-```bash
-git config --local core.hooksPath .githooks/
-git remote set-url origin https://github.com/HorizenLabs/zkVerify.git
+Options:
+  -i        Run the script in interactive mode, allowing you to select workflows.
+  --help    Show this help message and exit.
 ```
 
 ### Run

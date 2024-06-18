@@ -6,6 +6,27 @@ common_file_location="${root_dir}/ci/common.sh"
 workflows_dir="${root_dir}/.github/workflows"
 PRE_PUSH_HOOK="${PRE_PUSH_HOOK:-false}"
 
+show_help() {
+  echo "Usage: ${0} [-i | --help]"
+  echo
+  echo "Options:"
+  echo "  -i        Run the script in interactive mode, allowing you to select workflows."
+  echo "  --help    Show this help message and exit."
+}
+
+interactive_mode=false
+# Parse command-line arguments
+if [[ "${1:-}" == "-i" ]]; then
+  interactive_mode=true
+elif [[ "${1:-}" == "--help" ]]; then
+  show_help
+  exit 0
+elif [[ "${1:-}" != "" ]]; then
+  echo "Invalid option: ${1}"
+  show_help
+  exit 1
+fi
+
 
 ####
 # Checking all the requirement(s)
@@ -32,7 +53,7 @@ fi
 ####
 workflows_orchestrator="CI-build-test CI-coverage CI-lint-format CI-e2e-test"
 workflows_extra="CI-rustdoc"
-if [ "${PRE_PUSH_HOOK}" == 'false' ];then
+if [ "${interactive_mode}" == 'true' ];then
   workflows="${workflows_orchestrator} ${workflows_extra}"
   while true; do
     # choose one of the available workflows
@@ -45,8 +66,8 @@ if [ "${PRE_PUSH_HOOK}" == 'false' ];then
       act --detect-event --rm -W "${workflows_dir}/${workflow}.yml" || fn_die "ERROR: attempt to run ${workflows_dir}/${workflow}.yml workflow locally has failed. Exiting ..."
     fi
   done
-elif [ "${PRE_PUSH_HOOK}" == 'true' ]; then
-  #workflows="CI-rustdoc"
+elif [ "${interactive_mode}" == 'false' ]; then
+  log_debug "\nRunning all the following workflows sequentially: ${workflows_orchestrator}"
   for workflow in ${workflows_orchestrator}; do
     log_debug "\n=== Running ${workflows_dir}/${workflow}.yml workflow ==="
     act --detect-event --rm -W "${workflows_dir}/${workflow}.yml" || fn_die "ERROR: attempt to run ${workflows_dir}/${workflow}.yml workflow locally has failed. Exiting ..."
