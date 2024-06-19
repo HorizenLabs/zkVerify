@@ -10,10 +10,11 @@ It is based on the [Substrate](https://substrate.io/) framework.
 > For more information see [zkVerify.io](https://zkverify.io/).
 
 ## What is zkVerify
-zkVerify is a blockchain designed to provide zero knowledge proof verifications for any project or dApp using zero knowledge proofs. A high performance, public, decentralized, reliable, and secure blockchain, zkVerify has dedicated proof verification methods written in Rust, and available to be used in a modular and composable way.
+zkVerify is a **L1** blockchain designed to provide verification for zero knowledge proofs.
+As a high performance, public, decentralized, reliable, and secure blockchain, zkVerify has dedicated proof verification methods written in Rust, and available to be used in a modular and composable way.
 
 ## Motivation
-As execution and data availability have been offloaded from monolithic blockchain stacks, we believe that proof verification and settlement need specialization. This system provides such specialization and, by doing so, enables the next wave of innovation for ZK cryptography within Web3 and beyond.
+As execution and data availability have been offloaded from monolithic blockchain stacks, we believe that proof verification and settlement need specialization. This system provides such, enabling the next wave of innovation for ZK cryptography within Web3 and beyond.
 
 ### Prohibitive Costs
 The proof verification market is estimated to incur $100+ million in security expenses alone for zkRollups in 2024, extending to $1.5 billion by 2028 when including ZK applications.
