@@ -12,13 +12,14 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-#![cfg(test)]
+#![cfg(any(test, feature = "runtime-benchmarks"))]
 
 use frame_support::{derive_impl, weights::Weight};
 use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
 use hp_verifiers::{Verifier, VerifyError, WeightInfo};
 
+/// A on_proof_verifier fake pallet
 pub mod on_proof_verified {
     pub use pallet::*;
 

@@ -62,7 +62,8 @@
 //! request in you weight implementation computed with your benchmark.
 pub use pallet::*;
 pub use pallet_verifiers_macros::*;
-mod mock;
+#[allow(missing_docs)]
+pub mod mock;
 mod tests;
 
 pub use hp_verifiers::WeightInfo;

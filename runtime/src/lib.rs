@@ -68,6 +68,7 @@ use frame_system::EnsureRoot;
 pub use pallet_balances::Call as BalancesCall;
 use pallet_session::historical as pallet_session_historical;
 pub use pallet_timestamp::Call as TimestampCall;
+use static_assertions::const_assert;
 use weights::block_weights::BlockExecutionWeight;
 use weights::extrinsic_weights::ExtrinsicBaseWeight;
 
@@ -412,13 +413,6 @@ impl pallet_settlement_zksync::Config for Runtime {
     type WeightInfo = weights::pallet_settlement_zksync::NHWeight<Runtime>;
 }
 
-pub const GROTH16_MAX_NUM_INPUTS: u32 = 16;
-impl pallet_settlement_groth16::Config for Runtime {
-    type OnProofVerified = Poe;
-    type WeightInfo = weights::pallet_settlement_groth16::NHWeight<Runtime>;
-    const MAX_NUM_INPUTS: u32 = GROTH16_MAX_NUM_INPUTS;
-}
-
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
 pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 5;
 // We should avoid publishing attestations for empty trees
@@ -592,6 +586,24 @@ impl pallet_verifiers::Config<pallet_zksync_verifier::Zksync> for Runtime {
         pallet_zksync_verifier::ZksyncWeight<weights::pallet_zksync_verifier::NHWeight<Runtime>>;
 }
 
+pub const GROTH16_MAX_NUM_INPUTS: u32 = 16;
+impl pallet_groth16_verifier::Config for Runtime {
+    const MAX_NUM_INPUTS: u32 = GROTH16_MAX_NUM_INPUTS;
+}
+
+// We should be sure that the max number of inputs does not exceed the max number of inputs in the verifier crate.
+const_assert!(
+    <Runtime as pallet_groth16_verifier::Config>::MAX_NUM_INPUTS
+        <= pallet_groth16_verifier::MAX_NUM_INPUTS
+);
+
+impl pallet_verifiers::Config<pallet_groth16_verifier::Groth16<Runtime>> for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type OnProofVerified = Poe;
+    type WeightInfo =
+        pallet_groth16_verifier::Groth16Weight<weights::pallet_groth16_verifier::NHWeight<Runtime>>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub struct Runtime {
@@ -614,7 +626,7 @@ construct_runtime!(
         SettlementFFlonkPallet: pallet_fflonk_verifier,
         Poe: pallet_poe,
         SettlementZksyncPallet: pallet_zksync_verifier,
-        SettlementGroth16Pallet: pallet_settlement_groth16,
+        SettlementGroth16Pallet: pallet_groth16_verifier,
         SettlementRisc0Pallet: pallet_settlement_risc0,
     }
 );
@@ -680,9 +692,9 @@ mod benches {
         [pallet_im_online, ImOnline]
         [pallet_election_provider_support_benchmarking, ElectionProviderBench::<Runtime>]
         [pallet_poe, Poe]
-        [pallet_zksync_verifier, ZksyncVerifierBench<Runtime>]
+        [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
-        [pallet_settlement_groth16, SettlementGroth16Pallet]
+        [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
         [pallet_settlement_risc0, SettlementRisc0Pallet]
     );
 }
@@ -929,6 +941,7 @@ impl_runtime_apis! {
             use pallet_session_benchmarking::Pallet as SessionBench;
             use pallet_fflonk_verifier::benchmarking::Pallet as FflonkVerifierBench;
             use pallet_zksync_verifier::benchmarking::Pallet as ZksyncVerifierBench;
+            use pallet_groth16_verifier::benchmarking::Pallet as Groth16VerifierBench;
 
             let mut list = Vec::<BenchmarkList>::new();
 
@@ -949,6 +962,7 @@ impl_runtime_apis! {
             use pallet_session_benchmarking::Pallet as SessionBench;
             use pallet_fflonk_verifier::benchmarking::Pallet as FflonkVerifierBench;
             use pallet_zksync_verifier::benchmarking::Pallet as ZksyncVerifierBench;
+            use pallet_groth16_verifier::benchmarking::Pallet as Groth16VerifierBench;
 
             impl frame_system_benchmarking::Config for Runtime {}
             impl baseline::Config for Runtime {}

@@ -1806,6 +1806,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "diff"
+version = "0.1.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56254986775e3233ffa9c4d7d3faaf6d36a2c09d30b20687e9f88bc8bafc16c8"
+
+[[package]]
 name = "difflib"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4868,6 +4874,7 @@ dependencies = [
  "pallet-election-provider-support-benchmarking",
  "pallet-fflonk-verifier",
  "pallet-grandpa",
+ "pallet-groth16-verifier",
  "pallet-im-online",
  "pallet-multisig",
  "pallet-offences",
@@ -4876,7 +4883,6 @@ dependencies = [
  "pallet-scheduler",
  "pallet-session",
  "pallet-session-benchmarking",
- "pallet-settlement-groth16",
  "pallet-settlement-risc0",
  "pallet-staking",
  "pallet-staking-reward-curve",
@@ -5185,6 +5191,8 @@ dependencies = [
  "scale-info",
  "serde_json",
  "sp-core",
+ "sp-io",
+ "sp-runtime",
  "substrate-bn",
 ]
 
@@ -5209,6 +5217,33 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-staking",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-groth16-verifier"
+version = "0.1.0"
+dependencies = [
+ "ark-bls12-381",
+ "ark-bn254",
+ "ark-crypto-primitives",
+ "ark-ec",
+ "ark-ff",
+ "ark-groth16",
+ "ark-relations",
+ "ark-serialize",
+ "ark-std",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "hp-verifiers",
+ "pallet-verifiers",
+ "parity-scale-codec",
+ "rstest",
+ "rstest_reuse",
+ "scale-info",
+ "sp-core",
  "sp-std",
 ]
 
@@ -5363,35 +5398,6 @@ dependencies = [
  "rand 0.8.5",
  "sp-runtime",
  "sp-session",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-settlement-groth16"
-version = "0.1.0"
-dependencies = [
- "ark-bls12-381",
- "ark-bn254",
- "ark-crypto-primitives",
- "ark-ec",
- "ark-ff",
- "ark-groth16",
- "ark-relations",
- "ark-serialize",
- "ark-std",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hex-literal",
- "hp-poe",
- "log",
- "parity-scale-codec",
- "rstest",
- "rstest_reuse",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
  "sp-std",
 ]
 
@@ -5635,7 +5641,10 @@ name = "pallet-verifiers-macros"
 version = "0.1.0"
 dependencies = [
  "derive-syn-parse 0.2.0",
+ "pallet-verifiers",
+ "pretty_assertions",
  "proc-macro-crate 3.1.0",
+ "proc-macro2",
  "quote",
  "rstest",
  "syn 2.0.66",
@@ -6021,6 +6030,16 @@ checksum = "22020dfcf177fcc7bf5deaf7440af371400c67c0de14c399938d8ed4fb4645d3"
 dependencies = [
  "proc-macro2",
  "syn 2.0.66",
+]
+
+[[package]]
+name = "pretty_assertions"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af7cee1a6c8a5b9208b3cb1061f10c0cb689087b3d8ce85fb9d2dd7a29b6ba66"
+dependencies = [
+ "diff",
+ "yansi",
 ]
 
 [[package]]
@@ -11145,6 +11164,12 @@ dependencies = [
  "rand 0.8.5",
  "static_assertions",
 ]
+
+[[package]]
+name = "yansi"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09041cd90cf85f7f8b2df60c646f853b7f535ce68f85244eb6731cf89fa498ec"
 
 [[package]]
 name = "yasna"

@@ -16,16 +16,36 @@
 use ark_ec::{pairing::Pairing, AffineRepr};
 use ark_ff::PrimeField;
 use ark_serialize::SerializationError;
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 use core::fmt::Debug;
 use scale_info::TypeInfo;
 use sp_std::vec;
 use sp_std::vec::Vec;
+
+pub const G1_MAX_SIZE: u32 = 48;
+pub const G2_MAX_SIZE: u32 = G1_MAX_SIZE * 2;
+
+pub fn vec_max_encoded_len(max_vec_len: u32) -> usize {
+    codec::Compact(max_vec_len).encoded_size() + max_vec_len as usize
+}
+
 #[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
 pub struct G1(pub Vec<u8>);
 
+impl MaxEncodedLen for G1 {
+    fn max_encoded_len() -> usize {
+        vec_max_encoded_len(G1_MAX_SIZE)
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
 pub struct G2(pub Vec<u8>);
+
+impl MaxEncodedLen for G2 {
+    fn max_encoded_len() -> usize {
+        vec_max_encoded_len(G2_MAX_SIZE)
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
 pub struct Scalar(pub Vec<u8>);
@@ -100,16 +120,16 @@ impl<E: Pairing> TryInto<ark_groth16::Proof<E>> for Proof {
     }
 }
 
-impl<E: Pairing> TryInto<ark_groth16::VerifyingKey<E>> for VerificationKey {
+impl<E: Pairing> TryFrom<VerificationKey> for ark_groth16::VerifyingKey<E> {
     type Error = SerializationError;
 
-    fn try_into(self) -> Result<ark_groth16::VerifyingKey<E>, Self::Error> {
+    fn try_from(value: VerificationKey) -> Result<Self, Self::Error> {
         Ok(ark_groth16::VerifyingKey {
-            alpha_g1: self.alpha_g1.try_into_affine::<E::G1Affine>()?,
-            beta_g2: self.beta_g2.try_into_affine::<E::G2Affine>()?,
-            gamma_g2: self.gamma_g2.try_into_affine::<E::G2Affine>()?,
-            delta_g2: self.delta_g2.try_into_affine::<E::G2Affine>()?,
-            gamma_abc_g1: self
+            alpha_g1: value.alpha_g1.try_into_affine::<E::G1Affine>()?,
+            beta_g2: value.beta_g2.try_into_affine::<E::G2Affine>()?,
+            gamma_g2: value.gamma_g2.try_into_affine::<E::G2Affine>()?,
+            delta_g2: value.delta_g2.try_into_affine::<E::G2Affine>()?,
+            gamma_abc_g1: value
                 .gamma_abc_g1
                 .into_iter()
                 .map(|v| v.try_into_affine::<E::G1Affine>())
@@ -117,6 +137,24 @@ impl<E: Pairing> TryInto<ark_groth16::VerifyingKey<E>> for VerificationKey {
         })
     }
 }
+
+// impl<E: Pairing> TryInto<ark_groth16::VerifyingKey<E>> for VerificationKey {
+//     type Error = SerializationError;
+
+//     fn try_into(self) -> Result<ark_groth16::VerifyingKey<E>, Self::Error> {
+//         Ok(ark_groth16::VerifyingKey {
+//             alpha_g1: self.alpha_g1.try_into_affine::<E::G1Affine>()?,
+//             beta_g2: self.beta_g2.try_into_affine::<E::G2Affine>()?,
+//             gamma_g2: self.gamma_g2.try_into_affine::<E::G2Affine>()?,
+//             delta_g2: self.delta_g2.try_into_affine::<E::G2Affine>()?,
+//             gamma_abc_g1: self
+//                 .gamma_abc_g1
+//                 .into_iter()
+//                 .map(|v| v.try_into_affine::<E::G1Affine>())
+//                 .collect::<Result<Vec<_>, _>>()?,
+//         })
+//     }
+// }
 
 impl<E: Pairing> TryFrom<ark_groth16::Proof<E>> for Proof {
     type Error = SerializationError;

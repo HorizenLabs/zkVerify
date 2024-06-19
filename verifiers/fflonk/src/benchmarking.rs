@@ -19,7 +19,7 @@ use crate::Fflonk;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 use pallet_verifiers::{VkOrHash, Vks};
-pub struct Pallet<T: Config>(pallet_verifiers::Pallet<T, Fflonk>);
+pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: pallet_verifiers::Config<Fflonk> {}
 impl<T: pallet_verifiers::Config<Fflonk>> Config for T {}
 pub type Call<T> = pallet_verifiers::Call<T, Fflonk>;
@@ -78,5 +78,54 @@ mod benchmarks {
 
         // Verify
         assert!(Vks::<T, Fflonk>::get(pallet_verifiers::hash_key::<Fflonk>(&vk)).is_some());
+    }
+
+    impl_benchmark_test_suite!(Pallet, super::mock::test_ext(), super::mock::Test);
+}
+
+// I've put here just as example: we should understand how to remove all this boilerplate code
+// maybe generate our own `impl_benchmark_verifier_test_suite` that take Verifier and weight
+// can be the right way.
+#[cfg(test)]
+mod mock {
+    use frame_support::derive_impl;
+    use sp_runtime::{traits::IdentityLookup, BuildStorage};
+
+    // Configure a mock runtime to test the pallet.
+    frame_support::construct_runtime!(
+        pub enum Test
+        {
+            System: frame_system,
+            VerifierPallet: crate,
+            OnProofVerifiedMock: pallet_verifiers::mock::on_proof_verified,
+        }
+    );
+
+    #[derive_impl(frame_system::config_preludes::SolochainDefaultConfig as frame_system::DefaultConfig)]
+    impl frame_system::Config for Test {
+        type Block = frame_system::mocking::MockBlockU32<Test>;
+        type AccountId = u64;
+        type Lookup = IdentityLookup<Self::AccountId>;
+    }
+
+    impl pallet_verifiers::Config<crate::Fflonk> for Test {
+        type RuntimeEvent = RuntimeEvent;
+        type OnProofVerified = ();
+        type WeightInfo = crate::FflonkWeight<()>;
+    }
+
+    impl pallet_verifiers::mock::on_proof_verified::Config for Test {
+        type RuntimeEvent = RuntimeEvent;
+    }
+
+    /// Build genesis storage according to the mock runtime.
+    pub fn test_ext() -> sp_io::TestExternalities {
+        let mut ext = sp_io::TestExternalities::from(
+            frame_system::GenesisConfig::<Test>::default()
+                .build_storage()
+                .unwrap(),
+        );
+        ext.execute_with(|| System::set_block_number(1));
+        ext
     }
 }

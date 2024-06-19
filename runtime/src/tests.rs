@@ -258,25 +258,11 @@ fn pallet_zksync_availability() {
 fn pallet_groth16_availability() {
     new_test_ext().execute_with(|| {
         let dummy_origin = AccountId32::new([0; 32]);
-        let dummy_proof = pallet_settlement_groth16::Proof {
-            a: pallet_settlement_groth16::G1(Vec::new()),
-            b: pallet_settlement_groth16::G2(Vec::new()),
-            c: pallet_settlement_groth16::G1(Vec::new()),
-        };
-        let dummy_vk = pallet_settlement_groth16::VerificationKeyWithCurve {
-            curve: pallet_settlement_groth16::Curve::Bn254,
-            alpha_g1: pallet_settlement_groth16::G1(Vec::new()),
-            beta_g2: pallet_settlement_groth16::G2(Vec::new()),
-            gamma_g2: pallet_settlement_groth16::G2(Vec::new()),
-            delta_g2: pallet_settlement_groth16::G2(Vec::new()),
-            gamma_abc_g1: Vec::new(),
-        };
-        let dummy_input = Vec::new();
         assert!(SettlementGroth16Pallet::submit_proof(
             RuntimeOrigin::signed(dummy_origin),
-            dummy_proof,
-            dummy_vk.into(),
-            dummy_input,
+            VkOrHash::from_hash(H256::zero()),
+            pallet_groth16_verifier::Proof::default().into(),
+            Box::new(Vec::new()),
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -428,12 +414,18 @@ mod use_correct_weights {
     }
 
     #[test]
-    fn pallet_settlement_groth16() {
-        use pallet_settlement_groth16::WeightInfo;
+    fn pallet_groth16_verifier() {
+        use pallet_groth16_verifier::Groth16;
+        use pallet_groth16_verifier::WeightInfo;
 
         assert_eq!(
-            <Runtime as pallet_settlement_groth16::Config>::WeightInfo::submit_proof_bn254(0),
-            crate::weights::pallet_settlement_groth16::NHWeight::<Runtime>::submit_proof_bn254(0)
+            <<Runtime as pallet_verifiers::Config<Groth16<Runtime>>>::WeightInfo as 
+                pallet_verifiers::WeightInfo<Groth16<Runtime>>>
+                ::submit_proof(
+                &pallet_groth16_verifier::Proof::default(),
+                &Vec::new()
+            ),
+            crate::weights::pallet_groth16_verifier::NHWeight::<Runtime>::submit_proof_bn254(0)
         );
     }
 

@@ -81,7 +81,6 @@ frame-benchmarking = { workspace = true, default-features = false, optional = tr
 frame-system-benchmarking = { workspace = true, default-features = false, optional = true }
 
 # Custom logic
-pallet-settlement-groth16 = { default-features = false, workspace = true }
 pallet-settlement-risc0 = { default-features = false, workspace = true }
 pallet-poe = { default-features = false, workspace = true }
 static_assertions = "1.1.0"
@@ -91,6 +90,7 @@ pallet-verifiers = { default-features = false, workspace = true }
 hp-verifiers = { default-features = false, workspace = true }
 pallet-fflonk-verifier = { default-features = false, workspace = true }
 pallet-zksync-verifier = { default-features = false, workspace = true }
+pallet-groth16-verifier = { default-features = false, workspace = true }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -113,7 +113,6 @@ runtime-benchmarks = [
 	"pallet-preimage/runtime-benchmarks",
 	"pallet-session-benchmarking/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
-	"pallet-settlement-groth16/runtime-benchmarks",
 	"pallet-settlement-risc0/runtime-benchmarks",
 	"pallet-poe/runtime-benchmarks",
 	"pallet-staking/runtime-benchmarks",
@@ -121,6 +120,7 @@ runtime-benchmarks = [
 	"pallet-verifiers/runtime-benchmarks",
 	"pallet-fflonk-verifier/runtime-benchmarks",
 	"pallet-zksync-verifier/runtime-benchmarks",
+	"pallet-groth16-verifier/runtime-benchmarks",
 ]
 default = ["std"]
 std = [
@@ -150,7 +150,6 @@ std = [
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
 	"pallet-verifiers/std",
-	"pallet-settlement-groth16/std",
 	"pallet-settlement-risc0/std",
 	"pallet-poe/std",
 	"proof-of-existence-rpc-runtime-api/std",
@@ -176,6 +175,7 @@ std = [
 	"pallet-verifiers/std",
 	"pallet-fflonk-verifier/std",
 	"pallet-zksync-verifier/std",
+	"pallet-groth16-verifier/std",
 	"hp-verifiers/std",
 	"substrate-wasm-builder",
 ]
@@ -200,7 +200,6 @@ try-runtime = [
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-verifiers/try-runtime",
-	"pallet-settlement-groth16/try-runtime",
 	"pallet-settlement-risc0/try-runtime",
 	"pallet-poe/try-runtime",
 	"sp-runtime/try-runtime",

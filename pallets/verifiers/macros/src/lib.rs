@@ -18,14 +18,40 @@
 //!
 
 use proc_macro_crate::FoundCrate;
-use quote::{format_ident, quote};
-use syn::{parse_macro_input, parse_quote, Attribute, Ident, Token, Visibility};
+use quote::{format_ident, quote, ToTokens};
+use syn::{parse_macro_input, parse_quote, Attribute, Ident, Token, Type, Visibility};
+
+#[derive(Clone)]
+struct GenericType {
+    pub l_angular: Token![<],
+    pub t: Type,
+    pub r_angular: Token![>],
+}
+
+impl syn::parse::Parse for GenericType {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        Ok(GenericType {
+            l_angular: input.parse()?,
+            t: input.parse()?,
+            r_angular: input.parse()?,
+        })
+    }
+}
+
+impl ToTokens for GenericType {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        self.l_angular.to_tokens(tokens);
+        self.t.to_tokens(tokens);
+        self.r_angular.to_tokens(tokens);
+    }
+}
 
 struct Item {
     pub attrs: Vec<Attribute>,
     pub vis: Visibility,
     pub struct_token: Token![struct],
     pub ident: Ident,
+    pub generic: Option<GenericType>,
     pub semi_token: Token![;],
 }
 
@@ -35,12 +61,19 @@ impl syn::parse::Parse for Item {
         let vis = input.parse()?;
         let struct_token = input.parse()?;
         let ident = input.parse()?;
+        let lookahead = input.lookahead1();
+        let generic = if lookahead.peek(Token![<]) {
+            Some(input.parse()?)
+        } else {
+            None
+        };
         let semi_token = input.parse()?;
         Ok(Item {
             attrs,
             vis,
             struct_token,
             ident,
+            generic,
             semi_token,
         })
     }
@@ -59,29 +92,37 @@ pub fn verifier(
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     let _ = parse_macro_input!(attr as syn::parse::Nothing);
-    verifier_render(parse_macro_input!(item as Item))
+    verifier_render(parse_macro_input!(item as Item)).into()
 }
 
-fn verifier_render(item: Item) -> proc_macro::TokenStream {
+fn verifier_render(item: Item) -> proc_macro2::TokenStream {
     let Item {
         attrs,
         vis,
         struct_token,
         ident,
+        generic,
         semi_token,
     } = item;
     let crate_name = crate_name();
+    let t = generic
+        .clone()
+        .map(|t| t.t)
+        .unwrap_or_else(|| parse_quote! { T });
+    let phantom = generic
+        .as_ref()
+        .map(|t| quote! { ( core::marker::PhantomData #t ) });
+
     quote! {
         #(#attrs)*
-        #vis #struct_token #ident #semi_token
-        pub type Pallet<T> = #crate_name::Pallet<T, #ident>;
-        pub type Event<T> = #crate_name::Event<T, #ident>;
-        pub type Error<T> = #crate_name::Error<T, #ident>;
+        #vis #struct_token #ident #generic #phantom #semi_token
+        pub type Pallet<#t> = #crate_name::Pallet<#t, #ident #generic>;
+        pub type Event<#t> = #crate_name::Event<#t, #ident #generic>;
+        pub type Error<#t> = #crate_name::Error<#t, #ident #generic>;
         pub use #crate_name::{
             __substrate_call_check, __substrate_event_check, tt_default_parts, tt_error_token,
         };
     }
-    .into()
 }
 
 fn crate_name() -> syn::Path {
@@ -103,12 +144,14 @@ mod tests {
     // .
 
     use super::*;
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     #[rstest]
     #[case("pub struct Verifier;")]
     #[case("pub struct Other;")]
     #[case::no_pub("struct Verifier;")]
+    #[case::generic_with_type_reference("struct Verifier<A>;")]
     #[case::comments(
         r#"
     /// comm
@@ -122,9 +165,73 @@ mod tests {
     #[rstest]
     #[case::named_tuple("struct Verifier(Other);")]
     #[case::field("struct Other{a: u32}")]
-    #[case::generics("struct Verifier<A>;")]
+    #[case::generic_with_bound("struct Verifier<A: B>;")]
+    #[case::generic_lifetime("struct Verifier<'a>;")]
+    #[case::generics_more_than_one("struct Verifier<A, B>;")]
     #[case::enum_type("enum Verifier;")]
     fn should_reject_invalid_item(#[case] input: &str) {
         assert!(syn::parse_str::<Item>(input).is_err())
+    }
+
+    #[test]
+    fn happy_path() {
+        let expected: syn::ItemMod = parse_quote! {
+            mod a {
+                #[a1]
+                #[a2]
+                pub struct Ver;
+                pub type Pallet<T> = pallet_verifiers::Pallet<T, Ver>;
+                pub type Event<T> = pallet_verifiers::Event<T, Ver>;
+                pub type Error<T> = pallet_verifiers::Error<T, Ver>;
+                pub use pallet_verifiers::{
+                    __substrate_call_check, __substrate_event_check, tt_default_parts, tt_error_token,
+                };
+        }
+        };
+        let out = verifier_render(
+            syn::parse_str(
+                r#"
+            #[a1]
+            #[a2]
+            pub struct Ver;"#,
+            )
+            .unwrap(),
+        );
+        let out = parse_quote! {
+            mod a {
+                #out
+            }
+        };
+
+        assert_eq!(expected, out);
+    }
+
+    #[test]
+    fn happy_path_with_generic() {
+        let expected: syn::ItemMod = parse_quote! {
+            mod a {
+                pub struct Ver<R>(core::marker::PhantomData<R>);
+                pub type Pallet<R> = pallet_verifiers::Pallet<R, Ver<R>>;
+                pub type Event<R> = pallet_verifiers::Event<R, Ver<R>>;
+                pub type Error<R> = pallet_verifiers::Error<R, Ver<R>>;
+                pub use pallet_verifiers::{
+                    __substrate_call_check, __substrate_event_check, tt_default_parts, tt_error_token,
+                };
+        }
+        };
+        let out = verifier_render(
+            syn::parse_str(
+                r#"
+            pub struct Ver<R>;"#,
+            )
+            .unwrap(),
+        );
+        let out = parse_quote! {
+            mod a {
+                #out
+            }
+        };
+
+        assert_eq!(expected, out);
     }
 }
