@@ -19,6 +19,5 @@ coverage_summary.txt
 # Ignore output reports
 *_output.txt
 
-# Ignore external libraries (and their paths)
+# Ignore external libraries
 deps/
-#config.toml

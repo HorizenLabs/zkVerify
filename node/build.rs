@@ -25,6 +25,9 @@ use toml::*;
 use walkdir::WalkDir;
 
 fn main() {
+    let cargo_config = PathBuf::from(env!("CARGO_HOME")).join("config.toml");
+    println!("cargo::rerun-if-changed={:?}", cargo_config);
+
     generate_cargo_keys();
 
     rerun_if_git_head_changed();
@@ -86,9 +89,6 @@ fn set_env_paths(reset: bool) {
     let libs_path: PathBuf = env::current_dir().unwrap().join("../deps");
     let libs_path = libs_path.to_str().unwrap();
     let cargo_config = PathBuf::from(env!("CARGO_HOME")).join("config.toml");
-    // let cargo_config = PathBuf::from(env::current_dir().unwrap())
-    //     .join("..")
-    //     .join("config.toml");
 
     if !Path::new(&cargo_config).exists() {
         let _ = File::create(cargo_config.clone());
