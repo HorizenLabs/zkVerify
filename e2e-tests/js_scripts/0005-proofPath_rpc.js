@@ -47,12 +47,12 @@ async function run(nodeName, networkInfo, _args) {
         {
             name: "Risc0",
             pallet: api.tx.settlementRisc0Pallet,
-            args: [RISC0_VK, RISC0_PROOF, RISC0_PUBS],
+            args: [{ 'Vk': RISC0_VK }, RISC0_PROOF, RISC0_PUBS],
         },
         {
             name: "Groth16",
             pallet: api.tx.settlementGroth16Pallet,
-            args: [GROTH16_PROOF, GROTH16_VK, GROTH16_PUBS],
+            args: [{ 'Vk': GROTH16_VK }, GROTH16_PROOF, GROTH16_PUBS],
         }
     ];
 

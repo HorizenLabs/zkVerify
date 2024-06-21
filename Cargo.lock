@@ -3157,6 +3157,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-core",
+ "sp-io",
  "sp-std",
  "sp-weights",
 ]
@@ -4881,9 +4882,9 @@ dependencies = [
  "pallet-poe",
  "pallet-preimage",
  "pallet-scheduler",
+ "pallet-risc0-verifier",
  "pallet-session",
  "pallet-session-benchmarking",
- "pallet-settlement-risc0",
  "pallet-staking",
  "pallet-staking-reward-curve",
  "pallet-sudo",
@@ -5358,6 +5359,22 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "sp-weights",
+]
+
+[[package]]
+name = "pallet-risc0-verifier"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "hp-verifiers",
+ "log",
+ "native",
+ "pallet-verifiers",
+ "sp-core",
+ "sp-std",
 ]
 
 [[package]]

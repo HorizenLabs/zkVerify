@@ -395,24 +395,6 @@ impl pallet_scheduler::Config for Runtime {
     type Preimages = Preimage;
 }
 
-parameter_types! {
-    pub const Risc0MaxProofSize: u32 = 1000000; // arbitrary length
-    pub const Risc0MaxPubsSize: u32 = 8 + 4 + 32 * 64; // 8: for bincode::serialize,
-                                                       // 4: bytes for payload length,
-                                                       // 32 * 64: sufficient multiple of 32 bytes
-}
-impl pallet_settlement_risc0::Config for Runtime {
-    type OnProofVerified = Poe;
-    type WeightInfo = weights::pallet_settlement_risc0::NHWeight<Runtime>;
-    type MaxProofSize = Risc0MaxProofSize;
-    type MaxPubsSize = Risc0MaxPubsSize;
-}
-
-impl pallet_settlement_zksync::Config for Runtime {
-    type OnProofVerified = Poe;
-    type WeightInfo = weights::pallet_settlement_zksync::NHWeight<Runtime>;
-}
-
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
 pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 5;
 // We should avoid publishing attestations for empty trees
@@ -587,13 +569,17 @@ impl pallet_verifiers::Config<pallet_zksync_verifier::Zksync> for Runtime {
 }
 
 pub const GROTH16_MAX_NUM_INPUTS: u32 = 16;
+parameter_types! {
+    pub const Groth16MaxNumInputs: u32 = GROTH16_MAX_NUM_INPUTS;
+}
+
 impl pallet_groth16_verifier::Config for Runtime {
-    const MAX_NUM_INPUTS: u32 = GROTH16_MAX_NUM_INPUTS;
+    type MaxNumInputs = Groth16MaxNumInputs;
 }
 
 // We should be sure that the max number of inputs does not exceed the max number of inputs in the verifier crate.
 const_assert!(
-    <Runtime as pallet_groth16_verifier::Config>::MAX_NUM_INPUTS
+    <Runtime as pallet_groth16_verifier::Config>::MaxNumInputs::get()
         <= pallet_groth16_verifier::MAX_NUM_INPUTS
 );
 
@@ -602,6 +588,25 @@ impl pallet_verifiers::Config<pallet_groth16_verifier::Groth16<Runtime>> for Run
     type OnProofVerified = Poe;
     type WeightInfo =
         pallet_groth16_verifier::Groth16Weight<weights::pallet_groth16_verifier::NHWeight<Runtime>>;
+}
+
+parameter_types! {
+    pub const Risc0MaxProofSize: u32 = 1000000; // arbitrary length
+    pub const Risc0MaxPubsSize: u32 = 8 + 4 + 32 * 64; // 8: for bincode::serialize,
+                                                       // 4: bytes for payload length,
+                                                       // 32 * 64: sufficient multiple of 32 bytes
+}
+
+impl pallet_risc0_verifier::Config for Runtime {
+    type MaxProofSize = Risc0MaxProofSize;
+    type MaxPubsSize = Risc0MaxPubsSize;
+}
+
+impl pallet_verifiers::Config<pallet_risc0_verifier::Risc0<Runtime>> for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type OnProofVerified = Poe;
+    type WeightInfo =
+        pallet_risc0_verifier::Risc0Weight<weights::pallet_risc0_verifier::NHWeight<Runtime>>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -627,7 +632,7 @@ construct_runtime!(
         Poe: pallet_poe,
         SettlementZksyncPallet: pallet_zksync_verifier,
         SettlementGroth16Pallet: pallet_groth16_verifier,
-        SettlementRisc0Pallet: pallet_settlement_risc0,
+        SettlementRisc0Pallet: pallet_risc0_verifier,
     }
 );
 
@@ -695,7 +700,7 @@ mod benches {
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
-        [pallet_settlement_risc0, SettlementRisc0Pallet]
+        [pallet_risc0_verifier, Risc0VerifierBench::<Runtime>]
     );
 }
 
@@ -942,6 +947,7 @@ impl_runtime_apis! {
             use pallet_fflonk_verifier::benchmarking::Pallet as FflonkVerifierBench;
             use pallet_zksync_verifier::benchmarking::Pallet as ZksyncVerifierBench;
             use pallet_groth16_verifier::benchmarking::Pallet as Groth16VerifierBench;
+            use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
 
             let mut list = Vec::<BenchmarkList>::new();
 
@@ -963,6 +969,7 @@ impl_runtime_apis! {
             use pallet_fflonk_verifier::benchmarking::Pallet as FflonkVerifierBench;
             use pallet_zksync_verifier::benchmarking::Pallet as ZksyncVerifierBench;
             use pallet_groth16_verifier::benchmarking::Pallet as Groth16VerifierBench;
+            use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
 
             impl frame_system_benchmarking::Config for Runtime {}
             impl baseline::Config for Runtime {}

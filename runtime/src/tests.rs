@@ -274,15 +274,15 @@ fn pallet_risc0_availability() {
     new_test_ext().execute_with(|| {
         let dummy_origin = AccountId32::new([0; 32]);
 
-        let dummy_vk = [0u8; 32];
+        let dummy_vk = H256::default();
         let dummy_proof = vec![];
         let dummy_pubs = vec![];
 
         assert!(SettlementRisc0Pallet::submit_proof(
             RuntimeOrigin::signed(dummy_origin),
-            dummy_vk,
-            dummy_proof,
-            dummy_pubs
+            VkOrHash::Vk(dummy_vk.into()),
+            dummy_proof.into(),
+            dummy_pubs.into()
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -431,11 +431,17 @@ mod use_correct_weights {
 
     #[test]
     fn pallet_settlement_risc0() {
-        use pallet_settlement_risc0::WeightInfo;
+        use pallet_risc0_verifier::Risc0;
+        use pallet_risc0_verifier::WeightInfo;
 
         assert_eq!(
-            <Runtime as pallet_settlement_risc0::Config>::WeightInfo::submit_proof(),
-            crate::weights::pallet_settlement_risc0::NHWeight::<Runtime>::submit_proof()
+            <<Runtime as pallet_verifiers::Config<Risc0<Runtime>>>::WeightInfo as 
+                pallet_verifiers::WeightInfo<Risc0<Runtime>>>
+                ::submit_proof(
+                &Vec::new(),
+                &Vec::new()
+            ),
+            crate::weights::pallet_risc0_verifier::NHWeight::<Runtime>::submit_proof()
         );
     }
 
