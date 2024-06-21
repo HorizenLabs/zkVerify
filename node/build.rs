@@ -57,23 +57,21 @@ fn cache_cpp_libs() -> bool {
         || fs::metadata(PathBuf::from(destination_path).join(snappy_lib)).is_err()
     {
         for target_path in target_paths {
-            for entry in WalkDir::new(target_path) {
-                if let Ok(entry) = entry {
-                    let path = entry.path();
-                    for lib in libs.iter_mut() {
-                        let regex_pattern = Regex::new(&lib.0).unwrap();
-                        if path.is_file() && regex_pattern.is_match(path.to_str().unwrap()) {
-                            let mut destination_file = String::from(destination_path);
-                            destination_file.push_str(path.file_name().unwrap().to_str().unwrap());
-                            let _ = fs::create_dir_all(destination_path);
-                            let _ = fs::copy(path, destination_file);
-                            lib.1 = true;
-                            break;
-                        }
+            for entry in WalkDir::new(target_path).into_iter().flatten() {
+                let path = entry.path();
+                for lib in libs.iter_mut() {
+                    let regex_pattern = Regex::new(&lib.0).unwrap();
+                    if path.is_file() && regex_pattern.is_match(path.to_str().unwrap()) {
+                        let mut destination_file = String::from(destination_path);
+                        destination_file.push_str(path.file_name().unwrap().to_str().unwrap());
+                        let _ = fs::create_dir_all(destination_path);
+                        let _ = fs::copy(path, destination_file);
+                        lib.1 = true;
+                        break;
                     }
-                    if libs[0].1 && libs[1].1 {
-                        return true;
-                    }
+                }
+                if libs[0].1 && libs[1].1 {
+                    return true;
                 }
             }
         }
@@ -81,16 +79,11 @@ fn cache_cpp_libs() -> bool {
         return true;
     }
 
-    return libs[0].1 && libs[1].1;
+    libs[0].1 && libs[1].1
 }
 
 fn set_env_paths(reset: bool) {
-    let libs_path: PathBuf;
-    if reset {
-        libs_path = PathBuf::from("");
-    } else {
-        libs_path = PathBuf::from(env::current_dir().unwrap()).join("../deps");
-    }
+    let libs_path: PathBuf = env::current_dir().unwrap().join("../deps");
     let libs_path = libs_path.to_str().unwrap();
     let cargo_config = PathBuf::from(env!("CARGO_HOME")).join("config.toml");
     // let cargo_config = PathBuf::from(env::current_dir().unwrap())
@@ -134,5 +127,5 @@ fn set_env_paths(reset: bool) {
         .truncate(true)
         .open(cargo_config.clone())
         .unwrap();
-    let _ = file.write_all(&main_table.to_string().as_bytes()).unwrap();
+    file.write_all(main_table.to_string().as_bytes()).unwrap();
 }
