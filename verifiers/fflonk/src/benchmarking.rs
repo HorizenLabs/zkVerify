@@ -18,7 +18,9 @@
 use crate::Fflonk;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
+use hp_verifiers::Verifier;
 use pallet_verifiers::{VkOrHash, Vks};
+
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: pallet_verifiers::Config<Fflonk> {}
 impl<T: pallet_verifiers::Config<Fflonk>> Config for T {}
@@ -77,7 +79,7 @@ mod benchmarks {
         register_vk(RawOrigin::Signed(caller), vk.clone().into());
 
         // Verify
-        assert!(Vks::<T, Fflonk>::get(pallet_verifiers::hash_key::<Fflonk>(&vk)).is_some());
+        assert!(Vks::<T, Fflonk>::get(Fflonk::vk_hash(&vk)).is_some());
     }
 
     impl_benchmark_test_suite!(Pallet, super::mock::test_ext(), super::mock::Test);
@@ -97,7 +99,6 @@ mod mock {
         {
             System: frame_system,
             VerifierPallet: crate,
-            OnProofVerifiedMock: pallet_verifiers::mock::on_proof_verified,
         }
     );
 
@@ -112,10 +113,6 @@ mod mock {
         type RuntimeEvent = RuntimeEvent;
         type OnProofVerified = ();
         type WeightInfo = crate::FflonkWeight<()>;
-    }
-
-    impl pallet_verifiers::mock::on_proof_verified::Config for Test {
-        type RuntimeEvent = RuntimeEvent;
     }
 
     /// Build genesis storage according to the mock runtime.

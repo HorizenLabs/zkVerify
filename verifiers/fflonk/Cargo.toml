@@ -22,7 +22,7 @@ hex-literal = { version = "0.4.1", optional = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
-pallet-verifiers = { workspace = true, default-features = false }
+pallet-verifiers = { workspace = true }
 substrate-bn = "0.6.0"
 serde_json = { version = "1.0.117", optional = true, default-features = false }
 sp-runtime = { workspace = true, optional = true }
