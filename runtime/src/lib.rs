@@ -350,17 +350,6 @@ impl pallet_multisig::Config for Runtime {
     type WeightInfo = weights::pallet_multisig::NHWeight<Runtime>;
 }
 
-impl pallet_settlement_fflonk::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
-    type OnProofVerified = Poe;
-    type WeightInfo = weights::pallet_settlement_fflonk::NHWeight<Runtime>;
-}
-
-impl pallet_settlement_zksync::Config for Runtime {
-    type OnProofVerified = Poe;
-    type WeightInfo = weights::pallet_settlement_zksync::NHWeight<Runtime>;
-}
-
 parameter_types! {
     pub const Risc0MaxProofSize: u32 = 1000000; // arbitrary length
     pub const Risc0MaxPubsSize: u32 = 8 + 4 + 32 * 64; // 8: for bincode::serialize,
