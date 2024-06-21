@@ -66,6 +66,7 @@ impl TryInto<substrate_bn::Fq2> for Fq2 {
     }
 }
 
+#[derive(Debug)]
 pub enum ConvertError {
     NotAMemberFq,
     InvalidG1Point,

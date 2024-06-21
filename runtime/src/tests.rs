@@ -25,6 +25,7 @@ use frame_support::{
     },
 };
 use frame_system::{EventRecord, Phase};
+use pallet_verifiers::VkOrHash;
 use sp_consensus_babe::{Slot, BABE_ENGINE_ID};
 use sp_core::crypto::VrfSecret;
 use sp_core::{Pair, Public, H256};
@@ -57,8 +58,8 @@ fn new_test_ext() -> sp_io::TestExternalities {
 
     pallet_balances::GenesisConfig::<super::Runtime> {
         balances: testsfixtures::SAMPLE_USERS
-            .to_vec()
-            .into_iter()
+            .iter()
+            .cloned()
             .map(|user| (user.raw_account.into(), user.starting_balance))
             .collect(),
     }
@@ -76,8 +77,8 @@ fn new_test_ext() -> sp_io::TestExternalities {
     // Add authorities
     pallet_session::GenesisConfig::<super::Runtime> {
         keys: testsfixtures::SAMPLE_USERS
-            .to_vec()
-            .into_iter()
+            .iter()
+            .cloned()
             .map(|user| {
                 (
                     user.raw_account.into(),
@@ -97,8 +98,8 @@ fn new_test_ext() -> sp_io::TestExternalities {
 
     pallet_staking::GenesisConfig::<super::Runtime> {
         stakers: testsfixtures::SAMPLE_USERS
-            .to_vec()
-            .into_iter()
+            .iter()
+            .cloned()
             .map(|user| {
                 (
                     user.raw_account.into(),
@@ -172,12 +173,13 @@ fn check_starting_balances_and_existential_limit() {
 fn pallet_fflonk_availability() {
     new_test_ext().execute_with(|| {
         let dummy_origin = AccountId32::new([0; 32]);
-        let dummy_raw_proof: pallet_settlement_fflonk::Proof =
-            [0; pallet_settlement_fflonk::FULL_PROOF_SIZE];
+        let dummy_proof: pallet_fflonk_verifier::Proof = [0; pallet_fflonk_verifier::PROOF_SIZE];
+        let dummy_pubs: pallet_fflonk_verifier::Pubs = [0; pallet_fflonk_verifier::PUBS_SIZE];
         assert!(SettlementFFlonkPallet::submit_proof(
             RuntimeOrigin::signed(dummy_origin),
-            dummy_raw_proof.into(),
-            None
+            VkOrHash::from_hash(H256::zero()),
+            dummy_proof.into(),
+            dummy_pubs.into(),
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -345,12 +347,18 @@ mod use_correct_weights {
     }
 
     #[test]
-    fn pallet_settlement_fflonk() {
-        use pallet_settlement_fflonk::WeightInfo;
+    fn pallet_fflonk_verifier() {
+        use pallet_fflonk_verifier::Fflonk;
+        let dummy_proof: pallet_fflonk_verifier::Proof = [0; pallet_fflonk_verifier::PROOF_SIZE];
+        let dummy_pubs: pallet_fflonk_verifier::Pubs = [0; pallet_fflonk_verifier::PUBS_SIZE];
+        use pallet_fflonk_verifier::WeightInfo;
 
         assert_eq!(
-            <Runtime as pallet_settlement_fflonk::Config>::WeightInfo::submit_proof_default(),
-            crate::weights::pallet_settlement_fflonk::NHWeight::<Runtime>::submit_proof_default()
+            <<Runtime as pallet_verifiers::Config<Fflonk>>::WeightInfo as pallet_verifiers::WeightInfo<Fflonk>>::submit_proof(
+                &dummy_proof,
+                &dummy_pubs
+            ),
+            crate::weights::pallet_fflonk_verifier::NHWeight::<Runtime>::submit_proof()
         );
     }
 
@@ -429,7 +437,7 @@ mod pallets_interact {
 
     fn new_test_ext() -> sp_io::TestExternalities {
         let mut ex = super::new_test_ext();
-        ex.execute_with(|| initialize());
+        ex.execute_with(initialize);
         ex
     }
 
@@ -466,9 +474,7 @@ mod pallets_interact {
                 assert_eq!(
                     Authorship::author(),
                     Some(AccountId32::new(
-                        testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
-                            .raw_account
-                            .into()
+                        testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].raw_account
                     ))
                 );
             });
@@ -569,9 +575,7 @@ mod pallets_interact {
         fn notifies_staking() {
             new_test_ext().execute_with(|| {
                 let offender_account = sp_runtime::AccountId32::new(
-                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
-                        .raw_account
-                        .into(),
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].raw_account,
                 );
 
                 let expected_slashing_event = EventRecord {
@@ -604,9 +608,7 @@ mod pallets_interact {
             new_test_ext().execute_with(|| {
                 let session = Session::current_index();
                 let offender_account = AccountId32::new(
-                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
-                        .raw_account
-                        .into(),
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].raw_account,
                 );
 
                 const EQUIVOCATION_KIND: &offence::Kind = b"im-online:offlin";
@@ -637,9 +639,7 @@ mod pallets_interact {
         fn notified_by_grandpa() {
             new_test_ext().execute_with(|| {
                 let offender_account = AccountId32::new(
-                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
-                        .raw_account
-                        .into(),
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].raw_account,
                 );
                 let offender = get_from_seed::<GrandpaId>(
                     testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].session_key_seed,
@@ -669,7 +669,7 @@ mod pallets_interact {
                     let prevote_msg = finality_grandpa::Message::Prevote(prevote.clone());
                     let payload =
                         sp_consensus_grandpa::localized_payload(round, set_id, &prevote_msg);
-                    let signed = offender.sign(&payload).into();
+                    let signed = offender.sign(&payload);
                     (prevote, signed)
                 };
                 let first_vote = create_signed_prevote(H256::random());
@@ -705,9 +705,7 @@ mod pallets_interact {
         fn notified_by_babe() {
             new_test_ext().execute_with(|| {
                 let offender_account = AccountId32::new(
-                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize]
-                        .raw_account
-                        .into(),
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].raw_account,
                 );
                 let offender = get_from_seed::<BabeId>(
                     testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].session_key_seed,

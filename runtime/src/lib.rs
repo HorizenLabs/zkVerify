@@ -350,17 +350,6 @@ impl pallet_multisig::Config for Runtime {
     type WeightInfo = weights::pallet_multisig::NHWeight<Runtime>;
 }
 
-impl pallet_settlement_fflonk::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
-    type OnProofVerified = Poe;
-    type WeightInfo = weights::pallet_settlement_fflonk::NHWeight<Runtime>;
-}
-
-impl pallet_settlement_zksync::Config for Runtime {
-    type OnProofVerified = Poe;
-    type WeightInfo = weights::pallet_settlement_zksync::NHWeight<Runtime>;
-}
-
 parameter_types! {
     pub const Risc0MaxProofSize: u32 = 1000000; // arbitrary length
     pub const Risc0MaxPubsSize: u32 = 8 + 4 + 32 * 64; // 8: for bincode::serialize,
@@ -372,6 +361,11 @@ impl pallet_settlement_risc0::Config for Runtime {
     type WeightInfo = weights::pallet_settlement_risc0::NHWeight<Runtime>;
     type MaxProofSize = Risc0MaxProofSize;
     type MaxPubsSize = Risc0MaxPubsSize;
+}
+
+impl pallet_settlement_zksync::Config for Runtime {
+    type OnProofVerified = Poe;
+    type WeightInfo = weights::pallet_settlement_zksync::NHWeight<Runtime>;
 }
 
 pub const GROTH16_MAX_NUM_INPUTS: u32 = 16;
@@ -540,6 +534,13 @@ impl pallet_offences::Config for Runtime {
     type OnOffenceHandler = Staking;
 }
 
+impl pallet_verifiers::Config<pallet_fflonk_verifier::Fflonk> for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type OnProofVerified = Poe;
+    type WeightInfo =
+        pallet_fflonk_verifier::FflonkWeight<weights::pallet_fflonk_verifier::NHWeight<Runtime>>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub struct Runtime {
@@ -557,7 +558,7 @@ construct_runtime!(
         Offences: pallet_offences,
         Historical: pallet_session_historical::{Pallet},
         ImOnline: pallet_im_online,
-        SettlementFFlonkPallet: pallet_settlement_fflonk,
+        SettlementFFlonkPallet: pallet_fflonk_verifier,
         Poe: pallet_poe,
         SettlementZksyncPallet: pallet_settlement_zksync,
         SettlementGroth16Pallet: pallet_settlement_groth16,
@@ -624,8 +625,8 @@ mod benches {
         [pallet_im_online, ImOnline]
         [pallet_election_provider_support_benchmarking, ElectionProviderBench::<Runtime>]
         [pallet_poe, Poe]
-        [pallet_settlement_fflonk, SettlementFFlonkPallet]
         [pallet_settlement_zksync, SettlementZksyncPallet]
+        [pallet_verifier_fflonk, FflonkVerifierBench::<Runtime>]
         [pallet_settlement_groth16, SettlementGroth16Pallet]
         [pallet_settlement_risc0, SettlementRisc0Pallet]
     );
@@ -871,10 +872,11 @@ impl_runtime_apis! {
             use baseline::Pallet as BaselineBench;
             use pallet_election_provider_support_benchmarking::Pallet as ElectionProviderBench;
             use pallet_session_benchmarking::Pallet as SessionBench;
+            use pallet_fflonk_verifier::benchmarking::Pallet as FflonkVerifierBench;
 
             let mut list = Vec::<BenchmarkList>::new();
-            list_benchmarks!(list, extra);
 
+            list_benchmarks!(list, extra);
             let storage_info = AllPalletsWithSystem::storage_info();
 
             (list, storage_info)
@@ -889,6 +891,7 @@ impl_runtime_apis! {
             use baseline::Pallet as BaselineBench;
             use pallet_election_provider_support_benchmarking::Pallet as ElectionProviderBench;
             use pallet_session_benchmarking::Pallet as SessionBench;
+            use pallet_fflonk_verifier::benchmarking::Pallet as FflonkVerifierBench;
 
             impl frame_system_benchmarking::Config for Runtime {}
             impl baseline::Config for Runtime {}

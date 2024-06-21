@@ -32,7 +32,7 @@ fn assert_attestation_evt(id: u64, value: H256) {
     assert!(mock::System::events().contains(&EventRecord {
         phase: Phase::Initialization,
         event: TestEvent::Poe(crate::Event::NewAttestation {
-            id: id,
+            id,
             attestation: value,
         }),
         topics: vec![],
@@ -44,7 +44,7 @@ fn assert_element_evt(id: u64, value: H256) {
         phase: Phase::Initialization,
         event: TestEvent::Poe(crate::Event::NewElement {
             attestation_id: id,
-            value: value,
+            value,
         }),
         topics: vec![],
     }))
@@ -100,7 +100,7 @@ fn one_tree_per_block() {
 #[test]
 fn proof_added() {
     new_test_ext().execute_with(|| {
-        let pid = H256(HASHES[0].into());
+        let pid = H256(HASHES[0]);
         Poe::on_proof_verified(pid);
         assert_element_evt(0, pid);
     })
@@ -110,14 +110,15 @@ fn proof_added() {
 fn correct_root() {
     new_test_ext().execute_with(|| {
         for h in HASHES {
-            let pid = H256(h.into());
+            let pid = H256(h);
             Poe::on_proof_verified(pid);
             assert_element_evt(0, pid);
         }
 
         assert!(Poe::publish_attestation(RuntimeOrigin::root()).is_ok());
-        let res =
-            H256(hex!("138b734ecc0edcb6a36504258a5907f92734afb254b488156db374cee1d78f54").into());
+        let res = H256(hex!(
+            "138b734ecc0edcb6a36504258a5907f92734afb254b488156db374cee1d78f54"
+        ));
         assert_attestation_evt(0, res);
     })
 }
@@ -139,8 +140,11 @@ mod should_inherent_call {
         fn if_enough_leaves() {
             new_test_ext().execute_with(|| {
                 // Add enough elements and check that root would be published
-                for p in 0..MIN_PROOFS_FOR_ROOT_PUBLISHING as usize {
-                    Poe::on_proof_verified(H256(HASHES[p].into()));
+                for h in HASHES
+                    .into_iter()
+                    .take(MIN_PROOFS_FOR_ROOT_PUBLISHING as usize)
+                {
+                    Poe::on_proof_verified(H256(h));
                 }
                 assert_eq!(
                     Some(Call::publish_attestation {}),
@@ -152,7 +156,7 @@ mod should_inherent_call {
         #[test]
         fn if_timeout_expired() {
             new_test_ext().execute_with(|| {
-                Poe::on_proof_verified(H256(HASHES[0].into()));
+                Poe::on_proof_verified(H256(HASHES[0]));
                 // Move timestamp forward and check that root would be published
                 Timestamp::set_timestamp(Timestamp::now() + MILLISECS_PER_PROOF_ROOT_PUBLISHING);
                 assert_eq!(
@@ -169,8 +173,11 @@ mod should_inherent_call {
         #[test]
         fn if_not_enough_leaves() {
             new_test_ext().execute_with(|| {
-                for p in 0..(MIN_PROOFS_FOR_ROOT_PUBLISHING - 1) as usize {
-                    Poe::on_proof_verified(H256(HASHES[p].into()));
+                for h in HASHES
+                    .into_iter()
+                    .take((MIN_PROOFS_FOR_ROOT_PUBLISHING - 1) as usize)
+                {
+                    Poe::on_proof_verified(H256(h));
                 }
                 // Check that without enough elements nothing would be published
                 assert_eq!(None, Poe::create_inherent(&inherent_data()));
@@ -182,7 +189,7 @@ mod should_inherent_call {
             new_test_ext().execute_with(|| {
                 for _ in 0..(MIN_PROOFS_FOR_ROOT_PUBLISHING) as usize {
                     // Keep inserting the same element
-                    Poe::on_proof_verified(H256(HASHES[0].into()));
+                    Poe::on_proof_verified(H256(HASHES[0]));
                 }
                 // Check that without enough unique elements nothing would be published
                 assert_eq!(None, Poe::create_inherent(&inherent_data()));
@@ -205,8 +212,11 @@ mod should_inherent_call {
 #[test]
 fn get_proof_from_pallet_proof_not_found() {
     new_test_ext().execute_with(|| {
-        for p in 0..MIN_PROOFS_FOR_ROOT_PUBLISHING as usize {
-            Poe::on_proof_verified(H256(HASHES[p].into()));
+        for h in HASHES
+            .into_iter()
+            .take(MIN_PROOFS_FOR_ROOT_PUBLISHING as usize)
+        {
+            Poe::on_proof_verified(H256(h));
         }
         Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
         let attestation_id = 0;
@@ -228,12 +238,15 @@ fn get_proof_from_pallet_proof_not_found() {
 #[test]
 fn get_proof_from_pallet_invalid_att_id() {
     new_test_ext().execute_with(|| {
-        for p in 0..MIN_PROOFS_FOR_ROOT_PUBLISHING as usize {
-            Poe::on_proof_verified(H256(HASHES[p].into()));
+        for h in HASHES
+            .into_iter()
+            .take(MIN_PROOFS_FOR_ROOT_PUBLISHING as usize)
+        {
+            Poe::on_proof_verified(H256(h));
         }
         Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
         let attestation_id = 10;
-        let proof_hash = H256(HASHES[0].into());
+        let proof_hash = H256(HASHES[0]);
 
         // Query for an existing proof with an invalid attestation id
         assert!(Poe::get_proof_path_from_pallet(attestation_id, proof_hash).is_err());
@@ -243,12 +256,15 @@ fn get_proof_from_pallet_invalid_att_id() {
 #[test]
 fn get_proof_from_pallet_valid_att_id_and_valid_proof() {
     new_test_ext().execute_with(|| {
-        for p in 0..MIN_PROOFS_FOR_ROOT_PUBLISHING as usize {
-            Poe::on_proof_verified(H256(HASHES[p].into()));
+        for h in HASHES
+            .into_iter()
+            .take(MIN_PROOFS_FOR_ROOT_PUBLISHING as usize)
+        {
+            Poe::on_proof_verified(H256(h));
         }
         Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
         let attestation_id = 0;
-        let proof_hash = H256(HASHES[0].into());
+        let proof_hash = H256(HASHES[0]);
 
         let proof = Poe::get_proof_path_from_pallet(attestation_id, proof_hash).unwrap();
 

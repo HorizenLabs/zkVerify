@@ -1,4 +1,4 @@
-// Copyright 2024, Horizen Labs, Inc.
+// Copyright 2024, The Horizen Foundation
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,7 +13,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub static VALID_PROOF: crate::Proof = hex_literal::hex!(
+static VALID_PUBS: crate::Pubs =
+    hex_literal::hex!("0d69b94acdfaca5bacc248a60b35b925a2374644ce0c1205db68228c8921d9d9");
+
+#[allow(dead_code)]
+static VALID_PROOF: crate::Proof = hex_literal::hex!(
     "
         283e3f25323d02dabdb94a897dc2697a3b930d8781381ec574af89a201a91d5a
         2c2808c59f5c736ff728eedfea58effc2443722e78b2eb4e6759a278e9246d60
@@ -39,6 +43,47 @@ pub static VALID_PROOF: crate::Proof = hex_literal::hex!(
         20e4c02f5a71082a8bcf5be0b5750a244bd040a776ec541dfc2c8ae73180e924
         0ada5414d66387211eec80d7d9d48498efa1e646d64bb1bf8775b3796a9fd0bf
         0fdf8244018ce57b018c093e2f75ed77d8dbdb1a7b60a2da671de2efe5f6b9d7
-        0d69b94acdfaca5bacc248a60b35b925a2374644ce0c1205db68228c8921d9d9
 "
 );
+
+#[allow(dead_code)]
+fn cdk_key() -> crate::vk::Vk {
+    serde_json::from_str::<fflonk_verifier::VerificationKey>(
+        r#"
+    {
+        "protocol": "fflonk",
+        "curve": "bn128",
+        "nPublic": 1,
+        "power": 24,
+        "k1": "2",
+        "k2": "3",
+        "w": "5709868443893258075976348696661355716898495876243883251619397131511003808859",
+        "w3": "21888242871839275217838484774961031246154997185409878258781734729429964517155",
+        "w4": "21888242871839275217838484774961031246007050428528088939761107053157389710902",
+        "w8": "19540430494807482326159819597004422086093766032135589407132600596362845576832",
+        "wr": "18200100796661656210024324131237448517259556535315737226009542456080026430510",
+        "X_2": [
+            [
+                "21831381940315734285607113342023901060522397560371972897001948545212302161822",
+                "17231025384763736816414546592865244497437017442647097510447326538965263639101"
+            ],
+            [
+                "2388026358213174446665280700919698872609886601280537296205114254867301080648",
+                "11507326595632554467052522095592665270651932854513688777769618397986436103170"
+            ],
+            [
+                "1",
+                "0"
+            ]
+        ],
+        "C0": [
+            "7436841426934271843999872946312645822871802402068881571108027575346498207286",
+            "18448034242258174646222819724328439025708531082946938915005051387020977719791",
+            "1"
+        ]
+    }
+    "#,
+    )
+    .unwrap()
+    .into()
+}

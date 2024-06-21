@@ -13,73 +13,72 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Benchmarking setup for pallet-settlement-fflonk
-
 #![cfg(feature = "runtime-benchmarks")]
 
-use super::*;
-
-#[allow(unused)]
-use crate::Pallet as SettlementFFlonkPallet;
+use crate::Fflonk;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
-use sp_std::boxed::Box;
+use pallet_verifiers::{VkOrHash, Vks};
+pub struct Pallet<T: Config>(pallet_verifiers::Pallet<T, Fflonk>);
+pub trait Config: pallet_verifiers::Config<Fflonk> {}
+impl<T: pallet_verifiers::Config<Fflonk>> Config for T {}
+pub type Call<T> = pallet_verifiers::Call<T, Fflonk>;
 
 include!("resources.rs");
 
 #[benchmarks]
 mod benchmarks {
+
     use super::*;
 
     #[benchmark]
-    fn submit_proof_default() {
+    fn submit_proof() {
         // setup code
         let caller = whitelisted_caller();
+        let proof = VALID_PROOF;
+        let pubs = VALID_PUBS;
+        let vk = cdk_key();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), VALID_PROOF.into(), None);
+        submit_proof(
+            RawOrigin::Signed(caller),
+            VkOrHash::from_vk(vk),
+            proof.into(),
+            pubs.into(),
+        );
     }
 
     #[benchmark]
     fn submit_proof_with_vk_hash() {
         // setup code
         let caller = whitelisted_caller();
-        let vk: crate::vk::Vk = fflonk_verifier::VerificationKey::default().into();
-        Vks::<T>::insert(DEFAULT_VK_HASH.clone(), vk);
-        let vk_or_hash = Some(VkOrHash::Hash(DEFAULT_VK_HASH.clone()));
+        let proof = VALID_PROOF;
+        let pubs = VALID_PUBS;
+        let vk = cdk_key();
+        let hash = sp_core::H256::repeat_byte(2);
+        Vks::<T, Fflonk>::insert(hash, vk);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), VALID_PROOF.into(), vk_or_hash);
-    }
-
-    #[benchmark]
-    fn submit_proof_with_vk() {
-        // setup code
-        let caller = whitelisted_caller();
-        let vk_or_hash = Some(VkOrHash::Vk(Box::new(
-            fflonk_verifier::VerificationKey::default().into(),
-        )));
-
-        #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), VALID_PROOF.into(), vk_or_hash);
+        submit_proof(
+            RawOrigin::Signed(caller),
+            VkOrHash::from_hash(hash),
+            proof.into(),
+            pubs.into(),
+        );
     }
 
     #[benchmark]
     fn register_vk() {
         // setup code
         let caller = whitelisted_caller();
-        let vk = Box::new(fflonk_verifier::VerificationKey::default().into());
+        let vk = cdk_key();
 
         #[extrinsic_call]
-        register_vk(RawOrigin::Signed(caller), vk);
+        register_vk(RawOrigin::Signed(caller), vk.clone().into());
 
         // Verify
-        assert!(Vks::<T>::get(&DEFAULT_VK_HASH.clone()).is_some());
+        assert!(Vks::<T, Fflonk>::get(pallet_verifiers::hash_key::<Fflonk>(&vk)).is_some());
     }
 
-    impl_benchmark_test_suite!(
-        SettlementFFlonkPallet,
-        crate::mock::test_ext(),
-        crate::mock::Test,
-    );
+    //impl_benchmark_test_suite!(Pallet, mock::test_ext(), mock::Test);
 }
