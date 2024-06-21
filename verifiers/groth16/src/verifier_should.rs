@@ -18,10 +18,11 @@
 use super::*;
 use rstest::rstest;
 use rstest_reuse::{apply, template};
+use sp_core::ConstU32;
 
 struct Mock;
 impl Config for Mock {
-    const MAX_NUM_INPUTS: u32 = 16;
+    type MaxNumInputs = ConstU32<16>;
 }
 
 #[template]
@@ -42,7 +43,7 @@ fn validate_correct_vk(curve: Curve) {
 
 #[apply(curves)]
 #[case::no_inputs(0)]
-#[case::max_number_of_inputs(Mock::MAX_NUM_INPUTS as usize)]
+#[case::max_number_of_inputs(Mock::max_num_inputs() as usize)]
 fn validate_proof(curve: Curve, #[case] n: usize) {
     let (proof, vk, inputs) = groth16::Groth16::get_instance(n, None, curve);
     assert!(Groth16::<Mock>::verify_proof(&vk, &proof, &inputs).is_ok());
@@ -105,7 +106,7 @@ mod reject {
     #[apply(curves)]
     fn too_many_inputs(curve: Curve) {
         let (proof, vk, inputs) =
-            groth16::Groth16::get_instance(Mock::MAX_NUM_INPUTS as usize + 1, Some(0), curve);
+            groth16::Groth16::get_instance(Mock::max_num_inputs() as usize + 1, Some(0), curve);
 
         assert_eq!(
             Groth16::<Mock>::verify_proof(&vk, &proof, &inputs),

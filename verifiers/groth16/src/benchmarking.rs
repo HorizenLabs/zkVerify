@@ -18,6 +18,7 @@
 use super::Groth16;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
+use hp_verifiers::Verifier;
 use pallet_verifiers::{VkOrHash, Vks};
 
 pub struct Pallet<T: Config>(crate::Pallet<T>);
@@ -32,7 +33,7 @@ mod benchmarks {
     use super::*;
 
     #[benchmark]
-    fn submit_proof_bn254(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
+    fn submit_proof_bn254(n: Linear<0, crate::MAX_NUM_INPUTS>) {
         let caller = whitelisted_caller();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bn254);
 
@@ -46,7 +47,7 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn submit_proof_bls12_381(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
+    fn submit_proof_bls12_381(n: Linear<0, crate::MAX_NUM_INPUTS>) {
         let caller = whitelisted_caller();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bls12_381);
 
@@ -60,7 +61,7 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn submit_proof_bn254_with_vk_hash(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
+    fn submit_proof_bn254_with_vk_hash(n: Linear<0, crate::MAX_NUM_INPUTS>) {
         let caller = whitelisted_caller();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bn254);
         let hash = sp_core::H256::repeat_byte(2);
@@ -76,7 +77,7 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn submit_proof_bls12_381_with_vk_hash(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
+    fn submit_proof_bls12_381_with_vk_hash(n: Linear<0, crate::MAX_NUM_INPUTS>) {
         let caller = whitelisted_caller();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bls12_381);
         let hash = sp_core::H256::repeat_byte(2);
@@ -92,7 +93,7 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn register_vk_bn254(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
+    fn register_vk_bn254(n: Linear<0, crate::MAX_NUM_INPUTS>) {
         let caller = whitelisted_caller();
         let (_, vk, _) = Groth16Circuits::get_instance(n as usize, None, Curve::Bn254);
 
@@ -100,11 +101,11 @@ mod benchmarks {
         register_vk(RawOrigin::Signed(caller), vk.clone().into());
 
         // Verify
-        assert!(Vks::<T, Groth16<T>>::get(pallet_verifiers::hash_key::<Groth16<T>>(&vk)).is_some());
+        assert!(Vks::<T, Groth16<T>>::get(Groth16::<T>::vk_hash(&vk)).is_some());
     }
 
     #[benchmark]
-    fn register_vk_bls12_381(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
+    fn register_vk_bls12_381(n: Linear<0, crate::MAX_NUM_INPUTS>) {
         let caller = whitelisted_caller();
         let (_, vk, _) = Groth16Circuits::get_instance(n as usize, None, Curve::Bls12_381);
 
@@ -112,6 +113,6 @@ mod benchmarks {
         register_vk(RawOrigin::Signed(caller), vk.clone().into());
 
         // Verify
-        assert!(Vks::<T, Groth16<T>>::get(pallet_verifiers::hash_key::<Groth16<T>>(&vk)).is_some());
+        assert!(Vks::<T, Groth16<T>>::get(Groth16::<T>::vk_hash(&vk)).is_some());
     }
 }
