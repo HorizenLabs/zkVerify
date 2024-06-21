@@ -74,6 +74,9 @@ try-runtime-cli = { workspace = true, optional = true }
 
 [build-dependencies]
 substrate-build-script-utils = { workspace = true }
+toml = "0.8.14"
+walkdir = "2.5.0"
+regex = "1.10.5"
 
 [features]
 default = []

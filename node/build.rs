@@ -13,10 +13,108 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use regex::Regex;
+use std::env;
+use std::fs;
+use std::fs::{File, OpenOptions};
+use std::io::prelude::*;
+use std::io::Write;
+use std::path::{Path, PathBuf};
 use substrate_build_script_utils::{generate_cargo_keys, rerun_if_git_head_changed};
+use toml::*;
+use walkdir::WalkDir;
 
 fn main() {
     generate_cargo_keys();
 
     rerun_if_git_head_changed();
+
+    cache_cpp_libs();
+
+    set_env_paths();
+}
+
+fn cache_cpp_libs() {
+    let rocksdb_lib = "librocksdb.a";
+    let snappy_lib = "libsnappy.a";
+
+    let target_paths = [
+        "../target/production/build",
+        "../target/release/build",
+        "../target/debug/build",
+    ];
+    let mut libs = [
+        // (pattern, copied)
+        (
+            format!("{}{}", "librocksdb-sys-.*/out/", rocksdb_lib),
+            false,
+        ),
+        (format!("{}{}", "librocksdb-sys-.*/out/", snappy_lib), false),
+    ];
+    let destination_path = "../deps/";
+
+    if fs::metadata(PathBuf::from(destination_path).join(rocksdb_lib)).is_err()
+        || fs::metadata(PathBuf::from(destination_path).join(snappy_lib)).is_err()
+    {
+        for target_path in target_paths {
+            for entry in WalkDir::new(target_path) {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+                    for lib in libs.iter_mut() {
+                        let regex_pattern = Regex::new(&lib.0).unwrap();
+                        if path.is_file() && regex_pattern.is_match(path.to_str().unwrap()) {
+                            let mut destination_file = String::from(destination_path);
+                            destination_file.push_str(path.file_name().unwrap().to_str().unwrap());
+                            let _ = fs::copy(path, destination_file);
+                            lib.1 = true;
+                            break;
+                        }
+                    }
+                    if libs[0].1 && libs[1].1 {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn set_env_paths() {
+    let libs_path = PathBuf::from(env::current_dir().unwrap()).join("../deps");
+    let libs_path = libs_path.to_str().unwrap();
+    let cargo_config = PathBuf::from(env!("CARGO_HOME")).join("config.toml");
+
+    if !Path::new(&cargo_config).exists() {
+        let _ = File::create(cargo_config.clone());
+    }
+
+    let mut file = File::open(cargo_config.clone()).unwrap();
+    let mut contents = String::new();
+    let _ = File::read_to_string(&mut file, &mut contents);
+
+    let mut main_table = contents.parse::<Table>().unwrap();
+    if let Some(env) = main_table.get("env") {
+        let env_table = env.as_table();
+        if let Some(env_table) = env_table {
+            let mut env_table = env_table.to_owned();
+            env_table.insert("ROCKSDB_LIB_DIR".to_owned(), libs_path.into());
+            env_table.insert("SNAPPY_LIB_DIR".to_owned(), libs_path.into());
+
+            main_table.insert("env".to_owned(), toml::Value::Table(env_table));
+        }
+    } else {
+        let mut env_table = Table::new();
+        env_table.insert("ROCKSDB_LIB_DIR".to_owned(), libs_path.into());
+        env_table.insert("SNAPPY_LIB_DIR".to_owned(), libs_path.into());
+
+        main_table.insert("env".to_owned(), toml::Value::Table(env_table));
+    }
+
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(cargo_config.clone())
+        .unwrap();
+    let _ = file.write_all(&main_table.to_string().as_bytes()).unwrap();
 }
