@@ -29,12 +29,12 @@ fn main() {
 
     rerun_if_git_head_changed();
 
-    cache_cpp_libs();
+    let libs_cached = cache_cpp_libs();
 
-    set_env_paths();
+    set_env_paths(!libs_cached);
 }
 
-fn cache_cpp_libs() {
+fn cache_cpp_libs() -> bool {
     let rocksdb_lib = "librocksdb.a";
     let snappy_lib = "libsnappy.a";
 
@@ -65,24 +65,37 @@ fn cache_cpp_libs() {
                         if path.is_file() && regex_pattern.is_match(path.to_str().unwrap()) {
                             let mut destination_file = String::from(destination_path);
                             destination_file.push_str(path.file_name().unwrap().to_str().unwrap());
+                            let _ = fs::create_dir_all(destination_path);
                             let _ = fs::copy(path, destination_file);
                             lib.1 = true;
                             break;
                         }
                     }
                     if libs[0].1 && libs[1].1 {
-                        return;
+                        return true;
                     }
                 }
             }
         }
+    } else {
+        return true;
     }
+
+    return libs[0].1 && libs[1].1;
 }
 
-fn set_env_paths() {
-    let libs_path = PathBuf::from(env::current_dir().unwrap()).join("../deps");
+fn set_env_paths(reset: bool) {
+    let libs_path: PathBuf;
+    if reset {
+        libs_path = PathBuf::from("");
+    } else {
+        libs_path = PathBuf::from(env::current_dir().unwrap()).join("../deps");
+    }
     let libs_path = libs_path.to_str().unwrap();
     let cargo_config = PathBuf::from(env!("CARGO_HOME")).join("config.toml");
+    // let cargo_config = PathBuf::from(env::current_dir().unwrap())
+    //     .join("..")
+    //     .join("config.toml");
 
     if !Path::new(&cargo_config).exists() {
         let _ = File::create(cargo_config.clone());
@@ -97,12 +110,17 @@ fn set_env_paths() {
         let env_table = env.as_table();
         if let Some(env_table) = env_table {
             let mut env_table = env_table.to_owned();
-            env_table.insert("ROCKSDB_LIB_DIR".to_owned(), libs_path.into());
-            env_table.insert("SNAPPY_LIB_DIR".to_owned(), libs_path.into());
+            if !reset {
+                env_table.insert("ROCKSDB_LIB_DIR".to_owned(), libs_path.into());
+                env_table.insert("SNAPPY_LIB_DIR".to_owned(), libs_path.into());
+            } else {
+                env_table.remove("ROCKSDB_LIB_DIR");
+                env_table.remove("SNAPPY_LIB_DIR");
+            }
 
             main_table.insert("env".to_owned(), toml::Value::Table(env_table));
         }
-    } else {
+    } else if !reset {
         let mut env_table = Table::new();
         env_table.insert("ROCKSDB_LIB_DIR".to_owned(), libs_path.into());
         env_table.insert("SNAPPY_LIB_DIR".to_owned(), libs_path.into());
