@@ -1,0 +1,153 @@
+const util = require('@polkadot/util-crypto');
+const { submitExtrinsic, BlockUntil } = require('zkv-lib')
+const ReturnCode = {
+    Ok: 1,
+    ErrWrongSudoAccount: 2,
+    ErrClaimMembership: 3,
+    ErrSameRuntimeVersion: 4,
+};
+const fs = require('fs');
+
+async function run(nodeName, networkInfo, args) {
+    const {wsUri, userDefinedTypes} = networkInfo.nodesByName[nodeName];
+    const api = await zombie.connect(wsUri, userDefinedTypes);
+
+    const ALICE = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY';
+    const BOB   = '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty';
+    const CHARLIE = '5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y';
+
+    // Use the keyring to generate accounts
+    const keyring = new zombie.Keyring({ type: 'sr25519' });
+    const alice = keyring.addFromUri('//Alice');
+    const bob = keyring.addFromUri('//Bob');
+    const charlie = keyring.addFromUri('//Charlie');
+    const ACME = 1_000_000_000_000_000_000n;
+
+    /*****************************************************************************************************
+     *************************************** CREATE MULTISIG ACCOUNT *************************************
+     *****************************************************************************************************/
+    const threshold = 2;
+    const multisigAddress = util.createKeyMulti([alice.address, bob.address, charlie.address], threshold);
+    const SS58Prefix = 42;
+    const Ss58MultiAddress = util.encodeAddress(multisigAddress, SS58Prefix);
+    console.log(`multisigAddress ${Ss58MultiAddress}`);
+
+
+    /*****************************************************************************************************
+     *************************************** SET MULTISIG AS SUDO ACCOUNT ********************************
+     *****************************************************************************************************/
+
+    const newSudoKey = api.tx.sudo.setKey(Ss58MultiAddress);
+    await submitExtrinsic(newSudoKey, alice, BlockUntil.Finalized, undefined);
+
+    const newSudoKeyOption = await api.query.sudo.key();
+    if (newSudoKeyOption.isSome && newSudoKeyOption.unwrap().toString() !== Ss58MultiAddress) {
+        return ReturnCode.ErrWrongSudoAccount;
+    }
+
+    /*****************************************************************************************************
+     *************************************** GET CURRENT RUNTIME VERSION******* **************************
+     *****************************************************************************************************/
+
+    const currentRuntimeVersion = (await api.rpc.state.getRuntimeVersion()).specVersion.toNumber();
+
+    /*****************************************************************************************************
+     *************************************** SCHEDULE RUNTIME UPGRADE*************************************
+     *****************************************************************************************************/
+
+    // Retrieve the runtime to upgrade
+    const sudoAccount = await api.query.sudo.key()
+    const code = fs.readFileSync('./new-runtime/nh_runtime.wasm').toString('hex');
+    const updateRuntimeCall = api.tx.system && api.tx.system.setCode
+        ? api.tx.system.setCode(`0x${code}`) // For newer versions of Substrate
+        : api.tx.consensus.setCode(`0x${code}`); // For previous versions
+    const sudoUpdateRuntimeCall = api.tx.sudo.sudo(updateRuntimeCall)
+
+    console.log(`Upgrading from ${sudoAccount}, ${code.length / 2} bytes`);
+
+    const { block } = await api.rpc.chain.getBlock();
+    const blockNumber = block.header.number.toNumber();
+
+    const when = blockNumber + 10;
+    const priority = 100;
+
+    const scheduleTx = api.tx.scheduler.schedule(when, null, priority, sudoUpdateRuntimeCall);
+    const paymentInfo = await scheduleTx.paymentInfo(alice);
+
+    const proposal = api.tx.multisig.asMulti(
+        threshold,
+        [BOB, CHARLIE].sort(),
+        null,
+        scheduleTx.method.toHex(),
+        0
+    );
+
+    await submitExtrinsic(proposal, alice, BlockUntil.Finalized, undefined);
+
+    const info = await api.query.multisig.multisigs(
+        multisigAddress,
+        scheduleTx.method.hash
+    );
+
+    const approval = api.tx.multisig.asMulti(
+        threshold,
+        [ALICE, CHARLIE].sort(),
+        info.unwrapOr(null).when,
+        scheduleTx.method.toHex(),
+        paymentInfo.weight
+    );
+
+    await submitExtrinsic(approval, bob, BlockUntil.Finalized, undefined);
+
+    const { block: currentBlockNumber } = await api.rpc.chain.getBlock();
+    const blockNumberEnd = currentBlockNumber.header.number.toNumber();
+    console.log("Scheduled upgrade expected to happen at block height " + when);
+    console.log("Current block height after Multisig was submitted " + blockNumberEnd);
+
+    /*****************************************************************************************************
+     **************************** GENERATE BLOCKS UNTIL SCHEDULED CALL EXECUTED***************************
+     *****************************************************************************************************/
+
+    const blocksToWait = when - blockNumberEnd + 1;
+    console.log(`Waiting for ${blocksToWait} blocks to be produced...`);
+
+    await waitForBlocks(api, blocksToWait);
+
+    /*****************************************************************************************************
+     **************************** FINAL TEST: CHECK RUNTIME VERSION CHANGED*******************************
+     *****************************************************************************************************/
+
+    const updatedRuntimeVersion = (await api.rpc.state.getRuntimeVersion()).specVersion.toNumber();
+
+    if(updatedRuntimeVersion === currentRuntimeVersion) {
+        return ReturnCode.ErrSameRuntimeVersion
+    }
+
+    return ReturnCode.Ok;
+}
+
+async function waitForBlocks(api, numberOfBlocks) {
+    return new Promise((resolve, reject) => {
+        let startingBlockNumber;
+        let currentBlockNumber;
+
+        api.rpc.chain.subscribeNewHeads(async (header) => {
+            if (!startingBlockNumber) {
+                startingBlockNumber = header.number.toNumber();
+                currentBlockNumber = startingBlockNumber;
+                console.log(`Starting block number: ${startingBlockNumber}`);
+            } else {
+                currentBlockNumber = header.number.toNumber();
+                console.log(`Current block number: ${currentBlockNumber}`);
+            }
+
+            if (currentBlockNumber >= startingBlockNumber + numberOfBlocks) {
+                console.log(`Reached target block number: ${currentBlockNumber}`);
+                resolve();
+            }
+        }).catch(reject);
+    });
+}
+
+
+module.exports = { run };

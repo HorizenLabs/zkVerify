@@ -1,0 +1,10 @@
+Description: Test of a simple transaction from Alice to Bob using a custom js script
+Network: ./network_defs/two_nodes.toml
+Creds: config
+
+alice: is up
+bob: is up
+
+alice: reports node_roles is 4
+
+alice: js-script ./js_scripts/0008-update-runtime-multisig-scheduler return is equal to 1 within 200 seconds
