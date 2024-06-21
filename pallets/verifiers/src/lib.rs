@@ -137,7 +137,7 @@ pub mod pallet {
     fn compute_hash<I: Verifier>(pubs: &I::Pubs, vk_or_hash: &VkOrHash<I::Vk>) -> H256 {
         let hash = match vk_or_hash {
             VkOrHash::Hash(h) => sp_std::borrow::Cow::Borrowed(h),
-            VkOrHash::Vk(vk) => sp_std::borrow::Cow::Owned(hash_key::<I>(vk)),
+            VkOrHash::Vk(vk) => sp_std::borrow::Cow::Owned(I::vk_hash(vk)),
         };
         statement_hash(
             I::hash_context_data(),
@@ -241,16 +241,11 @@ pub mod pallet {
         pub fn register_vk(_origin: OriginFor<T>, vk: Box<I::Vk>) -> DispatchResultWithPostInfo {
             log::trace!("Register vk");
             I::validate_vk(&vk).map_err(Error::<T, I>::from)?;
-            let hash = hash_key::<I>(&vk);
+            let hash = I::vk_hash(&vk);
             Vks::<T, I>::insert(hash, vk);
             Self::deposit_event(Event::VkRegistered { hash });
             Ok(().into())
         }
-    }
-
-    /// Compute the Vk hash
-    pub fn hash_key<I: Verifier>(vk: &I::Vk) -> H256 {
-        H256(keccak_256(&I::vk_bytes(vk)))
     }
 
     #[cfg(test)]
@@ -372,16 +367,44 @@ pub mod pallet {
             }
         }
 
+        struct VerifierWithoutHash;
+        impl Verifier for VerifierWithoutHash {
+            type Proof = ();
+            type Pubs = ();
+            type Vk = H256;
+
+            fn vk_hash(vk: &Self::Vk) -> Self::Vk {
+                *vk
+            }
+
+            fn hash_context_data() -> &'static [u8] {
+                b""
+            }
+
+            fn verify_proof(
+                _vk: &Self::Vk,
+                _proof: &Self::Proof,
+                _pubs: &Self::Pubs,
+            ) -> Result<(), VerifyError> {
+                Ok(())
+            }
+
+            fn pubs_bytes(_pubs: &Self::Pubs) -> hp_verifiers::Cow<[u8]> {
+                hp_verifiers::Cow::Borrowed(&[])
+            }
+        }
+
         #[rstest]
         #[case::vk_used_in_test(PhantomData::<FakeVerifier>, REGISTERED_VK, REGISTERED_VK_HASH)]
         #[should_panic]
         #[case::u256_vk_changed(PhantomData::<Other2Verifier>, U256::from(REGISTERED_VK), REGISTERED_VK_HASH)]
+        #[case::forward_vk(PhantomData::<VerifierWithoutHash>, REGISTERED_VK_HASH, REGISTERED_VK_HASH)]
         fn hash_vk_as_expected<V: Verifier>(
             #[case] _verifier: PhantomData<V>,
             #[case] vk: V::Vk,
             #[case] expected: H256,
         ) {
-            let hash = hash_key::<V>(&vk);
+            let hash = V::vk_hash(&vk);
 
             assert_eq!(hash, expected);
         }

@@ -12,7 +12,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-#![cfg(any(test, feature = "runtime-benchmarks"))]
+#![cfg(any(test))]
 
 use frame_support::{derive_impl, weights::Weight};
 use sp_runtime::{traits::IdentityLookup, BuildStorage};

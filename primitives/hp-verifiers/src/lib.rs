@@ -21,7 +21,7 @@
 
 use codec::{Decode, Encode, EncodeLike};
 use scale_info::TypeInfo;
-use sp_core::MaxEncodedLen;
+use sp_core::{MaxEncodedLen, H256};
 pub use sp_std::borrow::Cow;
 use sp_std::fmt::Debug;
 use sp_weights::Weight;
@@ -71,6 +71,11 @@ pub trait Verifier: 'static {
     /// need something different.
     fn validate_vk(_vk: &Self::Vk) -> Result<(), VerifyError> {
         Ok(())
+    }
+
+    /// How to compute the verification key hash to use in statement hash computation.
+    fn vk_hash(vk: &Self::Vk) -> H256 {
+        sp_io::hashing::keccak_256(&Self::vk_bytes(vk)).into()
     }
 
     /// A vk's byte serialization used to compute the verification key hash. The default implementation
