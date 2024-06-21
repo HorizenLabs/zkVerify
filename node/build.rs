@@ -65,10 +65,10 @@ fn cache_cpp_libs() -> bool {
                 for lib in libs.iter_mut() {
                     let regex_pattern = Regex::new(&lib.0).unwrap();
                     if path.is_file() && regex_pattern.is_match(path.to_str().unwrap()) {
-                        let mut destination_file = String::from(destination_path);
-                        destination_file.push_str(path.file_name().unwrap().to_str().unwrap());
-                        let _ = fs::create_dir_all(destination_path);
-                        let _ = fs::copy(path, destination_file);
+                        let destination_file =
+                            PathBuf::from(destination_path).join(path.file_name().unwrap());
+                        fs::create_dir_all(destination_path).expect("Unable to create directories");
+                        fs::copy(path, destination_file).expect("Unable to copy file");
                         lib.1 = true;
                         break;
                     }
@@ -91,12 +91,12 @@ fn set_env_paths(reset: bool) {
     let cargo_config = PathBuf::from(env!("CARGO_HOME")).join("config.toml");
 
     if !Path::new(&cargo_config).exists() {
-        let _ = File::create(cargo_config.clone());
+        File::create(cargo_config.clone()).expect("Unable to create file");
     }
 
-    let mut file = File::open(cargo_config.clone()).unwrap();
+    let mut file = File::open(cargo_config.clone()).expect("Unable to open file");
     let mut contents = String::new();
-    let _ = File::read_to_string(&mut file, &mut contents);
+    File::read_to_string(&mut file, &mut contents).expect("Unable to read file");
 
     let mut main_table = contents.parse::<Table>().unwrap();
     if let Some(env) = main_table.get("env") {
