@@ -75,7 +75,7 @@ impl<T: Config> Verifier for Risc0<T> {
             hp_verifiers::VerifyError::InvalidInput
         );
         log::trace!("Verifying (native)");
-        native::risc_0_verify::verify(vk.clone().into(), proof, pubs).map_err(Into::into)
+        native::risc_0_verify::verify((*vk).into(), proof, pubs).map_err(Into::into)
     }
 
     fn pubs_bytes(pubs: &Self::Pubs) -> hp_verifiers::Cow<[u8]> {
