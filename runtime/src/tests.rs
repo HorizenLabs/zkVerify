@@ -419,7 +419,7 @@ mod use_correct_weights {
         use pallet_groth16_verifier::WeightInfo;
 
         assert_eq!(
-            <<Runtime as pallet_verifiers::Config<Groth16<Runtime>>>::WeightInfo as 
+            <<Runtime as pallet_verifiers::Config<Groth16<Runtime>>>::WeightInfo as
                 pallet_verifiers::WeightInfo<Groth16<Runtime>>>
                 ::submit_proof(
                 &pallet_groth16_verifier::Proof::default(),
@@ -435,7 +435,7 @@ mod use_correct_weights {
         use pallet_risc0_verifier::WeightInfo;
 
         assert_eq!(
-            <<Runtime as pallet_verifiers::Config<Risc0<Runtime>>>::WeightInfo as 
+            <<Runtime as pallet_verifiers::Config<Risc0<Runtime>>>::WeightInfo as
                 pallet_verifiers::WeightInfo<Risc0<Runtime>>>
                 ::submit_proof(
                 &Vec::new(),
