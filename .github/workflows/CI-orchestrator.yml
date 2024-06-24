@@ -104,33 +104,33 @@ jobs:
           if [[ "${{ needs.build-test-job.result }}" == "success" ]]; then
             echo "BUILD_TEST_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
-            echo "BUILD_TEST_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
+            echo "BUILD_TEST_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
           fi
 
           if [[ -z "${LINE_COVERAGE_PERCENT}" ]]; then
             if [[ "${{ needs.test-coverage-job.result }}" == "success" ]]; then
               echo "TEST_COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
             else
-              echo "TEST_COVERAGE_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
+              echo "TEST_COVERAGE_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
             fi
           elif [[ "${{ needs.test-coverage-job.result }}" == "success" ]] && (( $(echo "$LINE_COVERAGE_PERCENT >= 70" | bc -l) )); then
             echo "TEST_COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           elif [[ "${{ needs.test-coverage-job.result }}" == "success" ]]; then
             echo "TEST_COVERAGE_JOB_EMOJI=:large_yellow_circle:" >> $GITHUB_ENV
           else
-            echo "TEST_COVERAGE_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
+            echo "TEST_COVERAGE_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
           fi
 
           if [[ "${{ needs.lint-format-job.result }}" == "success" ]]; then
             echo "LINT_FORMAT_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
-            echo "LINT_FORMAT_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
+            echo "LINT_FORMAT_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
           fi
 
           if [[ "${{ needs.e2e-test-job.result }}" == "success" ]]; then
             echo "E2E_TEST_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
-            echo "E2E_TEST_JOB_EMOJI=:large_red_circle:" >> $GITHUB_ENV
+            echo "E2E_TEST_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
           fi
           echo "OVERALL_STATUS=$OVERALL_STATUS" >> $GITHUB_ENV
       - name: Send Slack Notification
@@ -143,7 +143,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ env.OVERALL_STATUS_EMOJI }} *NH-CORE BUILD STATUS:* ${{ env.OVERALL_STATUS }} ${{ env.OVERALL_STATUS_EMOJI }}\n*Pull Request:* ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                    "text": "${{ env.OVERALL_STATUS_EMOJI }} *ZKVERIFY BUILD STATUS:* ${{ env.OVERALL_STATUS }} ${{ env.OVERALL_STATUS_EMOJI }}\n*Pull Request:* ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
                   }
                 },
                 {
