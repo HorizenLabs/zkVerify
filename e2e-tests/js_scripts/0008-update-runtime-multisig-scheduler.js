@@ -58,46 +58,45 @@ async function run(nodeName, networkInfo, args) {
     // Retrieve the runtime to upgrade
     const sudoAccount = await api.query.sudo.key()
     const code = fs.readFileSync('./new-runtime/nh_runtime.wasm').toString('hex');
-    const updateRuntimeCall = api.tx.system && api.tx.system.setCode
-        ? api.tx.system.setCode(`0x${code}`) // For newer versions of Substrate
-        : api.tx.consensus.setCode(`0x${code}`); // For previous versions
-    const sudoUpdateRuntimeCall = api.tx.sudo.sudo(updateRuntimeCall)
+    const updateRuntimeCall = api.tx.system.setCode(`0x${code}`);
 
     console.log(`Upgrading from ${sudoAccount}, ${code.length / 2} bytes`);
 
     const { block } = await api.rpc.chain.getBlock();
     const blockNumber = block.header.number.toNumber();
 
-    const when = blockNumber + 10;
+    const when = blockNumber + 5;
     const priority = 100;
 
-    const scheduleTx = api.tx.scheduler.schedule(when, null, priority, sudoUpdateRuntimeCall);
-    const paymentInfo = await scheduleTx.paymentInfo(alice);
+    const scheduleTx = api.tx.scheduler.schedule(when, null, priority, updateRuntimeCall);
+    const sudoScheduleTx = api.tx.sudo.sudo(scheduleTx)
+
+    const paymentInfo = await sudoScheduleTx.paymentInfo(alice);
 
     const proposal = api.tx.multisig.asMulti(
         threshold,
         [BOB, CHARLIE].sort(),
         null,
-        scheduleTx.method.toHex(),
+        sudoScheduleTx.method.toHex(),
         0
     );
 
-    await submitExtrinsic(proposal, alice, BlockUntil.Finalized, undefined);
+    await submitExtrinsic(proposal, alice, BlockUntil.InBlock, undefined);
 
     const info = await api.query.multisig.multisigs(
         multisigAddress,
-        scheduleTx.method.hash
+        sudoScheduleTx.method.hash
     );
 
     const approval = api.tx.multisig.asMulti(
         threshold,
         [ALICE, CHARLIE].sort(),
         info.unwrapOr(null).when,
-        scheduleTx.method.toHex(),
+        sudoScheduleTx.method.toHex(),
         paymentInfo.weight
     );
 
-    await submitExtrinsic(approval, bob, BlockUntil.Finalized, undefined);
+    await submitExtrinsic(approval, bob, BlockUntil.InBlock, undefined);
 
     const { block: currentBlockNumber } = await api.rpc.chain.getBlock();
     const blockNumberEnd = currentBlockNumber.header.number.toNumber();
