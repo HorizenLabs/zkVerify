@@ -22,7 +22,7 @@ use scale_info::TypeInfo;
 use sp_std::vec;
 use sp_std::vec::Vec;
 
-pub const G1_MAX_SIZE: u32 = 48;
+pub const G1_MAX_SIZE: u32 = 96;
 pub const G2_MAX_SIZE: u32 = G1_MAX_SIZE * 2;
 
 pub fn vec_max_encoded_len(max_vec_len: u32) -> usize {
