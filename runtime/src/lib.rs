@@ -47,9 +47,8 @@ use frame_election_provider_support::{
 use frame_support::genesis_builder_helper::{build_config, create_default_config};
 
 // A few exports that help ease life for downstream crates.
-use frame_support::traits::{EnsureOrigin, EqualPrivilegeOnly};
+use frame_support::traits::EqualPrivilegeOnly;
 
-use frame_support::dispatch::RawOrigin;
 pub use frame_support::{
     construct_runtime, derive_impl,
     dispatch::DispatchClass,
@@ -99,7 +98,7 @@ pub mod currency {
     pub const MILLIONS: Balance = 1_000 * THOUSANDS;
     pub const MILLICENTS: Balance = CENTS / 1_000;
     pub const fn deposit(items: u32, bytes: u32) -> Balance {
-        items as Balance * 2_000 * CENTS + (bytes as Balance) * 100 * MILLICENTS
+        items as Balance * 200 * CENTS + (bytes as Balance) * 100 * MILLICENTS
     }
 }
 
@@ -306,7 +305,7 @@ impl pallet_balances::Config for Runtime {
     type MaxFreezes = ();
     type RuntimeHoldReason = RuntimeHoldReason;
     type RuntimeFreezeReason = ();
-    type MaxHolds = ConstU32<1>;
+    type MaxHolds = ConstU32<3>;
 }
 
 parameter_types! {
@@ -377,48 +376,17 @@ impl pallet_preimage::Config for Runtime {
 }
 
 parameter_types! {
-    pub MaximumSchedulerWeight: Weight = BlockWeights::get().max_block;
+    pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * BlockWeights::get().max_block;
     pub MaxScheduledPerBlock: u32 = 50;
 }
 
-pub struct EnsureRootOrSudo<T>(sp_std::marker::PhantomData<T>);
-impl<T, O> EnsureOrigin<O> for EnsureRootOrSudo<T>
-where
-    T: frame_system::Config + pallet_sudo::Config,
-    O: Into<Result<RawOrigin<T::AccountId>, O>> + Clone + From<RawOrigin<T::AccountId>>,
-{
-    type Success = T::AccountId;
-
-    fn try_origin(o: O) -> Result<Self::Success, O> {
-        let origin_result: Result<RawOrigin<T::AccountId>, O> = o.clone().into(); // Clone `o` before converting
-        match origin_result {
-            Ok(RawOrigin::Root) => Ok(pallet_sudo::Pallet::<T>::key().expect("No sudo key set")),
-            Ok(RawOrigin::Signed(who)) => {
-                if Some(who.clone()) == pallet_sudo::Pallet::<T>::key() {
-                    Ok(who)
-                } else {
-                    Err(o)
-                }
-            }
-            _ => Err(o),
-        }
-    }
-
-    #[cfg(feature = "runtime-benchmarks")]
-    fn try_successful_origin() -> Result<O, ()> {
-        pallet_sudo::Pallet::<T>::key()
-            .map(|key| O::from(RawOrigin::Signed(key)))
-            .or_else(|| Some(O::from(RawOrigin::Root))) // Fallback to root if no sudo key
-            .ok_or(())
-    }
-}
 impl pallet_scheduler::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type RuntimeOrigin = RuntimeOrigin;
     type PalletsOrigin = OriginCaller;
     type RuntimeCall = RuntimeCall;
     type MaximumWeight = MaximumSchedulerWeight;
-    type ScheduleOrigin = EnsureRootOrSudo<Runtime>;
+    type ScheduleOrigin = EnsureRoot<AccountId>;
 
     type OriginPrivilegeCmp = EqualPrivilegeOnly;
     type MaxScheduledPerBlock = MaxScheduledPerBlock;
