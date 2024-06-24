@@ -55,6 +55,8 @@ impl Verifier for Zksync {
     }
 
     fn vk_bytes(_vk: &Self::Vk) -> Cow<[u8]> {
+        // This verifier doesn't need any vk and the only admissible vk is the empty one.
+        // So, to make it in the same shape of the other verifiers, we return an empty array.
         static VOID: &[u8] = &[];
         Cow::Borrowed(VOID)
     }

@@ -138,24 +138,6 @@ impl<E: Pairing> TryFrom<VerificationKey> for ark_groth16::VerifyingKey<E> {
     }
 }
 
-// impl<E: Pairing> TryInto<ark_groth16::VerifyingKey<E>> for VerificationKey {
-//     type Error = SerializationError;
-
-//     fn try_into(self) -> Result<ark_groth16::VerifyingKey<E>, Self::Error> {
-//         Ok(ark_groth16::VerifyingKey {
-//             alpha_g1: self.alpha_g1.try_into_affine::<E::G1Affine>()?,
-//             beta_g2: self.beta_g2.try_into_affine::<E::G2Affine>()?,
-//             gamma_g2: self.gamma_g2.try_into_affine::<E::G2Affine>()?,
-//             delta_g2: self.delta_g2.try_into_affine::<E::G2Affine>()?,
-//             gamma_abc_g1: self
-//                 .gamma_abc_g1
-//                 .into_iter()
-//                 .map(|v| v.try_into_affine::<E::G1Affine>())
-//                 .collect::<Result<Vec<_>, _>>()?,
-//         })
-//     }
-// }
-
 impl<E: Pairing> TryFrom<ark_groth16::Proof<E>> for Proof {
     type Error = SerializationError;
 

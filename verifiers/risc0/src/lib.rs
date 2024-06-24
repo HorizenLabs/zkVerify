@@ -87,7 +87,7 @@ impl<T: Config> Verifier for Risc0<T> {
     }
 
     fn vk_bytes(_vk: &Self::Vk) -> hp_verifiers::Cow<[u8]> {
-        panic!("We cannot know vk preimage: use vk_hash() instead")
+        panic!("Risc0 vk is already hashed and we cannot know its preimage: use vk_hash() instead")
     }
 }
 
