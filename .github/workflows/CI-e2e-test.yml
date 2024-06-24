@@ -47,8 +47,9 @@ jobs:
         env:
           NODEJS_VERSION_INSTALL: 18
         run: |
-          ${{ env.DOCKER_COMPOSE_CMD }} sh -c '
-            cd ${{ env.DOCKER_BUILD_DIR }}/e2e-tests \
+          ${{ env.DOCKER_COMPOSE_CMD }} /bin/bash -c '
+            set -o pipefail \
+            && cd ${{ env.DOCKER_BUILD_DIR }}/e2e-tests \
             && yarn install \
             && yarn test 2>&1 | tee ${{ env.DOCKER_BUILD_DIR }}/e2e_test_output.txt
           '
