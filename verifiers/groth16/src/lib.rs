@@ -29,7 +29,6 @@ use data_structures::Scalar;
 use groth16::{Curve, Groth16Error};
 pub use groth16::{ProofWithCurve as Proof, VerificationKeyWithCurve as Vk};
 use hp_verifiers::Verifier;
-use sp_core::Get;
 use sp_std::vec::Vec;
 
 pub const MAX_NUM_INPUTS: u32 = 32;
@@ -37,11 +36,7 @@ pub use weight::WeightInfo;
 
 pub trait Config: 'static {
     /// Maximum supported number of public inputs.
-    type MaxNumInputs: Get<u32>;
-
-    fn max_num_inputs() -> u32 {
-        Self::MaxNumInputs::get()
-    }
+    const MAX_NUM_INPUTS: u32;
 }
 
 #[pallet_verifiers::verifier]
@@ -64,7 +59,7 @@ impl<T: Config> Verifier for Groth16<T> {
         proof: &Self::Proof,
         pubs: &Self::Pubs,
     ) -> Result<(), hp_verifiers::VerifyError> {
-        if pubs.len() > T::max_num_inputs() as usize {
+        if pubs.len() > T::MAX_NUM_INPUTS as usize {
             return Err(hp_verifiers::VerifyError::InvalidInput);
         }
         if pubs.len() + 1 != vk.gamma_abc_g1.len() {

@@ -33,7 +33,7 @@ mod benchmarks {
     use super::*;
 
     #[benchmark]
-    fn submit_proof_bn254(n: Linear<0, crate::MAX_NUM_INPUTS>) {
+    fn submit_proof_bn254(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
         let caller = whitelisted_caller();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bn254);
 
@@ -47,7 +47,7 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn submit_proof_bls12_381(n: Linear<0, crate::MAX_NUM_INPUTS>) {
+    fn submit_proof_bls12_381(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
         let caller = whitelisted_caller();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bls12_381);
 
@@ -61,7 +61,7 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn submit_proof_bn254_with_vk_hash(n: Linear<0, crate::MAX_NUM_INPUTS>) {
+    fn submit_proof_bn254_with_vk_hash(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
         let caller = whitelisted_caller();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bn254);
         let hash = sp_core::H256::repeat_byte(2);
@@ -77,7 +77,7 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn submit_proof_bls12_381_with_vk_hash(n: Linear<0, crate::MAX_NUM_INPUTS>) {
+    fn submit_proof_bls12_381_with_vk_hash(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
         let caller = whitelisted_caller();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bls12_381);
         let hash = sp_core::H256::repeat_byte(2);
@@ -93,7 +93,7 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn register_vk_bn254(n: Linear<0, crate::MAX_NUM_INPUTS>) {
+    fn register_vk_bn254(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
         let caller = whitelisted_caller();
         let (_, vk, _) = Groth16Circuits::get_instance(n as usize, None, Curve::Bn254);
 
@@ -105,7 +105,7 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn register_vk_bls12_381(n: Linear<0, crate::MAX_NUM_INPUTS>) {
+    fn register_vk_bls12_381(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
         let caller = whitelisted_caller();
         let (_, vk, _) = Groth16Circuits::get_instance(n as usize, None, Curve::Bls12_381);
 
@@ -114,5 +114,50 @@ mod benchmarks {
 
         // Verify
         assert!(Vks::<T, Groth16<T>>::get(Groth16::<T>::vk_hash(&vk)).is_some());
+    }
+
+    impl_benchmark_test_suite!(Pallet, super::mock::test_ext(), super::mock::Test);
+}
+
+#[cfg(test)]
+mod mock {
+    use frame_support::derive_impl;
+    use sp_runtime::{traits::IdentityLookup, BuildStorage};
+
+    // Configure a mock runtime to test the pallet.
+    frame_support::construct_runtime!(
+        pub enum Test
+        {
+            System: frame_system,
+            VerifierPallet: crate,
+        }
+    );
+
+    #[derive_impl(frame_system::config_preludes::SolochainDefaultConfig as frame_system::DefaultConfig)]
+    impl frame_system::Config for Test {
+        type Block = frame_system::mocking::MockBlockU32<Test>;
+        type AccountId = u64;
+        type Lookup = IdentityLookup<Self::AccountId>;
+    }
+
+    impl pallet_verifiers::Config<crate::Groth16<Test>> for Test {
+        type RuntimeEvent = RuntimeEvent;
+        type OnProofVerified = ();
+        type WeightInfo = crate::Groth16Weight<()>;
+    }
+
+    impl crate::Config for Test {
+        const MAX_NUM_INPUTS: u32 = crate::MAX_NUM_INPUTS - 1;
+    }
+
+    /// Build genesis storage according to the mock runtime.
+    pub fn test_ext() -> sp_io::TestExternalities {
+        let mut ext = sp_io::TestExternalities::from(
+            frame_system::GenesisConfig::<Test>::default()
+                .build_storage()
+                .unwrap(),
+        );
+        ext.execute_with(|| System::set_block_number(1));
+        ext
     }
 }
