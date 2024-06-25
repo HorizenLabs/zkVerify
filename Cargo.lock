@@ -4897,8 +4897,8 @@ dependencies = [
  "pallet-offences",
  "pallet-poe",
  "pallet-preimage",
- "pallet-scheduler",
  "pallet-risc0-verifier",
+ "pallet-scheduler",
  "pallet-session",
  "pallet-session-benchmarking",
  "pallet-staking",
@@ -5359,6 +5359,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-risc0-verifier"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "hp-verifiers",
+ "log",
+ "native",
+ "pallet-verifiers",
+ "sp-core",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-scheduler"
 version = "28.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5375,22 +5391,6 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "sp-weights",
-]
-
-[[package]]
-name = "pallet-risc0-verifier"
-version = "0.1.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hex-literal",
- "hp-verifiers",
- "log",
- "native",
- "pallet-verifiers",
- "sp-core",
- "sp-std",
 ]
 
 [[package]]
