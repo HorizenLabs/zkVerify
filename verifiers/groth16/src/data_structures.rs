@@ -25,8 +25,8 @@ use sp_std::vec::Vec;
 pub const G1_MAX_SIZE: u32 = 96;
 pub const G2_MAX_SIZE: u32 = G1_MAX_SIZE * 2;
 
-pub fn vec_max_encoded_len(max_vec_len: u32) -> usize {
-    codec::Compact(max_vec_len).encoded_size() + max_vec_len as usize
+pub fn vec_max_encoded_len(element_size: usize, len: u32) -> usize {
+    codec::Compact(len).encoded_size() + element_size * len as usize
 }
 
 #[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
@@ -34,7 +34,7 @@ pub struct G1(pub Vec<u8>);
 
 impl MaxEncodedLen for G1 {
     fn max_encoded_len() -> usize {
-        vec_max_encoded_len(G1_MAX_SIZE)
+        vec_max_encoded_len(u8::max_encoded_len(), G1_MAX_SIZE)
     }
 }
 
@@ -43,7 +43,7 @@ pub struct G2(pub Vec<u8>);
 
 impl MaxEncodedLen for G2 {
     fn max_encoded_len() -> usize {
-        vec_max_encoded_len(G2_MAX_SIZE)
+        vec_max_encoded_len(u8::max_encoded_len(), G2_MAX_SIZE)
     }
 }
 
@@ -181,6 +181,26 @@ mod test {
     use frame_support::assert_ok;
     use rstest::rstest;
     use rstest_reuse::{apply, template};
+
+    mod max_encoded_len {
+        use super::*;
+
+        #[test]
+        fn g1() {
+            assert_eq!(
+                G1(vec![0; G1_MAX_SIZE as usize]).encoded_size(),
+                G1::max_encoded_len()
+            );
+        }
+
+        #[test]
+        fn g2() {
+            assert_eq!(
+                G2(vec![0; G2_MAX_SIZE as usize]).encoded_size(),
+                G2::max_encoded_len()
+            );
+        }
+    }
 
     mod deserialize {
         use super::*;

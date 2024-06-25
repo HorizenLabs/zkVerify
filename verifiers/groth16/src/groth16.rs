@@ -43,13 +43,10 @@ pub struct VerificationKeyWithCurve {
 
 impl MaxEncodedLen for VerificationKeyWithCurve {
     fn max_encoded_len() -> usize {
-        let g1_size: u32 = G1::max_encoded_len()
-            .try_into()
-            .expect("Should be a valid u32. qed");
         Curve::max_encoded_len()
             + G1::max_encoded_len()
             + 3 * G2::max_encoded_len()
-            + vec_max_encoded_len(crate::MAX_NUM_INPUTS * g1_size)
+            + vec_max_encoded_len(G1::max_encoded_len(), crate::MAX_NUM_INPUTS + 1)
     }
 }
 
@@ -138,6 +135,32 @@ impl Groth16 {
             ProofWithCurve::new(curve, proof),
             VerificationKeyWithCurve::from_curve_and_vk(curve, vk),
             inputs,
+        )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::data_structures::{G1_MAX_SIZE, G2_MAX_SIZE};
+
+    use super::*;
+
+    #[test]
+    fn check_max_encoded_vk_len() {
+        let g1_zero = G1(vec![0; G1_MAX_SIZE as usize]);
+        let g2_zero = G2(vec![0; G2_MAX_SIZE as usize]);
+        let vk = VerificationKeyWithCurve {
+            curve: Curve::Bls12_381,
+            alpha_g1: g1_zero.clone(),
+            beta_g2: g2_zero.clone(),
+            gamma_g2: g2_zero.clone(),
+            delta_g2: g2_zero.clone(),
+            gamma_abc_g1: vec![g1_zero.clone(); crate::MAX_NUM_INPUTS as usize + 1],
+        };
+
+        assert_eq!(
+            VerificationKeyWithCurve::max_encoded_len(),
+            vk.encoded_size(),
         )
     }
 }
