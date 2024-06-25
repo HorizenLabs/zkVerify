@@ -29,6 +29,10 @@ then
 fi
 
 USE_DOCKER_IMAGE=${USE_DOCKER_IMAGE:=""}
+# Force specific set of pallets (spaced string)
+USE_PALLETS=${USE_PALLETS:=""}
+ENABLE_OVERHEAD=${ENABLE_OVERHEAD:="true"}
+ENABLE_MACHINE=${ENABLE_MACHINE:="true"}
 
 # The following line ensure we know the project root
 SOURCE_ROOT=${SOURCE_ROOT:-$(git rev-parse --show-toplevel)}
@@ -67,17 +71,22 @@ WEIGHTS_FOLDER=${WEIGHTS_FOLDER:-"${PROJECT_ROOT}/runtime/src/weights"}
 CODE_HEADER="${PROJECT_ROOT}/HEADER-APACHE2"
 
 
+if [ -n "${USE_PALLETS}" ]; then
+  # shellcheck disable=SC2206
+  PALLETS=(${USE_PALLETS})
+else 
+  # Load all pallet names in an array.
+  mapfile -t < <(${NH_NODE} benchmark pallet \
+    --list \
+    --chain=dev | \
+    tail -n+${SKIP_LINES} | \
+    cut -d',' -f1 | \
+    sort | \
+    uniq \
+    )
+  PALLETS=("${MAPFILE[@]}")
+fi
 
-# Load all pallet names in an array.
-mapfile -t < <(${NH_NODE} benchmark pallet \
-  --list \
-  --chain=dev | \
-  tail -n+${SKIP_LINES} | \
-  cut -d',' -f1 | \
-  sort | \
-  uniq \
-  )
-PALLETS=("${MAPFILE[@]}")
 
 EXCLUDED_PALLETS=(
         # Helper pallets
@@ -117,7 +126,7 @@ rm -f "${ERR_FILE}"
 # Benchmark each pallet.
 for PALLET in "${PALLETS[@]}"; do
   if is_pallet_excluded "${PALLET}"; then
-    echo "[+] Skipping $PALLET"
+    echo "[+] Skipping - $PALLET"
     continue
   fi
 
@@ -145,30 +154,40 @@ for PALLET in "${PALLETS[@]}"; do
   fi
 done
 
-# Update the block and extrinsic overhead weights.
-echo "[+] Benchmarking block and extrinsic overheads..."
-OUTPUT=$(
-  ${NH_NODE} benchmark overhead \
-  --chain=dev \
-  --weight-path="${WEIGHTS_FOLDER}" \
-  --header="${CODE_HEADER}" \
-  --warmup=10 \
-  --repeat=100 2>&1
-)
+if [[ "${ENABLE_OVERHEAD}" == "true" ]];
+then 
+  # Update the block and extrinsic overhead weights.
+  echo "[+] Benchmarking block and extrinsic overheads..."
+  OUTPUT=$(
+    ${NH_NODE} benchmark overhead \
+    --chain=dev \
+    --weight-path="${WEIGHTS_FOLDER}" \
+    --header="${CODE_HEADER}" \
+    --warmup=10 \
+    --repeat=100 2>&1
+  )
 
-if [ $? -ne 0 ]; then
-  echo "$OUTPUT" >> "$ERR_FILE"
-  echo "[-] Failed to benchmark the block and extrinsic overheads. Error written to $ERR_FILE; continuing..."
+  if [ $? -ne 0 ]; then
+    echo "$OUTPUT" >> "$ERR_FILE"
+    echo "[-] Failed to benchmark the block and extrinsic overheads. Error written to $ERR_FILE; continuing..."
+  fi
+else 
+  echo "[+] Skipping - Benchmarking block and extrinsic overheads..."
 fi
 
-echo "[+] Benchmarking the machine..."
-OUTPUT=$(
-  ${NH_NODE} benchmark machine --chain=dev 2>&1
-)
-if [ $? -ne 0 ]; then
-  # Do not write the error to the error file since it is not a benchmarking error.
-  echo "[-] Failed the machine benchmark:
-$OUTPUT"
+if [[ "${ENABLE_MACHINE}" == "true" ]];
+then 
+  echo "[+] Benchmarking the machine..."
+  OUTPUT=$(
+    ${NH_NODE} benchmark machine --chain=dev 2>&1
+  )
+  if [ $? -ne 0 ]; then
+    # Do not write the error to the error file since it is not a benchmarking error.
+    echo "[-] Failed the machine benchmark:
+  $OUTPUT"
+  fi
+else
+  echo "[+] Skipping - Benchmarking the machine..."
 fi
 
 # Check if the error file exists.
