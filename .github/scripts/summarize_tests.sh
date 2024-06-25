@@ -5,6 +5,7 @@ set -eEuo pipefail
 unit_test_file="./build-and-test-output/unit_tests_output.txt"
 integration_test_file="./build-and-test-output/integration_tests_output.txt"
 coverage_report_file="./coverage-output/coverage_report.json"
+e2e_test_file="./e2e-test-output/e2e_test_output.txt"
 
 # Initialize counters for unit tests
 unit_total_passed=0
@@ -18,7 +19,10 @@ integration_total_failed=0
 integration_total_ignored=0
 integration_total_runtime=0.0
 
-overall_status="success"
+# Initialize counters for e2e tests
+e2e_total_passed=0
+e2e_total_failed=0
+e2e_total_runtime=0.0
 
 process_test_file() {
   local file_type="$1" # "unit" or "integration"
@@ -28,9 +32,6 @@ process_test_file() {
   if [ -f "$file_path" ]; then
     while IFS= read -r line; do
       if [[ "$line" == *"test result:"* ]]; then
-        if [[ "$line" == *"failed; "* && "$overall_status" != "failed" ]]; then
-          overall_status="failed"
-        fi
 
         passed=$(echo "$line" | awk '{for (i=1; i<=NF; i++) if ($i=="passed;") print $(i-1)}')
         failed=$(echo "$line" | awk '{for (i=1; i<=NF; i++) if ($i=="failed;") print $(i-1)}')
@@ -97,3 +98,21 @@ else
     echo "COVERAGE_TEST_SUMMARY=Coverage data not found." >> $GITHUB_ENV
 fi
 
+# Process e2e test file
+if [ -f "$e2e_test_file" ]; then
+  while IFS= read -r line; do
+    if [[ "$line" == *"Passed tests:"* ]]; then
+      e2e_total_passed=$(echo "${line}" | grep -o -E '[[:space:]]+[0-9]+[[:space:]]+' | grep -o -E '[0-9]+') # colors handling
+    elif [[ "$line" == *"Failed tests:"* ]]; then
+      e2e_total_failed=$(echo "${line}" | grep -o -E '[[:space:]]+[0-9]+[[:space:]]+' | grep -o -E '[0-9]+') # colors handling
+    elif [[ "$line" == *"Done in"* ]]; then
+      e2e_total_runtime=$(echo "${line}" | sed 's/..$//' | grep -o -E '[0-9.]+')
+    fi
+  done < "$e2e_test_file"
+else
+  echo "E2E_TEST_SUMMARY=e2e test output not found." >> $GITHUB_ENV
+fi
+passed_formatted="*Passed*: $e2e_total_passed"
+failed_formatted="*Failed*: $e2e_total_failed"
+runtime_formatted="*Runtime*: ${e2e_total_runtime}s"
+echo "E2E_TEST_SUMMARY=*E2E Tests*\n$passed_formatted, $failed_formatted, $runtime_formatted" >> $GITHUB_ENV

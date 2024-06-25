@@ -84,6 +84,13 @@ jobs:
           else
             echo "Formatting output not found."
           fi
+      - name: Display e2e test output
+        run: |
+          if [ -f "./e2e-test-output/e2e_test_output.txt" ]; then
+            cat "./e2e-test-output/e2e_test_output.txt"
+          else
+            echo "E2e test output not found."
+          fi
       - name: Prepare Slack Notification Data
         run: |
           OVERALL_STATUS="success"
@@ -96,7 +103,7 @@ jobs:
           fi
           
           if [ "$OVERALL_STATUS" = "success" ]; then
-          echo "OVERALL_STATUS_EMOJI=:large_green_circle:" >> $GITHUB_ENV
+            echo "OVERALL_STATUS_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
             echo "OVERALL_STATUS_EMOJI=:alert:" >> $GITHUB_ENV
           fi
@@ -132,6 +139,7 @@ jobs:
           else
             echo "E2E_TEST_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
           fi
+
           echo "OVERALL_STATUS=$OVERALL_STATUS" >> $GITHUB_ENV
       - name: Send Slack Notification
         uses: slackapi/slack-github-action@v1.25.0
@@ -171,7 +179,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ env.E2E_TEST_JOB_EMOJI }} *Zombienet Tests:* ${{ needs.e2e-test-job.result }}"
+                    "text": "${{ env.E2E_TEST_JOB_EMOJI }} *Zombienet Tests:* ${{ needs.e2e-test-job.result }}\n\n${{ env.E2E_TEST_SUMMARY }}"
                   }
                 }
               ]
