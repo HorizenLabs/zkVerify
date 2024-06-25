@@ -814,7 +814,7 @@ mod pallets_interact {
         use super::*;
 
         #[test]
-        fn test_set_sudo_to_multisig() {
+        fn and_multisig() {
             new_test_ext().execute_with(|| {
                 // Extract the account IDs from SAMPLE_USERS
                 let account_ids: Vec<AccountId32> = testsfixtures::SAMPLE_USERS
@@ -869,6 +869,40 @@ mod pallets_interact {
 
                 // Ensure the sudo key has been updated correctly to account_ids[1]
                 assert_eq!(Sudo::key(), Some(account_ids[1].clone()));
+            });
+        }
+    }
+
+    mod scheduler {
+        use super::*;
+        use frame_support::traits::QueryPreimage;
+        use sp_runtime::traits::Hash;
+
+        #[test]
+        fn uses_preimage() {
+            new_test_ext().execute_with(|| {
+                // We need a call bigger than 128 bytes to trigger preimage usage
+                let call = Box::new(
+                    RuntimeCall::SettlementFFlonkPallet(pallet_verifiers::Call::<
+                        Runtime,
+                        pallet_fflonk_verifier::Fflonk,
+                    >::new_call_variant_submit_proof(
+                        VkOrHash::from_hash(H256::zero()),
+                        [0; pallet_fflonk_verifier::PROOF_SIZE].into(),
+                        [0; pallet_fflonk_verifier::PUBS_SIZE].into(),
+                    )),
+                );
+                let call_hash = <Runtime as frame_system::Config>::Hashing::hash_of(&call);
+
+                assert_ok!(Scheduler::schedule(
+                    RuntimeOrigin::root(),
+                    100,
+                    None,
+                    0,
+                    call
+                ));
+
+                assert!(Preimage::len(&call_hash).is_some());
             });
         }
     }
