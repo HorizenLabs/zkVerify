@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub static VALID_PROOF: crate::Proof = hex_literal::hex!(
+pub static PROOF: <crate::Zksync as crate::Verifier>::Proof = hex_literal::hex!(
     "
     02c6cf2fd56edca1f17f406cceef3de1c99bba6e499ed96ef4f453af011257c4
     20944a838b2cd133a414ae6882fd8cc0dfb7daa14540d796ab937f65479beaca
@@ -59,6 +59,11 @@ pub static VALID_PROOF: crate::Proof = hex_literal::hex!(
     16284c2edd3202941fdedd81a6ee4fa6735cac981f8cc1a5609a27bb774b5901
     281497fb2be671c9dac31aad3c122f3859a9f838f8543c7fc2bab27e84dc4b6a
     2343c5416c38c8dcbbb56f1e3ccf31644ab66ebe86e77cec68836d3771d7e3a8
+    "
+);
+
+pub static PUBS: <crate::Zksync as crate::Verifier>::Pubs = hex_literal::hex!(
+    "
     00000000a45a2ec20c3f34f4c69cea200fdf39cc78ff50092f7cb1e2894f4d35
     "
 );

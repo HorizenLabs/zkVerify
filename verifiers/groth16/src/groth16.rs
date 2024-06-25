@@ -20,6 +20,7 @@ use core::fmt::Debug;
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 
+use crate::data_structures::vec_max_encoded_len;
 pub use crate::data_structures::{Proof, Scalar, G1, G2};
 pub use crate::groth16_generic::Groth16Error;
 use crate::groth16_generic::{Groth16Generic, VerificationKey};
@@ -38,6 +39,15 @@ pub struct VerificationKeyWithCurve {
     pub gamma_g2: G2,
     pub delta_g2: G2,
     pub gamma_abc_g1: Vec<G1>,
+}
+
+impl MaxEncodedLen for VerificationKeyWithCurve {
+    fn max_encoded_len() -> usize {
+        Curve::max_encoded_len()
+            + G1::max_encoded_len()
+            + 3 * G2::max_encoded_len()
+            + vec_max_encoded_len(G1::max_encoded_len(), crate::MAX_NUM_INPUTS + 1)
+    }
 }
 
 impl VerificationKeyWithCurve {
@@ -63,6 +73,37 @@ impl VerificationKeyWithCurve {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
+pub struct ProofWithCurve {
+    pub curve: Curve,
+    pub proof: Proof,
+}
+
+impl Default for ProofWithCurve {
+    fn default() -> Self {
+        Self {
+            curve: Curve::Bn254,
+            proof: Proof {
+                a: G1(Vec::default()),
+                b: G2(Vec::default()),
+                c: G1(Vec::default()),
+            },
+        }
+    }
+}
+
+impl ProofWithCurve {
+    pub fn new(curve: Curve, proof: Proof) -> Self {
+        Self { curve, proof }
+    }
+}
+
+impl From<ProofWithCurve> for Proof {
+    fn from(value: ProofWithCurve) -> Self {
+        value.proof
+    }
+}
+
 pub struct Groth16;
 
 impl Groth16 {
@@ -84,16 +125,42 @@ impl Groth16 {
         num_inputs: usize,
         rng_seed: Option<u64>,
         curve: Curve,
-    ) -> (Proof, VerificationKeyWithCurve, Vec<Scalar>) {
+    ) -> (ProofWithCurve, VerificationKeyWithCurve, Vec<Scalar>) {
         let (proof, vk, inputs) = match curve {
             Curve::Bn254 => Groth16Generic::<Bn254>::get_instance(num_inputs, rng_seed),
             Curve::Bls12_381 => Groth16Generic::<Bls12_381>::get_instance(num_inputs, rng_seed),
         };
 
         (
-            proof,
+            ProofWithCurve::new(curve, proof),
             VerificationKeyWithCurve::from_curve_and_vk(curve, vk),
             inputs,
+        )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::data_structures::{G1_MAX_SIZE, G2_MAX_SIZE};
+
+    use super::*;
+
+    #[test]
+    fn check_max_encoded_vk_len() {
+        let g1_zero = G1(vec![0; G1_MAX_SIZE as usize]);
+        let g2_zero = G2(vec![0; G2_MAX_SIZE as usize]);
+        let vk = VerificationKeyWithCurve {
+            curve: Curve::Bls12_381,
+            alpha_g1: g1_zero.clone(),
+            beta_g2: g2_zero.clone(),
+            gamma_g2: g2_zero.clone(),
+            delta_g2: g2_zero.clone(),
+            gamma_abc_g1: vec![g1_zero.clone(); crate::MAX_NUM_INPUTS as usize + 1],
+        };
+
+        assert_eq!(
+            VerificationKeyWithCurve::max_encoded_len(),
+            vk.encoded_size(),
         )
     }
 }

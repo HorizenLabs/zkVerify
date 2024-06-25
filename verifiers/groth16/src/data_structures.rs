@@ -16,16 +16,36 @@
 use ark_ec::{pairing::Pairing, AffineRepr};
 use ark_ff::PrimeField;
 use ark_serialize::SerializationError;
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 use core::fmt::Debug;
 use scale_info::TypeInfo;
 use sp_std::vec;
 use sp_std::vec::Vec;
+
+pub const G1_MAX_SIZE: u32 = 96;
+pub const G2_MAX_SIZE: u32 = G1_MAX_SIZE * 2;
+
+pub fn vec_max_encoded_len(element_size: usize, len: u32) -> usize {
+    codec::Compact(len).encoded_size() + element_size * len as usize
+}
+
 #[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
 pub struct G1(pub Vec<u8>);
 
+impl MaxEncodedLen for G1 {
+    fn max_encoded_len() -> usize {
+        vec_max_encoded_len(u8::max_encoded_len(), G1_MAX_SIZE)
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
 pub struct G2(pub Vec<u8>);
+
+impl MaxEncodedLen for G2 {
+    fn max_encoded_len() -> usize {
+        vec_max_encoded_len(u8::max_encoded_len(), G2_MAX_SIZE)
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
 pub struct Scalar(pub Vec<u8>);
@@ -100,16 +120,16 @@ impl<E: Pairing> TryInto<ark_groth16::Proof<E>> for Proof {
     }
 }
 
-impl<E: Pairing> TryInto<ark_groth16::VerifyingKey<E>> for VerificationKey {
+impl<E: Pairing> TryFrom<VerificationKey> for ark_groth16::VerifyingKey<E> {
     type Error = SerializationError;
 
-    fn try_into(self) -> Result<ark_groth16::VerifyingKey<E>, Self::Error> {
+    fn try_from(value: VerificationKey) -> Result<Self, Self::Error> {
         Ok(ark_groth16::VerifyingKey {
-            alpha_g1: self.alpha_g1.try_into_affine::<E::G1Affine>()?,
-            beta_g2: self.beta_g2.try_into_affine::<E::G2Affine>()?,
-            gamma_g2: self.gamma_g2.try_into_affine::<E::G2Affine>()?,
-            delta_g2: self.delta_g2.try_into_affine::<E::G2Affine>()?,
-            gamma_abc_g1: self
+            alpha_g1: value.alpha_g1.try_into_affine::<E::G1Affine>()?,
+            beta_g2: value.beta_g2.try_into_affine::<E::G2Affine>()?,
+            gamma_g2: value.gamma_g2.try_into_affine::<E::G2Affine>()?,
+            delta_g2: value.delta_g2.try_into_affine::<E::G2Affine>()?,
+            gamma_abc_g1: value
                 .gamma_abc_g1
                 .into_iter()
                 .map(|v| v.try_into_affine::<E::G1Affine>())
@@ -161,6 +181,26 @@ mod test {
     use frame_support::assert_ok;
     use rstest::rstest;
     use rstest_reuse::{apply, template};
+
+    mod max_encoded_len {
+        use super::*;
+
+        #[test]
+        fn g1() {
+            assert_eq!(
+                G1(vec![0; G1_MAX_SIZE as usize]).encoded_size(),
+                G1::max_encoded_len()
+            );
+        }
+
+        #[test]
+        fn g2() {
+            assert_eq!(
+                G2(vec![0; G2_MAX_SIZE as usize]).encoded_size(),
+                G2::max_encoded_len()
+            );
+        }
+    }
 
     mod deserialize {
         use super::*;

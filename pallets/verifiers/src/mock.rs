@@ -19,6 +19,7 @@ use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
 use hp_verifiers::{Verifier, VerifyError, WeightInfo};
 
+/// A on_proof_verifier fake pallet
 pub mod on_proof_verified {
     pub use pallet::*;
 

@@ -241,11 +241,13 @@ fn pallet_scheduler_availability() {
 fn pallet_zksync_availability() {
     new_test_ext().execute_with(|| {
         let dummy_origin = AccountId32::new([0; 32]);
-        let dummy_raw_proof: pallet_settlement_zksync::Proof =
-            [0; pallet_settlement_zksync::FULL_PROOF_SIZE];
+        let dummy_proof = [0; pallet_zksync_verifier::PROOF_SIZE];
+        let dummy_pubs = [0; pallet_zksync_verifier::PUBS_SIZE];
         assert!(SettlementZksyncPallet::submit_proof(
             RuntimeOrigin::signed(dummy_origin),
-            dummy_raw_proof.into()
+            VkOrHash::from_hash(H256::zero()),
+            dummy_proof.into(),
+            dummy_pubs.into(),
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -256,25 +258,11 @@ fn pallet_zksync_availability() {
 fn pallet_groth16_availability() {
     new_test_ext().execute_with(|| {
         let dummy_origin = AccountId32::new([0; 32]);
-        let dummy_proof = pallet_settlement_groth16::Proof {
-            a: pallet_settlement_groth16::G1(Vec::new()),
-            b: pallet_settlement_groth16::G2(Vec::new()),
-            c: pallet_settlement_groth16::G1(Vec::new()),
-        };
-        let dummy_vk = pallet_settlement_groth16::VerificationKeyWithCurve {
-            curve: pallet_settlement_groth16::Curve::Bn254,
-            alpha_g1: pallet_settlement_groth16::G1(Vec::new()),
-            beta_g2: pallet_settlement_groth16::G2(Vec::new()),
-            gamma_g2: pallet_settlement_groth16::G2(Vec::new()),
-            delta_g2: pallet_settlement_groth16::G2(Vec::new()),
-            gamma_abc_g1: Vec::new(),
-        };
-        let dummy_input = Vec::new();
         assert!(SettlementGroth16Pallet::submit_proof(
             RuntimeOrigin::signed(dummy_origin),
-            dummy_proof,
-            dummy_vk.into(),
-            dummy_input,
+            VkOrHash::from_hash(H256::zero()),
+            pallet_groth16_verifier::Proof::default().into(),
+            Box::new(Vec::new()),
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -286,15 +274,15 @@ fn pallet_risc0_availability() {
     new_test_ext().execute_with(|| {
         let dummy_origin = AccountId32::new([0; 32]);
 
-        let dummy_vk = [0u8; 32];
+        let dummy_vk = H256::default();
         let dummy_proof = vec![];
         let dummy_pubs = vec![];
 
         assert!(SettlementRisc0Pallet::submit_proof(
             RuntimeOrigin::signed(dummy_origin),
-            dummy_vk,
-            dummy_proof,
-            dummy_pubs
+            VkOrHash::Vk(dummy_vk.into()),
+            dummy_proof.into(),
+            dummy_pubs.into()
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -396,8 +384,8 @@ mod use_correct_weights {
     #[test]
     fn pallet_fflonk_verifier() {
         use pallet_fflonk_verifier::Fflonk;
-        let dummy_proof: pallet_fflonk_verifier::Proof = [0; pallet_fflonk_verifier::PROOF_SIZE];
-        let dummy_pubs: pallet_fflonk_verifier::Pubs = [0; pallet_fflonk_verifier::PUBS_SIZE];
+        let dummy_proof = [0; pallet_fflonk_verifier::PROOF_SIZE];
+        let dummy_pubs = [0; pallet_fflonk_verifier::PUBS_SIZE];
         use pallet_fflonk_verifier::WeightInfo;
 
         assert_eq!(
@@ -410,32 +398,50 @@ mod use_correct_weights {
     }
 
     #[test]
-    fn pallet_settlement_zksync() {
-        use pallet_settlement_zksync::WeightInfo;
+    fn pallet_zksync_verifier() {
+        use pallet_zksync_verifier::Zksync;
+        let dummy_proof = [0; pallet_zksync_verifier::PROOF_SIZE];
+        let dummy_pubs = [0; pallet_zksync_verifier::PUBS_SIZE];
+        use pallet_zksync_verifier::WeightInfo;
 
         assert_eq!(
-            <Runtime as pallet_settlement_zksync::Config>::WeightInfo::submit_proof(),
-            crate::weights::pallet_settlement_zksync::NHWeight::<Runtime>::submit_proof()
+            <<Runtime as pallet_verifiers::Config<Zksync>>::WeightInfo as pallet_verifiers::WeightInfo<Zksync>>::submit_proof(
+                &dummy_proof,
+                &dummy_pubs
+            ),
+            crate::weights::pallet_zksync_verifier::NHWeight::<Runtime>::submit_proof()
         );
     }
 
     #[test]
-    fn pallet_settlement_groth16() {
-        use pallet_settlement_groth16::WeightInfo;
+    fn pallet_groth16_verifier() {
+        use pallet_groth16_verifier::Groth16;
+        use pallet_groth16_verifier::WeightInfo;
 
         assert_eq!(
-            <Runtime as pallet_settlement_groth16::Config>::WeightInfo::submit_proof_bn254(0),
-            crate::weights::pallet_settlement_groth16::NHWeight::<Runtime>::submit_proof_bn254(0)
+            <<Runtime as pallet_verifiers::Config<Groth16<Runtime>>>::WeightInfo as
+                pallet_verifiers::WeightInfo<Groth16<Runtime>>>
+                ::submit_proof(
+                &pallet_groth16_verifier::Proof::default(),
+                &Vec::new()
+            ),
+            crate::weights::pallet_groth16_verifier::NHWeight::<Runtime>::submit_proof_bn254(0)
         );
     }
 
     #[test]
     fn pallet_settlement_risc0() {
-        use pallet_settlement_risc0::WeightInfo;
+        use pallet_risc0_verifier::Risc0;
+        use pallet_risc0_verifier::WeightInfo;
 
         assert_eq!(
-            <Runtime as pallet_settlement_risc0::Config>::WeightInfo::submit_proof(),
-            crate::weights::pallet_settlement_risc0::NHWeight::<Runtime>::submit_proof()
+            <<Runtime as pallet_verifiers::Config<Risc0<Runtime>>>::WeightInfo as
+                pallet_verifiers::WeightInfo<Risc0<Runtime>>>
+                ::submit_proof(
+                &Vec::new(),
+                &Vec::new()
+            ),
+            crate::weights::pallet_risc0_verifier::NHWeight::<Runtime>::submit_proof()
         );
     }
 

@@ -21,17 +21,17 @@
 
 use codec::{Decode, Encode, EncodeLike};
 use scale_info::TypeInfo;
-use sp_core::MaxEncodedLen;
+use sp_core::{MaxEncodedLen, H256};
 pub use sp_std::borrow::Cow;
 use sp_std::fmt::Debug;
 use sp_weights::Weight;
 
 /// Define the minimum traits that proofs and public inputs should implement.
-pub trait Arg: Debug + Clone + PartialEq + Encode + Decode + TypeInfo + MaxEncodedLen {}
-impl<T: Debug + Clone + PartialEq + Encode + Decode + TypeInfo + MaxEncodedLen> Arg for T {}
+pub trait Arg: Debug + Clone + PartialEq + Encode + Decode + TypeInfo {}
+impl<T: Debug + Clone + PartialEq + Encode + Decode + TypeInfo> Arg for T {}
 /// Define the minimum traits that verification keys should implement.
-pub trait VkArg: Arg + EncodeLike {}
-impl<T: Arg + EncodeLike> VkArg for T {}
+pub trait VkArg: Arg + MaxEncodedLen + EncodeLike {}
+impl<T: Arg + MaxEncodedLen + EncodeLike> VkArg for T {}
 
 /// The verification error type
 #[derive(Debug, PartialEq)]
@@ -71,6 +71,11 @@ pub trait Verifier: 'static {
     /// need something different.
     fn validate_vk(_vk: &Self::Vk) -> Result<(), VerifyError> {
         Ok(())
+    }
+
+    /// How to compute the verification key hash to use in statement hash computation.
+    fn vk_hash(vk: &Self::Vk) -> H256 {
+        sp_io::hashing::keccak_256(&Self::vk_bytes(vk)).into()
     }
 
     /// A vk's byte serialization used to compute the verification key hash. The default implementation
