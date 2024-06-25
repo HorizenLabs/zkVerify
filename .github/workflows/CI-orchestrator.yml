@@ -29,6 +29,23 @@ jobs:
             echo "act=false" >> $GITHUB_OUTPUT
           fi
 
+  set_overall_result:
+    runs-on: ubuntu-latest
+    needs: [build-test-job, test-coverage-job, lint-format-job, e2e-test-job, check-act]
+    steps:
+      - name: Set overall result
+        run: |
+          OVERALL_STATUS="success"
+          
+          if [ "${{ needs.build-test-job.result }}" != "success" ] || 
+              [ "${{ needs.test-coverage-job.result }}" != "success" ] ||
+              [ "${{ needs.lint-format-job.result }}" != "success" ] || 
+              [ "${{ needs.e2e-test-job.result }}" != "success" ]; then
+            OVERALL_STATUS="failure"
+          fi
+
+          echo "OVERALL_STATUS=$OVERALL_STATUS" >> $GITHUB_ENV
+
   notify-slack:
     runs-on: ubuntu-latest
     needs: [build-test-job, test-coverage-job, lint-format-job, e2e-test-job, check-act]
@@ -91,16 +108,7 @@ jobs:
             echo "E2e test output not found."
           fi
       - name: Prepare Slack Notification Data
-        run: |
-          OVERALL_STATUS="success"
-
-          if [ "${{ needs.build-test-job.result }}" != "success" ] || 
-              [ "${{ needs.test-coverage-job.result }}" != "success" ] ||
-              [ "${{ needs.lint-format-job.result }}" != "success" ] || 
-              [ "${{ needs.e2e-test-job.result }}" != "success" ]; then
-            OVERALL_STATUS="failure"
-          fi
-          
+        run: |         
           if [ "$OVERALL_STATUS" = "success" ]; then
             echo "OVERALL_STATUS_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
@@ -138,8 +146,6 @@ jobs:
           else
             echo "E2E_TEST_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
           fi
-
-          echo "OVERALL_STATUS=$OVERALL_STATUS" >> $GITHUB_ENV
       - name: Send Slack Notification
         uses: slackapi/slack-github-action@v1.25.0
         with:
