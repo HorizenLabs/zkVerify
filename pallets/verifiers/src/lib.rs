@@ -60,7 +60,12 @@
 //! Your crate should also implement a struct that implement `hp_verifiers::WeightInfo<YourVerifierStruct>`
 //! trait. This struct is used to define the weight of the verifier pallet and should map the generic
 //! request in you weight implementation computed with your benchmark.
+
+// Workaround for a bug in `frame_support::pallet` procedural macro that generate some docs only code wrongly:
+// they forget to add the where clause to the calls (and maybe in some other places).
+#[cfg(not(doc))]
 pub use pallet::*;
+
 pub use pallet_verifiers_macros::*;
 #[allow(missing_docs)]
 pub mod mock;
@@ -70,6 +75,10 @@ pub use hp_verifiers::WeightInfo;
 
 #[frame_support::pallet]
 pub mod pallet {
+
+    // Workaround for a bug in `frame_support::pallet` procedural macro that generate some docs only code wrongly:
+    // they forget to add the where clause to the calls (and maybe in some other places).
+    #![cfg(not(doc))]
 
     use codec::Encode;
     use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*, Identity};
@@ -215,7 +224,10 @@ pub mod pallet {
             vk_or_hash: VkOrHash<I::Vk>,
             proof: Box<I::Proof>,
             pubs: Box<I::Pubs>,
-        ) -> DispatchResultWithPostInfo {
+        ) -> DispatchResultWithPostInfo
+        where
+            I: Verifier,
+        {
             log::trace!("Submitting proof");
             let vk = match &vk_or_hash {
                 VkOrHash::Hash(h) => {
