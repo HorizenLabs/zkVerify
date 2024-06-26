@@ -32,23 +32,47 @@ jobs:
   set_overall_result:
     runs-on: ubuntu-latest
     needs: [build-test-job, test-coverage-job, lint-format-job, e2e-test-job, check-act]
+    if: ${{ always() && needs.check-act.outputs.act == 'false' }}
     steps:
+      - name: Get target PR info
+        run: |
+          BRANCH_NAME=${{ github.head_ref || github.ref_name }}
+          echo BRANCH_NAME is ${BRANCH_NAME}
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
+          ALL_PRS=$(curl -s --fail \
+                    -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                    "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=open")         
+          LAST_COMMIT_SHA=$(echo ${ALL_PRS} | jq ".[] | select(.head.label == \"${GITHUB_REPOSITORY_OWNER}:${BRANCH_NAME}\")" | jq -r ".head.sha")
+          echo LAST_COMMIT_SHA is ${LAST_COMMIT_SHA}
+          echo "LAST_COMMIT_SHA=${LAST_COMMIT_SHA}" >> $GITHUB_ENV
+          PR_LINK=$(echo ${ALL_PRS} | jq ".[] | select(.head.label == \"${GITHUB_REPOSITORY_OWNER}:${BRANCH_NAME}\")" | jq -r ".html_url")
+          echo PR_LINK is ${PR_LINK}
+          echo "PR_LINK=${PR_LINK}" >> $GITHUB_ENV
       - name: Set overall result
         run: |
           OVERALL_STATUS="success"
-          
+            
           if [ "${{ needs.build-test-job.result }}" != "success" ] || 
               [ "${{ needs.test-coverage-job.result }}" != "success" ] ||
               [ "${{ needs.lint-format-job.result }}" != "success" ] || 
               [ "${{ needs.e2e-test-job.result }}" != "success" ]; then
             OVERALL_STATUS="failure"
           fi
-
+  
+          echo Setting overall result
+          curl -L --fail \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${LAST_COMMIT_SHA}" \
+          -d '{"state":"'${OVERALL_STATUS}'","context":"Orchestrator"}'
+  
           echo "OVERALL_STATUS=$OVERALL_STATUS" >> $GITHUB_ENV
-
+          
   notify-slack:
     runs-on: ubuntu-latest
-    needs: [build-test-job, test-coverage-job, lint-format-job, e2e-test-job, check-act]
+    needs: [set_overall_result, check-act]
     if: ${{ always() && needs.check-act.outputs.act == 'false' }}
     steps:
       - name: Checkout branch
@@ -108,7 +132,7 @@ jobs:
             echo "E2e test output not found."
           fi
       - name: Prepare Slack Notification Data
-        run: |         
+        run: |
           if [ "$OVERALL_STATUS" = "success" ]; then
             echo "OVERALL_STATUS_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
@@ -156,7 +180,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ env.OVERALL_STATUS_EMOJI }} *ZKVERIFY BUILD STATUS:* ${{ env.OVERALL_STATUS }} ${{ env.OVERALL_STATUS_EMOJI }}\n*Pull Request:* ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                    "text": "${{ env.OVERALL_STATUS_EMOJI }} *ZKVERIFY BUILD STATUS:* ${{ env.OVERALL_STATUS }} ${{ env.OVERALL_STATUS_EMOJI }}\n*Pull Request:* ${{ env.PR_LINK }}\n*Branch:* ${{ env.BRANCH_NAME }}\n*Commit:* ${{ env.LAST_COMMIT_SHA }}"
                   }
                 },
                 {
