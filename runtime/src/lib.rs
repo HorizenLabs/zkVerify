@@ -574,12 +574,12 @@ parameter_types! {
 }
 
 impl pallet_groth16_verifier::Config for Runtime {
-    type MaxNumInputs = Groth16MaxNumInputs;
+    const MAX_NUM_INPUTS: u32 = Groth16MaxNumInputs::get();
 }
 
 // We should be sure that the max number of inputs does not exceed the max number of inputs in the verifier crate.
 const_assert!(
-    <Runtime as pallet_groth16_verifier::Config>::MaxNumInputs::get()
+    <Runtime as pallet_groth16_verifier::Config>::MAX_NUM_INPUTS
         <= pallet_groth16_verifier::MAX_NUM_INPUTS
 );
 
