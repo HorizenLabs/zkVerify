@@ -10,6 +10,7 @@ services:
       - ${HOME}/.cargo/git/db/:${DOCKER_CARGO_HOME}/git/db/:rw
       - ${HOME}/.cargo/bin/:${DOCKER_CARGO_HOME}/bin/:rw
       - ${GITHUB_WORKSPACE}/target/:${DOCKER_BUILD_DIR}/target/:rw
+      - ${GITHUB_WORKSPACE}/deps/:${DOCKER_BUILD_DIR}/deps/:rw
     working_dir: ${DOCKER_BUILD_DIR}
     environment:
       - RUST_BACKTRACE=1

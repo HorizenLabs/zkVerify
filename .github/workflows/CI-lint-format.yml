@@ -20,6 +20,9 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v4
 
+      - name: Set up deps cache
+        run: mkdir deps
+
       - name: Set up cargo cache
         uses: actions/cache@v4
         if: ${{ !env.ACT }}
@@ -31,6 +34,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
+            deps/
           key: lint-format-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: lint-format-cargo-
 
