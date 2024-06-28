@@ -29,26 +29,34 @@ jobs:
             echo "act=false" >> $GITHUB_OUTPUT
           fi
 
-  set_overall_result:
+  set-overall-result:
     runs-on: ubuntu-latest
     needs: [build-test-job, test-coverage-job, lint-format-job, e2e-test-job, check-act]
     if: ${{ always() && needs.check-act.outputs.act == 'false' }}
+    outputs:
+      branch-name: ${{ steps.get-info.outputs.BRANCH_NAME }}
+      last-commit-sha: ${{ steps.get-info.outputs.LAST_COMMIT_SHA }}
+      pr-url: ${{ steps.get-info.outputs.PR_URL }}
+      overall-status: ${{ steps.set-status.outputs.OVERALL_STATUS }}
     steps:
       - name: Get target PR info
+        id: get-info
         run: |
           BRANCH_NAME=${{ github.head_ref || github.ref_name }}
           echo BRANCH_NAME is ${BRANCH_NAME}
-          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_OUTPUT
           ALL_PRS=$(curl -s --fail \
                     -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                     "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=open")         
           LAST_COMMIT_SHA=$(echo ${ALL_PRS} | jq ".[] | select(.head.label == \"${GITHUB_REPOSITORY_OWNER}:${BRANCH_NAME}\")" | jq -r ".head.sha")
           echo LAST_COMMIT_SHA is ${LAST_COMMIT_SHA}
+          echo "LAST_COMMIT_SHA=${LAST_COMMIT_SHA}" >> $GITHUB_OUTPUT
           echo "LAST_COMMIT_SHA=${LAST_COMMIT_SHA}" >> $GITHUB_ENV
-          PR_LINK=$(echo ${ALL_PRS} | jq ".[] | select(.head.label == \"${GITHUB_REPOSITORY_OWNER}:${BRANCH_NAME}\")" | jq -r ".html_url")
-          echo PR_LINK is ${PR_LINK}
-          echo "PR_LINK=${PR_LINK}" >> $GITHUB_ENV
+          PR_URL=$(echo ${ALL_PRS} | jq ".[] | select(.head.label == \"${GITHUB_REPOSITORY_OWNER}:${BRANCH_NAME}\")" | jq -r ".html_url")
+          echo PR_URL is ${PR_URL}
+          echo "PR_URL=${PR_URL}" >> $GITHUB_OUTPUT
       - name: Set overall result
+        id: set-status
         run: |
           OVERALL_STATUS="success"
             
@@ -68,11 +76,11 @@ jobs:
           "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${LAST_COMMIT_SHA}" \
           -d '{"state":"'${OVERALL_STATUS}'","context":"Orchestrator"}'
   
-          echo "OVERALL_STATUS=$OVERALL_STATUS" >> $GITHUB_ENV
+          echo "OVERALL_STATUS=$OVERALL_STATUS" >> $GITHUB_OUTPUT
           
   notify-slack:
     runs-on: ubuntu-latest
-    needs: [set_overall_result, check-act]
+    needs: [build-test-job, test-coverage-job, lint-format-job, e2e-test-job, check-act, set-overall-result]
     if: ${{ always() && needs.check-act.outputs.act == 'false' }}
     steps:
       - name: Checkout branch
@@ -133,7 +141,7 @@ jobs:
           fi
       - name: Prepare Slack Notification Data
         run: |
-          if [ "$OVERALL_STATUS" = "success" ]; then
+          if [ "${{ needs.set-overall-result.outputs.overall-status }}" = "success" ]; then
             echo "OVERALL_STATUS_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
             echo "OVERALL_STATUS_EMOJI=:alert:" >> $GITHUB_ENV
@@ -180,7 +188,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ env.OVERALL_STATUS_EMOJI }} *ZKVERIFY BUILD STATUS:* ${{ env.OVERALL_STATUS }} ${{ env.OVERALL_STATUS_EMOJI }}\n*Pull Request:* ${{ env.PR_LINK }}\n*Branch:* ${{ env.BRANCH_NAME }}\n*Commit:* ${{ env.LAST_COMMIT_SHA }}"
+                    "text": "${{ env.OVERALL_STATUS_EMOJI }} *ZKVERIFY BUILD STATUS:* ${{ needs.set-overall-result.outputs.overall-status }} ${{ env.OVERALL_STATUS_EMOJI }}\n*Pull Request:* ${{ needs.set-overall-result.outputs.pr-url }}\n*Branch:* https://github.com/${{ github.event.repository.full_name }}/tree/${{ needs.set-overall-result.outputs.branch-name }}\n*Commit:* https://github.com/${{ github.event.repository.full_name }}/commits/${{ needs.set-overall-result.outputs.last-commit-sha }}"
                   }
                 },
                 {
