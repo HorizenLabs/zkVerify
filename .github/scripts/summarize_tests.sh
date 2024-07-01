@@ -70,13 +70,13 @@ passed_formatted="*Passed*: ${unit_total_passed}"
 failed_formatted="*Failed*: ${unit_total_failed}"
 ignored_formatted="*Ignored*: ${unit_total_ignored}"
 runtime_formatted="*Runtime*: ${unit_total_runtime}s"
-echo "UNIT_TEST_SUMMARY=*Unit Tests*\n${passed_formatted}, ${failed_formatted}, ${ignored_formatted}, ${runtime_formatted}" >> $GITHUB_ENV
+echo "UNIT_TEST_SUMMARY=*Unit Tests |* ${passed_formatted}, ${failed_formatted}, ${ignored_formatted}, ${runtime_formatted}" >> $GITHUB_ENV
 
 passed_formatted="*Passed*: ${integration_total_passed}"
 failed_formatted="*Failed*: ${integration_total_failed}"
 ignored_formatted="*Ignored*: ${integration_total_ignored}"
 runtime_formatted="*Runtime*: ${integration_total_runtime}s"
-echo "INTEGRATION_TEST_SUMMARY=*Integration Tests*\n${passed_formatted}, ${failed_formatted}, ${ignored_formatted}, ${runtime_formatted}" >> $GITHUB_ENV
+echo "INTEGRATION_TEST_SUMMARY=*Integration Tests |* ${passed_formatted}, ${failed_formatted}, ${ignored_formatted}, ${runtime_formatted}" >> $GITHUB_ENV
 
 # Extract and summarize overall test coverage data to $GITHUB_ENV
 if [ -f "${coverage_report_file}" ]; then
