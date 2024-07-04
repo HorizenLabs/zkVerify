@@ -25,12 +25,7 @@ async function takeSnapshot(api, snapshotBalancesFile) {
         const { data: { free: balance } } = await api.query.system.account(account);
         balances[account] = balance.toString();
     }
-    const sortedBalances = Object.entries(balances).sort((a, b) => (BigInt(b[1]) > BigInt(a[1]) ? 1 : -1));
-    const sortedBalancesObj = sortedBalances.reduce((acc, [account, balance]) => {
-        acc[account] = balance;
-        return acc;
-    }, {});
-    fs.writeFileSync(snapshotBalancesFile, JSON.stringify(sortedBalancesObj, null, 2));
+    fs.writeFileSync(snapshotBalancesFile, JSON.stringify(balances, null, 2));
 
     console.log('Snapshot saved.');
 }
