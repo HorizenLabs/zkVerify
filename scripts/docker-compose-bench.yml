@@ -1,0 +1,28 @@
+services:
+  zkverify-bench:
+    image: ${IMAGE:-zkverify}:${TAG:-bench}
+    build:
+      context: ${SOURCE_ROOT?err_unset}
+      dockerfile: ./docker/dockerfiles/hl-node.Dockerfile
+      args:
+        - PROFILE=production
+        - FEATURES=runtime-benchmarks
+    entrypoint: [""]
+    container_name: zkverify-bench
+    user: "${USER_ID:-0}:${GROUP_ID:-0}"
+    volumes:
+      - "${SOURCE_ROOT?err_unset}:/data/benchmark:rw"
+      - "${BENCH_BASE_PATH?err_unset}:${BENCH_BASE_PATH}:rw"
+    blkio_config:
+      device_read_iops:
+        - path: "${LOOP_DEV?err_unset}"
+          rate: "${READ_IO?err_unset}"
+      device_write_iops:
+        - path: "${LOOP_DEV?err_unset}"
+          rate: "${WRITE_IO?err_unset}"
+      device_read_bps:
+        - path: "${LOOP_DEV?err_unset}"
+          rate: "${READ_BPS?err_unset}"
+      device_write_bps:
+        - path: "${LOOP_DEV?err_unset}"
+          rate: "${WRITE_BPS?err_unset}"

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+ECHO_CMD="${ECHO_CMD:-false}"
+[ "${ECHO_CMD}" = "true" ] && set -x
+
 PROJECT_ROOT=${PROJECT_ROOT:-$(git rev-parse --show-toplevel)}
 SOURCE_ROOT=${SOURCE_ROOT:-${PROJECT_ROOT}}
 
@@ -25,6 +28,7 @@ function usage {
     BM_STEPS        : benchmark steps [${DEFAULT_BM_STEPS}].
     BM_REPEAT       : benchmark repeat [${DEFAULT_BM_REPEAT}].
     BM_HEAP_PAGES   : benchmark heap pages [${DEFAULT_BM_HEAP_PAGES}].
+    BASE_PATH_ARG   : file path to use for disk I/O benchmarks, default CWD.
     CODE_HEADER     : the path for the header file to prepend to the template render [${DEFAULT_CODE_HEADER}].
     PROJECT_ROOT    : the root of the project [the root of git project].
     SOURCE_ROOT     : the root of the source [the root of git project].
@@ -74,6 +78,7 @@ WEIGTH_TEMPLATE=${WEIGTH_TEMPLATE}
 BM_STEPS=${BM_STEPS}
 BM_REPEAT=${BM_REPEAT}
 BM_HEAP_PAGES=${BM_HEAP_PAGES}
+BASE_PATH_ARG=${BASE_PATH_ARG}
 ------------------------------------------------------------------"
 
 if [ "${SKIP_BUILD}" = "false" ]; 
@@ -103,4 +108,5 @@ ${NH_NODE_EXE} \
     --heap-pages="${BM_HEAP_PAGES}" \
     --header "${CODE_HEADER}" \
     --output "${WEIGTH_OUT_PATH}" \
-    --template "${WEIGTH_TEMPLATE}"
+    --template "${WEIGTH_TEMPLATE}" \
+    ${BASE_PATH_ARG}
