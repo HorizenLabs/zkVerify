@@ -47,6 +47,7 @@ if [ "${USE_DOCKER}" = "false" ]; then
   cargo build \
     --locked \
     --features=runtime-benchmarks \
+    --profile=production \
     --bin nh-node
 
   # The executable to use.
