@@ -22,10 +22,18 @@ async function takeSnapshot(api, snapshotBalancesFile) {
     for (const key of accounts) {
         const account = key.args[0].toString();
         if (DISCARDED_ACCOUNTS.includes(account)) continue;
-        const { data: { free: balance } } = await api.query.system.account(account);
-        balances[account] = balance.toString();
+        const { data:  { free: freeBalance, reserved: reservedBalance } } = await api.query.system.account(account);
+        const totalBalance = BigInt(freeBalance.toString()) + BigInt(reservedBalance.toString());
+        balances[account] = totalBalance.toString();
     }
-    fs.writeFileSync(snapshotBalancesFile, JSON.stringify(balances, null, 2));
+
+    const sortedBalances = Object.entries(balances).sort((a, b) => (BigInt(b[1]) < BigInt(a[1]) ? 1 : -1));
+    const sortedBalancesObj = sortedBalances.reduce((acc, [account, balance]) => {
+        acc[account] = balance;
+        return acc;
+    }, {});
+
+    fs.writeFileSync(snapshotBalancesFile, JSON.stringify(sortedBalancesObj, null, 2));
 
     console.log('Snapshot saved.');
 }
@@ -36,14 +44,20 @@ async function restoreBalances(api, keyring, snapshotBalancesFile, custodySeed) 
     const custodyAccount = keyring.addFromUri(custodySeed);
     let nonce = (await api.query.system.account(custodyAccount.address)).nonce.toNumber();
 
+    const totalAmount = Object.values(balances).reduce((acc, balance) => acc + BigInt(balance), BigInt(0));
+    const { data: { free: custodyFreeBalance } } = await api.query.system.account(custodyAccount.address);
+
+    if (BigInt(custodyFreeBalance.toString()) < totalAmount) {
+        console.error(`Insufficient balance in custody account. Required: ${totalAmount.toString()}, Available: ${custodyFreeBalance.toString()}`);
+        process.exit(1);
+    }
+
     for (const [account, balance] of Object.entries(balances)) {
         const transfer = api.tx.balances.transferAllowDeath(account, balance);
         try {
             const hash = await transfer.signAndSend(custodyAccount, { nonce });
             console.log(`Transferred to ${account}, transaction hash: ${hash.toHex()}`);
             nonce++;
-            // Add a small delay between transactions to avoid priority issues
-            await new Promise(resolve => setTimeout(resolve, 500));
         } catch (error) {
             console.error(`Failed to transfer to ${account}:`, error);
         }
@@ -70,7 +84,7 @@ async function main() {
         }
         await restoreBalances(api, keyring, arg2, arg1);
     } else {
-        console.error('Unknown command. Use "snapshot" or "restore".');
+        console.error('Unknown command. Use "snapshot" i.e. "node snapshot-balances.js snapshot snapshot_balances.json" or "restore" i.e. "node snapshot-balances.js restore "//Alice" snapshot_balances.json".');
         process.exit(1);
     }
 
