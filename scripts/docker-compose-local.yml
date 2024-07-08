@@ -1,0 +1,15 @@
+services:
+  zkverify-bench:
+    image: ${IMAGE:-zkverify}:${TAG:-bench}
+    build:
+      context: ${SOURCE_ROOT?err_unset}
+      dockerfile: ./docker/dockerfiles/hl-node.Dockerfile
+      args:
+        - PROFILE=production
+        - FEATURES=runtime-benchmarks
+    entrypoint: [""]
+    command: ["/bin/bash"]
+    container_name: zkverify-bench
+    user: "${USER_ID:-0}:${GROUP_ID:-0}"
+    volumes:
+      - "${SOURCE_ROOT?err_unset}:/data/benchmark:rw"
