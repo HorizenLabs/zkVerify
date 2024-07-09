@@ -345,7 +345,7 @@ fn genesis(
                 .collect::<Vec<_>>(),
         },
         "staking": {
-            "minimumValidatorCount": 2,
+            "minimumValidatorCount": initial_authorities.len(), // must be 1 for pallet-session benchmarks
             "validatorCount": 3,
             "stakers": initial_authorities.iter()
                 .cloned()
