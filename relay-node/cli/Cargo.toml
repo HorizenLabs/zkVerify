@@ -1,0 +1,74 @@
+[package]
+name = "zkv-cli"
+description = "ZkVerify Relay-chain Client Node"
+version = "6.0.0"
+authors.workspace = true
+edition.workspace = true
+license = "GPL-3.0"
+
+[package.metadata.wasm-pack.profile.release]
+# `wasm-opt` has some problems on Linux, see
+# https://github.com/rustwasm/wasm-pack/issues/781 etc.
+wasm-opt = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+cfg-if = "1.0"
+clap = { version = "4.4.10", features = ["derive"], optional = true }
+log = "0.4.17"
+thiserror = "1.0.48"
+futures = "0.3.21"
+pyro = { package = "pyroscope", version = "0.5.3", optional = true }
+pyroscope_pprofrs = { version = "0.2", optional = true }
+
+service = { workspace = true, optional = true }
+
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+sp-keyring = { workspace = true }
+sp-maybe-compressed-blob = { workspace = true }
+frame-benchmarking-cli = { workspace = true, optional = true }
+try-runtime-cli = { workspace = true, optional = true }
+sc-cli = { workspace = true, optional = true }
+sc-service = { workspace = true, optional = true }
+polkadot-node-metrics = { workspace = true }
+polkadot-node-primitives = { workspace = true }
+sc-tracing = { workspace = true, optional = true }
+sc-sysinfo = { workspace = true }
+sc-executor = { workspace = true }
+sc-storage-monitor = { workspace = true }
+
+[build-dependencies]
+substrate-build-script-utils = { workspace = true }
+
+[features]
+default = ["cli", "db", "full-node"]
+db = ["service/db"]
+cli = [
+	"clap",
+	"frame-benchmarking-cli",
+	"sc-cli",
+	"sc-service",
+	"sc-tracing",
+	"service",
+	"try-runtime-cli",
+]
+runtime-benchmarks = [
+	"frame-benchmarking-cli?/runtime-benchmarks",
+	"polkadot-node-metrics/runtime-benchmarks",
+	"sc-service?/runtime-benchmarks",
+	"service/runtime-benchmarks",
+]
+full-node = ["service/full-node"]
+try-runtime = ["service/try-runtime", "try-runtime-cli/try-runtime"]
+fast-runtime = ["service/fast-runtime"]
+pyroscope = ["pyro", "pyroscope_pprofrs"]
+
+runtime-metrics = [
+	"polkadot-node-metrics/runtime-metrics",
+	"service/runtime-metrics",
+]
+
+network-protocol-staging = ["service/network-protocol-staging"]
