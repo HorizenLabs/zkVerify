@@ -10,6 +10,7 @@ DOCKER_CARGO_HOME="${DOCKER_CARGO_HOME:-/tmp/.cargo}"
 CARGO_BINARIES_INSTALL="${CARGO_BINARIES_INSTALL:-}"
 NODEJS_VERSION_INSTALL="${NODEJS_VERSION_INSTALL:-}"
 CMAKE_INSTALL="${CMAKE_INSTALL:-}"
+LLD_INSTALL="${LLD_INSTALL:-}"
 TARGET_DIR="${DOCKER_BUILD_DIR}/target"
 
 fn_die() {
@@ -69,6 +70,15 @@ if [ -n "${CMAKE_INSTALL}" ]; then
   apt update -qq
   apt --no-install-recommends install -y cmake
   echo -e "cmake was successfully installed. cmake version: $(cmake --version | grep -P -o -e '\d+\.\d+\.\d+')\n"
+fi
+
+# lld install if required
+if [ -n "${LLD_INSTALL}" ]; then
+  echo -e "\n=== Installing lld ===\n"
+  export DEBIAN_FRONTEND=noninteractive
+  apt update -qq
+  apt --no-install-recommends install -y lld
+  echo -e "lld was successfully installed.\n"
 fi
 
 # System info

@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 SHELL ["/bin/bash", "-c"]
 
@@ -39,7 +39,7 @@ RUN apt-get update && 	\
 	libssl3 ca-certificates gnupg curl && \
 	apt-get autoremove -y && \
 	apt-get clean && \
-	useradd -m -u 1000 -U -s /bin/sh -d /${RUN_USER} ${RUN_USER} && \
+	useradd -m -u 1001 -U -s /bin/sh -d /${RUN_USER} ${RUN_USER} && \
 	rm -rf /var/lib/apt/lists/* ; 	mkdir -p /data /${RUN_USER}/.local/share && \
 	chown -R ${RUN_USER}:${RUN_USER} /data /${RUN_USER} && \
 	ln -s /data /${RUN_USER}/.local/share
