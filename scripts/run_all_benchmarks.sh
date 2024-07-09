@@ -51,7 +51,7 @@ if [ "${USE_DOCKER}" = "false" ]; then
     --bin zkv-node
 
   # The executable to use.
-  ZKV_NODE="${PROJECT_ROOT}/target/debug/zkv-node"
+  ZKV_NODE="${PROJECT_ROOT}/target/production/zkv-node"
   SKIP_LINES=2
 else
   IMAGE="zkverify"
