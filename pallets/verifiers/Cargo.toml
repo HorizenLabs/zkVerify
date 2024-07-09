@@ -38,7 +38,7 @@ default = ["std"]
 std = [
     "codec/std",
     "frame-support/std",
-    "frame-system/std",
+    "frame-system/default",
     "frame-benchmarking/std",
     "scale-info/std",
     "sp-std/std",
