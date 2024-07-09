@@ -92,6 +92,20 @@ pallet-risc0-verifier = { workspace = true }
 pallet-ultraplonk-verifier = { workspace = true }
 pallet-proofofsql-verifier = { workspace = true }
 
+authority-discovery-primitives = { workspace = true, optional = true }
+
+polkadot-primitives = { workspace = true, optional = true }
+polkadot-runtime-parachains = { workspace = true, optional = true }
+pallet-authority-discovery = { workspace = true, optional = true }
+
+polkadot-runtime-common = { workspace = true, optional = true }
+
+# pallet-message-queue = { version = "30.0.0", default-features = false }
+# xcm = { package = "staging-xcm", version = "6.0.0", default-features = false }
+# xcm-executor = { package = "staging-xcm-executor", version = "6.0.2", default-features = false }
+# xcm-builder = { package = "staging-xcm-builder", version = "6.0.2", default-features = false }
+# pallet-xcm = { version = "6.0.0", default-features = false }
+
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
 
@@ -133,7 +147,19 @@ runtime-benchmarks = [
 	"pallet-risc0-verifier/runtime-benchmarks",
 	"pallet-ultraplonk-verifier/runtime-benchmarks",
 	"pallet-proofofsql-verifier/runtime-benchmarks",
+	"polkadot-primitives?/runtime-benchmarks",
+	"polkadot-runtime-parachains?/runtime-benchmarks",
+	"polkadot-runtime-common?/runtime-benchmarks",
 ]
+fast-runtime = []
+relay = [
+	"dep:polkadot-primitives",
+	"dep:polkadot-runtime-parachains",
+	"dep:pallet-authority-discovery",
+	"dep:authority-discovery-primitives",
+	"dep:polkadot-runtime-common",
+]
+add-parachain-upgrade = ["relay"]
 default = ["std"]
 std = [
 	"codec/std",
@@ -203,6 +229,11 @@ std = [
 	"pallet-proofofsql-verifier/std",
 	"hp-verifiers/std",
 	"substrate-wasm-builder",
+	"polkadot-primitives?/std",
+	"polkadot-runtime-parachains?/std",
+	"pallet-authority-discovery?/std",
+	"authority-discovery-primitives?/std",
+	"polkadot-runtime-common?/std",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",
@@ -238,4 +269,7 @@ try-runtime = [
 	"pallet-poe/try-runtime",
 	"sp-runtime/try-runtime",
 	"pallet-verifiers/try-runtime",
+	"polkadot-runtime-parachains?/try-runtime",
+	"pallet-authority-discovery?/try-runtime",
+	"polkadot-runtime-common?/try-runtime",
 ]
