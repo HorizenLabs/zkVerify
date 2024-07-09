@@ -1,0 +1,90 @@
+[package]
+name = "paratest-node"
+version = "0.1.0"
+authors.workspace = true
+description = "A new Cumulus FRAME-based Substrate Node, ready for hacking together a parachain."
+license = "Unlicense"
+homepage = "https://substrate.io"
+repository.workspace = true
+edition.workspace = true
+build = "build.rs"
+publish = false
+
+[dependencies]
+clap = { version = "4.4.10", features = ["derive"] }
+log = "0.4.20"
+codec = { workspace = true }
+serde = { version = "1.0.193", features = ["derive"] }
+jsonrpsee = { version = "0.16.2", features = ["server"] }
+futures = "0.3.28"
+serde_json = "1.0.108"
+
+paratest-runtime = { path = "../runtime" }
+
+frame-benchmarking = { workspace = true, default-features = true }
+frame-benchmarking-cli = { workspace = true, default-features = true }
+pallet-transaction-payment-rpc = { workspace = true, default-features = true }
+sc-basic-authorship = { workspace = true, default-features = true }
+sc-chain-spec = { workspace = true, default-features = true }
+sc-cli = { workspace = true, default-features = true }
+sc-client-api = { workspace = true, default-features = true }
+sc-offchain = { workspace = true, default-features = true }
+sc-consensus = { workspace = true, default-features = true }
+sc-executor = { workspace = true, default-features = true }
+sc-network = { workspace = true, default-features = true }
+sc-network-sync = { workspace = true, default-features = true }
+sc-rpc = { workspace = true, default-features = true }
+sc-service = { workspace = true, default-features = true }
+sc-sysinfo = { workspace = true, default-features = true }
+sc-telemetry = { workspace = true, default-features = true }
+sc-tracing = { workspace = true, default-features = true }
+sc-transaction-pool = { workspace = true, default-features = true }
+sc-transaction-pool-api = { workspace = true, default-features = true }
+sp-api = { workspace = true, default-features = true }
+sp-block-builder = { workspace = true, default-features = true }
+sp-blockchain = { workspace = true, default-features = true }
+# sp-consensus-aura = { workspace = true, default-features = true }
+sp-consensus-aura = { version = "0.31.0" }
+sp-core = { workspace = true, default-features = true }
+sp-keystore = { workspace = true, default-features = true }
+sp-io = { workspace = true, default-features = true }
+sp-runtime = { workspace = true, default-features = true }
+sp-timestamp = { workspace = true, default-features = true }
+substrate-frame-rpc-system = { workspace = true, default-features = true }
+substrate-prometheus-endpoint = { version = "0.16.0" }
+
+# Polkadot
+zkv-cli = { workspace = true }
+polkadot-primitives = { version = "6.0.0" }
+# xcm = { package = "staging-xcm", version = "6.0.0" }
+cumulus-client-cli = { version = "0.6.0" }
+cumulus-client-collator = { version = "0.6.0" }
+cumulus-client-consensus-aura = { version = "0.6.0" }
+cumulus-client-consensus-common = { version = "0.6.0" }
+cumulus-client-consensus-proposer = { version = "0.6.0" }
+cumulus-client-service = { version = "0.6.0" }
+cumulus-primitives-core = { version = "0.6.0" }
+cumulus-primitives-parachain-inherent = { version = "0.6.0" }
+cumulus-relay-chain-interface = { version = "0.6.0" }
+color-print = "0.3.4"
+
+[build-dependencies]
+substrate-build-script-utils = { workspace = true }
+
+[features]
+default = []
+runtime-benchmarks = [
+	"cumulus-primitives-core/runtime-benchmarks",
+	"frame-benchmarking-cli/runtime-benchmarks",
+	"frame-benchmarking/runtime-benchmarks",
+	"paratest-runtime/runtime-benchmarks",
+	"zkv-cli/runtime-benchmarks",
+	"polkadot-primitives/runtime-benchmarks",
+	"sc-service/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+]
+try-runtime = [
+	"paratest-runtime/try-runtime",
+	"zkv-cli/try-runtime",
+	"sp-runtime/try-runtime",
+]

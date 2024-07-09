@@ -36,7 +36,7 @@ use sp_runtime::{
     transaction_validity::{TransactionSource, TransactionValidity},
     ApplyExtrinsicResult, MultiSignature,
 };
-use sp_std::prelude::*;
+use sp_std::{collections::btree_map::BTreeMap, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -47,7 +47,14 @@ use frame_election_provider_support::{
     onchain::OnChainExecution,
     SequentialPhragmen,
 };
-use frame_support::genesis_builder_helper::{build_config, create_default_config};
+use frame_support::{
+    genesis_builder_helper::{build_config, create_default_config},
+    traits::{ProcessMessage, ProcessMessageError},
+    weights::WeightMeter,
+};
+
+// A few exports that help ease life for downstream crates.
+use frame_support::traits::EqualPrivilegeOnly;
 
 pub use frame_support::{
     construct_runtime, derive_impl,
@@ -74,12 +81,355 @@ use weights::block_weights::BlockExecutionWeight;
 use weights::extrinsic_weights::ExtrinsicBaseWeight;
 
 use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier};
+use sp_runtime::transaction_validity::TransactionPriority;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
 pub mod governance;
 use governance::{pallet_custom_origins, Treasurer, TreasurySpender};
+// -------------------------------- PARACHAINS --------------------------------
+
+// XCM configurations.
+// pub mod xcm_config;
+
+use polkadot_primitives::{
+    self as primitives, slashing, vstaging::NodeFeatures, CandidateEvent, CandidateHash,
+    CommittedCandidateReceipt, CoreState, DisputeState, ExecutorParams, GroupRotationInfo,
+    Id as ParaId, InboundDownwardMessage, InboundHrmpMessage, OccupiedCoreAssumption,
+    PersistedValidationData, ScrapedOnChainVotes, SessionIndex, SessionInfo, ValidationCode,
+    ValidationCodeHash, ValidatorId, ValidatorIndex, PARACHAIN_KEY_TYPE_ID,
+};
+
+use polkadot_runtime_parachains::{
+    assigner as parachains_assigner, assigner_on_demand as parachains_assigner_on_demand,
+    assigner_parachains as parachains_assigner_parachains,
+    configuration as parachains_configuration, disputes as parachains_disputes,
+    disputes::slashing as parachains_slashing,
+    dmp as parachains_dmp, hrmp as parachains_hrmp, inclusion as parachains_inclusion,
+    inclusion::{AggregateMessageOrigin, UmpQueueId},
+    initializer as parachains_initializer, origin as parachains_origin, paras as parachains_paras,
+    paras_inherent as parachains_paras_inherent,
+    runtime_api_impl::{
+        v7 as parachains_runtime_api_impl, vstaging as parachains_staging_runtime_api_impl,
+    },
+    scheduler as parachains_scheduler, session_info as parachains_session_info,
+    shared as parachains_shared,
+};
+use xcm::latest::Junction;
+
+use authority_discovery_primitives::AuthorityId as AuthorityDiscoveryId;
+
+// use runtime_common::{
+//     assigned_slots, auctions, claims, crowdloan, identity_migrator, impl_runtime_weights,
+//     impls::{
+//         LocatableAssetConverter, ToAuthor, VersionedLocatableAsset,
+//         VersionedMultiLocationConverter,
+//     },
+//     paras_registrar, paras_sudo_wrapper, prod_or_fast, slots, BlockHashCount, BlockLength,
+//     SlowAdjustingFeeUpdate,
+// };
+
+use polkadot_runtime_common::{paras_registrar, paras_sudo_wrapper, prod_or_fast, slots};
+
+use sp_runtime::FixedU128;
+
+parameter_types! {
+    pub const OnDemandTrafficDefaultValue: FixedU128 = FixedU128::from_u32(1);
+}
+
+impl parachains_assigner_on_demand::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type TrafficDefaultValue = OnDemandTrafficDefaultValue;
+    // type WeightInfo = weights::runtime_parachains_assigner_on_demand::WeightInfo<Runtime>;
+    type WeightInfo = parachains_assigner_on_demand::TestWeightInfo;
+}
+
+impl parachains_assigner_parachains::Config for Runtime {}
+
+impl parachains_assigner::Config for Runtime {
+    type OnDemandAssignmentProvider = OnDemandAssignmentProvider;
+    type ParachainsAssignmentProvider = ParachainsAssignmentProvider;
+}
+
+impl parachains_initializer::Config for Runtime {
+    type Randomness = pallet_babe::RandomnessFromOneEpochAgo<Runtime>;
+    type ForceOrigin = EnsureRoot<AccountId>;
+    // type WeightInfo = weights::runtime_parachains_initializer::WeightInfo<Runtime>;
+    type WeightInfo = ();
+}
+
+impl parachains_disputes::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type RewardValidators = ();
+    type SlashingHandler = parachains_slashing::SlashValidatorsForDisputes<ParasSlashing>;
+    // type WeightInfo = weights::runtime_parachains_disputes::WeightInfo<Runtime>;
+    type WeightInfo = parachains_disputes::TestWeightInfo;
+}
+
+impl parachains_slashing::Config for Runtime {
+    type KeyOwnerProofSystem = Historical;
+    type KeyOwnerProof =
+        <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, ValidatorId)>>::Proof;
+    type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
+        KeyTypeId,
+        ValidatorId,
+    )>>::IdentificationTuple;
+    type HandleReports = parachains_slashing::SlashingReportHandler<
+        Self::KeyOwnerIdentification,
+        Offences,
+        ReportLongevity,
+    >;
+    type WeightInfo = parachains_slashing::TestWeightInfo;
+    type BenchmarkingConfig = parachains_slashing::BenchConfig<200>;
+}
+
+impl parachains_dmp::Config for Runtime {}
+
+impl parachains_hrmp::Config for Runtime {
+    type RuntimeOrigin = RuntimeOrigin;
+    type RuntimeEvent = RuntimeEvent;
+    type ChannelManager = EnsureRoot<AccountId>;
+    type Currency = Balances;
+    // type WeightInfo = weights::runtime_parachains_hrmp::WeightInfo<Runtime>;
+    type WeightInfo = parachains_hrmp::TestWeightInfo;
+}
+
+impl parachains_paras_inherent::Config for Runtime {
+    // type WeightInfo = weights::runtime_parachains_paras_inherent::WeightInfo<Runtime>;
+    type WeightInfo = parachains_paras_inherent::TestWeightInfo;
+}
+
+impl parachains_scheduler::Config for Runtime {
+    type AssignmentProvider = ParaAssignmentProvider;
+}
+
+impl parachains_origin::Config for Runtime {}
+
+pub struct FakeParachainConfigWeight;
+impl parachains_configuration::WeightInfo for FakeParachainConfigWeight {
+    fn set_config_with_block_number() -> Weight {
+        Default::default()
+    }
+    fn set_config_with_u32() -> Weight {
+        Default::default()
+    }
+    fn set_config_with_option_u32() -> Weight {
+        Default::default()
+    }
+    fn set_config_with_balance() -> Weight {
+        Default::default()
+    }
+    fn set_hrmp_open_request_ttl() -> Weight {
+        Default::default()
+    }
+    fn set_config_with_executor_params() -> Weight {
+        Default::default()
+    }
+    fn set_config_with_perbill() -> Weight {
+        Default::default()
+    }
+    fn set_node_feature() -> Weight {
+        Default::default()
+    }
+}
+
+impl parachains_configuration::Config for Runtime {
+    // type WeightInfo = weights::runtime_parachains_configuration::WeightInfo<Runtime>;
+    type WeightInfo = FakeParachainConfigWeight;
+}
+
+impl parachains_shared::Config for Runtime {}
+
+impl parachains_session_info::Config for Runtime {
+    type ValidatorSet = Historical;
+}
+
+/// Special `RewardValidators` that does nothing ;)
+pub struct RewardValidators;
+impl parachains_inclusion::RewardValidators for RewardValidators {
+    fn reward_backing(_: impl IntoIterator<Item = ValidatorIndex>) {}
+    fn reward_bitfields(_: impl IntoIterator<Item = ValidatorIndex>) {}
+}
+
+impl parachains_inclusion::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type DisputesHandler = ParasDisputes;
+    type RewardValidators = RewardValidators;
+    type MessageQueue = MessageQueue;
+    // type WeightInfo = weights::runtime_parachains_inclusion::WeightInfo<Runtime>;
+    type WeightInfo = parachains_inclusion::TestWeightInfo;
+}
+
+parameter_types! {
+    pub const ParasUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+}
+
+pub struct FakeParasWeightInfo;
+
+impl parachains_paras::WeightInfo for FakeParasWeightInfo {
+    fn force_set_current_code(c: u32) -> Weight {
+        Weight::from_parts(0, 0)
+    }
+    fn force_set_current_head(s: u32) -> Weight {
+        Weight::from_parts(0, 0)
+    }
+    fn force_set_most_recent_context() -> Weight {
+        Weight::from_parts(0, 0)
+    }
+    fn force_schedule_code_upgrade(c: u32) -> Weight {
+        Weight::from_parts(0, 0)
+    }
+    fn force_note_new_head(s: u32) -> Weight {
+        Weight::from_parts(0, 0)
+    }
+    fn force_queue_action() -> Weight {
+        Weight::from_parts(0, 0)
+    }
+    fn add_trusted_validation_code(c: u32) -> Weight {
+        Weight::from_parts(0, 0)
+    }
+    fn poke_unused_validation_code() -> Weight {
+        Weight::from_parts(0, 0)
+    }
+
+    fn include_pvf_check_statement_finalize_upgrade_accept() -> Weight {
+        Weight::from_parts(0, 0)
+    }
+    fn include_pvf_check_statement_finalize_upgrade_reject() -> Weight {
+        Weight::from_parts(0, 0)
+    }
+    fn include_pvf_check_statement_finalize_onboarding_accept() -> Weight {
+        Weight::from_parts(0, 0)
+    }
+    fn include_pvf_check_statement_finalize_onboarding_reject() -> Weight {
+        Weight::from_parts(0, 0)
+    }
+    fn include_pvf_check_statement() -> Weight {
+        Weight::from_parts(0, 0)
+    }
+}
+
+impl parachains_paras::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = FakeParasWeightInfo;
+    // type WeightInfo = weights::runtime_parachains_paras::WeightInfo<Runtime>;
+    type UnsignedPriority = ParasUnsignedPriority;
+    type QueueFootprinter = ParaInclusion;
+    type NextSessionRotation = Babe;
+    type OnNewHead = Registrar;
+}
+
+parameter_types! {
+    /// Amount of weight that can be spent per block to service messages.
+    ///
+    /// # WARNING
+    ///
+    /// This is not a good value for para-chains since the `Scheduler` already uses up to 80% block weight.
+    pub MessageQueueServiceWeight: Weight = Perbill::from_percent(20) * BlockWeights::get().max_block;
+    pub const MessageQueueHeapSize: u32 = 32 * 1024;
+    pub const MessageQueueMaxStale: u32 = 96;
+}
+
+/// Message processor to handle any messages that were enqueued into the `MessageQueue` pallet.
+pub struct MessageProcessor;
+impl ProcessMessage for MessageProcessor {
+    type Origin = AggregateMessageOrigin;
+
+    fn process_message(
+        message: &[u8],
+        origin: Self::Origin,
+        meter: &mut WeightMeter,
+        id: &mut [u8; 32],
+    ) -> Result<bool, ProcessMessageError> {
+        let para = match origin {
+            AggregateMessageOrigin::Ump(UmpQueueId::Para(para)) => para,
+        };
+        Ok((true))
+        // xcm_builder::ProcessXcmMessage::<
+        //     Junction,
+        //     xcm_executor::XcmExecutor<xcm_config::XcmConfig>,
+        //     RuntimeCall,
+        // >::process_message(message, Junction::Parachain(para.into()), meter, id)
+    }
+}
+
+impl pallet_message_queue::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type Size = u32;
+    type HeapSize = MessageQueueHeapSize;
+    type MaxStale = MessageQueueMaxStale;
+    type ServiceWeight = MessageQueueServiceWeight;
+    #[cfg(not(feature = "runtime-benchmarks"))]
+    type MessageProcessor = MessageProcessor;
+    #[cfg(feature = "runtime-benchmarks")]
+    type MessageProcessor =
+        pallet_message_queue::mock_helpers::NoopMessageProcessor<AggregateMessageOrigin>;
+    type QueueChangeHandler = ParaInclusion;
+    type QueuePausedQuery = ();
+    type WeightInfo = ();
+}
+
+impl pallet_authority_discovery::Config for Runtime {
+    type MaxAuthorities = MaxAuthorities;
+}
+
+impl paras_sudo_wrapper::Config for Runtime {}
+
+parameter_types! {
+    pub const ParaDeposit: Balance = 40 * ACME;
+    pub const DataDepositPerByte: Balance = 1 * CENTS;
+}
+
+impl paras_registrar::Config for Runtime {
+    type RuntimeOrigin = RuntimeOrigin;
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    // type OnSwap = (Crowdloan, Slots);
+    type OnSwap = Slots;
+    type ParaDeposit = ParaDeposit;
+    type DataDepositPerByte = DataDepositPerByte;
+    type WeightInfo = paras_registrar::TestWeightInfo;
+}
+
+parameter_types! {
+    pub LeasePeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * DAYS, "ZKV_LEASE_PERIOD");
+}
+
+impl slots::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type Registrar = Registrar;
+    type LeasePeriod = LeasePeriod;
+    type LeaseOffset = ();
+    //type ForceOrigin = EitherOf<EnsureRoot<Self::AccountId>, LeaseAdmin>;
+    type ForceOrigin = EnsureRoot<Self::AccountId>;
+    type WeightInfo = slots::TestWeightInfo;
+}
+
+// /// System Parachains.
+// pub mod system_parachain {
+//     use xcm::latest::prelude::*;
+
+//     // /// Network's Asset Hub parachain ID.
+//     // pub const ASSET_HUB_ID: u32 = 1000;
+//     // /// Contracts parachain ID.
+//     // pub const CONTRACTS_ID: u32 = 1002;
+//     // /// Encointer parachain ID.
+//     // pub const ENCOINTER_ID: u32 = 1003;
+//     // /// BridgeHub parachain ID.
+//     // pub const BRIDGE_HUB_ID: u32 = 1013;
+
+//     frame_support::match_types! {
+//         pub type SystemParachains: impl Contains<MultiLocation> = {
+//             MultiLocation { parents: 0, interior: X1(Parachain(1000)) }
+//             // MultiLocation { parents: 0, interior: X1(Parachain(ASSET_HUB_ID | CONTRACTS_ID | ENCOINTER_ID | BRIDGE_HUB_ID)) }
+//         };
+//     }
+// }
+
+// ----------------------------- [ END PARACHAINS ] ----------------------------
 
 #[cfg(test)]
 mod tests;
@@ -250,7 +600,7 @@ impl frame_system::Config for Runtime {
 
 parameter_types! {
     pub const ExpectedBlockTime: u64 = MILLISECS_PER_BLOCK; // Should use primitives::Moment
-    pub const EpochDurationInBlocks: BlockNumber = HOURS; // TODO: use prod_or_fast!
+    pub EpochDurationInBlocks: BlockNumber = prod_or_fast!(1 * HOURS, 1 * MINUTES, "ZKV_RELAY_EPOCH_DURATION");
 
     /// How long (in blocks) an equivocation report is valid for
     pub ReportLongevity: u64 = EpochDurationInBlocks::get() as u64 * 10;
@@ -347,6 +697,9 @@ impl_opaque_keys! {
         pub babe: Babe,
         pub grandpa: Grandpa,
         pub im_online: ImOnline,
+        pub para_validator: Initializer,
+        pub para_assignment: ParaSessionInfo,
+        pub authority_discovery: AuthorityDiscovery,
     }
 }
 
@@ -556,7 +909,7 @@ pallet_staking_reward_curve::build! {
 }
 
 parameter_types! {
-    pub const SessionsPerEra: sp_staking::SessionIndex = 6 * HOURS / EpochDurationInBlocks::get(); // number of sessions in 1 era, 6h
+    pub SessionsPerEra: sp_staking::SessionIndex = 6 * HOURS / EpochDurationInBlocks::get(); // number of sessions in 1 era, 6h
 
     pub const RewardCurve: &'static sp_runtime::curve::PiecewiseLinear<'static> = &REWARD_CURVE;
 
@@ -778,6 +1131,35 @@ construct_runtime!(
         ChildBounties: pallet_child_bounties,
         Utility: pallet_utility,
         Vesting: pallet_vesting,
+
+        AuthorityDiscovery: pallet_authority_discovery::{Pallet, Config<T>},
+
+
+        // Parachains pallets. Start indices at 50 to leave room.
+        ParachainsOrigin: parachains_origin::{Pallet, Origin} = 50,
+        Configuration: parachains_configuration::{Pallet, Call, Storage, Config<T>} = 51,
+        ParasShared: parachains_shared::{Pallet, Call, Storage} = 52,
+        ParaInclusion: parachains_inclusion::{Pallet, Call, Storage, Event<T>} = 53,
+        ParaInherent: parachains_paras_inherent::{Pallet, Call, Storage, Inherent} = 54,
+        ParaScheduler: parachains_scheduler::{Pallet, Storage} = 55,
+        Paras: parachains_paras::{Pallet, Call, Storage, Event, Config<T>, ValidateUnsigned} = 56,
+        Initializer: parachains_initializer::{Pallet, Call, Storage} = 57,
+        Dmp: parachains_dmp::{Pallet, Storage} = 58,
+        Hrmp: parachains_hrmp::{Pallet, Call, Storage, Event<T>, Config<T>} = 60,
+        ParaSessionInfo: parachains_session_info::{Pallet, Storage} = 61,
+        ParasDisputes: parachains_disputes::{Pallet, Call, Storage, Event<T>} = 62,
+        ParasSlashing: parachains_slashing::{Pallet, Call, Storage, ValidateUnsigned} = 63,
+        MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 64,
+        ParaAssignmentProvider: parachains_assigner::{Pallet, Storage} = 65,
+        OnDemandAssignmentProvider: parachains_assigner_on_demand::{Pallet, Call, Storage, Event<T>} = 66,
+        ParachainsAssignmentProvider: parachains_assigner_parachains::{Pallet} = 67,
+
+        Registrar: paras_registrar::{Pallet, Call, Storage, Event<T>, Config<T>} = 70,
+        Slots: slots::{Pallet, Call, Storage, Event<T>} = 71,
+        ParasSudoWrapper: paras_sudo_wrapper::{Pallet, Call} = 80,
+
+                // Pallet for sending XCM.
+        // XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 99,
     }
 );
 
@@ -980,6 +1362,12 @@ impl_runtime_apis! {
         }
     }
 
+    impl authority_discovery_primitives::AuthorityDiscoveryApi<Block> for Runtime {
+        fn authorities() -> Vec<AuthorityDiscoveryId> {
+            parachains_runtime_api_impl::relevant_authority_ids::<Runtime>()
+        }
+    }
+
     impl sp_session::SessionKeys<Block> for Runtime {
         fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
             SessionKeys::generate(seed)
@@ -1083,6 +1471,159 @@ impl_runtime_apis! {
             proof_hash: sp_core::H256
         ) -> Result<MerkleProof, proof_of_existence_rpc_runtime_api::AttestationPathRequestError> {
             Poe::get_proof_path_from_pallet(attestation_id, proof_hash).map(|c| c.into())
+        }
+    }
+
+    #[api_version(9)]
+    impl primitives::runtime_api::ParachainHost<Block> for Runtime {
+        fn validators() -> Vec<ValidatorId> {
+            parachains_runtime_api_impl::validators::<Runtime>()
+        }
+
+        fn validator_groups() -> (Vec<Vec<ValidatorIndex>>, GroupRotationInfo<BlockNumber>) {
+            parachains_runtime_api_impl::validator_groups::<Runtime>()
+        }
+
+        fn availability_cores() -> Vec<CoreState<Hash, BlockNumber>> {
+            parachains_runtime_api_impl::availability_cores::<Runtime>()
+        }
+
+        fn persisted_validation_data(para_id: ParaId, assumption: OccupiedCoreAssumption)
+            -> Option<PersistedValidationData<Hash, BlockNumber>> {
+            parachains_runtime_api_impl::persisted_validation_data::<Runtime>(para_id, assumption)
+        }
+
+        fn assumed_validation_data(
+            para_id: ParaId,
+            expected_persisted_validation_data_hash: Hash,
+        ) -> Option<(PersistedValidationData<Hash, BlockNumber>, ValidationCodeHash)> {
+            parachains_runtime_api_impl::assumed_validation_data::<Runtime>(
+                para_id,
+                expected_persisted_validation_data_hash,
+            )
+        }
+
+        fn check_validation_outputs(
+            para_id: ParaId,
+            outputs: primitives::CandidateCommitments,
+        ) -> bool {
+            parachains_runtime_api_impl::check_validation_outputs::<Runtime>(para_id, outputs)
+        }
+
+        fn session_index_for_child() -> SessionIndex {
+            parachains_runtime_api_impl::session_index_for_child::<Runtime>()
+        }
+
+        fn validation_code(para_id: ParaId, assumption: OccupiedCoreAssumption)
+            -> Option<ValidationCode> {
+            parachains_runtime_api_impl::validation_code::<Runtime>(para_id, assumption)
+        }
+
+        fn candidate_pending_availability(para_id: ParaId) -> Option<CommittedCandidateReceipt<Hash>> {
+            parachains_runtime_api_impl::candidate_pending_availability::<Runtime>(para_id)
+        }
+
+        fn candidate_events() -> Vec<CandidateEvent<Hash>> {
+            parachains_runtime_api_impl::candidate_events::<Runtime, _>(|ev| {
+                match ev {
+                    RuntimeEvent::ParaInclusion(ev) => {
+                        Some(ev)
+                    }
+                    _ => None,
+                }
+            })
+        }
+
+        fn session_info(index: SessionIndex) -> Option<SessionInfo> {
+            parachains_runtime_api_impl::session_info::<Runtime>(index)
+        }
+
+        fn session_executor_params(session_index: SessionIndex) -> Option<ExecutorParams> {
+            parachains_runtime_api_impl::session_executor_params::<Runtime>(session_index)
+        }
+
+        fn dmq_contents(recipient: ParaId) -> Vec<InboundDownwardMessage<BlockNumber>> {
+            parachains_runtime_api_impl::dmq_contents::<Runtime>(recipient)
+        }
+
+        fn inbound_hrmp_channels_contents(
+            recipient: ParaId
+        ) -> BTreeMap<ParaId, Vec<InboundHrmpMessage<BlockNumber>>> {
+            parachains_runtime_api_impl::inbound_hrmp_channels_contents::<Runtime>(recipient)
+        }
+
+        fn validation_code_by_hash(hash: ValidationCodeHash) -> Option<ValidationCode> {
+            parachains_runtime_api_impl::validation_code_by_hash::<Runtime>(hash)
+        }
+
+        fn on_chain_votes() -> Option<ScrapedOnChainVotes<Hash>> {
+            parachains_runtime_api_impl::on_chain_votes::<Runtime>()
+        }
+
+        fn submit_pvf_check_statement(
+            stmt: primitives::PvfCheckStatement,
+            signature: primitives::ValidatorSignature
+        ) {
+            parachains_runtime_api_impl::submit_pvf_check_statement::<Runtime>(stmt, signature)
+        }
+
+        fn pvfs_require_precheck() -> Vec<ValidationCodeHash> {
+            parachains_runtime_api_impl::pvfs_require_precheck::<Runtime>()
+        }
+
+        fn validation_code_hash(para_id: ParaId, assumption: OccupiedCoreAssumption)
+            -> Option<ValidationCodeHash>
+        {
+            parachains_runtime_api_impl::validation_code_hash::<Runtime>(para_id, assumption)
+        }
+
+        fn disputes() -> Vec<(SessionIndex, CandidateHash, DisputeState<BlockNumber>)> {
+            parachains_runtime_api_impl::get_session_disputes::<Runtime>()
+        }
+
+        fn unapplied_slashes(
+        ) -> Vec<(SessionIndex, CandidateHash, slashing::PendingSlashes)> {
+            parachains_runtime_api_impl::unapplied_slashes::<Runtime>()
+        }
+
+        fn key_ownership_proof(
+            validator_id: ValidatorId,
+        ) -> Option<slashing::OpaqueKeyOwnershipProof> {
+            use codec::Encode;
+
+            Historical::prove((PARACHAIN_KEY_TYPE_ID, validator_id))
+                .map(|p| p.encode())
+                .map(slashing::OpaqueKeyOwnershipProof::new)
+        }
+
+        fn submit_report_dispute_lost(
+            dispute_proof: slashing::DisputeProof,
+            key_ownership_proof: slashing::OpaqueKeyOwnershipProof,
+        ) -> Option<()> {
+            parachains_runtime_api_impl::submit_unsigned_slashing_report::<Runtime>(
+                dispute_proof,
+                key_ownership_proof,
+            )
+        }
+
+        fn minimum_backing_votes() -> u32 {
+            parachains_runtime_api_impl::minimum_backing_votes::<Runtime>()
+        }
+
+        fn para_backing_state(para_id: ParaId) -> Option<primitives::async_backing::BackingState> {
+            parachains_runtime_api_impl::backing_state::<Runtime>(para_id)
+        }
+
+        fn async_backing_params() -> primitives::AsyncBackingParams {
+            parachains_runtime_api_impl::async_backing_params::<Runtime>()
+        }
+
+        fn disabled_validators() -> Vec<ValidatorIndex> {
+            parachains_staging_runtime_api_impl::disabled_validators::<Runtime>()
+        }
+
+        fn node_features() -> NodeFeatures {
+            parachains_staging_runtime_api_impl::node_features::<Runtime>()
         }
     }
 
