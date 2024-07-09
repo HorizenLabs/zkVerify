@@ -21,7 +21,14 @@ members = [
     "verifiers/groth16",
     "verifiers/risc0",
     "verifiers/ultraplonk",
+    "relay-node",
+    "relay-node/cli",
+    "relay-node/service",
+    "paratest/runtime",
+    "paratest/node",
+    "paratest/pallets/template",
 ]
+default-members = ["node", "relay-node"]
 
 [workspace.dependencies]
 clap = { version = "4.4.10", features = ["derive"] }
@@ -159,6 +166,81 @@ frame-system-benchmarking = { default-features = false, version = "32.0.0" }
 
 substrate-wasm-builder = { version = "21.0.0" }
 substrate-build-script-utils = { version = "11.0.0" }
+
+# Used for relay chain
+
+zkv-relay = { path = "relay-node" }
+zkv-cli = { path = "relay-node/cli" }
+service = { package = "zkv-service", path = "relay-node/service", default-features = false }
+
+sc-authority-discovery = { version = "0.33.0" }
+beefy = { package = "sc-consensus-beefy", version = "12.0.0" }
+sc-consensus-beefy-rpc = { version = "12.0.0" }
+mmr-gadget = { version = "28.0.0" }
+sp-mmr-primitives = { version = "25.0.0" }
+mmr-rpc = { version = "27.0.0" }
+sc-block-builder = { version = "0.32.0" }
+sc-chain-spec = { version = "26.0.0" }
+sc-client-db = { version = "0.34.0" }
+sc-consensus-slots = { version = "0.32.0" }
+sc-network-common = { version = "0.32.0" }
+sc-network-sync = { version = "0.32.0" }
+# sc-sync-state-rpc = { version = "0.33.0" }
+sc-keystore = { version = "24.0.0" }
+telemetry = { package = "sc-telemetry", version = "14.0.0" }
+sp-authority-discovery = { version = "25.0.0" }
+consensus_common = { package = "sp-consensus", version = "0.31.0" }
+beefy-primitives = { package = "sp-consensus-beefy", version = "12.0.0" }
+sp-state-machine = { version = "0.34.0" }
+prometheus-endpoint = { package = "substrate-prometheus-endpoint", version = "0.16.0" }
+substrate-state-trie-migration-rpc = { version = "26.0.0" }
+
+polkadot-node-metrics = { version = "6.0.0" }     # Our own
+polkadot-node-primitives = { version = "6.0.0" }
+sc-storage-monitor = { version = "0.15.0" }
+sc-tracing = { version = "27.0.0" }
+sp-maybe-compressed-blob = { version = "10.0.0" }
+
+gum = { package = "tracing-gum", version = "6.0.0" }
+
+polkadot-approval-distribution = { version = "6.0.0" }
+polkadot-availability-bitfield-distribution = { version = "6.0.0" }
+polkadot-availability-distribution = { version = "6.0.0" }
+polkadot-availability-recovery = { version = "6.0.0" }
+polkadot-collator-protocol = { version = "6.0.0" }
+polkadot-dispute-distribution = { version = "6.0.0" }
+polkadot-gossip-support = { version = "6.0.0" }
+polkadot-network-bridge = { version = "6.0.0" }
+polkadot-node-collation-generation = { version = "6.0.0" }
+polkadot-node-core-approval-voting = { version = "6.0.0" }
+polkadot-node-core-av-store = { version = "6.0.0" }
+polkadot-node-core-backing = { version = "6.0.0" }
+polkadot-node-core-bitfield-signing = { version = "6.0.0" }
+polkadot-node-core-candidate-validation = { version = "6.0.0" }
+polkadot-node-core-chain-api = { version = "6.0.0" }
+polkadot-node-core-chain-selection = { version = "6.0.0" }
+polkadot-node-core-dispute-coordinator = { version = "6.0.0" }
+polkadot-node-core-prospective-parachains = { version = "5.0.0" }
+polkadot-node-core-provisioner = { version = "6.0.0" }
+polkadot-node-core-pvf = { version = "6.0.0" }
+polkadot-node-core-pvf-checker = { version = "6.0.0" }
+polkadot-node-core-runtime-api = { version = "6.0.0" }
+polkadot-statement-distribution = { version = "6.0.0" }
+
+polkadot-core-primitives = { version = "6.0.0" }
+polkadot-node-core-parachains-inherent = { version = "6.0.0" }
+polkadot-overseer = { version = "6.0.0" }
+polkadot-parachain-primitives = { version = "5.0.0" }
+polkadot-primitives = { version = "6.0.0" }
+polkadot-rpc = { version = "6.0.0" }
+polkadot-node-subsystem = { version = "6.0.0" }
+polkadot-node-subsystem-util = { version = "6.0.0" }
+polkadot-node-subsystem-types = { version = "6.0.0" }
+polkadot-runtime-parachains = { version = "6.0.0" }
+polkadot-node-network-protocol = { version = "6.0.0" }
+
+[patch.crates-io]
+cumulus-relay-chain-inprocess-interface = { path = "patches/cumulus/client/relay-chain-inprocess-interface" }
 
 [profile.release]
 # Polkadot runtime requires unwinding.
