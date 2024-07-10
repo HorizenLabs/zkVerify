@@ -426,7 +426,7 @@ impl pallet_session::Config for Runtime {
     type SessionManager = Staking;
     type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
     type Keys = SessionKeys;
-    type WeightInfo = pallet_session::weights::SubstrateWeight<Runtime>;
+    type WeightInfo = weights::pallet_session::NHWeight<Runtime>;
 }
 
 //TODO: Set these parameters appropriately.
@@ -469,7 +469,7 @@ impl onchain::Config for OnChainSeqPhragmen {
     type System = Runtime;
     type Solver = SequentialPhragmen<AccountId, sp_runtime::Perbill>;
     type DataProvider = Staking;
-    type WeightInfo = (); //weights::frame_election_provider_support::WeightInfo<Runtime>;
+    type WeightInfo = weights::pallet_election_provider_support_benchmarking::NHWeight<Runtime>;
     type MaxWinners = MaxActiveValidators;
     type Bounds = ElectionBoundsOnChain;
 }

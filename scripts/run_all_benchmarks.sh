@@ -100,15 +100,12 @@ if [ "${ENABLE_PALLETS:-}" = "true" ]; then
 fi
 
 EXCLUDED_PALLETS=(
-        # Helper pallets
-        "pallet_election_provider_support_benchmarking"
         "frame_benchmarking"
         # Pallets without automatic benchmarking
         "pallet_babe" "pallet_grandpa"
         "pallet_offences"
 
         # Not applicable now
-        "pallet_session" # Crash [to investigate]
         "pallet_staking" # Not applicable if we didn't use pallet_bag_list for VoterList and TargetList
                          # UseNominatorsAndValidatorsMap and UseValidatorsMap doesn't implement benchmark
                          # support
