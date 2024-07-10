@@ -37,15 +37,15 @@ if [ -z "${docker_hub_username:-}" ]; then
   fn_die "ERROR: DOCKER_HUB_USERNAME variable is not set. Exiting ..."
 fi
 
-docker_tag=""
+docker_tag_full=""
 if [ "${is_a_release}" = "true" ]; then
-  docker_tag="${github_ref_name}"
+  docker_tag_full="${github_ref_name}"
 fi
 
 # Building and publishing docker image
-if [ -n "${docker_tag:-}" ]; then
-  log_info "=== Building Docker image: ${docker_hub_org}/${docker_image_build_name}:${docker_tag} ==="
-  docker build --build-arg PROFILE=production -f "${docker_file_path}" -t "${docker_hub_org}/${docker_image_build_name}:${docker_tag}" .
+if [ -n "${docker_tag_full:-}" ]; then
+  log_info "=== Building Docker image: ${docker_hub_org}/${docker_image_build_name}:${docker_tag_full} ==="
+  docker build --build-arg PROFILE=production -f "${docker_file_path}" -t "${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}" .
 
   # Publishing to DockerHub
   log_info "=== Publishing Docker image(s) on Docker Hub ==="
@@ -53,16 +53,18 @@ if [ -n "${docker_tag:-}" ]; then
 
   # Docker image(s) tags for PROD vs DEV release
   if [ "${prod_release}" = "true" ]; then
-    publish_tags=("${docker_tag}" "latest")
+    docker_tag_node=$(cut -d'-' -f1 <<< $docker_tag_full)
+    publish_tags=("${docker_tag_full}" "${docker_tag_node}" "latest")
   elif [ "${dev_release}" = "true" ]; then
-    publish_tags=("${docker_tag}" "dev")
+        docker_tag_node=$(cut -d'-' -f1 <<< $docker_tag_full)-$(cut -d'-' -f3- <<< $docker_tag_full)
+    publish_tags=("${docker_tag_full}" "${docker_tag_node}")
   elif [ "${test_release}" = "true" ]; then
-    publish_tags=("${docker_tag}")
+    publish_tags=("${docker_tag_full}")
   fi
 
   for publish_tag in "${publish_tags[@]}"; do
     log_info "Publishing docker image: ${docker_image_build_name}:${publish_tag}"
-    docker tag "${docker_hub_org}/${docker_image_build_name}:${docker_tag}" "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
+    docker tag "${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}" "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
     docker push "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
   done
 else
