@@ -56,7 +56,7 @@ docker/scripts/build-paratest-image-injected.sh
 ## Start compose file
 
 ```sh
-docker compose -f docker/dockerfiles/zkv-relay-docker-compose.yaml up -d
+docker compose -f docker/dockerfiles/zkv-relay-docker-compose.yaml up -d --remove-orphans
 ```
 
 This compose starts 3 relaychain nodes and 3 parachain nodes:
