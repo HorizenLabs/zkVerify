@@ -222,7 +222,8 @@ impl parachains_inclusion::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type DisputesHandler = ParasDisputes;
     type RewardValidators = RewardValidators;
-    type MessageQueue = MessageQueue;
+    // type MessageQueue = MessageQueue;
+    type MessageQueue = ();
     // type WeightInfo = weights::runtime_parachains_inclusion::WeightInfo<Runtime>;
     type WeightInfo = parachains_inclusion::TestWeightInfo;
 }
@@ -287,16 +288,16 @@ impl parachains_paras::Config for Runtime {
     type OnNewHead = ();
 }
 
-parameter_types! {
-    /// Amount of weight that can be spent per block to service messages.
-    ///
-    /// # WARNING
-    ///
-    /// This is not a good value for para-chains since the `Scheduler` already uses up to 80% block weight.
-    pub MessageQueueServiceWeight: Weight = Perbill::from_percent(20) * BlockWeights::get().max_block;
-    pub const MessageQueueHeapSize: u32 = 32 * 1024;
-    pub const MessageQueueMaxStale: u32 = 96;
-}
+// parameter_types! {
+//     /// Amount of weight that can be spent per block to service messages.
+//     ///
+//     /// # WARNING
+//     ///
+//     /// This is not a good value for para-chains since the `Scheduler` already uses up to 80% block weight.
+//     pub MessageQueueServiceWeight: Weight = Perbill::from_percent(20) * BlockWeights::get().max_block;
+//     pub const MessageQueueHeapSize: u32 = 32 * 1024;
+//     pub const MessageQueueMaxStale: u32 = 96;
+// }
 
 // /// Message processor to handle any messages that were enqueued into the `MessageQueue` pallet.
 // pub struct MessageProcessor;
@@ -321,20 +322,20 @@ parameter_types! {
 //     }
 // }
 
-impl pallet_message_queue::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
-    type Size = u32;
-    type HeapSize = MessageQueueHeapSize;
-    type MaxStale = MessageQueueMaxStale;
-    type ServiceWeight = MessageQueueServiceWeight;
-    // type MessageProcessor = MessageProcessor;
-    // #[cfg(feature = "runtime-benchmarks")]
-    type MessageProcessor =
-        pallet_message_queue::mock_helpers::NoopMessageProcessor<AggregateMessageOrigin>;
-    type QueueChangeHandler = ParaInclusion;
-    type QueuePausedQuery = ();
-    type WeightInfo = ();
-}
+// impl pallet_message_queue::Config for Runtime {
+//     type RuntimeEvent = RuntimeEvent;
+//     type Size = u32;
+//     type HeapSize = MessageQueueHeapSize;
+//     type MaxStale = MessageQueueMaxStale;
+//     type ServiceWeight = MessageQueueServiceWeight;
+//     // type MessageProcessor = MessageProcessor;
+//     // #[cfg(feature = "runtime-benchmarks")]
+//     type MessageProcessor =
+//         pallet_message_queue::mock_helpers::NoopMessageProcessor<AggregateMessageOrigin>;
+//     type QueueChangeHandler = ParaInclusion;
+//     type QueuePausedQuery = ();
+//     type WeightInfo = ();
+// }
 
 impl pallet_authority_discovery::Config for Runtime {
     type MaxAuthorities = MaxAuthorities;
@@ -512,7 +513,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     // The version of the runtime specification. A full node will not attempt to use its native
     //   runtime in substitute for the on-chain Wasm runtime unless all of `spec_name`,
     //   `spec_version`, and `authoring_version` are the same between Wasm and native.
-    spec_version: 4_000,
+    spec_version: 4_001,
     impl_version: 1,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -1029,7 +1030,7 @@ construct_runtime!(
         ParaSessionInfo: parachains_session_info::{Pallet, Storage} = 61,
         ParasDisputes: parachains_disputes::{Pallet, Call, Storage, Event<T>} = 62,
         ParasSlashing: parachains_slashing::{Pallet, Call, Storage, ValidateUnsigned} = 63,
-        MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 64,
+        // MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 64,
         // ParaAssignmentProvider: parachains_assigner::{Pallet, Storage} = 65,
         // OnDemandAssignmentProvider: parachains_assigner_on_demand::{Pallet, Call, Storage, Event<T>} = 66,
         ParachainsAssignmentProvider: parachains_assigner_parachains::{Pallet} = 67,
