@@ -1,7 +1,7 @@
 [package]
 name = "mainchain"
 version = "0.3.0"
-description = "New Horizen Mainchain."
+description = "zkVerify Mainchain."
 authors.workspace = true
 homepage = "https://github.com/HorizenLabs/zkVerify"
 edition.workspace = true
@@ -14,7 +14,7 @@ license = "GPL-3.0"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [[bin]]
-name = "nh-node"
+name = "zkv-node"
 path = "src/main.rs"
 
 [dependencies]
@@ -64,7 +64,7 @@ substrate-frame-rpc-system = { workspace = true }
 pallet-transaction-payment-rpc = { workspace = true }
 frame-benchmarking = { workspace = true }
 frame-benchmarking-cli = { workspace = true }
-nh-runtime = { workspace = true }
+zkv-runtime = { workspace = true }
 hp-poe = { workspace = true }
 proof-of-existence-rpc = { workspace = true }
 native = { workspace = true, features = ["std"] }
@@ -85,7 +85,7 @@ runtime-benchmarks = [
 	"frame-benchmarking-cli/runtime-benchmarks",
 	"frame-benchmarking/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
-	"nh-runtime/runtime-benchmarks",
+	"zkv-runtime/runtime-benchmarks",
 	"sc-service/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 ]
@@ -93,7 +93,7 @@ runtime-benchmarks = [
 # in the near future.
 try-runtime = [
 	"frame-system/try-runtime",
-	"nh-runtime/try-runtime",
+	"zkv-runtime/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"sp-runtime/try-runtime",
 	"try-runtime-cli/try-runtime",

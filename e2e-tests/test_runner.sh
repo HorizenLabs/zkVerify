@@ -6,10 +6,10 @@
 # - npm
 # - yarn
 # The script automatically downloads zombienet binary and saves it into the e2e-tests/bin folder.
-# It also looks for a compiled nh-node binary in the folder target/release, hence make sure to 
-# have a freshly compiled version of nh-node in this folder.
+# It also looks for a compiled zkv-node binary in the folder target/release, hence make sure to 
+# have a freshly compiled version of zkv-node in this folder.
 # Optionally, this script can be launched with the '--debug' switch, which makes it look for
-# the nh-node binary in the target/debug folder instead.
+# the zkv-node binary in the target/debug folder instead.
 
 # ANSI color handles
 TXT_BIBLU="\033[94;1m"
@@ -71,28 +71,28 @@ fi
 
 echo -e "${TXT_BIGRN}INFO: ${TXT_BIBLK}Running tests with a ${BUILDSUBPATH} build${TXT_NORML}"
 
-# Check if nh-node executable exists according to the requested mode and print error/info messages otherwise
+# Check if zkv-node executable exists according to the requested mode and print error/info messages otherwise
 if [[ ${BUILDSUBPATH} == "debug" ]]; then
-    if [ ! -f ../target/debug/nh-node ]; then
-        if [ -f ../target/release/nh-node ]; then
-            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}debug binary not found; however, a release binary is present. Compile nh-node in debug mode${TXT_NORML}"
+    if [ ! -f ../target/debug/zkv-node ]; then
+        if [ -f ../target/release/zkv-node ]; then
+            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}debug binary not found; however, a release binary is present. Compile zkv-node in debug mode${TXT_NORML}"
             echo -e "${TXT_BIRED}       ${TXT_BIBLK}or relaunch the test runner without the '--debug' switch${TXT_NORML}"
             exit 2
         else
-            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}nh-node binary not found. Compile nh-node in debug mode and re-launch this script${TXT_NORML}"
+            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}zkv-node binary not found. Compile zkv-node in debug mode and re-launch this script${TXT_NORML}"
             exit 3
         fi
     fi
 fi
 
 if [[ ${BUILDSUBPATH} == "release" ]]; then
-    if [ ! -f ../target/release/nh-node ]; then
-        if [ -f ../target/debug/nh-node ]; then
-            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}release binary not found; however, a debug binary is present. Compile nh-node in release mode${TXT_NORML}"
+    if [ ! -f ../target/release/zkv-node ]; then
+        if [ -f ../target/debug/zkv-node ]; then
+            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}release binary not found; however, a debug binary is present. Compile zkv-node in release mode${TXT_NORML}"
             echo -e "${TXT_BIRED}       ${TXT_BIBLK}or relaunch the test runner with the '--debug' switch${TXT_NORML}"
             exit 2
         else
-            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}nh-node binary not found. Compile nh-node in release mode and re-launch this script${TXT_NORML}"
+            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}zkv-node binary not found. Compile zkv-node in release mode and re-launch this script${TXT_NORML}"
             exit 3
         fi
     fi

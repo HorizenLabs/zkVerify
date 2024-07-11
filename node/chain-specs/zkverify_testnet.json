@@ -1,6 +1,6 @@
 {
-  "name": "NH Testnet",
-  "id": "nh_testnet",
+  "name": "ZKV Testnet",
+  "id": "zkv_testnet",
   "chainType": "Live",
   "bootNodes": [
     "/dns/bootnode-tn-1.zkverify.io/tcp/30333/p2p/12D3KooWNhvf6iSowraUY4tZnjpNZXEe85oy9zDWYRKFBnWivukc",

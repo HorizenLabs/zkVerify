@@ -27,7 +27,7 @@ VERSION_TOML=$(grep "^version " "${PROJECT_ROOT}/node/Cargo.toml" | grep -oE "([
 DOCKER_OWNER=${DOCKER_OWNER:-horizenlabs}
 
 # We may get 1..n binaries, comma separated
-BINARY=${BINARY:-nh-node}
+BINARY=${BINARY:-zkv-node}
 IFS=',' read -r -a BINARIES <<< "$BINARY"
 
 VERSION=${VERSION:-$VERSION_TOML}
@@ -99,7 +99,7 @@ $ENGINE images
 
 if [[ -z "${SKIP_IMAGE_VALIDATION}" ]]; then
   echo "Check the image ${IMAGE}:${TAG_ARRAY[0]}"
-  $ENGINE run --rm --entrypoint nh-node -i "${IMAGE}:${TAG_ARRAY[0]}" --version
+  $ENGINE run --rm --entrypoint zkv-node -i "${IMAGE}:${TAG_ARRAY[0]}" --version
 
   echo "Query binaries"
   $ENGINE run --rm -i --entrypoint /bin/bash "${IMAGE}:${TAG_ARRAY[0]}" -c "echo BINARY: ${BINARY}"

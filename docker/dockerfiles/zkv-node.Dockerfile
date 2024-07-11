@@ -23,7 +23,7 @@ FROM ubuntu:22.04 as node
 SHELL ["/bin/bash", "-c"]
 
 # That can be a single one or a comma separated list
-ARG BINARY=nh-node
+ARG BINARY=zkv-node
 ARG DESCRIPTION="zkVerify Core"
 ARG AUTHORS="mainchain-team@horizenlabs.io"
 ARG VENDOR="Horizen Labs"
@@ -43,8 +43,8 @@ USER root
 WORKDIR /app
 
 COPY docker/scripts/entrypoint.sh .
-COPY --from=builder "/usr/src/node/target/${PROFILE}/nh-node" "/usr/local/bin/"
-COPY --from=builder "/usr/src/node/target/${PROFILE}/wbuild/nh-runtime/nh_runtime.compact.compressed.wasm" "./nh_runtime.compact.compressed.wasm"
+COPY --from=builder "/usr/src/node/target/${PROFILE}/zkv-node" "/usr/local/bin/"
+COPY --from=builder "/usr/src/node/target/${PROFILE}/wbuild/zkv-runtime/zkv_runtime.compact.compressed.wasm" "./zkv_runtime.compact.compressed.wasm"
 RUN chmod -R a+rx "/usr/local/bin"
 
 RUN apt-get update \

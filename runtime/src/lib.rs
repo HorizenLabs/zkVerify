@@ -132,8 +132,8 @@ pub mod opaque {
 // https://docs.substrate.io/main-docs/build/upgrade#runtime-versioning
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-    spec_name: create_runtime_str!("nh-node"),
-    impl_name: create_runtime_str!("nh-node"),
+    spec_name: create_runtime_str!("nh-node"), // TODO: change to zkv-node when ok with regenesis
+    impl_name: create_runtime_str!("zkv-node"),
     authoring_version: 1,
     // The version of the runtime specification. A full node will not attempt to use its native
     //   runtime in substitute for the on-chain Wasm runtime unless all of `spec_name`,
@@ -239,7 +239,7 @@ impl frame_system::Config for Runtime {
     /// This is used as an identifier of the chain. 42 is the generic substrate prefix.
     type SS58Prefix = SS58Prefix;
     type MaxConsumers = frame_support::traits::ConstU32<16>;
-    type SystemWeightInfo = weights::frame_system::NHWeight<Runtime>;
+    type SystemWeightInfo = weights::frame_system::ZKVWeight<Runtime>;
 }
 
 parameter_types! {
@@ -284,7 +284,7 @@ impl pallet_timestamp::Config for Runtime {
     type Moment = u64;
     type OnTimestampSet = Babe;
     type MinimumPeriod = ConstU64<{ SLOT_DURATION / 2 }>; // this is a Babe assumption
-    type WeightInfo = weights::pallet_timestamp::NHWeight<Runtime>;
+    type WeightInfo = weights::pallet_timestamp::ZKVWeight<Runtime>;
 }
 
 /// Existential deposit.
@@ -301,7 +301,7 @@ impl pallet_balances::Config for Runtime {
     type DustRemoval = ();
     type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;
     type AccountStore = System;
-    type WeightInfo = weights::pallet_balances::NHWeight<Runtime>;
+    type WeightInfo = weights::pallet_balances::ZKVWeight<Runtime>;
     type FreezeIdentifier = ();
     type MaxFreezes = ();
     type RuntimeHoldReason = RuntimeHoldReason;
@@ -333,7 +333,7 @@ impl pallet_transaction_payment::Config for Runtime {
 impl pallet_sudo::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type RuntimeCall = RuntimeCall;
-    type WeightInfo = weights::pallet_sudo::NHWeight<Runtime>;
+    type WeightInfo = weights::pallet_sudo::ZKVWeight<Runtime>;
 }
 
 parameter_types! {
@@ -350,7 +350,7 @@ impl pallet_multisig::Config for Runtime {
     type DepositBase = MultisigDepositBase;
     type DepositFactor = MultisigDepositFactor;
     type MaxSignatories = MaxSignatories;
-    type WeightInfo = weights::pallet_multisig::NHWeight<Runtime>;
+    type WeightInfo = weights::pallet_multisig::ZKVWeight<Runtime>;
 }
 
 parameter_types! {
@@ -361,7 +361,7 @@ parameter_types! {
 
 impl pallet_preimage::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type WeightInfo = weights::pallet_preimage::NHWeight<Runtime>;
+    type WeightInfo = weights::pallet_preimage::ZKVWeight<Runtime>;
     type Currency = Balances;
     type ManagerOrigin = EnsureRoot<AccountId>;
     type Consideration = frame_support::traits::fungible::HoldConsideration<
@@ -391,7 +391,7 @@ impl pallet_scheduler::Config for Runtime {
 
     type OriginPrivilegeCmp = EqualPrivilegeOnly;
     type MaxScheduledPerBlock = MaxScheduledPerBlock;
-    type WeightInfo = weights::pallet_scheduler::NHWeight<Runtime>;
+    type WeightInfo = weights::pallet_scheduler::ZKVWeight<Runtime>;
     type Preimages = Preimage;
 }
 
@@ -404,7 +404,7 @@ impl pallet_poe::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type MinProofsForPublishing = ConstU32<MIN_PROOFS_FOR_ROOT_PUBLISHING>;
     type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
-    type WeightInfo = weights::pallet_poe::NHWeight<Runtime>;
+    type WeightInfo = weights::pallet_poe::ZKVWeight<Runtime>;
 }
 
 pub struct ValidatorIdOf;
@@ -543,7 +543,7 @@ impl pallet_im_online::Config for Runtime {
     type ValidatorSet = Historical;
     type ReportUnresponsiveness = Offences;
     type UnsignedPriority = ();
-    type WeightInfo = weights::pallet_im_online::NHWeight<Runtime>;
+    type WeightInfo = weights::pallet_im_online::ZKVWeight<Runtime>;
     type MaxKeys = MaxKeys;
     type MaxPeerInHeartbeats = MaxPeerInHeartbeats;
 }
@@ -558,14 +558,14 @@ impl pallet_verifiers::Config<pallet_fflonk_verifier::Fflonk> for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
     type WeightInfo =
-        pallet_fflonk_verifier::FflonkWeight<weights::pallet_fflonk_verifier::NHWeight<Runtime>>;
+        pallet_fflonk_verifier::FflonkWeight<weights::pallet_fflonk_verifier::ZKVWeight<Runtime>>;
 }
 
 impl pallet_verifiers::Config<pallet_zksync_verifier::Zksync> for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
     type WeightInfo =
-        pallet_zksync_verifier::ZksyncWeight<weights::pallet_zksync_verifier::NHWeight<Runtime>>;
+        pallet_zksync_verifier::ZksyncWeight<weights::pallet_zksync_verifier::ZKVWeight<Runtime>>;
 }
 
 pub const GROTH16_MAX_NUM_INPUTS: u32 = 16;
@@ -586,8 +586,9 @@ const_assert!(
 impl pallet_verifiers::Config<pallet_groth16_verifier::Groth16<Runtime>> for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
-    type WeightInfo =
-        pallet_groth16_verifier::Groth16Weight<weights::pallet_groth16_verifier::NHWeight<Runtime>>;
+    type WeightInfo = pallet_groth16_verifier::Groth16Weight<
+        weights::pallet_groth16_verifier::ZKVWeight<Runtime>,
+    >;
 }
 
 parameter_types! {
@@ -606,7 +607,7 @@ impl pallet_verifiers::Config<pallet_risc0_verifier::Risc0<Runtime>> for Runtime
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
     type WeightInfo =
-        pallet_risc0_verifier::Risc0Weight<weights::pallet_risc0_verifier::NHWeight<Runtime>>;
+        pallet_risc0_verifier::Risc0Weight<weights::pallet_risc0_verifier::ZKVWeight<Runtime>>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

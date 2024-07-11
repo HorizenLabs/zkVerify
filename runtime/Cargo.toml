@@ -1,7 +1,7 @@
 [package]
-name = "nh-runtime"
+name = "zkv-runtime"
 version = "0.4.0"
-description = "New Horizen Mainchain Runtime."
+description = "zkVerify Mainchain Runtime."
 authors.workspace = true
 homepage = "https://github.com/HorizenLabs/zkVerify"
 edition.workspace = true

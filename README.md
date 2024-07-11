@@ -78,16 +78,16 @@ To run a testnet node:
 
 ```bash
 cd target/release
-./nh-node --chain test
+./zkv-node --chain test
 ```
 
-The client will connect to `NH Testnet` and start syncing blockchain data, with default path at `$HOME/.local/share/` (double check with log `💾 Database: RocksDb at`).
+The client will connect to `ZKV Testnet` and start syncing blockchain data, with default path at `$HOME/.local/share/` (double check with log `💾 Database: RocksDb at`).
 
 For entirely removing blockchain data:
 
 ```bash
 cd target/release
-./nh-node purge --chain test
+./zkv-node purge --chain test
 ```
 
 ### Run dev node
@@ -96,13 +96,13 @@ To run a local dev node:
 
 ```bash
 cd target/release
-./nh-node --dev
+./zkv-node --dev
 ```
 
 The client will run a chain with a single validator (Alice) and start producing blocks.
 
 ```
-2024-03-28 11:49:08 New Horizen Mainchain Node
+2024-03-28 11:49:08 zkVerify Mainchain Node
 2024-03-28 11:49:08 ✌️  version 0.1.0-deda6a0980c
 2024-03-28 11:49:08 ❤️  by Horizen Labs <admin@horizenlabs.io>, 2024-2024
 2024-03-28 11:49:08 📋 Chain specification: Development
@@ -157,7 +157,7 @@ zkVerify as a whole is released under the [GPL 3.0 license](LICENSE-GPL3). This 
 For this reason, all the crates that include such dependency are GPL 3.0 licensed:
 
 - `pallet-settlement-fflonk`
-- `nh-runtime`
+- `zkv-runtime`
 - `mainchain`
 
 The remaining crates, which are independent of the FFLONK verifier implementation, are released under the [APACHE 2.0 license](LICENSE-APACHE2):

@@ -52,9 +52,9 @@ use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weights for `pallet_preimage` using the New Horizen node and recommended hardware.
-pub struct NHWeight<T>(PhantomData<T>);
+pub struct ZKVWeight<T>(PhantomData<T>);
 
-impl<T: frame_system::Config> pallet_preimage::WeightInfo for NHWeight<T> {
+impl<T: frame_system::Config> pallet_preimage::WeightInfo for ZKVWeight<T> {
     /// Storage: `Preimage::StatusFor` (r:1 w:0)
     /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(91), added: 2566, mode: `MaxEncodedLen`)
     /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)

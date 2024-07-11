@@ -52,9 +52,9 @@ use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weights for `pallet_scheduler` using the New Horizen node and recommended hardware.
-pub struct NHWeight<T>(PhantomData<T>);
+pub struct ZKVWeight<T>(PhantomData<T>);
 
-impl<T: frame_system::Config> pallet_scheduler::WeightInfo for NHWeight<T> {
+impl<T: frame_system::Config> pallet_scheduler::WeightInfo for ZKVWeight<T> {
     /// Storage: `Scheduler::IncompleteSince` (r:1 w:1)
     /// Proof: `Scheduler::IncompleteSince` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
     fn service_agendas_base() -> Weight {

@@ -8,7 +8,7 @@ ARG BUILD_DATE
 ARG IMAGE_NAME
 
 # That can be a single one or a comma separated list
-ARG BINARY=nh-node
+ARG BINARY=zkv-node
 
 ARG BIN_FOLDER=.
 ARG DOC_URL=https://github.com/HorizenLabs/zkVerify

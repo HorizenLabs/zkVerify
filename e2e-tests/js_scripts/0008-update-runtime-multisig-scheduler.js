@@ -57,7 +57,7 @@ async function run(nodeName, networkInfo, args) {
 
     // Retrieve the runtime to upgrade
     const sudoAccount = await api.query.sudo.key()
-    const code = fs.readFileSync('./new-runtime/nh_runtime.wasm').toString('hex');
+    const code = fs.readFileSync('./new-runtime/zkv_runtime.wasm').toString('hex');
     const updateRuntimeCall = api.tx.system.setCode(`0x${code}`);
 
     console.log(`Upgrading from ${sudoAccount}, ${code.length / 2} bytes`);

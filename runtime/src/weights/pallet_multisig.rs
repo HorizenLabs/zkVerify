@@ -52,9 +52,9 @@ use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weights for `pallet_multisig` using the New Horizen node and recommended hardware.
-pub struct NHWeight<T>(PhantomData<T>);
+pub struct ZKVWeight<T>(PhantomData<T>);
 
-impl<T: frame_system::Config> pallet_multisig::WeightInfo for NHWeight<T> {
+impl<T: frame_system::Config> pallet_multisig::WeightInfo for ZKVWeight<T> {
     /// The range of component `z` is `[0, 10000]`.
     fn as_multi_threshold_1(z: u32, ) -> Weight {
         // Proof Size summary in bytes:

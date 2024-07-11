@@ -15,7 +15,7 @@
 - - `yarn install`
 - - `yarn test`
 
-This will copy `nh-node` to the `e2e-tests/bin` directory and will download the zombienet binary in the same directory.
+This will copy `zkv-node` to the `e2e-tests/bin` directory and will download the zombienet binary in the same directory.
 
 It will then execute all the end-to-end test (all the `.zndsl` file listed in `test_runner.sh`).
 
@@ -35,7 +35,7 @@ Each end-to-end test requires the following files:
 
 ### Prerequisites
 
-All tests are executed by running actual `zkVerify` nodes, so an instance of the `nh-node` executable must be present on the target system. This can be obtained by compiling this repository, as the test runner script looks for the compiled binary in the `target/debug/` or `target/release/` directories. Optionally, it is possible to download the pre-compiled binary from our official `zkVerify` repository, and copy that in the `e2e-tests/bin` directory.
+All tests are executed by running actual `zkVerify` nodes, so an instance of the `zkv-node` executable must be present on the target system. This can be obtained by compiling this repository, as the test runner script looks for the compiled binary in the `target/debug/` or `target/release/` directories. Optionally, it is possible to download the pre-compiled binary from our official `zkVerify` repository, and copy that in the `e2e-tests/bin` directory.
 
 The test runner script also automatically downloads the `zombienet` executable from the official GitHub repo: <https://github.com/paritytech/zombienet/releases> and places that in the `e2e-tests/bin` as well.
 
