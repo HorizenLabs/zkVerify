@@ -98,7 +98,6 @@ use polkadot_primitives::{
 };
 
 use polkadot_runtime_parachains::{
-    assigner as parachains_assigner, assigner_on_demand as parachains_assigner_on_demand,
     assigner_parachains as parachains_assigner_parachains,
     configuration as parachains_configuration, disputes as parachains_disputes,
     disputes::slashing as parachains_slashing,
@@ -114,7 +113,8 @@ use polkadot_runtime_parachains::{
 };
 
 use authority_discovery_primitives::AuthorityId as AuthorityDiscoveryId;
-use polkadot_runtime_common::{paras_registrar, paras_sudo_wrapper, prod_or_fast, slots};
+//use polkadot_runtime_common::{paras_registrar, paras_sudo_wrapper, prod_or_fast, slots};
+use polkadot_runtime_common::{paras_sudo_wrapper, prod_or_fast};
 
 use sp_runtime::FixedU128;
 
@@ -122,20 +122,7 @@ parameter_types! {
     pub const OnDemandTrafficDefaultValue: FixedU128 = FixedU128::from_u32(1);
 }
 
-impl parachains_assigner_on_demand::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
-    type Currency = Balances;
-    type TrafficDefaultValue = OnDemandTrafficDefaultValue;
-    // type WeightInfo = weights::runtime_parachains_assigner_on_demand::WeightInfo<Runtime>;
-    type WeightInfo = parachains_assigner_on_demand::TestWeightInfo;
-}
-
 impl parachains_assigner_parachains::Config for Runtime {}
-
-impl parachains_assigner::Config for Runtime {
-    type OnDemandAssignmentProvider = OnDemandAssignmentProvider;
-    type ParachainsAssignmentProvider = ParachainsAssignmentProvider;
-}
 
 impl parachains_initializer::Config for Runtime {
     type Randomness = pallet_babe::RandomnessFromOneEpochAgo<Runtime>;
@@ -186,7 +173,7 @@ impl parachains_paras_inherent::Config for Runtime {
 }
 
 impl parachains_scheduler::Config for Runtime {
-    type AssignmentProvider = ParaAssignmentProvider;
+    type AssignmentProvider = ParachainsAssignmentProvider;
 }
 
 impl parachains_origin::Config for Runtime {}
@@ -302,7 +289,8 @@ impl parachains_paras::Config for Runtime {
     type UnsignedPriority = ParasUnsignedPriority;
     type QueueFootprinter = ParaInclusion;
     type NextSessionRotation = Babe;
-    type OnNewHead = Registrar;
+    // type OnNewHead = Registrar;
+    type OnNewHead = ();
 }
 
 parameter_types! {
@@ -360,36 +348,36 @@ impl pallet_authority_discovery::Config for Runtime {
 
 impl paras_sudo_wrapper::Config for Runtime {}
 
-parameter_types! {
-    pub const ParaDeposit: Balance = 40 * ACME;
-    pub const DataDepositPerByte: Balance = 1 * CENTS;
-}
+// parameter_types! {
+//     pub const ParaDeposit: Balance = 40 * ACME;
+//     pub const DataDepositPerByte: Balance = 1 * CENTS;
+// }
 
-impl paras_registrar::Config for Runtime {
-    type RuntimeOrigin = RuntimeOrigin;
-    type RuntimeEvent = RuntimeEvent;
-    type Currency = Balances;
-    // type OnSwap = (Crowdloan, Slots);
-    type OnSwap = Slots;
-    type ParaDeposit = ParaDeposit;
-    type DataDepositPerByte = DataDepositPerByte;
-    type WeightInfo = paras_registrar::TestWeightInfo;
-}
+// impl paras_registrar::Config for Runtime {
+//     type RuntimeOrigin = RuntimeOrigin;
+//     type RuntimeEvent = RuntimeEvent;
+//     type Currency = Balances;
+//     // type OnSwap = (Crowdloan, Slots);
+//     type OnSwap = Slots;
+//     type ParaDeposit = ParaDeposit;
+//     type DataDepositPerByte = DataDepositPerByte;
+//     type WeightInfo = paras_registrar::TestWeightInfo;
+// }
 
-parameter_types! {
-    pub LeasePeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * DAYS, "ZKV_LEASE_PERIOD");
-}
+// parameter_types! {
+//     pub LeasePeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * DAYS, "ZKV_LEASE_PERIOD");
+// }
 
-impl slots::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
-    type Currency = Balances;
-    type Registrar = Registrar;
-    type LeasePeriod = LeasePeriod;
-    type LeaseOffset = ();
-    //type ForceOrigin = EitherOf<EnsureRoot<Self::AccountId>, LeaseAdmin>;
-    type ForceOrigin = EnsureRoot<Self::AccountId>;
-    type WeightInfo = slots::TestWeightInfo;
-}
+// impl slots::Config for Runtime {
+//     type RuntimeEvent = RuntimeEvent;
+//     type Currency = Balances;
+//     type Registrar = Registrar;
+//     type LeasePeriod = LeasePeriod;
+//     type LeaseOffset = ();
+//     //type ForceOrigin = EitherOf<EnsureRoot<Self::AccountId>, LeaseAdmin>;
+//     type ForceOrigin = EnsureRoot<Self::AccountId>;
+//     type WeightInfo = slots::TestWeightInfo;
+// }
 
 // /// System Parachains.
 // pub mod system_parachain {
@@ -419,6 +407,7 @@ impl slots::Config for Runtime {
 pub type Migrations = migrations::Unreleased;
 
 pub mod migrations {
+    #[allow(unused_imports)]
     use super::*;
 
     #[cfg(feature = "add-parachain-upgrade")]
@@ -426,6 +415,7 @@ pub mod migrations {
         use super::*;
         pub struct AddParachainUpgrade;
         const ADD_PARACHAIN_VERSION: u32 = 4_000;
+        const PARACHAIN_PARATEST_ID: u32 = 1_599;
 
         impl frame_support::traits::OnRuntimeUpgrade for AddParachainUpgrade {
             fn on_runtime_upgrade() -> Weight {
@@ -440,7 +430,7 @@ pub mod migrations {
                 let genesis = parachains_paras::GenesisConfig::<Runtime> {
                     _config: core::marker::PhantomData,
                     paras: sp_std::vec![(
-                        2000.into(),
+                        PARACHAIN_PARATEST_ID.into(),
                         parachains_paras::ParaGenesisArgs {
                             genesis_head: genesis.into(),
                             validation_code: wasm.into(),
@@ -1186,12 +1176,12 @@ construct_runtime!(
         ParasDisputes: parachains_disputes::{Pallet, Call, Storage, Event<T>} = 62,
         ParasSlashing: parachains_slashing::{Pallet, Call, Storage, ValidateUnsigned} = 63,
         MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 64,
-        ParaAssignmentProvider: parachains_assigner::{Pallet, Storage} = 65,
-        OnDemandAssignmentProvider: parachains_assigner_on_demand::{Pallet, Call, Storage, Event<T>} = 66,
+        // ParaAssignmentProvider: parachains_assigner::{Pallet, Storage} = 65,
+        // OnDemandAssignmentProvider: parachains_assigner_on_demand::{Pallet, Call, Storage, Event<T>} = 66,
         ParachainsAssignmentProvider: parachains_assigner_parachains::{Pallet} = 67,
 
-        Registrar: paras_registrar::{Pallet, Call, Storage, Event<T>, Config<T>} = 70,
-        Slots: slots::{Pallet, Call, Storage, Event<T>} = 71,
+        // Registrar: paras_registrar::{Pallet, Call, Storage, Event<T>, Config<T>} = 70,
+        // Slots: slots::{Pallet, Call, Storage, Event<T>} = 71,
         ParasSudoWrapper: paras_sudo_wrapper::{Pallet, Call} = 80,
 
                 // Pallet for sending XCM.
