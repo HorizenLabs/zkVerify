@@ -98,9 +98,8 @@ use polkadot_runtime_parachains::{
     configuration as parachains_configuration, disputes as parachains_disputes,
     disputes::slashing as parachains_slashing,
     dmp as parachains_dmp, hrmp as parachains_hrmp, inclusion as parachains_inclusion,
-    inclusion::AggregateMessageOrigin,
     initializer as parachains_initializer, origin as parachains_origin, paras as parachains_paras,
-    paras_inherent as parachains_paras_inherent,
+    paras_inherent as parachains_paras_inherent, reward_points as parachains_reward_points,
     runtime_api_impl::{
         v7 as parachains_runtime_api_impl, vstaging as parachains_staging_runtime_api_impl,
     },
@@ -129,7 +128,7 @@ impl parachains_initializer::Config for Runtime {
 
 impl parachains_disputes::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type RewardValidators = ();
+    type RewardValidators = parachains_reward_points::RewardValidatorsWithEraPoints<Runtime>;
     type SlashingHandler = parachains_slashing::SlashValidatorsForDisputes<ParasSlashing>;
     // type WeightInfo = weights::runtime_parachains_disputes::WeightInfo<Runtime>;
     type WeightInfo = parachains_disputes::TestWeightInfo;
@@ -213,17 +212,10 @@ impl parachains_session_info::Config for Runtime {
     type ValidatorSet = Historical;
 }
 
-/// Special `RewardValidators` that does nothing ;)
-pub struct RewardValidators;
-impl parachains_inclusion::RewardValidators for RewardValidators {
-    fn reward_backing(_: impl IntoIterator<Item = ValidatorIndex>) {}
-    fn reward_bitfields(_: impl IntoIterator<Item = ValidatorIndex>) {}
-}
-
 impl parachains_inclusion::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type DisputesHandler = ParasDisputes;
-    type RewardValidators = RewardValidators;
+    type RewardValidators = parachains_reward_points::RewardValidatorsWithEraPoints<Runtime>;
     // type MessageQueue = MessageQueue;
     type MessageQueue = ();
     // type WeightInfo = weights::runtime_parachains_inclusion::WeightInfo<Runtime>;
