@@ -47,11 +47,7 @@ use frame_election_provider_support::{
     onchain::OnChainExecution,
     SequentialPhragmen,
 };
-use frame_support::{
-    genesis_builder_helper::{build_config, create_default_config},
-    traits::{ProcessMessage, ProcessMessageError},
-    weights::WeightMeter,
-};
+use frame_support::genesis_builder_helper::{build_config, create_default_config};
 
 // A few exports that help ease life for downstream crates.
 use frame_support::traits::EqualPrivilegeOnly;
@@ -107,7 +103,7 @@ use polkadot_runtime_parachains::{
     configuration as parachains_configuration, disputes as parachains_disputes,
     disputes::slashing as parachains_slashing,
     dmp as parachains_dmp, hrmp as parachains_hrmp, inclusion as parachains_inclusion,
-    inclusion::{AggregateMessageOrigin, UmpQueueId},
+    inclusion::AggregateMessageOrigin,
     initializer as parachains_initializer, origin as parachains_origin, paras as parachains_paras,
     paras_inherent as parachains_paras_inherent,
     runtime_api_impl::{
@@ -116,20 +112,8 @@ use polkadot_runtime_parachains::{
     scheduler as parachains_scheduler, session_info as parachains_session_info,
     shared as parachains_shared,
 };
-use xcm::latest::Junction;
 
 use authority_discovery_primitives::AuthorityId as AuthorityDiscoveryId;
-
-// use runtime_common::{
-//     assigned_slots, auctions, claims, crowdloan, identity_migrator, impl_runtime_weights,
-//     impls::{
-//         LocatableAssetConverter, ToAuthor, VersionedLocatableAsset,
-//         VersionedMultiLocationConverter,
-//     },
-//     paras_registrar, paras_sudo_wrapper, prod_or_fast, slots, BlockHashCount, BlockLength,
-//     SlowAdjustingFeeUpdate,
-// };
-
 use polkadot_runtime_common::{paras_registrar, paras_sudo_wrapper, prod_or_fast, slots};
 
 use sp_runtime::FixedU128;
@@ -269,25 +253,25 @@ parameter_types! {
 pub struct FakeParasWeightInfo;
 
 impl parachains_paras::WeightInfo for FakeParasWeightInfo {
-    fn force_set_current_code(c: u32) -> Weight {
+    fn force_set_current_code(_c: u32) -> Weight {
         Weight::from_parts(0, 0)
     }
-    fn force_set_current_head(s: u32) -> Weight {
+    fn force_set_current_head(_s: u32) -> Weight {
         Weight::from_parts(0, 0)
     }
     fn force_set_most_recent_context() -> Weight {
         Weight::from_parts(0, 0)
     }
-    fn force_schedule_code_upgrade(c: u32) -> Weight {
+    fn force_schedule_code_upgrade(_c: u32) -> Weight {
         Weight::from_parts(0, 0)
     }
-    fn force_note_new_head(s: u32) -> Weight {
+    fn force_note_new_head(_s: u32) -> Weight {
         Weight::from_parts(0, 0)
     }
     fn force_queue_action() -> Weight {
         Weight::from_parts(0, 0)
     }
-    fn add_trusted_validation_code(c: u32) -> Weight {
+    fn add_trusted_validation_code(_c: u32) -> Weight {
         Weight::from_parts(0, 0)
     }
     fn poke_unused_validation_code() -> Weight {
@@ -332,28 +316,28 @@ parameter_types! {
     pub const MessageQueueMaxStale: u32 = 96;
 }
 
-/// Message processor to handle any messages that were enqueued into the `MessageQueue` pallet.
-pub struct MessageProcessor;
-impl ProcessMessage for MessageProcessor {
-    type Origin = AggregateMessageOrigin;
+// /// Message processor to handle any messages that were enqueued into the `MessageQueue` pallet.
+// pub struct MessageProcessor;
 
-    fn process_message(
-        message: &[u8],
-        origin: Self::Origin,
-        meter: &mut WeightMeter,
-        id: &mut [u8; 32],
-    ) -> Result<bool, ProcessMessageError> {
-        let para = match origin {
-            AggregateMessageOrigin::Ump(UmpQueueId::Para(para)) => para,
-        };
-        Ok((true))
-        // xcm_builder::ProcessXcmMessage::<
-        //     Junction,
-        //     xcm_executor::XcmExecutor<xcm_config::XcmConfig>,
-        //     RuntimeCall,
-        // >::process_message(message, Junction::Parachain(para.into()), meter, id)
-    }
-}
+// impl ProcessMessage for MessageProcessor {
+//     type Origin = AggregateMessageOrigin;
+
+//     fn process_message(
+//         message: &[u8],
+//         origin: Self::Origin,
+//         meter: &mut WeightMeter,
+//         id: &mut [u8; 32],
+//     ) -> Result<bool, ProcessMessageError> {
+//         let para = match origin {
+//             AggregateMessageOrigin::Ump(UmpQueueId::Para(para)) => para,
+//         };
+//         xcm_builder::ProcessXcmMessage::<
+//             Junction,
+//             xcm_executor::XcmExecutor<xcm_config::XcmConfig>,
+//             RuntimeCall,
+//         >::process_message(message, Junction::Parachain(para.into()), meter, id)
+//     }
+// }
 
 impl pallet_message_queue::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
@@ -361,9 +345,8 @@ impl pallet_message_queue::Config for Runtime {
     type HeapSize = MessageQueueHeapSize;
     type MaxStale = MessageQueueMaxStale;
     type ServiceWeight = MessageQueueServiceWeight;
-    #[cfg(not(feature = "runtime-benchmarks"))]
-    type MessageProcessor = MessageProcessor;
-    #[cfg(feature = "runtime-benchmarks")]
+    // type MessageProcessor = MessageProcessor;
+    // #[cfg(feature = "runtime-benchmarks")]
     type MessageProcessor =
         pallet_message_queue::mock_helpers::NoopMessageProcessor<AggregateMessageOrigin>;
     type QueueChangeHandler = ParaInclusion;
@@ -428,6 +411,59 @@ impl slots::Config for Runtime {
 //         };
 //     }
 // }
+
+/// All migrations that will run on the next runtime upgrade.
+///
+/// This contains the combined migrations of the last 10 releases. It allows to skip runtime
+/// upgrades in case governance decides to do so. THE ORDER IS IMPORTANT.
+pub type Migrations = migrations::Unreleased;
+
+pub mod migrations {
+    use super::*;
+
+    #[cfg(feature = "add-parachain-upgrade")]
+    pub mod add_parachain_upgrade {
+        use super::*;
+        pub struct AddParachainUpgrade;
+        const ADD_PARACHAIN_VERSION: u32 = 4_000;
+
+        impl frame_support::traits::OnRuntimeUpgrade for AddParachainUpgrade {
+            fn on_runtime_upgrade() -> Weight {
+                if System::last_runtime_upgrade_spec_version() > ADD_PARACHAIN_VERSION {
+                    log::info!("Skipping add paratest parachain upgrade: already applied");
+                    return <Runtime as frame_system::Config>::DbWeight::get().reads(1);
+                }
+                log::info!("Inject paratest parachain");
+                let genesis = include_bytes!("paratest_genesis").to_vec();
+                let wasm = include_bytes!("paratest_wasm").to_vec();
+
+                let genesis = parachains_paras::GenesisConfig::<Runtime> {
+                    _config: core::marker::PhantomData,
+                    paras: sp_std::vec![(
+                        2000.into(),
+                        parachains_paras::ParaGenesisArgs {
+                            genesis_head: genesis.into(),
+                            validation_code: wasm.into(),
+                            para_kind: parachains_paras::ParaKind::Parachain,
+                        }
+                    )],
+                };
+                use frame_support::traits::BuildGenesisConfig;
+                genesis.build();
+                Perbill::from_percent(50) * BlockWeights::get().max_block
+            }
+        }
+    }
+
+    #[cfg(feature = "add-parachain-upgrade")]
+    pub type AddParachainUpgrade = add_parachain_upgrade::AddParachainUpgrade;
+
+    #[cfg(not(feature = "add-parachain-upgrade"))]
+    pub type AddParachainUpgrade = ();
+
+    /// Unreleased migrations. Add new ones here:
+    pub type Unreleased = (AddParachainUpgrade,);
+}
 
 // ----------------------------- [ END PARACHAINS ] ----------------------------
 
@@ -1194,12 +1230,6 @@ pub type SignedExtra = (
     frame_system::CheckWeight<Runtime>,
     pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 );
-
-/// All migrations of the runtime, aside from the ones declared in the pallets.
-///
-/// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
-#[allow(unused_parens)]
-type Migrations = ();
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =

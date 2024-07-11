@@ -149,6 +149,7 @@ runtime-benchmarks = [
 	"pallet-message-queue/runtime-benchmarks",
 ]
 fast-runtime = []
+add-parachain-upgrade = []
 default = ["std"]
 std = [
 	"codec/std",
