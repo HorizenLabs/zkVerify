@@ -66,7 +66,7 @@ pallet-zksync-verifier = { path = "verifiers/zksync", default-features = false }
 pallet-groth16-verifier = { path = "verifiers/groth16", default-features = false }
 pallet-risc0-verifier = { path = "verifiers/risc0", default-features = false }
 
-nh-runtime = { path = "runtime", default-features = false }
+zkv-runtime = { path = "runtime", default-features = false }
 
 # These dependencies are used for the node template's RPCs
 sc-rpc = { version = "28.0.0" }

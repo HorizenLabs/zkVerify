@@ -33,7 +33,7 @@ function usage {
     PROJECT_ROOT    : the root of the project [the root of git project].
     SOURCE_ROOT     : the root of the source [the root of git project].
     SKIP_BUILD      : skip the build step if true [${DEFAULT_SKIP_BUILD}].
-    NH_NODE_EXE     : the path to the nh-node executable [target/production/nh-node in project root]
+    ZKV_NODE_EXE     : the path to the zkv-node executable [target/production/zkv-node in project root]
     "
     if [ -n "${message}" ]; 
     then
@@ -71,7 +71,7 @@ fi
 echo "------------------------------------------------------------------
 Use:
 SKIP_BUILD=${SKIP_BUILD}
-NH_NODE_EXE=${NH_NODE_EXE}
+ZKV_NODE_EXE=${ZKV_NODE_EXE}
 PALLET=${PALLET}
 WEIGTH_OUT_PATH=${WEIGTH_OUT_PATH}
 WEIGTH_TEMPLATE=${WEIGTH_TEMPLATE}
@@ -90,7 +90,7 @@ then
         --profile production \
         --locked \
         --features=runtime-benchmarks \
-        --bin nh-node
+        --bin zkv-node
     FAILED=$?
     cd - || exit 1
     if [ "${FAILED}" -ne 0 ]; then
@@ -98,7 +98,7 @@ then
     fi
 fi
 
-${NH_NODE_EXE} \
+${ZKV_NODE_EXE} \
     benchmark pallet \
     --chain dev \
     --pallet "${PALLET}" \

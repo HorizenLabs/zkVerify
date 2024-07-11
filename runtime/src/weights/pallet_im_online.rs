@@ -52,9 +52,9 @@ use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weights for `pallet_im_online` using the zkVerify node and recommended hardware.
-pub struct NHWeight<T>(PhantomData<T>);
+pub struct ZKVWeight<T>(PhantomData<T>);
 
-impl<T: frame_system::Config> pallet_im_online::WeightInfo for NHWeight<T> {
+impl<T: frame_system::Config> pallet_im_online::WeightInfo for ZKVWeight<T> {
 	/// Storage: `Session::Validators` (r:1 w:0)
 	/// Proof: `Session::Validators` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// Storage: `Session::CurrentIndex` (r:1 w:0)

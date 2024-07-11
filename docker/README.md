@@ -10,7 +10,7 @@ Compile and start a cluster with 2 validators (Alice and Bob) and a simple clien
 > . cfg
 > bootstrap.sh
 ...
-> docker compose -f docker/dockerfiles/hl-docker-compose.yaml up
+> docker compose -f docker/dockerfiles/zkv-docker-compose.yaml up
 ```
 
 ## Scripts
@@ -49,7 +49,7 @@ Where:
 * `-p 9944:9944`: provide the access to the rpc interface on your host
 * `--rpc-cors all --rpc-external`: enable the access from _polkadot.js_ by relaxing the cors policy
 
-The `nh-node` binary is also available on your host environment at `target/release/nh-node`.
+The `zkv-node` binary is also available on your host environment at `target/release/zkv-node`.
 
 ### `my_cargo`
 
@@ -63,16 +63,16 @@ A script that generate a docker image with the base dependencies and the given e
 
 All Dockerfile and compose definitions are located in `docker/dockerfile` folder.
 
-* `hl-builder.Dockerfile`: create an image with all dependencies needed to compile the node and is used by `my_cargo` script
+* `zkv-builder.Dockerfile`: create an image with all dependencies needed to compile the node and is used by `my_cargo` script
 * `binary_injected.Dockerfile`: Is mainly used by the scripts and inject one or more binaries in a standard ubuntu 22:04 image
-* `hl-node.Dockerfile`: generate a node image with a fresh source compilation (leverage on docker layers to create a small docker image)
-* `hl-docker-compose.yaml`: the cluster definition that run
+* `zkv-node.Dockerfile`: generate a node image with a fresh source compilation (leverage on docker layers to create a small docker image)
+* `zkv-docker-compose.yaml`: the cluster definition that run
 2 validator nodes (Alice and Bob) and a simple node that expose its rpc and P2P ports on localhost.
 
 To generate a node image without bothering about local resources, Rust installation and so on you can simply use:
 
 ```bash
-> docker build -f docker/dockerfiles/hl-node.Dockerfile -t horizenlabs/zkverify:latest .
+> docker build -f docker/dockerfiles/zkv-node.Dockerfile -t horizenlabs/zkverify:latest .
 ```
 
 and run it with

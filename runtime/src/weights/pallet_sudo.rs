@@ -52,9 +52,9 @@ use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weights for `pallet_sudo` using the New Horizen node and recommended hardware.
-pub struct NHWeight<T>(PhantomData<T>);
+pub struct ZKVWeight<T>(PhantomData<T>);
 
-impl<T: frame_system::Config> pallet_sudo::WeightInfo for NHWeight<T> {
+impl<T: frame_system::Config> pallet_sudo::WeightInfo for ZKVWeight<T> {
     /// Storage: `Sudo::Key` (r:1 w:1)
     /// Proof: `Sudo::Key` (`max_values`: Some(1), `max_size`: Some(32), added: 527, mode: `MaxEncodedLen`)
     fn set_key() -> Weight {

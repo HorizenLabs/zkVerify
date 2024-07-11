@@ -23,7 +23,6 @@
 use std::sync::Arc;
 
 use jsonrpsee::RpcModule;
-use nh_runtime::{currency::Balance, opaque::Block, AccountId, BlockNumber, Hash, Nonce};
 use sc_consensus_babe::{BabeApi, BabeWorkerHandle};
 use sc_consensus_grandpa::{
     FinalityProofProvider, GrandpaJustificationStream, SharedAuthoritySet, SharedVoterState,
@@ -35,6 +34,7 @@ use sp_block_builder::BlockBuilder;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_consensus::SelectChain;
 use sp_keystore::KeystorePtr;
+use zkv_runtime::{currency::Balance, opaque::Block, AccountId, BlockNumber, Hash, Nonce};
 
 pub use sc_rpc_api::DenyUnsafe;
 

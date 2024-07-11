@@ -20,10 +20,10 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weights for `{{pallet}}` using the New Horizen node and recommended hardware.
-pub struct NHWeight<T>(PhantomData<T>);
+/// Weights for `{{pallet}}` using the zkVerify node and recommended hardware.
+pub struct ZKVWeight<T>(PhantomData<T>);
 
-impl<T: frame_system::Config> {{pallet}}::WeightInfo for NHWeight<T> {
+impl<T: frame_system::Config> {{pallet}}::WeightInfo for ZKVWeight<T> {
     {{#each benchmarks as |benchmark|}}
     {{#each benchmark.comments as |comment|}}
     /// {{comment}}
