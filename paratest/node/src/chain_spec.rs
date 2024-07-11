@@ -60,7 +60,7 @@ pub fn template_session_keys(keys: AuraId) -> paratest_runtime::SessionKeys {
     paratest_runtime::SessionKeys { aura: keys }
 }
 
-const PARA_ID: u32 = 2000;
+const PARA_ID: u32 = 1_599;
 
 pub fn development_config() -> ChainSpec {
     // Give your base currency a unit name and decimal places

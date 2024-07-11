@@ -7,7 +7,9 @@ In order to start a relaychain network you need to do some steps before:
 - Generate parachain chain spec, genesis and wasm code
 - Create the docker images for relay chain and parachain nodes
 - Start compose file
-- Register parachain
+- Start Parachain
+  - By Initialize it
+  - By Upgrade Runtime
 
 ## Compile `zkv-relay` and `paratest` nodes
 
@@ -38,10 +40,10 @@ cargo build --release -p paratest-node
         --disable-default-bootnode --raw > staging/raw-parachain-chainspec.json && \
     ./target/release/paratest-node export-genesis-state \
         --chain staging/raw-parachain-chainspec.json \
-        staging/para-2000-genesis-state && \
+        staging/para-genesis-state && \
     ./target/release/paratest-node export-genesis-wasm \
         --chain staging/raw-parachain-chainspec.json \
-        staging/para-2000-wasm
+        staging/para-wasm
 ```
 
 ## Create the docker images for relay chain and parachain nodes
@@ -64,24 +66,40 @@ This compose starts 3 relaychain nodes and 3 parachain nodes:
 - 1 rpc gateway node for relay chain network that expose `9944` port for rpc and `30333` port for p2p
 - 1 rpc gateway node for parachain network that expose `8844` port for rpc and `20333` port for p2p
 
-## Register parachain
+## Start Parachain
 
-Now the complete network is up, and we can register the parachain:
+### By Initialize it
+
+Now the complete network is up, and we can initialize the parachain:
 
 - Point polkadot.js to local chain at `ws://127.0.0.1:9944`
-- Register a parachain-id: _Network_->_Parachains_->On _Parathreads_ tab click on `ParaId` and then submit to register parachain id `2000`
 - Initialize parachain: _Developer_->_Sudo_->`parasSudoWrapper` pallet->`sudoScheduleParaInitialize` and set following data:
-  - `id`: `2000`.
-  - `genesisHead`: Click file upload and upload the genesis state file in `staging/para-2000-genesis-state`.
-  - `validationCode`: Click file upload and upload the WebAssembly runtime file in `staging/para-2000-wasm`.
+  - `id`: `1599`.
+  - `genesisHead`: Click file upload and upload the genesis state file in `staging/para-genesis-state`.
+  - `validationCode`: Click file upload and upload the WebAssembly runtime file in `staging/para-wasm`.
   - `paraKind`: Select `Yes`.
 
-Now just wait (since 2 minutes) and the parchain should start to forge the blocks regularly every 12 seconds.
+Now just wait (since 2 epochs/minutes) and the parchain should start to forge the blocks regularly every 12 seconds.
 
-To see the state go in _Network_->_Parachains_->On _Parathreads_. When the onboarding stage is done
-you'll find a parachain row in _Overview_ tab.
+You can access to the parachain interface to point polkadot.js to `ws://localhost:8844`.
 
-You can access to the parachain interface to point polkadot.js  to `ws://localhost:8844`.
+### By Upgrade Runtime
+
+- Increase the runtime `spec_version` in `runtime/src/lib.rs`
+- Convert parachain genesis state and wasm to binary format:
+  
+  ```sh
+  cat staging/para-genesis-state | scripts/convert_hex_to_bytes.py > runtime/src/paratest_genesis
+  cat staging/para-wasm | scripts/convert_hex_to_bytes.py > runtime/src/paratest_wasm 
+  ```
+
+- Compile the code with `add-parachain-upgrade` feature enable:
+  
+  ```sh
+  cargo build --release -p nh-runtime --features "fast-runtime,add-parachain-upgrade"
+  ```
+
+- Upgrade runtime
 
 ## Extra
 
