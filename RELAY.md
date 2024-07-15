@@ -96,7 +96,7 @@ You can access to the parachain interface to point polkadot.js to `ws://localhos
 - Compile the code with `add-parachain-upgrade` feature enable:
   
   ```sh
-  cargo build --release -p nh-runtime --features "fast-runtime,add-parachain-upgrade"
+  cargo build --release -p zkv-runtime --features "fast-runtime,add-parachain-upgrade"
   ```
 
 - Upgrade runtime
