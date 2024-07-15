@@ -13,8 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nh_runtime::currency::{Balance, ACME};
-use nh_runtime::{currency, AccountId, RuntimeGenesisConfig, SessionKeys, Signature, WASM_BINARY};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use polkadot_primitives::{AssignmentId, ValidatorId};
 use sc_service::{ChainType, Properties};
@@ -24,6 +22,8 @@ use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use telemetry::TelemetryEndpoints;
+use zkv_runtime::currency::{Balance, ACME};
+use zkv_runtime::{currency, AccountId, RuntimeGenesisConfig, SessionKeys, Signature, WASM_BINARY};
 
 // The connection strings for bootnodes
 const BOOTNODE_1_DNS: &str = "bootnode-tn-1.zkverify.io";
@@ -395,7 +395,7 @@ fn genesis(
             "balances": endowed_accounts,
         },
         "babe": {
-            "epochConfig": Some(nh_runtime::BABE_GENESIS_EPOCH_CONFIG),
+            "epochConfig": Some(zkv_runtime::BABE_GENESIS_EPOCH_CONFIG),
         },
         "session": {
             "keys": initial_authorities.iter()

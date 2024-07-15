@@ -8,7 +8,7 @@ license = "GPL-3.0"
 description = "Utils to tie different ZkVerify Realy chain components together and allow instantiation of a node."
 
 [dependencies]
-nh-runtime = { workspace = true, features = ["std"] }
+zkv-runtime = { workspace = true, features = ["std"] }
 native = { workspace = true, features = ["std"] }
 hp-poe = { workspace = true, features = ["std"] }
 
@@ -203,7 +203,7 @@ try-runtime = [
 	"polkadot-runtime-parachains/try-runtime",
 ]
 
-fast-runtime = ["nh-runtime/fast-runtime"]
+fast-runtime = ["zkv-runtime/fast-runtime"]
 
 malus = ["full-node"]
 runtime-metrics = ["polkadot-runtime-parachains/runtime-metrics"]

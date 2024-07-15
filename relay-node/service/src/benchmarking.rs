@@ -35,7 +35,7 @@ macro_rules! identify_chain {
 	) => {
         match $chain {
             Chain::ZkvTestnet => {
-                use nh_runtime as runtime;
+                use zkv_runtime as runtime;
 
                 let call = $generic_code;
 
@@ -163,7 +163,7 @@ impl frame_benchmarking_cli::ExtrinsicBuilder for TransferKeepAliveBuilder {
 }
 
 fn sign_call(
-    call: nh_runtime::RuntimeCall,
+    call: zkv_runtime::RuntimeCall,
     nonce: u32,
     current_block: u64,
     period: u64,
@@ -171,8 +171,8 @@ fn sign_call(
     acc: sp_core::sr25519::Pair,
 ) -> OpaqueExtrinsic {
     use codec::Encode;
-    use nh_runtime as runtime;
     use sp_core::Pair;
+    use zkv_runtime as runtime;
 
     let extra: runtime::SignedExtra = (
         frame_system::CheckNonZeroSender::<runtime::Runtime>::new(),

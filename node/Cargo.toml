@@ -64,7 +64,7 @@ substrate-frame-rpc-system = { workspace = true }
 pallet-transaction-payment-rpc = { workspace = true }
 frame-benchmarking = { workspace = true }
 frame-benchmarking-cli = { workspace = true }
-nh-runtime = { workspace = true, features = ["std"] }
+zkv-runtime = { workspace = true, features = ["std"] }
 hp-poe = { workspace = true, features = ["std"] }
 proof-of-existence-rpc = { workspace = true, features = ["std"] }
 native = { workspace = true, features = ["std"] }
