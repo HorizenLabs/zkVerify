@@ -53,10 +53,10 @@ if [ -n "${docker_tag_full:-}" ]; then
 
   # Docker image(s) tags for PROD vs DEV release
   if [ "${prod_release}" = "true" ]; then
-    docker_tag_node=$(cut -d'-' -f1 <<< $docker_tag_full)
+    docker_tag_node="$(cut -d '-' -f1 <<< "${docker_tag_full}")"
     publish_tags=("${docker_tag_full}" "${docker_tag_node}" "latest")
   elif [ "${dev_release}" = "true" ]; then
-        docker_tag_node=$(cut -d'-' -f1 <<< $docker_tag_full)-$(cut -d'-' -f3- <<< $docker_tag_full)
+    docker_tag_node="$(cut -d '-' -f1 <<< "${docker_tag_full}")-$(cut -d '-' -f3- <<< "${docker_tag_full}")"
     publish_tags=("${docker_tag_full}" "${docker_tag_node}")
   elif [ "${test_release}" = "true" ]; then
     publish_tags=("${docker_tag_full}")

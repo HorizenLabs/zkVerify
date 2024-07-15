@@ -77,8 +77,6 @@ if git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${release_bra
 
   # Release test
   if [ "${IS_A_RELEASE}" = "true" ]; then
-    # Checking if github tag was created from release/* (release/1.1.1 and etc) branch
-    release_name="$(cut -d '/' -f3 <<< "${derived_from_branch}")"
     if [[ "${github_tag}" =~ ${prod_release_regex} ]]; then
       export PROD_RELEASE="true"
     elif [[ "${github_tag}" =~ ${dev_release_regex} ]]; then
@@ -86,7 +84,7 @@ if git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${release_bra
     elif [[ "${github_tag}" =~ ${test_release_regex} ]] && ! [[ "${github_tag}" =~ -rc ]]; then
       export TEST_RELEASE="true"
     else
-      log_warn "WARNING: GitHub tag: ${github_tag} is in the wrong format for PRODUCTION, DEVELOPMENT or TEST release. Expecting the following format for the release: PRODUCTION = 'd.d.d' | DEVELOPMENT = 'd.d.d-rc[0-9]' | TEST = 'd.d.d-*'. The build is not going to be released ..."
+      log_warn "WARNING: GitHub tag: ${github_tag} is in the wrong format for PRODUCTION, DEVELOPMENT or TEST release. Expecting the following format for the release: PRODUCTION = 'd.d.d-d.d.d' | DEVELOPMENT = 'd.d.d-d.d.d-rc[0-9]' | TEST = 'd.d.d-d.d.d-*'. The build is not going to be released ..."
       export IS_A_RELEASE="false"
     fi
   fi
