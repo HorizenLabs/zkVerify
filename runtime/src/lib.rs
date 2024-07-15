@@ -219,7 +219,7 @@ impl parachains_inclusion::Config for Runtime {
     // type MessageQueue = MessageQueue;
     type MessageQueue = ();
     // type WeightInfo = weights::runtime_parachains_inclusion::WeightInfo<Runtime>;
-    type WeightInfo = parachains_inclusion::TestWeightInfo;
+    type WeightInfo = ();
 }
 
 parameter_types! {
