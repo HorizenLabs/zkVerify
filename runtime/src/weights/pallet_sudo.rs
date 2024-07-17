@@ -22,7 +22,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("dev")`, DB CACHE: `1024`
 
 // Executed Command:
-// /usr/local/bin/nh-node
+// /usr/local/bin/zkv-node
 // benchmark
 // pallet
 // --chain
@@ -41,7 +41,7 @@
 // --output
 // /data/benchmark/runtime/src/weights/pallet_sudo.rs
 // --template
-// /data/benchmark/node/hl-deploy-weight-template.hbs
+// /data/benchmark/node/zkv-deploy-weight-template.hbs
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
@@ -52,9 +52,9 @@ use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weights for `pallet_sudo` using the New Horizen node and recommended hardware.
-pub struct NHWeight<T>(PhantomData<T>);
+pub struct ZKVWeight<T>(PhantomData<T>);
 
-impl<T: frame_system::Config> pallet_sudo::WeightInfo for NHWeight<T> {
+impl<T: frame_system::Config> pallet_sudo::WeightInfo for ZKVWeight<T> {
     /// Storage: `Sudo::Key` (r:1 w:1)
     /// Proof: `Sudo::Key` (`max_values`: Some(1), `max_size`: Some(32), added: 527, mode: `MaxEncodedLen`)
     fn set_key() -> Weight {

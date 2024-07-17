@@ -22,7 +22,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("dev")`, DB CACHE: `1024`
 
 // Executed Command:
-// /usr/local/bin/nh-node
+// /usr/local/bin/zkv-node
 // benchmark
 // pallet
 // --chain
@@ -41,7 +41,7 @@
 // --output
 // /data/benchmark/runtime/src/weights/pallet_preimage.rs
 // --template
-// /data/benchmark/node/hl-deploy-weight-template.hbs
+// /data/benchmark/node/zkv-deploy-weight-template.hbs
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
@@ -52,9 +52,9 @@ use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weights for `pallet_preimage` using the New Horizen node and recommended hardware.
-pub struct NHWeight<T>(PhantomData<T>);
+pub struct ZKVWeight<T>(PhantomData<T>);
 
-impl<T: frame_system::Config> pallet_preimage::WeightInfo for NHWeight<T> {
+impl<T: frame_system::Config> pallet_preimage::WeightInfo for ZKVWeight<T> {
     /// Storage: `Preimage::StatusFor` (r:1 w:0)
     /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(91), added: 2566, mode: `MaxEncodedLen`)
     /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)

@@ -13,8 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nh_runtime::currency::{Balance, ACME};
-use nh_runtime::{currency, AccountId, RuntimeGenesisConfig, SessionKeys, Signature, WASM_BINARY};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_service::{ChainType, Properties};
 use sc_telemetry::TelemetryEndpoints;
@@ -22,6 +20,8 @@ use sp_consensus_babe::AuthorityId as BabeId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
+use zkv_runtime::currency::{Balance, ACME};
+use zkv_runtime::{currency, AccountId, RuntimeGenesisConfig, SessionKeys, Signature, WASM_BINARY};
 
 // The connection strings for bootnodes
 const BOOTNODE_1_DNS: &str = "bootnode-tn-1.zkverify.io";
@@ -153,8 +153,8 @@ pub fn local_config() -> Result<ChainSpec, String> {
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
         None,
     )
-    .with_name("NH Local")
-    .with_id("nh_local")
+    .with_name("ZKV Local")
+    .with_id("zkv_local")
     .with_protocol_id("lacme")
     .with_chain_type(ChainType::Local)
     .with_properties({
@@ -193,8 +193,8 @@ pub fn testnet_config_build() -> Result<ChainSpec, String> {
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
         None,
     )
-    .with_name("NH Testnet")
-    .with_id("nh_testnet")
+    .with_name("ZKV Testnet")
+    .with_id("zkv_testnet")
     .with_protocol_id("tacme")
     .with_chain_type(ChainType::Live)
     .with_boot_nodes(vec![
@@ -233,7 +233,7 @@ pub fn testnet_config_build() -> Result<ChainSpec, String> {
     .with_genesis_config_patch(genesis(
         // Initial PoA authorities
         vec![
-            // nh-validator-t1
+            // zkv-validator-t1
             (
                 authority_ids_from_ss58(
                     "5ETuZEyLnfVzQCaDM8aQCcsNnz6xjPKvQCtqynCLqwng8QLd",
@@ -241,7 +241,7 @@ pub fn testnet_config_build() -> Result<ChainSpec, String> {
                 )?,
                 280 * currency::MILLIONS,
             ),
-            // nh-validator-t2
+            // zkv-validator-t2
             (
                 authority_ids_from_ss58(
                     "5D29UEzgStCBTnjKNdkurDNvd3FHePHgTkPEUvjXYvg3brJj",
@@ -249,7 +249,7 @@ pub fn testnet_config_build() -> Result<ChainSpec, String> {
                 )?,
                 280 * currency::MILLIONS,
             ),
-            // nh-validator-t3
+            // zkv-validator-t3
             (
                 authority_ids_from_ss58(
                     "5DiMVAp8WmFyWAwaTwAr7sU4K3brXcgNCBDbHoBWj3M46PiP",
@@ -258,60 +258,60 @@ pub fn testnet_config_build() -> Result<ChainSpec, String> {
                 140 * currency::MILLIONS,
             ),
         ],
-        // Sudo account [nh-sudo-t1]
+        // Sudo account [zkv-sudo-t1]
         from_ss58check("5D9txxK9DTvgCznTjJo7q1cxAgmWa83CzHvcz8zhBtLgaLBV")
             .map_err(|error| error.to_string())?,
         // Initial balances
         vec![
-            // nh-validator-t1
+            // zkv-validator-t1
             (
                 from_ss58check("5ETuZEyLnfVzQCaDM8aQCcsNnz6xjPKvQCtqynCLqwng8QLd")
                     .map_err(|error| error.to_string())?,
                 280 * currency::MILLIONS + 1000 * currency::ACME,
             ),
-            // nh-validator-t2
+            // zkv-validator-t2
             (
                 from_ss58check("5D29UEzgStCBTnjKNdkurDNvd3FHePHgTkPEUvjXYvg3brJj")
                     .map_err(|error| error.to_string())?,
                 280 * currency::MILLIONS + 1000 * currency::ACME,
             ),
-            // nh-validator-t3
+            // zkv-validator-t3
             (
                 from_ss58check("5DiMVAp8WmFyWAwaTwAr7sU4K3brXcgNCBDbHoBWj3M46PiP")
                     .map_err(|error| error.to_string())?,
                 140 * currency::MILLIONS + 1000 * currency::ACME,
             ),
-            // nh-sudo-t1
+            // zkv-sudo-t1
             (
                 from_ss58check("5EhREncHsntgJaax9YQphk1xN3LxPu2Rzbz4A3g7Ut8cRXWq")
                     .map_err(|error| error.to_string())?,
                 7 * currency::MILLIONS,
             ),
-            // nh-wallet-custody-t1
+            // zkv-wallet-custody-t1
             (
                 from_ss58check("5C84NU2477uHCUF1A8rHb89sP2D2ZsnquPaGa2Htv75FN9gm")
                     .map_err(|error| error.to_string())?,
                 70 * currency::MILLIONS,
             ),
-            // nh-wallet-custody-t2
+            // zkv-wallet-custody-t2
             (
                 from_ss58check("5HdZjrmNAkWQhYQUPNv7YRYnT4vyQswjbNm8eXBvULNQz5wH")
                     .map_err(|error| error.to_string())?,
                 70 * currency::MILLIONS,
             ),
-            // nh-wallet-automated-t1
+            // zkv-wallet-automated-t1
             (
                 from_ss58check("5HjFLKpiCStQgRm6ZM1fT1R5pLKAqQdUG3uh7pvzaQfhdFuB")
                     .map_err(|error| error.to_string())?,
                 35 * currency::MILLIONS,
             ),
-            // nh-wallet-user-t1
+            // zkv-wallet-user-t1
             (
                 from_ss58check("5ECktCamcAtBFJirEzvvJmXFxgLMCTAejhqZwLT1Dxn2fwB1")
                     .map_err(|error| error.to_string())?,
                 7 * currency::MILLIONS,
             ),
-            // nh-wallet-faucet-t1
+            // zkv-wallet-faucet-t1
             (
                 from_ss58check("5EZbvFqx3j7ejqBSPWseif8xL3PwoqMQHdMT8rs9qWoHcdR3")
                     .map_err(|error| error.to_string())?,
@@ -336,7 +336,7 @@ fn genesis(
             "balances": endowed_accounts,
         },
         "babe": {
-            "epochConfig": Some(nh_runtime::BABE_GENESIS_EPOCH_CONFIG),
+            "epochConfig": Some(zkv_runtime::BABE_GENESIS_EPOCH_CONFIG),
         },
         "session": {
             "keys": initial_authorities.iter()

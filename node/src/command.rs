@@ -21,14 +21,14 @@ use crate::{
 };
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory};
 use native::HLNativeHostFunctions;
-use nh_runtime::{Block, EXISTENTIAL_DEPOSIT};
 use sc_cli::SubstrateCli;
 use sc_service::PartialComponents;
 use sp_keyring::Sr25519Keyring;
+use zkv_runtime::{Block, EXISTENTIAL_DEPOSIT};
 
 impl SubstrateCli for Cli {
     fn impl_name() -> String {
-        "New Horizen Mainchain Node".into()
+        "zkVerify Mainchain Node".into()
     }
 
     fn impl_version() -> String {
@@ -203,7 +203,7 @@ pub fn run() -> sc_cli::Result<()> {
                         cmd.run(client, inherent_benchmark_data()?, Vec::new(), &ext_factory)
                     }
                     BenchmarkCmd::Machine(cmd) => {
-                        cmd.run(&config, crate::hardware::nh_reference_hardware().clone())
+                        cmd.run(&config, crate::hardware::zkv_reference_hardware().clone())
                     }
                 }
             })

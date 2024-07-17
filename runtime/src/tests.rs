@@ -307,7 +307,7 @@ mod use_correct_weights {
 
         assert_eq!(
             <Runtime as frame_system::Config>::SystemWeightInfo::set_heap_pages(),
-            crate::weights::frame_system::NHWeight::<Runtime>::set_heap_pages()
+            crate::weights::frame_system::ZKVWeight::<Runtime>::set_heap_pages()
         );
     }
 
@@ -317,7 +317,7 @@ mod use_correct_weights {
 
         assert_eq!(
             <Runtime as pallet_balances::Config>::WeightInfo::transfer_allow_death(),
-            crate::weights::pallet_balances::NHWeight::<Runtime>::transfer_allow_death()
+            crate::weights::pallet_balances::ZKVWeight::<Runtime>::transfer_allow_death()
         );
     }
 
@@ -327,7 +327,7 @@ mod use_correct_weights {
 
         assert_eq!(
             <Runtime as pallet_sudo::Config>::WeightInfo::sudo(),
-            crate::weights::pallet_sudo::NHWeight::<Runtime>::sudo()
+            crate::weights::pallet_sudo::ZKVWeight::<Runtime>::sudo()
         );
     }
 
@@ -337,7 +337,7 @@ mod use_correct_weights {
 
         assert_eq!(
             <Runtime as pallet_multisig::Config>::WeightInfo::as_multi_approve(3, 100),
-            crate::weights::pallet_multisig::NHWeight::<Runtime>::as_multi_approve(3, 100)
+            crate::weights::pallet_multisig::ZKVWeight::<Runtime>::as_multi_approve(3, 100)
         );
     }
 
@@ -347,7 +347,7 @@ mod use_correct_weights {
 
         assert_eq!(
             <Runtime as pallet_preimage::Config>::WeightInfo::note_preimage(100),
-            crate::weights::pallet_preimage::NHWeight::<Runtime>::note_preimage(100)
+            crate::weights::pallet_preimage::ZKVWeight::<Runtime>::note_preimage(100)
         );
     }
 
@@ -357,7 +357,7 @@ mod use_correct_weights {
 
         assert_eq!(
             <Runtime as pallet_scheduler::Config>::WeightInfo::schedule(10),
-            crate::weights::pallet_scheduler::NHWeight::<Runtime>::schedule(10)
+            crate::weights::pallet_scheduler::ZKVWeight::<Runtime>::schedule(10)
         );
     }
 
@@ -367,7 +367,7 @@ mod use_correct_weights {
 
         assert_eq!(
             <Runtime as pallet_timestamp::Config>::WeightInfo::set(),
-            crate::weights::pallet_timestamp::NHWeight::<Runtime>::set()
+            crate::weights::pallet_timestamp::ZKVWeight::<Runtime>::set()
         );
     }
 
@@ -377,7 +377,7 @@ mod use_correct_weights {
 
         assert_eq!(
             <Runtime as pallet_im_online::Config>::WeightInfo::validate_unsigned_and_then_heartbeat(42),
-            crate::weights::pallet_im_online::NHWeight::<Runtime>::validate_unsigned_and_then_heartbeat(42)
+            crate::weights::pallet_im_online::ZKVWeight::<Runtime>::validate_unsigned_and_then_heartbeat(42)
         );
     }
 
@@ -393,7 +393,7 @@ mod use_correct_weights {
                 &dummy_proof,
                 &dummy_pubs
             ),
-            crate::weights::pallet_fflonk_verifier::NHWeight::<Runtime>::submit_proof()
+            crate::weights::pallet_fflonk_verifier::ZKVWeight::<Runtime>::submit_proof()
         );
     }
 
@@ -409,7 +409,7 @@ mod use_correct_weights {
                 &dummy_proof,
                 &dummy_pubs
             ),
-            crate::weights::pallet_zksync_verifier::NHWeight::<Runtime>::submit_proof()
+            crate::weights::pallet_zksync_verifier::ZKVWeight::<Runtime>::submit_proof()
         );
     }
 
@@ -425,7 +425,7 @@ mod use_correct_weights {
                 &pallet_groth16_verifier::Proof::default(),
                 &Vec::new()
             ),
-            crate::weights::pallet_groth16_verifier::NHWeight::<Runtime>::submit_proof_bn254(0)
+            crate::weights::pallet_groth16_verifier::ZKVWeight::<Runtime>::submit_proof_bn254(0)
         );
     }
 
@@ -441,7 +441,7 @@ mod use_correct_weights {
                 &Vec::new(),
                 &Vec::new()
             ),
-            crate::weights::pallet_risc0_verifier::NHWeight::<Runtime>::submit_proof()
+            crate::weights::pallet_risc0_verifier::ZKVWeight::<Runtime>::submit_proof()
         );
     }
 
@@ -451,7 +451,7 @@ mod use_correct_weights {
 
         assert_eq!(
             <Runtime as pallet_poe::Config>::WeightInfo::publish_attestation(),
-            crate::weights::pallet_poe::NHWeight::<Runtime>::publish_attestation()
+            crate::weights::pallet_poe::ZKVWeight::<Runtime>::publish_attestation()
         );
     }
 }

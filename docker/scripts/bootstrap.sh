@@ -9,7 +9,7 @@ CARGO=${SCRIPTS}/my_cargo
 # Build rbuilder
 echo "----------------------------------------------------------"
 echo "Building rbuilder"
-docker build -f ${DOCKERS}/hl-builder.Dockerfile -t rbuilder ${PROJECT_ROOT}
+docker build -f ${DOCKERS}/zkv-builder.Dockerfile -t rbuilder ${PROJECT_ROOT}
 
 # Compile node
 echo "----------------------------------------------------------"

@@ -22,7 +22,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("dev")`, DB CACHE: `1024`
 
 // Executed Command:
-// /usr/local/bin/nh-node
+// /usr/local/bin/zkv-node
 // benchmark
 // pallet
 // --chain
@@ -41,7 +41,7 @@
 // --output
 // /data/benchmark/runtime/src/weights/pallet_fflonk_verifier.rs
 // --template
-// /data/benchmark/node/hl-deploy-weight-template.hbs
+// /data/benchmark/node/zkv-deploy-weight-template.hbs
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
@@ -52,9 +52,9 @@ use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weights for `pallet_fflonk_verifier` using the New Horizen node and recommended hardware.
-pub struct NHWeight<T>(PhantomData<T>);
+pub struct ZKVWeight<T>(PhantomData<T>);
 
-impl<T: frame_system::Config> pallet_fflonk_verifier::WeightInfo for NHWeight<T> {
+impl<T: frame_system::Config> pallet_fflonk_verifier::WeightInfo for ZKVWeight<T> {
     /// Storage: `Poe::NextAttestation` (r:1 w:0)
     /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     /// Storage: `Poe::Values` (r:1 w:1)

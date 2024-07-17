@@ -23,7 +23,7 @@
 //! WEIGHT-METRIC: `Average`, WEIGHT-MUL: `1.0`, WEIGHT-ADD: `0`
 
 // Executed Command:
-//   /usr/local/bin/nh-node
+//   /usr/local/bin/zkv-node
 //   benchmark
 //   overhead
 //   --chain=dev

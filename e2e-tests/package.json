@@ -1,5 +1,5 @@
 {
-  "name": "New_Horizen_NH-node_end-to-end_tests",
+  "name": "zkVerify_ZKV-node_end-to-end_tests",
   "version": "0.0.1",
   "author": "HorizenLabs' Mainchain team",
   "dependencies": {
