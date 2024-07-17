@@ -8023,27 +8023,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-xcm"
-version = "6.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76c4eb9211a13bffe31ba0555c382b2e377213ccf7bfd800b115e222cb349142"
-dependencies = [
- "bounded-collections 0.1.9",
- "frame-support 27.0.0",
- "frame-system 27.0.0",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core 27.0.0",
- "sp-io 29.0.0",
- "sp-runtime 30.0.1",
- "sp-std 13.0.0",
- "staging-xcm",
- "staging-xcm-builder",
- "staging-xcm-executor",
-]
-
-[[package]]
 name = "pallet-xcm-benchmarks"
 version = "6.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -18006,7 +17985,6 @@ dependencies = [
  "pallet-grandpa",
  "pallet-groth16-verifier",
  "pallet-im-online",
- "pallet-message-queue",
  "pallet-multisig",
  "pallet-offences",
  "pallet-poe",
@@ -18028,7 +18006,6 @@ dependencies = [
  "pallet-verifiers",
  "pallet-vesting 32.0.0",
  "pallet-whitelist",
- "pallet-xcm",
  "pallet-zksync-verifier",
  "parity-scale-codec",
  "polkadot-primitives",
@@ -18055,9 +18032,6 @@ dependencies = [
  "sp-transaction-pool 30.0.0",
  "sp-version 33.0.0",
  "sp-weights 31.0.0",
- "staging-xcm",
- "staging-xcm-builder",
- "staging-xcm-executor",
  "static_assertions",
  "substrate-wasm-builder 21.0.0",
 ]
