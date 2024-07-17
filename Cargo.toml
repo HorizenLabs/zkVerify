@@ -30,8 +30,7 @@ members = [
     "paratest/node",
     "paratest/pallets/template",
 ]
-
-default-members = ["node", "relay-node"]
+default-members = ["node"]
 
 [workspace.dependencies]
 clap = { version = "4.4.10", features = ["derive"] }
