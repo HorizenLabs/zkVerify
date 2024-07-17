@@ -83,19 +83,19 @@ pallet-groth16-verifier = { workspace = true }
 pallet-risc0-verifier = { workspace = true }
 pallet-ultraplonk-verifier = { workspace = true }
 
-authority-discovery-primitives = { package = "sp-authority-discovery", version = "25.0.0", default-features = false }
+authority-discovery-primitives = { package = "sp-authority-discovery", version = "25.0.0", default-features = false, optional = true }
 
-polkadot-primitives = { version = "6.0.0", default-features = false }
-polkadot-runtime-parachains = { version = "6.0.0", default-features = false }
-pallet-authority-discovery = { version = "27.0.0", default-features = false }
+polkadot-primitives = { version = "6.0.0", default-features = false, optional = true }
+polkadot-runtime-parachains = { version = "6.0.0", default-features = false, optional = true }
+pallet-authority-discovery = { version = "27.0.0", default-features = false, optional = true }
 
-polkadot-runtime-common = { version = "6.0.0", default-features = false }
+polkadot-runtime-common = { version = "6.0.0", default-features = false, optional = true }
 
-pallet-message-queue = { version = "30.0.0", default-features = false }
-xcm = { package = "staging-xcm", version = "6.0.0", default-features = false }
-xcm-executor = { package = "staging-xcm-executor", version = "6.0.2", default-features = false }
-xcm-builder = { package = "staging-xcm-builder", version = "6.0.2", default-features = false }
-pallet-xcm = { version = "6.0.0", default-features = false }
+# pallet-message-queue = { version = "30.0.0", default-features = false }
+# xcm = { package = "staging-xcm", version = "6.0.0", default-features = false }
+# xcm-executor = { package = "staging-xcm-executor", version = "6.0.2", default-features = false }
+# xcm-builder = { package = "staging-xcm-builder", version = "6.0.2", default-features = false }
+# pallet-xcm = { version = "6.0.0", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -130,13 +130,19 @@ runtime-benchmarks = [
 	"pallet-groth16-verifier/runtime-benchmarks",
 	"pallet-risc0-verifier/runtime-benchmarks",
 	"pallet-ultraplonk-verifier/runtime-benchmarks",
-	"polkadot-primitives/runtime-benchmarks",
-	"polkadot-runtime-parachains/runtime-benchmarks",
-	"polkadot-runtime-common/runtime-benchmarks",
-	"pallet-message-queue/runtime-benchmarks",
+	"polkadot-primitives?/runtime-benchmarks",
+	"polkadot-runtime-parachains?/runtime-benchmarks",
+	"polkadot-runtime-common?/runtime-benchmarks",
 ]
 fast-runtime = []
-add-parachain-upgrade = []
+relay = [
+	"dep:polkadot-primitives",
+	"dep:polkadot-runtime-parachains",
+	"dep:pallet-authority-discovery",
+	"dep:authority-discovery-primitives",
+	"dep:polkadot-runtime-common",
+]
+add-parachain-upgrade = ["relay"]
 default = ["std"]
 std = [
 	"codec/std",
@@ -197,12 +203,11 @@ std = [
 	"pallet-ultraplonk-verifier/std",
 	"hp-verifiers/std",
 	"substrate-wasm-builder",
-	"polkadot-primitives/std",
-	"polkadot-runtime-parachains/std",
-	"pallet-authority-discovery/std",
-	"authority-discovery-primitives/std",
-	"polkadot-runtime-common/std",
-	"pallet-message-queue/std",
+	"polkadot-primitives?/std",
+	"polkadot-runtime-parachains?/std",
+	"pallet-authority-discovery?/std",
+	"authority-discovery-primitives?/std",
+	"polkadot-runtime-common?/std",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",
@@ -231,8 +236,7 @@ try-runtime = [
 	"pallet-poe/try-runtime",
 	"sp-runtime/try-runtime",
 	"pallet-verifiers/try-runtime",
-	"polkadot-runtime-parachains/try-runtime",
-	"pallet-authority-discovery/try-runtime",
-	"polkadot-runtime-common/try-runtime",
-	"pallet-message-queue/try-runtime",
+	"polkadot-runtime-parachains?/try-runtime",
+	"pallet-authority-discovery?/try-runtime",
+	"polkadot-runtime-common?/try-runtime",
 ]
