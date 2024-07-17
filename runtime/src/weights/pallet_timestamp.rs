@@ -22,7 +22,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("dev")`, DB CACHE: `1024`
 
 // Executed Command:
-// /usr/local/bin/nh-node
+// /usr/local/bin/zkv-node
 // benchmark
 // pallet
 // --chain
@@ -41,7 +41,7 @@
 // --output
 // /data/benchmark/runtime/src/weights/pallet_timestamp.rs
 // --template
-// /data/benchmark/node/hl-deploy-weight-template.hbs
+// /data/benchmark/node/zkv-deploy-weight-template.hbs
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]

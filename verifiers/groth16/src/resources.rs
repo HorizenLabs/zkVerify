@@ -1,5 +1,4 @@
-// Copyright 2024, The Horizen Foundation
-
+// Copyright 2024, Horizen Labs, Inc.
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or

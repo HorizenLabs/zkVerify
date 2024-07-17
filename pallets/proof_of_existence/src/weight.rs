@@ -41,7 +41,7 @@
 // --output
 // pallets/proof_of_existence/src/weight.rs
 // --template
-// /home/mdamico/devel/ZKV-core/node/hl-pallets-weight-template.hbs
+// /home/mdamico/devel/ZKV-core/node/zkv-pallets-weight-template.hbs
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]

@@ -22,7 +22,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("dev")`, DB CACHE: `1024`
 
 // Executed Command:
-// /home/mdamico/devel/NH-core/target/production/nh-node
+// /home/mdamico/devel/zkVerify/target/production/zkv-node
 // benchmark
 // pallet
 // --chain
@@ -37,11 +37,11 @@
 // 20
 // --heap-pages=4096
 // --header
-// /home/mdamico/devel/NH-core/HEADER-APACHE2
+// /home/mdamico/devel/zkVerify/HEADER-APACHE2
 // --output
 // verifiers/zksync/src/weight.rs
 // --template
-// /home/mdamico/devel/NH-core/node/hl-pallets-weight-template.hbs
+// /home/mdamico/devel/zkVerify/node/zkv-pallets-weight-template.hbs
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]

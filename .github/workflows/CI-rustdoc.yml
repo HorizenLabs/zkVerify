@@ -49,7 +49,7 @@ jobs:
       - name: Redirect index.html
         run: |
           ${{ env.DOCKER_COMPOSE_CMD }} sh -c '
-            echo "<meta http-equiv=\"refresh\" content=\"0; url=nh_node/index.html\">" > ${{ env.DOCKER_BUILD_DIR }}/target/doc/index.html
+            echo "<meta http-equiv=\"refresh\" content=\"0; url=zkv_node/index.html\">" > ${{ env.DOCKER_BUILD_DIR }}/target/doc/index.html
           '
 
       - name: Upload documentation
