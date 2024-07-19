@@ -30,6 +30,9 @@ pallet-sudo = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-scheduler = { workspace = true }
 pallet-preimage = { workspace = true }
+pallet-referenda = { workspace = true }
+pallet-whitelist = { workspace = true }
+pallet-conviction-voting = { workspace = true }
 frame-system = { workspace = true }
 frame-try-runtime = { workspace = true, optional = true }
 pallet-timestamp = { workspace = true }
@@ -98,6 +101,9 @@ runtime-benchmarks = [
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
+	"pallet-referenda/runtime-benchmarks",
+	"pallet-whitelist/runtime-benchmarks",
+	"pallet-conviction-voting/runtime-benchmarks",
 	"pallet-session-benchmarking/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-poe/runtime-benchmarks",
@@ -133,6 +139,9 @@ std = [
 	"pallet-multisig/std",
 	"pallet-scheduler/std",
 	"pallet-preimage/std",
+	"pallet-referenda/std",
+	"pallet-whitelist/std",
+	"pallet-conviction-voting/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
@@ -184,6 +193,9 @@ try-runtime = [
 	"pallet-multisig/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-preimage/try-runtime",
+	"pallet-referenda/try-runtime",
+	"pallet-whitelist/try-runtime",
+	"pallet-conviction-voting/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-verifiers/try-runtime",

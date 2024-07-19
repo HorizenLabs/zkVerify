@@ -17,6 +17,8 @@ use super::*;
 
 use codec::Encode;
 use frame_support::dispatch::GetDispatchInfo;
+use frame_support::traits::schedule::DispatchTime;
+use frame_support::traits::StorePreimage;
 use frame_support::{
     assert_ok,
     traits::{
@@ -25,10 +27,12 @@ use frame_support::{
     },
 };
 use frame_system::{EventRecord, Phase};
+use pallet_conviction_voting::{AccountVote, Vote};
 use pallet_verifiers::VkOrHash;
 use sp_consensus_babe::{Slot, BABE_ENGINE_ID};
 use sp_core::crypto::VrfSecret;
 use sp_core::{Pair, Public, H256};
+use sp_runtime::traits::Hash;
 use sp_runtime::{AccountId32, Digest, DigestItem, MultiAddress};
 use sp_staking::{offence, offence::ReportOffence, Exposure, SessionIndex};
 
@@ -237,6 +241,57 @@ fn pallet_scheduler_availability() {
     });
 }
 
+fn aye(amount: Balance, conviction: u8) -> AccountVote<Balance> {
+    let vote = Vote {
+        aye: true,
+        conviction: conviction.try_into().unwrap(),
+    };
+    AccountVote::Standard {
+        vote,
+        balance: amount,
+    }
+}
+#[test]
+fn pallet_referenda_and_conviction_voting_availability() {
+    new_test_ext().execute_with(|| {
+        let call = RuntimeCall::Balances(BalancesCall::transfer_allow_death {
+            dest: MultiAddress::Id(testsfixtures::SAMPLE_USERS[1].raw_account.into()),
+            value: 5000 * currency::ACME,
+        });
+        let proposal = <Preimage as StorePreimage>::bound(call).unwrap();
+
+        let origin = RuntimeOrigin::signed(testsfixtures::SAMPLE_USERS[1].raw_account.into());
+        let proposal_origin = Box::new(frame_system::RawOrigin::Root.into());
+        let enactment_moment = DispatchTime::At(10);
+
+        assert_ok!(Referenda::submit(
+            origin,
+            proposal_origin,
+            proposal,
+            enactment_moment
+        ));
+
+        let origin = RuntimeOrigin::signed(testsfixtures::SAMPLE_USERS[1].raw_account.into());
+        assert_ok!(ConvictionVoting::vote(origin, 0, aye(10_u128, 0)));
+    });
+}
+
+#[test]
+fn pallet_whitelist_availability() {
+    new_test_ext().execute_with(|| {
+        let origin = RuntimeOrigin::root();
+        let call = RuntimeCall::Balances(BalancesCall::transfer_allow_death {
+            dest: MultiAddress::Id(testsfixtures::SAMPLE_USERS[1].raw_account.into()),
+            value: 5000 * currency::ACME,
+        });
+
+        let encoded_call = call.encode();
+        let call_hash = <Runtime as frame_system::Config>::Hashing::hash_of(&encoded_call);
+
+        assert_ok!(Whitelist::whitelist_call(origin, call_hash));
+    });
+}
+
 #[test]
 fn pallet_zksync_availability() {
     new_test_ext().execute_with(|| {
@@ -358,6 +413,36 @@ mod use_correct_weights {
         assert_eq!(
             <Runtime as pallet_scheduler::Config>::WeightInfo::schedule(10),
             crate::weights::pallet_scheduler::ZKVWeight::<Runtime>::schedule(10)
+        );
+    }
+
+    #[test]
+    fn pallet_referenda() {
+        use pallet_referenda::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_referenda::Config>::WeightInfo::submit(),
+            crate::weights::pallet_referenda::NHWeight::<Runtime>::submit()
+        );
+    }
+
+    #[test]
+    fn pallet_whitelist() {
+        use pallet_whitelist::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_whitelist::Config>::WeightInfo::whitelist_call(),
+            crate::weights::pallet_whitelist::NHWeight::<Runtime>::whitelist_call()
+        );
+    }
+
+    #[test]
+    fn pallet_conviction_voting() {
+        use pallet_conviction_voting::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_conviction_voting::Config>::WeightInfo::vote_new(),
+            crate::weights::pallet_conviction_voting::NHWeight::<Runtime>::vote_new()
         );
     }
 
