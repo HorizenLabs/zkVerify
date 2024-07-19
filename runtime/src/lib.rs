@@ -83,7 +83,6 @@ use governance::pallet_custom_origins;
 #[cfg(test)]
 mod tests;
 mod weights;
-// mod xcm_config;
 
 /// An index to a block.
 pub type BlockNumber = u32;
