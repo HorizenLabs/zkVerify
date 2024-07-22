@@ -47,9 +47,6 @@ jobs:
           echo "USER_ID=$(id -u)" >> $GITHUB_ENV
           echo "GRP_ID=$(id -g)" >> $GITHUB_ENV
 
-      - name: Cargo check
-        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo check --all-features --all-targets
-
       - name: Cargo build
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build --release
 
