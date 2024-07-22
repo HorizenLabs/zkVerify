@@ -319,10 +319,10 @@ echo {}
 			);
 
 			// Try with provided workers path that has non-executable binaries.
-			let prepare_worker_path = given_workers_path.join("polkadot-prepare-worker");
+			let prepare_worker_path = given_workers_path.join("zkv-relay-prepare-worker");
 			write_worker_exe(&prepare_worker_path)?;
 			fs::set_permissions(&prepare_worker_path, fs::Permissions::from_mode(0o644))?;
-			let execute_worker_path = given_workers_path.join("polkadot-execute-worker");
+			let execute_worker_path = given_workers_path.join("zkv-relay-execute-worker");
 			write_worker_exe(&execute_worker_path)?;
 			fs::set_permissions(&execute_worker_path, fs::Permissions::from_mode(0o644))?;
 			assert_matches!(
@@ -362,7 +362,7 @@ echo {}
 			);
 
 			// Try with only prep worker (at bin location).
-			let prepare_worker_path = tempdir.join("usr/bin/polkadot-prepare-worker");
+			let prepare_worker_path = tempdir.join("usr/bin/zkv-relay-prepare-worker");
 			write_worker_exe(&prepare_worker_path)?;
 			assert_matches!(
 				determine_workers_paths(None, None, Some(TEST_NODE_VERSION.into())),
@@ -371,7 +371,7 @@ echo {}
 
 			// Try with only exec worker (at bin location).
 			fs::remove_file(&prepare_worker_path)?;
-			let execute_worker_path = tempdir.join("usr/bin/polkadot-execute-worker");
+			let execute_worker_path = tempdir.join("usr/bin/zkv-relay-execute-worker");
 			write_worker_exe(&execute_worker_path)?;
 			assert_matches!(
 				determine_workers_paths(None, None, Some(TEST_NODE_VERSION.into())),
@@ -380,7 +380,7 @@ echo {}
 
 			// Try with only prep worker (at lib location).
 			fs::remove_file(&execute_worker_path)?;
-			let prepare_worker_path = tempdir.join("usr/lib/polkadot/polkadot-prepare-worker");
+			let prepare_worker_path = tempdir.join("usr/lib/polkadot/zkv-relay-prepare-worker");
 			write_worker_exe(&prepare_worker_path)?;
 			assert_matches!(
 				determine_workers_paths(None, None, Some(TEST_NODE_VERSION.into())),
@@ -389,7 +389,7 @@ echo {}
 
 			// Try with only exec worker (at lib location).
 			fs::remove_file(&prepare_worker_path)?;
-			let execute_worker_path = tempdir.join("usr/lib/polkadot/polkadot-execute-worker");
+			let execute_worker_path = tempdir.join("usr/lib/polkadot/zkv-relay-execute-worker");
 			write_worker_exe(execute_worker_path)?;
 			assert_matches!(
 				determine_workers_paths(None, None, Some(TEST_NODE_VERSION.into())),
@@ -405,16 +405,16 @@ echo {}
     #[serial]
     fn should_find_workers_at_all_locations() {
         with_temp_dir_structure(|tempdir, _| {
-				let prepare_worker_bin_path = tempdir.join("usr/bin/polkadot-prepare-worker");
+				let prepare_worker_bin_path = tempdir.join("usr/bin/zkv-relay-prepare-worker");
 				write_worker_exe(&prepare_worker_bin_path)?;
 
-				let execute_worker_bin_path = tempdir.join("usr/bin/polkadot-execute-worker");
+				let execute_worker_bin_path = tempdir.join("usr/bin/zkv-relay-execute-worker");
 				write_worker_exe(&execute_worker_bin_path)?;
 
-				let prepare_worker_lib_path = tempdir.join("usr/lib/polkadot/polkadot-prepare-worker");
+				let prepare_worker_lib_path = tempdir.join("usr/lib/polkadot/zkv-relay-prepare-worker");
 				write_worker_exe(&prepare_worker_lib_path)?;
 
-				let execute_worker_lib_path = tempdir.join("usr/lib/polkadot/polkadot-execute-worker");
+				let execute_worker_lib_path = tempdir.join("usr/lib/polkadot/zkv-relay-execute-worker");
 				write_worker_exe(&execute_worker_lib_path)?;
 
 				assert_matches!(
@@ -462,8 +462,8 @@ echo {}
 
         with_temp_dir_structure(|tempdir, _| {
 			// Workers at bin location return bad version.
-			let prepare_worker_bin_path = tempdir.join("usr/bin/polkadot-prepare-worker");
-			let execute_worker_bin_path = tempdir.join("usr/bin/polkadot-execute-worker");
+			let prepare_worker_bin_path = tempdir.join("usr/bin/zkv-relay-prepare-worker");
+			let execute_worker_bin_path = tempdir.join("usr/bin/zkv-relay-execute-worker");
 			write_worker_exe_invalid_version(&prepare_worker_bin_path, bad_version)?;
 			write_worker_exe(&execute_worker_bin_path)?;
 			assert_matches!(
@@ -474,8 +474,8 @@ echo {}
 			// Workers at lib location return bad version.
 			fs::remove_file(prepare_worker_bin_path)?;
 			fs::remove_file(execute_worker_bin_path)?;
-			let prepare_worker_lib_path = tempdir.join("usr/lib/polkadot/polkadot-prepare-worker");
-			let execute_worker_lib_path = tempdir.join("usr/lib/polkadot/polkadot-execute-worker");
+			let prepare_worker_lib_path = tempdir.join("usr/lib/polkadot/zkv-relay-prepare-worker");
+			let execute_worker_lib_path = tempdir.join("usr/lib/polkadot/zkv-relay-execute-worker");
 			write_worker_exe(&prepare_worker_lib_path)?;
 			write_worker_exe_invalid_version(&execute_worker_lib_path, bad_version)?;
 			assert_matches!(
@@ -485,8 +485,8 @@ echo {}
 
 			// Workers at provided workers location return bad version.
 			let given_workers_path = tempdir.join("usr/local/bin");
-			let prepare_worker_path = given_workers_path.join("polkadot-prepare-worker");
-			let execute_worker_path = given_workers_path.join("polkadot-execute-worker");
+			let prepare_worker_path = given_workers_path.join("zkv-relay-prepare-worker");
+			let execute_worker_path = given_workers_path.join("zkv-relay-execute-worker");
 			write_worker_exe_invalid_version(&prepare_worker_path, bad_version)?;
 			write_worker_exe_invalid_version(&execute_worker_path, bad_version)?;
 			assert_matches!(
@@ -512,10 +512,10 @@ echo {}
     fn should_find_valid_workers() {
         // Test bin location.
         with_temp_dir_structure(|tempdir, _| {
-            let prepare_worker_bin_path = tempdir.join("usr/bin/polkadot-prepare-worker");
+            let prepare_worker_bin_path = tempdir.join("usr/bin/zkv-relay-prepare-worker");
             write_worker_exe(&prepare_worker_bin_path)?;
 
-            let execute_worker_bin_path = tempdir.join("usr/bin/polkadot-execute-worker");
+            let execute_worker_bin_path = tempdir.join("usr/bin/zkv-relay-execute-worker");
             write_worker_exe(&execute_worker_bin_path)?;
 
             assert_matches!(
@@ -529,10 +529,10 @@ echo {}
 
         // Test lib location.
         with_temp_dir_structure(|tempdir, _| {
-            let prepare_worker_lib_path = tempdir.join("usr/lib/polkadot/polkadot-prepare-worker");
+            let prepare_worker_lib_path = tempdir.join("usr/lib/polkadot/zkv-relay-prepare-worker");
             write_worker_exe(&prepare_worker_lib_path)?;
 
-            let execute_worker_lib_path = tempdir.join("usr/lib/polkadot/polkadot-execute-worker");
+            let execute_worker_lib_path = tempdir.join("usr/lib/polkadot/zkv-relay-execute-worker");
             write_worker_exe(&execute_worker_lib_path)?;
 
             assert_matches!(
