@@ -17,6 +17,7 @@
 //! Polkadot service. Specialized wrapper over substrate service.
 
 #![deny(unused_results)]
+#![allow(clippy::type_complexity)]
 
 pub mod benchmarking;
 pub mod chain_spec;
@@ -110,16 +111,14 @@ pub use fake_runtime_api::{GetLastTimestamp, RuntimeApi};
 #[cfg(feature = "full-node")]
 pub type FullBackend = sc_service::TFullBackend<Block>;
 
+pub type FullWasmExecutor = WasmExecutor<(
+    sp_io::SubstrateHostFunctions,
+    native::HLNativeHostFunctions,
+    frame_benchmarking::benchmarking::HostFunctions,
+)>;
+
 #[cfg(feature = "full-node")]
-pub type FullClient = sc_service::TFullClient<
-    Block,
-    RuntimeApi,
-    WasmExecutor<(
-        sp_io::SubstrateHostFunctions,
-        native::HLNativeHostFunctions,
-        frame_benchmarking::benchmarking::HostFunctions,
-    )>,
->;
+pub type FullClient = sc_service::TFullClient<Block, RuntimeApi, FullWasmExecutor>;
 
 /// The minimum period of blocks on which justifications will be
 /// imported and generated.
@@ -410,7 +409,7 @@ fn new_partial_basics(
 
     let (client, backend, keystore_container, task_manager) =
         sc_service::new_full_parts::<Block, RuntimeApi, _>(
-            &config,
+            config,
             telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
             executor,
         )?;
@@ -649,6 +648,7 @@ pub struct NewFull {
 /// Is this node running as in-process node for a parachain node?
 #[cfg(feature = "full-node")]
 #[derive(Clone)]
+#[allow(clippy::large_enum_variant)]
 pub enum IsParachainNode {
     /// This node is running as in-process node for a parachain collator.
     Collator(CollatorPair),
@@ -729,7 +729,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
     let role = config.role.clone();
     let force_authoring = config.force_authoring;
     let backoff_authoring_blocks = force_authoring_backoff
-        .then(|| sc_consensus_slots::BackoffAuthoringOnFinalizedHeadLagging::default());
+        .then(sc_consensus_slots::BackoffAuthoringOnFinalizedHeadLagging::default);
 
     let disable_grandpa = config.disable_grandpa;
     let name = config.network.node_name.clone();
@@ -741,7 +741,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
     let overseer_connector = OverseerConnector::default();
     let overseer_handle = Handle::new(overseer_connector.handle());
 
-    let chain_spec = config.chain_spec.cloned_box();
+    // let chain_spec = config.chain_spec.cloned_box();
 
     let keystore = basics.keystore_container.local_keystore();
     let auth_or_collator = role.is_authority() || is_parachain_node.is_collator();
@@ -793,7 +793,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
     net_config.add_notification_protocol(grandpa_protocol_config);
 
     let beefy_gossip_proto_name =
-        beefy::gossip_protocol_name(&genesis_hash, config.chain_spec.fork_id());
+        beefy::gossip_protocol_name(genesis_hash, config.chain_spec.fork_id());
     // `beefy_on_demand_justifications_handler` is given to `beefy-gadget` task to be run,
     // while `beefy_req_resp_cfg` is added to `config.network.request_response_protocols`.
     let (beefy_on_demand_justifications_handler, beefy_req_resp_cfg) =
@@ -844,7 +844,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
             std::collections::HashMap::new()
         };
 
-    let req_protocol_names = ReqProtocolNames::new(&genesis_hash, config.chain_spec.fork_id());
+    let req_protocol_names = ReqProtocolNames::new(genesis_hash, config.chain_spec.fork_id());
 
     let (pov_req_receiver, cfg) = IncomingRequest::get_config_receiver(&req_protocol_names);
     net_config.add_request_response_protocol(cfg);
@@ -915,7 +915,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
 
     let approval_voting_config = ApprovalVotingConfig {
         col_approval_data: parachains_db::REAL_COLUMNS.col_approval_data,
-        slot_duration_millis: slot_duration.as_millis() as u64,
+        slot_duration_millis: slot_duration.as_millis(),
     };
 
     let candidate_validation_config = if role.is_authority() {
@@ -1346,12 +1346,8 @@ pub fn new_chain_ops(
 #[cfg(feature = "full-node")]
 pub fn build_full<OverseerGenerator: OverseerGen>(
     config: Configuration,
-    mut params: NewFullParams<OverseerGenerator>,
+    params: NewFullParams<OverseerGenerator>,
 ) -> Result<NewFull, Error> {
-    params.overseer_message_channel_capacity_override = params
-        .overseer_message_channel_capacity_override
-        .map(move |capacity| capacity);
-
     new_full(config, params)
 }
 

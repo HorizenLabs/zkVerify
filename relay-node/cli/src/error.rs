@@ -16,47 +16,47 @@
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-	#[error(transparent)]
-	PolkadotService(#[from] service::Error),
+    #[error(transparent)]
+    PolkadotService(#[from] service::Error),
 
-	#[error(transparent)]
-	SubstrateCli(#[from] sc_cli::Error),
+    #[error(transparent)]
+    SubstrateCli(#[from] sc_cli::Error),
 
-	#[error(transparent)]
-	SubstrateService(#[from] sc_service::Error),
+    #[error(transparent)]
+    SubstrateService(#[from] sc_service::Error),
 
-	#[error(transparent)]
-	SubstrateTracing(#[from] sc_tracing::logging::Error),
+    #[error(transparent)]
+    SubstrateTracing(#[from] sc_tracing::logging::Error),
 
-	#[cfg(not(feature = "pyroscope"))]
-	#[error("Binary was not compiled with `--feature=pyroscope`")]
-	PyroscopeNotCompiledIn,
+    #[cfg(not(feature = "pyroscope"))]
+    #[error("Binary was not compiled with `--feature=pyroscope`")]
+    PyroscopeNotCompiledIn,
 
-	#[cfg(feature = "pyroscope")]
-	#[error("Failed to connect to pyroscope agent")]
-	PyroscopeError(#[from] pyro::error::PyroscopeError),
+    #[cfg(feature = "pyroscope")]
+    #[error("Failed to connect to pyroscope agent")]
+    PyroscopeError(#[from] pyro::error::PyroscopeError),
 
-	#[error("Failed to resolve provided URL")]
-	AddressResolutionFailure(#[from] std::io::Error),
+    #[error("Failed to resolve provided URL")]
+    AddressResolutionFailure(#[from] std::io::Error),
 
-	#[error("URL did not resolve to anything")]
-	AddressResolutionMissing,
+    #[error("URL did not resolve to anything")]
+    AddressResolutionMissing,
 
-	#[error("Command is not implemented")]
-	CommandNotImplemented,
+    #[error("Command is not implemented")]
+    CommandNotImplemented,
 
-	#[error(transparent)]
-	Storage(#[from] sc_storage_monitor::Error),
+    #[error(transparent)]
+    Storage(#[from] sc_storage_monitor::Error),
 
-	#[error("Other: {0}")]
-	Other(String),
+    #[error("Other: {0}")]
+    Other(String),
 
-	#[error("This subcommand is only available when compiled with `{feature}`")]
-	FeatureNotEnabled { feature: &'static str },
+    #[error("This subcommand is only available when compiled with `{feature}`")]
+    FeatureNotEnabled { feature: &'static str },
 }
 
 impl From<String> for Error {
-	fn from(s: String) -> Self {
-		Self::Other(s)
-	}
+    fn from(s: String) -> Self {
+        Self::Other(s)
+    }
 }

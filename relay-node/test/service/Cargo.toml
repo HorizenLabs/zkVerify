@@ -1,0 +1,76 @@
+[package]
+name = "test-service"
+publish = false
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license = "GPL-3.0"
+description = "Test service"
+
+[dependencies]
+futures = "0.3.21"
+hex = "0.4.3"
+gum = { workspace = true }
+rand = "0.8.5"
+serde_json = "1.0.108"
+tempfile = "3.2.0"
+tokio = "1.24.2"
+polkadot-overseer = { workspace = true }
+polkadot-primitives = { workspace = true }
+polkadot-parachain-primitives = { workspace = true }
+polkadot-rpc = { workspace = true }
+polkadot-runtime-common = { workspace = true }
+service = { workspace = true }
+polkadot-node-subsystem = { workspace = true }
+polkadot-node-primitives = { workspace = true }
+test-runtime = { path = "../runtime" }
+test-runtime-constants = { path = "../runtime/constants" }
+polkadot-runtime-parachains = { workspace = true }
+sp-authority-discovery = { workspace = true }
+sc-authority-discovery = { workspace = true }
+sc-consensus-babe = { workspace = true }
+sp-consensus-babe = { workspace = true }
+sp-consensus = { workspace = true }
+frame-system = { workspace = true }
+sc-consensus-grandpa = { workspace = true }
+sp-consensus-grandpa = { workspace = true }
+sp-inherents = { workspace = true }
+pallet-staking = { workspace = true }
+pallet-balances = { workspace = true }
+pallet-transaction-payment = { workspace = true }
+sc-chain-spec = { workspace = true }
+sc-cli = { workspace = true }
+sc-client-api = { workspace = true }
+sc-consensus = { workspace = true }
+sc-network = { workspace = true }
+sc-tracing = { workspace = true }
+sc-transaction-pool = { workspace = true }
+sc-service = { workspace = true }
+sp-arithmetic = { workspace = true }
+sp-blockchain = { workspace = true }
+sp-core = { workspace = true }
+sp-keyring = { workspace = true }
+sp-runtime = { workspace = true }
+sp-state-machine = { workspace = true }
+substrate-test-client = { workspace = true }
+
+[dev-dependencies]
+pallet-balances = { workspace = true }
+substrate-test-utils = { workspace = true }
+tokio = { version = "1.24.2", features = ["macros"] }
+
+[features]
+runtime-metrics = ["test-runtime/runtime-metrics"]
+runtime-benchmarks = [
+	"frame-system/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-staking/runtime-benchmarks",
+	"polkadot-parachain-primitives/runtime-benchmarks",
+	"polkadot-primitives/runtime-benchmarks",
+	"polkadot-runtime-common/runtime-benchmarks",
+	"polkadot-runtime-parachains/runtime-benchmarks",
+	"service/runtime-benchmarks",
+	"test-runtime/runtime-benchmarks",
+	"sc-service/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+]

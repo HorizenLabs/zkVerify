@@ -12,6 +12,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+#![allow(clippy::type_complexity)]
 
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use polkadot_primitives::{AssignmentId, ValidatorId};
@@ -23,7 +24,10 @@ use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use telemetry::TelemetryEndpoints;
 use zkv_runtime::currency::{Balance, ACME};
-use zkv_runtime::{currency, AccountId, RuntimeGenesisConfig, SessionKeys, Signature, WASM_BINARY};
+use zkv_runtime::{
+    currency, AccountId, RuntimeGenesisConfig, SessionKeysRelay as SessionKeys, Signature,
+    WASM_BINARY,
+};
 
 // The connection strings for bootnodes
 const BOOTNODE_1_DNS: &str = "bootnode-tn-1.zkverify.io";
@@ -170,8 +174,8 @@ pub fn authority_ids_from_ss58(
 
 fn chain_properties() -> Properties {
     [
-        (format!("tokenSymbol"), serde_json::Value::from("ACME")),
-        (format!("tokenDecimals"), serde_json::Value::from(18_u8)),
+        ("tokenSymbol".to_string(), serde_json::Value::from("ACME")),
+        ("tokenDecimals".to_string(), serde_json::Value::from(18_u8)),
     ]
     .into_iter()
     .collect()

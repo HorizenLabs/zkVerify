@@ -139,7 +139,7 @@ pub mod pallet {
                 .next()
                 .is_none()
             {
-                log::info!("Starting new tree with id: {next_attestation}");
+                log::debug!("Starting new tree with id: {next_attestation}");
                 FirstInsertionTime::<T>::put(Self::now());
             }
 

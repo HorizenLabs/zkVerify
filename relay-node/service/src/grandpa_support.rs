@@ -20,9 +20,6 @@ use sp_runtime::traits::{Block as BlockT, Header as _, NumberFor};
 
 use crate::HeaderProvider;
 
-#[cfg(feature = "full-node")]
-use polkadot_primitives::{Block, Hash};
-
 /// Returns the block hash of the block at the given `target_number` by walking
 /// backwards from the given `current_header`.
 pub(super) fn walk_backwards_to_target_block<Block, HP>(
