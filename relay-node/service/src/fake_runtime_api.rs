@@ -49,6 +49,7 @@ sp_api::decl_runtime_apis! {
     }
 }
 
+#[allow(dead_code)]
 struct Runtime;
 
 sp_api::impl_runtime_apis! {

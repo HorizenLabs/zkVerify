@@ -55,7 +55,7 @@ substrate-prometheus-endpoint = { version = "0.16.0" }
 
 # Polkadot
 zkv-cli = { workspace = true }
-polkadot-primitives = { version = "6.0.0" }
+polkadot-primitives = { version = "6.0.0", default-features = true }
 # xcm = { package = "staging-xcm", version = "6.0.0" }
 cumulus-client-cli = { version = "0.6.0" }
 cumulus-client-collator = { version = "0.6.0" }
