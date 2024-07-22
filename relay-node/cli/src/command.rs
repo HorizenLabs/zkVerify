@@ -17,7 +17,7 @@
 use crate::cli::{Cli, Subcommand, NODE_VERSION};
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
 use futures::future::TryFutureExt;
-use log::{info, warn};
+use log::warn;
 use sc_cli::SubstrateCli;
 use service::{
     self,
@@ -35,13 +35,6 @@ pub use polkadot_performance_test::PerfCheckError;
 use pyroscope_pprofrs::{pprof_backend, PprofConfig};
 
 type Result<T> = std::result::Result<T, Error>;
-
-fn get_exec_name() -> Option<String> {
-    std::env::current_exe()
-        .ok()
-        .and_then(|pb| pb.file_name().map(|s| s.to_os_string()))
-        .and_then(|s| s.into_string().ok())
-}
 
 impl SubstrateCli for Cli {
     fn impl_name() -> String {
@@ -88,7 +81,7 @@ impl SubstrateCli for Cli {
     }
 }
 
-fn set_default_ss58_version(_spec: &Box<dyn service::ChainSpec>) {
+fn set_default_ss58_version(_spec: &dyn service::ChainSpec) {
     sp_core::crypto::set_default_ss58_version(Ss58AddressFormatRegistry::SubstrateAccount.into());
 }
 
@@ -143,7 +136,7 @@ where
         }
     }
 
-    set_default_ss58_version(chain_spec);
+    set_default_ss58_version(chain_spec.as_ref());
 
     let jaeger_agent = if let Some(ref jaeger_agent) = cli.run.jaeger_agent {
         Some(
@@ -168,7 +161,7 @@ where
     runner.run_node_until_exit(move |config| async move {
         let hwbench = (!cli.run.no_hardware_benchmarks)
             .then_some(config.database.path().map(|database_path| {
-                let _ = std::fs::create_dir_all(&database_path);
+                let _ = std::fs::create_dir_all(database_path);
                 sc_sysinfo::gather_hwbench(Some(database_path))
             }))
             .flatten();
@@ -249,7 +242,7 @@ pub fn run() -> Result<()> {
             let runner = cli.create_runner(cmd).map_err(Error::SubstrateCli)?;
             let chain_spec = &runner.config().chain_spec;
 
-            set_default_ss58_version(chain_spec);
+            set_default_ss58_version(chain_spec.as_ref());
 
             runner.async_run(|mut config| {
                 let (client, _, import_queue, task_manager) =
@@ -264,7 +257,7 @@ pub fn run() -> Result<()> {
             let runner = cli.create_runner(cmd)?;
             let chain_spec = &runner.config().chain_spec;
 
-            set_default_ss58_version(chain_spec);
+            set_default_ss58_version(chain_spec.as_ref());
 
             Ok(runner.async_run(|mut config| {
                 let (client, _, _, task_manager) =
@@ -280,7 +273,7 @@ pub fn run() -> Result<()> {
             let runner = cli.create_runner(cmd)?;
             let chain_spec = &runner.config().chain_spec;
 
-            set_default_ss58_version(chain_spec);
+            set_default_ss58_version(chain_spec.as_ref());
 
             Ok(runner.async_run(|mut config| {
                 let (client, _, _, task_manager) = service::new_chain_ops(&mut config, None)?;
@@ -295,7 +288,7 @@ pub fn run() -> Result<()> {
             let runner = cli.create_runner(cmd)?;
             let chain_spec = &runner.config().chain_spec;
 
-            set_default_ss58_version(chain_spec);
+            set_default_ss58_version(chain_spec.as_ref());
 
             Ok(runner.async_run(|mut config| {
                 let (client, _, import_queue, task_manager) =
@@ -314,7 +307,7 @@ pub fn run() -> Result<()> {
             let runner = cli.create_runner(cmd)?;
             let chain_spec = &runner.config().chain_spec;
 
-            set_default_ss58_version(chain_spec);
+            set_default_ss58_version(chain_spec.as_ref());
 
             Ok(runner.async_run(|mut config| {
                 let (client, backend, _, task_manager) = service::new_chain_ops(&mut config, None)?;
@@ -402,12 +395,12 @@ pub fn run() -> Result<()> {
                     })
                 }
                 BenchmarkCmd::Pallet(cmd) => {
-                    set_default_ss58_version(chain_spec);
+                    set_default_ss58_version(chain_spec.as_ref());
 
                     if cfg!(feature = "runtime-benchmarks") {
                         runner.sync_run(|config| {
                             cmd.run::<service::Block, ()>(config)
-                                .map_err(|e| Error::SubstrateCli(e))
+                                .map_err(Error::SubstrateCli)
                         })
                     } else {
                         Err(sc_cli::Error::Input(

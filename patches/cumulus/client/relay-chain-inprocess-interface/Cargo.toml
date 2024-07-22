@@ -28,10 +28,10 @@ cumulus-primitives-core = { version = "0.6.0" }
 cumulus-relay-chain-interface = { version = "0.6.0" }
 
 [dev-dependencies]
-sp-keyring = { path = "../../../substrate/primitives/keyring" }
-polkadot-primitives = { path = "../../../polkadot/primitives" }
-polkadot-test-client = { path = "../../../polkadot/node/test/client" }
+sp-keyring = { workspace = true }
+polkadot-primitives = { workspace = true, default-features = true }
+test-client = { path = "../../../../relay-node/test/client" }
 metered = { package = "prioritized-metered-channel", version = "0.5.1", default-features = false, features = [
     "futures_channel",
 ] }
-cumulus-test-service = { path = "../../test/service" }
+# cumulus-test-service = { path = "../../test/service" }

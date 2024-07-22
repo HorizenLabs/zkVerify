@@ -16,6 +16,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
+#![allow(clippy::identity_op)]
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -36,7 +37,7 @@ use sp_runtime::{
     transaction_validity::{TransactionSource, TransactionValidity},
     ApplyExtrinsicResult, MultiSignature,
 };
-use sp_std::{collections::btree_map::BTreeMap, prelude::*};
+use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -77,7 +78,6 @@ use weights::block_weights::BlockExecutionWeight;
 use weights::extrinsic_weights::ExtrinsicBaseWeight;
 
 use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier};
-use sp_runtime::transaction_validity::TransactionPriority;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
@@ -495,11 +495,12 @@ pub mod parachains {
     pub use polkadot_runtime_common::paras_sudo_wrapper;
 
     use super::{
-        AccountId, Babe, Balances, BlockWeights, Historical, KeyOwnerProofSystem, KeyTypeId,
-        MaxAuthorities, Offences, ParaInclusion, ParachainsAssignmentProvider, ParasDisputes,
-        ParasSlashing, Perbill, ReportLongevity, Runtime, RuntimeEvent, RuntimeOrigin, System,
-        TransactionPriority, Weight,
+        AccountId, Babe, Balances, Historical, KeyOwnerProofSystem, KeyTypeId, MaxAuthorities,
+        Offences, ParaInclusion, ParachainsAssignmentProvider, ParasDisputes, ParasSlashing,
+        ReportLongevity, Runtime, RuntimeEvent, RuntimeOrigin, Weight,
     };
+    use sp_runtime::transaction_validity::TransactionPriority;
+
     use sp_core::parameter_types;
     use sp_runtime::FixedU128;
 
@@ -613,7 +614,7 @@ pub mod parachains {
     }
 
     parameter_types! {
-        pub const ParasUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+        pub const ParasUnsignedPriority: TransactionPriority = TransactionPriority::MAX;
     }
 
     pub struct FakeParasWeightInfo;
@@ -798,7 +799,7 @@ pub mod parachains {
 
             impl frame_support::traits::OnRuntimeUpgrade for AddParachainUpgrade {
                 fn on_runtime_upgrade() -> Weight {
-                    if System::last_runtime_upgrade_spec_version() > ADD_PARACHAIN_VERSION {
+                    if crate::System::last_runtime_upgrade_spec_version() > ADD_PARACHAIN_VERSION {
                         log::info!("Skipping add paratest parachain upgrade: already applied");
                         return <Runtime as frame_system::Config>::DbWeight::get().reads(1);
                     }
@@ -819,7 +820,7 @@ pub mod parachains {
                     };
                     use frame_support::traits::BuildGenesisConfig;
                     genesis.build();
-                    Perbill::from_percent(50) * BlockWeights::get().max_block
+                    sp_runtime::Perbill::from_percent(50) * crate::BlockWeights::get().max_block
                 }
             }
         }
@@ -1125,9 +1126,17 @@ parameter_types! {
     pub FeeMultiplier: Multiplier = Multiplier::one();
 }
 
+impl_opaque_keys! {
+    pub struct SessionKeysBase {
+        pub babe: Babe,
+        pub grandpa: Grandpa,
+        pub im_online: ImOnline,
+    }
+}
+
 #[cfg(feature = "relay")]
 impl_opaque_keys! {
-    pub struct SessionKeys {
+    pub struct SessionKeysRelay {
         pub babe: Babe,
         pub grandpa: Grandpa,
         pub im_online: ImOnline,
@@ -1137,14 +1146,11 @@ impl_opaque_keys! {
     }
 }
 
+#[cfg(feature = "relay")]
+pub type SessionKeys = SessionKeysRelay;
+
 #[cfg(not(feature = "relay"))]
-impl_opaque_keys! {
-    pub struct SessionKeys {
-        pub babe: Babe,
-        pub grandpa: Grandpa,
-        pub im_online: ImOnline,
-    }
-}
+pub type SessionKeys = SessionKeysBase;
 
 impl pallet_transaction_payment::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
@@ -2032,7 +2038,7 @@ impl_runtime_apis! {
 
         fn inbound_hrmp_channels_contents(
             recipient: ParaId
-        ) -> BTreeMap<ParaId, Vec<InboundHrmpMessage<BlockNumber>>> {
+        ) -> sp_std::collections::btree_map::BTreeMap<ParaId, Vec<InboundHrmpMessage<BlockNumber>>> {
             parachains_runtime_api_impl::inbound_hrmp_channels_contents::<Runtime>(recipient)
         }
 
