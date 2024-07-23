@@ -27,7 +27,7 @@ pub trait Config: crate::Config {}
 impl<T: crate::Config> Config for T {}
 pub type Call<T> = pallet_verifiers::Call<T, Risc0<T>>;
 
-include!("resources.rs");
+include!("resources_benchmarking/vk_pubs.rs");
 
 #[benchmarks(where T: pallet_verifiers::Config<Risc0<T>>)]
 mod benchmarks {
@@ -35,22 +35,350 @@ mod benchmarks {
     use super::*;
 
     #[benchmark]
-    fn submit_proof() {
+    fn submit_proof_cycle_2_pow_12() {
         let caller = whitelisted_caller();
         let vk = VkOrHash::from_vk(VALID_VK);
-        let proof = VALID_PROOF.to_vec().into();
-        let pubs = VALID_PUBS.to_vec().into();
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_12.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_12.to_vec().into();
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
     }
 
     #[benchmark]
-    fn submit_proof_with_vk_hash() {
+    fn submit_proof_cycle_2_pow_13() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_vk(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_13.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_13.to_vec().into();
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_cycle_2_pow_14() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_vk(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_14.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_14.to_vec().into();
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_cycle_2_pow_15() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_vk(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_15.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_15.to_vec().into();
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_cycle_2_pow_16() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_vk(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_16.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_16.to_vec().into();
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_cycle_2_pow_17() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_vk(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_17.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_17.to_vec().into();
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_cycle_2_pow_18() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_vk(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_18.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_18.to_vec().into();
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_cycle_2_pow_19() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_vk(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_19.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_19.to_vec().into();
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_cycle_2_pow_20() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_vk(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_20.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_20.to_vec().into();
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_cycle_2_pow_21() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_vk(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_21.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_21.to_vec().into();
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_cycle_2_pow_22() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_vk(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_22.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_22.to_vec().into();
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_cycle_2_pow_23() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_vk(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_23.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_23.to_vec().into();
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_cycle_2_pow_24() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_vk(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_24.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_24.to_vec().into();
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk_hash_cycle_2_pow_12() {
         let caller = whitelisted_caller();
         let vk = VkOrHash::from_hash(VALID_VK);
-        let proof = VALID_PROOF.to_vec().into();
-        let pubs = VALID_PUBS.to_vec().into();
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_12.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_12.to_vec().into();
+        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk_hash_cycle_2_pow_13() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_hash(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_13.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_13.to_vec().into();
+        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk_hash_cycle_2_pow_14() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_hash(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_14.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_14.to_vec().into();
+        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk_hash_cycle_2_pow_15() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_hash(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_15.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_15.to_vec().into();
+        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk_hash_cycle_2_pow_16() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_hash(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_16.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_16.to_vec().into();
+        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk_hash_cycle_2_pow_17() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_hash(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_17.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_17.to_vec().into();
+        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk_hash_cycle_2_pow_18() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_hash(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_18.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_18.to_vec().into();
+        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk_hash_cycle_2_pow_19() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_hash(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_19.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_19.to_vec().into();
+        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk_hash_cycle_2_pow_20() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_hash(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_20.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_20.to_vec().into();
+        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk_hash_cycle_2_pow_21() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_hash(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_21.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_21.to_vec().into();
+        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk_hash_cycle_2_pow_22() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_hash(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_22.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_22.to_vec().into();
+        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk_hash_cycle_2_pow_23() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_hash(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_23.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_23.to_vec().into();
+        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+
+        #[extrinsic_call]
+        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
+    }
+
+    #[benchmark]
+    fn submit_proof_with_vk_hash_cycle_2_pow_24() {
+        let caller = whitelisted_caller();
+        let vk = VkOrHash::from_hash(VALID_VK);
+        let proof = include_bytes!("resources_benchmarking/VALID_PROOF_CYCLE_2_POW_24.bin")
+            .to_vec()
+            .into();
+        let pubs = VALID_PUBS_CYCLE_2_POW_24.to_vec().into();
         Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
 
         #[extrinsic_call]

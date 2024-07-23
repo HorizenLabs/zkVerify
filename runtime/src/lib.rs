@@ -592,7 +592,7 @@ impl pallet_verifiers::Config<pallet_groth16_verifier::Groth16<Runtime>> for Run
 }
 
 parameter_types! {
-    pub const Risc0MaxProofSize: u32 = 1000000; // arbitrary length
+    pub const Risc0MaxProofSize: u32 = 2455714; // 2455714: risc0 proof size for a 2^24 cycle-count run
     pub const Risc0MaxPubsSize: u32 = 8 + 4 + 32 * 64; // 8: for bincode::serialize,
                                                        // 4: bytes for payload length,
                                                        // 32 * 64: sufficient multiple of 32 bytes
