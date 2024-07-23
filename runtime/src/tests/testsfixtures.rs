@@ -17,7 +17,7 @@ use crate::{currency, Balance, EXISTENTIAL_DEPOSIT};
 // Existential deposit used in pallet_balances
 pub const EXISTENTIAL_DEPOSIT_REMAINDER: Balance = 1;
 pub const NUM_TEST_ACCOUNTS: u32 = 4;
-pub const STASH_DEPOSIT: Balance = 500; // MUST not be smaller than EXISTENTIAL_DEPOSIT
+pub const STASH_DEPOSIT: Balance = 1 * currency::ACME; // MUST not be smaller than EXISTENTIAL_DEPOSIT
 
 #[derive(Clone)]
 pub struct SampleAccount {

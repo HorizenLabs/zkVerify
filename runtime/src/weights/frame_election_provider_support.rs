@@ -36,7 +36,7 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weights for `pallet_election_provider_support_benchmarking` using the zkVerify node and recommended hardware.
+/// Weights for `frame_election_provider_support` using the zkVerify node and recommended hardware.
 pub struct ZKVWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> frame_election_provider_support::WeightInfo for ZKVWeight<T> {

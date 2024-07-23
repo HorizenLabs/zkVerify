@@ -354,7 +354,7 @@ fn pallet_poe_availability() {
 }
 
 mod use_correct_weights {
-    use crate::Runtime;
+    use crate::{OnChainSeqPhragmen, Runtime};
 
     #[test]
     fn frame_system() {
@@ -367,12 +367,52 @@ mod use_correct_weights {
     }
 
     #[test]
+    fn pallet_babe() {
+        use pallet_babe::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_babe::Config>::WeightInfo::report_equivocation(42, 42),
+            crate::weights::pallet_babe::ZKVWeight::<Runtime>::report_equivocation(42, 42)
+        );
+    }
+
+    #[test]
+    fn pallet_grandpa() {
+        use pallet_grandpa::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_grandpa::Config>::WeightInfo::report_equivocation(42, 42),
+            crate::weights::pallet_grandpa::ZKVWeight::<Runtime>::report_equivocation(42, 42)
+        );
+    }
+
+    #[test]
     fn pallet_balances() {
         use pallet_balances::WeightInfo;
 
         assert_eq!(
             <Runtime as pallet_balances::Config>::WeightInfo::transfer_allow_death(),
             crate::weights::pallet_balances::ZKVWeight::<Runtime>::transfer_allow_death()
+        );
+    }
+
+    #[test]
+    fn pallet_session() {
+        use pallet_session::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_session::Config>::WeightInfo::set_keys(),
+            crate::weights::pallet_session::ZKVWeight::<Runtime>::set_keys()
+        );
+    }
+
+    #[test]
+    fn frame_election_provider_support() {
+        use frame_election_provider_support::WeightInfo;
+
+        assert_eq!(
+            <OnChainSeqPhragmen as frame_election_provider_support::onchain::Config>::WeightInfo::phragmen(42, 42, 42),
+            crate::weights::frame_election_provider_support::ZKVWeight::<Runtime>::phragmen(42, 42, 42)
         );
     }
 
@@ -917,7 +957,7 @@ mod pallets_interact {
                 assert_ok!(Balances::transfer_allow_death(
                     RuntimeOrigin::signed(account_ids[0].clone()),
                     MultiAddress::Id(multi.clone()),
-                    1000
+                    1 * currency::ACME
                 ));
 
                 // Check existing sudo key

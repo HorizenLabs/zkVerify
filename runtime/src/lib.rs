@@ -263,7 +263,7 @@ impl pallet_babe::Config for Runtime {
     type DisabledValidators = Session;
     type WeightInfo = weights::pallet_babe::ZKVWeight<Runtime>;
     type MaxAuthorities = MaxAuthorities;
-    type MaxNominators = ConstU32<0>;
+    type MaxNominators = ConstU32<MAX_VOTERS>;
     type KeyOwnerProof = sp_session::MembershipProof;
     type EquivocationReportSystem =
         pallet_babe::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
@@ -274,7 +274,7 @@ impl pallet_grandpa::Config for Runtime {
 
     type WeightInfo = weights::pallet_grandpa::ZKVWeight<Runtime>;
     type MaxAuthorities = MaxAuthorities;
-    type MaxNominators = ConstU32<0>;
+    type MaxNominators = ConstU32<MAX_VOTERS>;
     type MaxSetIdSessionEntries = ConstU64<0>;
 
     type KeyOwnerProof = sp_session::MembershipProof;
@@ -291,7 +291,7 @@ impl pallet_timestamp::Config for Runtime {
 }
 
 /// Existential deposit.
-pub const EXISTENTIAL_DEPOSIT: u128 = 1 * MILLICENTS;
+pub const EXISTENTIAL_DEPOSIT: u128 = MILLICENTS;
 
 impl pallet_balances::Config for Runtime {
     type MaxLocks = ConstU32<50>;
@@ -469,7 +469,7 @@ impl onchain::Config for OnChainSeqPhragmen {
     type System = Runtime;
     type Solver = SequentialPhragmen<AccountId, sp_runtime::Perbill>;
     type DataProvider = Staking;
-    type WeightInfo = weights::pallet_election_provider_support::ZKVWeight<Runtime>;
+    type WeightInfo = weights::frame_election_provider_support::ZKVWeight<Runtime>;
     type MaxWinners = MaxActiveValidators;
     type Bounds = ElectionBoundsOnChain;
 }
@@ -703,7 +703,7 @@ mod benches {
         [pallet_session, SessionBench::<Runtime>]
         [pallet_staking, Staking]
         [pallet_im_online, ImOnline]
-        [pallet_election_provider_support_benchmarking, ElectionProviderBench::<Runtime>]
+        [frame_election_provider_support, ElectionProviderBench::<Runtime>]
         [pallet_poe, Poe]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]

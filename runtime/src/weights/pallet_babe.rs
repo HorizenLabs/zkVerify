@@ -24,6 +24,10 @@ use frame_support::weights::{
 };
 
 /// Weights for `pallet_babe` using the ZKVerify node and recommended hardware.
+/// Weight for report_equivocation is manually computed as the sum of:
+/// - pallet_session::check_membership_proof
+/// - pallet_babe::check_equivocation_report
+/// - pallet_offences::report_offence_babe
 pub struct ZKVWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> pallet_babe::WeightInfo for ZKVWeight<T> {
