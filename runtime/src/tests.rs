@@ -441,7 +441,7 @@ mod use_correct_weights {
                 &Vec::new(),
                 &Vec::new()
             ),
-            crate::weights::pallet_risc0_verifier::ZKVWeight::<Runtime>::submit_proof()
+            crate::weights::pallet_risc0_verifier::ZKVWeight::<Runtime>::submit_proof_cycle_2_pow_12()
         );
     }
 

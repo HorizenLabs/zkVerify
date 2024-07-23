@@ -97,19 +97,67 @@ impl<T: Config> Verifier for Risc0<T> {
 /// the crate's benchmarks are mapped 1-1 to the `pallet-verifiers`'s one.
 pub struct Risc0Weight<W: weight::WeightInfo>(PhantomData<W>);
 
+pub static CYCLE_2_POW_FROM_12_TO_13: usize = 215538;
+pub static CYCLE_2_POW_FROM_14_TO_17: usize = 238578;
+pub static CYCLE_2_POW_FROM_18_TO_18: usize = 250290;
+pub static CYCLE_2_POW_FROM_19_TO_19: usize = 262514;
+pub static CYCLE_2_POW_FROM_20_TO_20: usize = 275762;
+pub static CYCLE_2_POW_FROM_21_TO_21: usize = 514256;
+pub static CYCLE_2_POW_FROM_22_TO_22: usize = 789934;
+pub static CYCLE_2_POW_FROM_23_TO_23: usize = 1353002;
+pub static CYCLE_2_POW_FROM_24_TO_24: usize = 2455714;
+
 impl<T: Config, W: weight::WeightInfo> pallet_verifiers::WeightInfo<Risc0<T>> for Risc0Weight<W> {
     fn submit_proof(
-        _proof: &<Risc0<T> as hp_verifiers::Verifier>::Proof,
+        proof: &<Risc0<T> as hp_verifiers::Verifier>::Proof,
         _pubs: &<Risc0<T> as hp_verifiers::Verifier>::Pubs,
     ) -> Weight {
-        W::submit_proof()
+        let len = proof.len();
+        if len <= CYCLE_2_POW_FROM_12_TO_13 {
+            W::submit_proof_cycle_2_pow_13()
+        } else if len <= CYCLE_2_POW_FROM_14_TO_17 {
+            W::submit_proof_cycle_2_pow_17()
+        } else if len <= CYCLE_2_POW_FROM_18_TO_18 {
+            W::submit_proof_cycle_2_pow_18()
+        } else if len <= CYCLE_2_POW_FROM_19_TO_19 {
+            W::submit_proof_cycle_2_pow_19()
+        } else if len <= CYCLE_2_POW_FROM_20_TO_20 {
+            W::submit_proof_cycle_2_pow_20()
+        } else if len <= CYCLE_2_POW_FROM_21_TO_21 {
+            W::submit_proof_cycle_2_pow_21()
+        } else if len <= CYCLE_2_POW_FROM_22_TO_22 {
+            W::submit_proof_cycle_2_pow_22()
+        } else if len <= CYCLE_2_POW_FROM_23_TO_23 {
+            W::submit_proof_cycle_2_pow_23()
+        } else {
+            W::submit_proof_cycle_2_pow_24()
+        }
     }
 
     fn submit_proof_with_vk_hash(
-        _proof: &<Risc0<T> as hp_verifiers::Verifier>::Proof,
+        proof: &<Risc0<T> as hp_verifiers::Verifier>::Proof,
         _pubs: &<Risc0<T> as hp_verifiers::Verifier>::Pubs,
     ) -> Weight {
-        W::submit_proof_with_vk_hash()
+        let len = proof.len();
+        if len <= CYCLE_2_POW_FROM_12_TO_13 {
+            W::submit_proof_with_vk_hash_cycle_2_pow_13()
+        } else if len <= CYCLE_2_POW_FROM_14_TO_17 {
+            W::submit_proof_with_vk_hash_cycle_2_pow_17()
+        } else if len <= CYCLE_2_POW_FROM_18_TO_18 {
+            W::submit_proof_with_vk_hash_cycle_2_pow_18()
+        } else if len <= CYCLE_2_POW_FROM_19_TO_19 {
+            W::submit_proof_with_vk_hash_cycle_2_pow_19()
+        } else if len <= CYCLE_2_POW_FROM_20_TO_20 {
+            W::submit_proof_with_vk_hash_cycle_2_pow_20()
+        } else if len <= CYCLE_2_POW_FROM_21_TO_21 {
+            W::submit_proof_with_vk_hash_cycle_2_pow_21()
+        } else if len <= CYCLE_2_POW_FROM_22_TO_22 {
+            W::submit_proof_with_vk_hash_cycle_2_pow_22()
+        } else if len <= CYCLE_2_POW_FROM_23_TO_23 {
+            W::submit_proof_with_vk_hash_cycle_2_pow_23()
+        } else {
+            W::submit_proof_with_vk_hash_cycle_2_pow_24()
+        }
     }
 
     fn register_vk(_vk: &<Risc0<T> as hp_verifiers::Verifier>::Vk) -> Weight {
