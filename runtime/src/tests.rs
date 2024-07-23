@@ -422,7 +422,7 @@ mod use_correct_weights {
 
         assert_eq!(
             <Runtime as pallet_referenda::Config>::WeightInfo::submit(),
-            crate::weights::pallet_referenda::NHWeight::<Runtime>::submit()
+            crate::weights::pallet_referenda::ZKVWeight::<Runtime>::submit()
         );
     }
 
@@ -432,7 +432,7 @@ mod use_correct_weights {
 
         assert_eq!(
             <Runtime as pallet_whitelist::Config>::WeightInfo::whitelist_call(),
-            crate::weights::pallet_whitelist::NHWeight::<Runtime>::whitelist_call()
+            crate::weights::pallet_whitelist::ZKVWeight::<Runtime>::whitelist_call()
         );
     }
 
@@ -442,7 +442,7 @@ mod use_correct_weights {
 
         assert_eq!(
             <Runtime as pallet_conviction_voting::Config>::WeightInfo::vote_new(),
-            crate::weights::pallet_conviction_voting::NHWeight::<Runtime>::vote_new()
+            crate::weights::pallet_conviction_voting::ZKVWeight::<Runtime>::vote_new()
         );
     }
 
