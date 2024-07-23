@@ -478,6 +478,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "assert_matches"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
+
+[[package]]
 name = "async-channel"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5114,6 +5120,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-conviction-voting"
+version = "27.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d93572f2a2e85e419bcd13ed65093eef677d7001616c7ba078fa05106dae11a1"
+dependencies = [
+ "assert_matches",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-election-provider-support-benchmarking"
 version = "26.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5291,6 +5315,26 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-referenda"
+version = "27.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c91a148d8fa3e11738ccc650fdfaf1f055b1283099b12b8dc430b39a7fb3988"
+dependencies = [
+ "assert_matches",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
  "sp-io",
  "sp-runtime",
  "sp-std",
@@ -5526,6 +5570,22 @@ dependencies = [
  "quote",
  "rstest",
  "syn 2.0.67",
+]
+
+[[package]]
+name = "pallet-whitelist"
+version = "26.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a9943df0e695f0b1719e9d559ab08fbded03a443e270e48b11bee56f209a2d7"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-api",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -11118,6 +11178,7 @@ dependencies = [
  "pallet-authorship",
  "pallet-babe",
  "pallet-balances",
+ "pallet-conviction-voting",
  "pallet-election-provider-support-benchmarking",
  "pallet-fflonk-verifier",
  "pallet-grandpa",
@@ -11127,6 +11188,7 @@ dependencies = [
  "pallet-offences",
  "pallet-poe",
  "pallet-preimage",
+ "pallet-referenda",
  "pallet-risc0-verifier",
  "pallet-scheduler",
  "pallet-session",
@@ -11138,6 +11200,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-verifiers",
+ "pallet-whitelist",
  "pallet-zksync-verifier",
  "parity-scale-codec",
  "proof-of-existence-rpc-runtime-api",

@@ -77,6 +77,9 @@ use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
+pub mod governance;
+use governance::pallet_custom_origins;
+
 #[cfg(test)]
 mod tests;
 mod weights;
@@ -626,6 +629,10 @@ construct_runtime!(
         Multisig: pallet_multisig,
         Scheduler: pallet_scheduler,
         Preimage: pallet_preimage,
+        ConvictionVoting: pallet_conviction_voting,
+        Origins: pallet_custom_origins,
+        Whitelist: pallet_whitelist,
+        Referenda: pallet_referenda,
         Offences: pallet_offences,
         Historical: pallet_session_historical::{Pallet},
         ImOnline: pallet_im_online,
