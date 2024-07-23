@@ -1,10 +1,12 @@
 pub mod block_weights;
 pub mod extrinsic_weights;
 pub mod frame_system;
+pub mod pallet_babe;
 pub mod pallet_balances;
 pub mod pallet_conviction_voting;
-pub mod pallet_election_provider_support_benchmarking;
+pub mod pallet_election_provider_support;
 pub mod pallet_fflonk_verifier;
+pub mod pallet_grandpa;
 pub mod pallet_groth16_verifier;
 pub mod pallet_im_online;
 pub mod pallet_multisig;

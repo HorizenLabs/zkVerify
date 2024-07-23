@@ -261,7 +261,7 @@ impl pallet_babe::Config for Runtime {
     // session module is the trigger
     type EpochChangeTrigger = pallet_babe::ExternalTrigger;
     type DisabledValidators = Session;
-    type WeightInfo = ();
+    type WeightInfo = weights::pallet_babe::ZKVWeight<Runtime>;
     type MaxAuthorities = MaxAuthorities;
     type MaxNominators = ConstU32<0>;
     type KeyOwnerProof = sp_session::MembershipProof;
@@ -272,7 +272,7 @@ impl pallet_babe::Config for Runtime {
 impl pallet_grandpa::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
 
-    type WeightInfo = ();
+    type WeightInfo = weights::pallet_grandpa::ZKVWeight<Runtime>;
     type MaxAuthorities = MaxAuthorities;
     type MaxNominators = ConstU32<0>;
     type MaxSetIdSessionEntries = ConstU64<0>;
@@ -426,7 +426,7 @@ impl pallet_session::Config for Runtime {
     type SessionManager = Staking;
     type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
     type Keys = SessionKeys;
-    type WeightInfo = weights::pallet_session::NHWeight<Runtime>;
+    type WeightInfo = weights::pallet_session::ZKVWeight<Runtime>;
 }
 
 //TODO: Set these parameters appropriately.
@@ -469,7 +469,7 @@ impl onchain::Config for OnChainSeqPhragmen {
     type System = Runtime;
     type Solver = SequentialPhragmen<AccountId, sp_runtime::Perbill>;
     type DataProvider = Staking;
-    type WeightInfo = weights::pallet_election_provider_support_benchmarking::NHWeight<Runtime>;
+    type WeightInfo = weights::pallet_election_provider_support::ZKVWeight<Runtime>;
     type MaxWinners = MaxActiveValidators;
     type Bounds = ElectionBoundsOnChain;
 }
