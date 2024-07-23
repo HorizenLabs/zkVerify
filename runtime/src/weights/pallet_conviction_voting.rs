@@ -24,8 +24,8 @@ use frame_support::{traits::Get, weights::Weight};
 use core::marker::PhantomData;
 
 /// Weight functions for `pallet_conviction_voting`.
-pub struct NHWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_conviction_voting::WeightInfo for NHWeight<T> {
+pub struct ZKVWeight<T>(PhantomData<T>);
+impl<T: frame_system::Config> pallet_conviction_voting::WeightInfo for ZKVWeight<T> {
     /// Storage: `Referenda::ReferendumInfoFor` (r:1 w:1)
     /// Proof: `Referenda::ReferendumInfoFor` (`max_values`: None, `max_size`: Some(936), added: 3411, mode: `MaxEncodedLen`)
     /// Storage: `ConvictionVoting::VotingFor` (r:1 w:1)

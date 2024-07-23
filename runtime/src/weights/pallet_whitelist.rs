@@ -24,8 +24,8 @@ use frame_support::{traits::Get, weights::Weight};
 use core::marker::PhantomData;
 
 /// Weight functions for `pallet_whitelist`.
-pub struct NHWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_whitelist::WeightInfo for NHWeight<T> {
+pub struct ZKVWeight<T>(PhantomData<T>);
+impl<T: frame_system::Config> pallet_whitelist::WeightInfo for ZKVWeight<T> {
     /// Storage: `Whitelist::WhitelistedCall` (r:1 w:1)
     /// Proof: `Whitelist::WhitelistedCall` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
     /// Storage: `Preimage::StatusFor` (r:1 w:0)

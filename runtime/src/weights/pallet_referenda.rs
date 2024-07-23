@@ -24,8 +24,8 @@ use frame_support::{traits::Get, weights::Weight};
 use core::marker::PhantomData;
 
 /// Weight functions for `pallet_referenda`.
-pub struct NHWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_referenda::WeightInfo for NHWeight<T> {
+pub struct ZKVWeight<T>(PhantomData<T>);
+impl<T: frame_system::Config> pallet_referenda::WeightInfo for ZKVWeight<T> {
     /// Storage: `Referenda::ReferendumCount` (r:1 w:1)
     /// Proof: `Referenda::ReferendumCount` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
     /// Storage: `Scheduler::Agenda` (r:1 w:1)
