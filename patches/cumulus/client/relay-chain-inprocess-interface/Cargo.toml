@@ -1,13 +1,13 @@
 [package]
 authors.workspace = true
 name = "cumulus-relay-chain-inprocess-interface"
-version = "0.6.0"
+version = "0.11.0"
 edition.workspace = true
-description = "Implementation of the RelayChainInterface trait for Polkadot full-nodes."
+description = "Implementation of the RelayChainInterface trait for Polkadot full-nodes. (polkadot v1.10.0)"
 license = "GPL-3.0-or-later WITH Classpath-exception-2.0"
 
 [dependencies]
-async-trait = "0.1.73"
+async-trait = "0.1.79"
 futures = "0.3.28"
 futures-timer = "3.0.2"
 sc-cli = { workspace = true }
@@ -23,9 +23,10 @@ sp-state-machine = { workspace = true }
 
 # Polkadot
 zkv-cli = { workspace = true, default-features = false, features = ["cli"] }
+
 service = { workspace = true }
-cumulus-primitives-core = { version = "0.6.0" }
-cumulus-relay-chain-interface = { version = "0.6.0" }
+cumulus-primitives-core = { workspace = true }
+cumulus-relay-chain-interface = { workspace = true }
 
 [dev-dependencies]
 sp-keyring = { workspace = true }

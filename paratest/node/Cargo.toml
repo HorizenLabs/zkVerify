@@ -15,7 +15,7 @@ clap = { version = "4.4.10", features = ["derive"] }
 log = "0.4.20"
 codec = { workspace = true }
 serde = { version = "1.0.193", features = ["derive"] }
-jsonrpsee = { version = "0.16.2", features = ["server"] }
+jsonrpsee = { workspace = true, features = ["server"] }
 futures = "0.3.28"
 serde_json = "1.0.108"
 
@@ -43,8 +43,8 @@ sc-transaction-pool-api = { workspace = true, default-features = true }
 sp-api = { workspace = true, default-features = true }
 sp-block-builder = { workspace = true, default-features = true }
 sp-blockchain = { workspace = true, default-features = true }
-# sp-consensus-aura = { workspace = true, default-features = true }
-sp-consensus-aura = { version = "0.31.0" }
+sp-consensus-aura = { workspace = true, default-features = true }
+# sp-consensus-aura = { version = "0.31.0" }
 sp-core = { workspace = true, default-features = true }
 sp-keystore = { workspace = true, default-features = true }
 sp-io = { workspace = true, default-features = true }
@@ -55,17 +55,17 @@ substrate-prometheus-endpoint = { version = "0.16.0" }
 
 # Polkadot
 zkv-cli = { workspace = true }
-polkadot-primitives = { version = "6.0.0", default-features = true }
+polkadot-primitives = { workspace = true }
 # xcm = { package = "staging-xcm", version = "6.0.0" }
-cumulus-client-cli = { version = "0.6.0" }
-cumulus-client-collator = { version = "0.6.0" }
-cumulus-client-consensus-aura = { version = "0.6.0" }
-cumulus-client-consensus-common = { version = "0.6.0" }
-cumulus-client-consensus-proposer = { version = "0.6.0" }
-cumulus-client-service = { version = "0.6.0" }
-cumulus-primitives-core = { version = "0.6.0" }
-cumulus-primitives-parachain-inherent = { version = "0.6.0" }
-cumulus-relay-chain-interface = { version = "0.6.0" }
+cumulus-client-cli = { workspace = true }
+cumulus-client-collator = { workspace = true }
+cumulus-client-consensus-aura = { workspace = true }
+cumulus-client-consensus-common = { workspace = true }
+cumulus-client-consensus-proposer = { workspace = true }
+cumulus-client-service = { workspace = true }
+cumulus-primitives-core = { workspace = true, default-features = true }
+cumulus-primitives-parachain-inherent = { workspace = true }
+cumulus-relay-chain-interface = { workspace = true }
 color-print = "0.3.4"
 
 [build-dependencies]

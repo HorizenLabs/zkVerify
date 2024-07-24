@@ -124,7 +124,7 @@ pub mod parachains {
         paras as parachains_paras, paras_inherent as parachains_paras_inherent,
         reward_points as parachains_reward_points,
         runtime_api_impl::{
-            v7 as parachains_runtime_api_impl, vstaging as parachains_staging_runtime_api_impl,
+            v10 as parachains_runtime_api_impl, vstaging as parachains_staging_runtime_api_impl,
         },
         scheduler as parachains_scheduler, session_info as parachains_session_info,
         shared as parachains_shared,
@@ -136,7 +136,7 @@ pub mod parachains {
     use super::{
         AccountId, Babe, Balances, Historical, KeyOwnerProofSystem, KeyTypeId, MaxAuthorities,
         Offences, ParaInclusion, ParachainsAssignmentProvider, ParasDisputes, ParasSlashing,
-        ReportLongevity, Runtime, RuntimeEvent, RuntimeOrigin, Weight,
+        ReportLongevity, Runtime, RuntimeEvent, RuntimeOrigin, Session, Weight,
     };
     use sp_runtime::transaction_validity::TransactionPriority;
 
@@ -154,6 +154,8 @@ pub mod parachains {
         type ForceOrigin = EnsureRoot<AccountId>;
         // type WeightInfo = weights::runtime_parachains_initializer::WeightInfo<Runtime>;
         type WeightInfo = ();
+
+        type CoretimeOnNewSession = ();
     }
 
     impl parachains_disputes::Config for Runtime {
@@ -229,6 +231,10 @@ pub mod parachains {
         fn set_node_feature() -> Weight {
             Default::default()
         }
+
+        fn set_config_with_scheduler_params() -> Weight {
+            Default::default()
+        }
     }
 
     impl parachains_configuration::Config for Runtime {
@@ -236,7 +242,9 @@ pub mod parachains {
         type WeightInfo = FakeParachainConfigWeight;
     }
 
-    impl parachains_shared::Config for Runtime {}
+    impl parachains_shared::Config for Runtime {
+        type DisabledValidators = Session;
+    }
 
     impl parachains_session_info::Config for Runtime {
         type ValidatorSet = Historical;
@@ -310,6 +318,7 @@ pub mod parachains {
         type NextSessionRotation = Babe;
         // type OnNewHead = Registrar;
         type OnNewHead = ();
+        type AssignCoretime = ();
     }
 
     // parameter_types! {
@@ -712,7 +721,6 @@ impl pallet_balances::Config for Runtime {
     type MaxFreezes = ();
     type RuntimeHoldReason = RuntimeHoldReason;
     type RuntimeFreezeReason = ();
-    type MaxHolds = ConstU32<3>;
 }
 
 parameter_types! {
@@ -935,6 +943,7 @@ impl pallet_staking::Config for Runtime {
     type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
     type BenchmarkingConfig = ElectionProviderBenchmarkConfig;
     type MaxExposurePageSize = ConstU32<64>;
+    type MaxControllersInDeprecationBatch = ConstU32<5314>;
 }
 
 impl pallet_authorship::Config for Runtime {
@@ -1192,16 +1201,16 @@ pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
 
 #[cfg(feature = "relay")]
 use polkadot_primitives::{
-    self as primitives, slashing, vstaging::NodeFeatures, CandidateEvent, CandidateHash,
+    self as primitives, slashing, ApprovalVotingParams, CandidateEvent, CandidateHash,
     CommittedCandidateReceipt, CoreState, DisputeState, ExecutorParams, GroupRotationInfo,
-    Id as ParaId, InboundDownwardMessage, InboundHrmpMessage, OccupiedCoreAssumption,
+    Id as ParaId, InboundDownwardMessage, InboundHrmpMessage, NodeFeatures, OccupiedCoreAssumption,
     PersistedValidationData, ScrapedOnChainVotes, SessionIndex, SessionInfo, ValidationCode,
     ValidationCodeHash, ValidatorId, ValidatorIndex, PARACHAIN_KEY_TYPE_ID,
 };
 
 #[cfg(feature = "relay")]
 pub use polkadot_runtime_parachains::runtime_api_impl::{
-    v7 as parachains_runtime_api_impl, vstaging as parachains_staging_runtime_api_impl,
+    v10 as parachains_runtime_api_impl, vstaging as parachains_staging_runtime_api_impl,
 };
 
 impl_runtime_apis! {
@@ -1214,7 +1223,7 @@ impl_runtime_apis! {
             Executive::execute_block(block);
         }
 
-        fn initialize_block(header: &<Block as BlockT>::Header) {
+        fn initialize_block(header: &<Block as BlockT>::Header) -> sp_runtime::ExtrinsicInclusionMode {
             Executive::initialize_block(header)
         }
     }
@@ -1322,7 +1331,7 @@ impl_runtime_apis! {
     #[cfg(feature = "relay")]
     impl authority_discovery_primitives::AuthorityDiscoveryApi<Block> for Runtime {
         fn authorities() -> Vec<polkadot_primitives::AuthorityDiscoveryId> {
-            polkadot_runtime_parachains::runtime_api_impl::v7::relevant_authority_ids::<Runtime>()
+            polkadot_runtime_parachains::runtime_api_impl::v10::relevant_authority_ids::<Runtime>()
         }
     }
 
@@ -1433,7 +1442,7 @@ impl_runtime_apis! {
     }
 
     #[cfg(feature = "relay")]
-    #[api_version(9)]
+    #[api_version(10)]
     impl primitives::runtime_api::ParachainHost<Block> for Runtime {
         fn validators() -> Vec<ValidatorId> {
             parachains_runtime_api_impl::validators::<Runtime>()
@@ -1578,11 +1587,15 @@ impl_runtime_apis! {
         }
 
         fn disabled_validators() -> Vec<ValidatorIndex> {
-            parachains_staging_runtime_api_impl::disabled_validators::<Runtime>()
+            parachains_runtime_api_impl::disabled_validators::<Runtime>()
         }
 
         fn node_features() -> NodeFeatures {
-            parachains_staging_runtime_api_impl::node_features::<Runtime>()
+            parachains_runtime_api_impl::node_features::<Runtime>()
+        }
+
+        fn approval_voting_params() -> ApprovalVotingParams {
+            parachains_runtime_api_impl::approval_voting_params::<Runtime>()
         }
     }
 

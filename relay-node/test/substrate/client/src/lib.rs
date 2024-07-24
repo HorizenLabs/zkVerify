@@ -294,7 +294,7 @@ pub struct RpcTransactionOutput {
     /// The output string of the transaction if any.
     pub result: String,
     /// An async receiver if data will be returned via a callback.
-    pub receiver: futures::channel::mpsc::UnboundedReceiver<String>,
+    pub receiver: tokio::sync::mpsc::Receiver<std::string::String>,
 }
 
 impl std::fmt::Debug for RpcTransactionOutput {
@@ -358,7 +358,7 @@ impl RpcHandlersExt for RpcHandlers {
 
 pub(crate) fn parse_rpc_result(
     result: String,
-    receiver: futures::channel::mpsc::UnboundedReceiver<String>,
+    receiver: tokio::sync::mpsc::Receiver<String>,
 ) -> Result<RpcTransactionOutput, RpcTransactionError> {
     let json: serde_json::Value =
         serde_json::from_str(&result).expect("the result can only be a JSONRPC string; qed");

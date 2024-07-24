@@ -155,7 +155,9 @@ pub fn run() -> sc_cli::Result<()> {
                             );
                         }
 
-                        cmd.run::<Block, HLNativeHostFunctions>(config)
+                        cmd.run::<sp_runtime::traits::HashingFor<Block>, HLNativeHostFunctions>(
+                            config,
+                        )
                     }
                     BenchmarkCmd::Block(cmd) => {
                         let PartialComponents { client, .. } = service::new_partial(&config)?;
