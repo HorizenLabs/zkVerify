@@ -20,6 +20,7 @@ members = [
     "verifiers/zksync",
     "verifiers/groth16",
     "verifiers/risc0",
+    "verifiers/ultraplonk",
 ]
 
 [workspace.dependencies]
@@ -65,6 +66,7 @@ pallet-fflonk-verifier = { path = "verifiers/fflonk", default-features = false }
 pallet-zksync-verifier = { path = "verifiers/zksync", default-features = false }
 pallet-groth16-verifier = { path = "verifiers/groth16", default-features = false }
 pallet-risc0-verifier = { path = "verifiers/risc0", default-features = false }
+pallet-ultraplonk-verifier = { path = "verifiers/ultraplonk", default-features = false }
 
 zkv-runtime = { path = "runtime", default-features = false }
 

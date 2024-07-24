@@ -1,0 +1,32 @@
+[package]
+name = "pallet-ultraplonk-verifier"
+version = "0.1.0"
+description = "A ultra plonk (noir-lang) verifier pallet implementation based on pallet-verifiers abstraction."
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+homepage.workspace = true
+license = "GPL-3.0"
+
+
+[dependencies]
+sp-core = { workspace = true }
+hp-verifiers = { workspace = true }
+frame-support = { workspace = true }
+pallet-verifiers = { workspace = true }
+frame-benchmarking = { workspace = true, optional = true }
+log = "0.4.21"
+hex-literal = { version = "0.4.1", optional = true }
+ultraplonk_verifier = { git = "https://github.com/HorizenLabs/ultraplonk_verifier.git", rev = "1a46d03c0fb7d54aef65bb5775ab913bfac78ef9" }
+
+[dev-dependencies]
+hex-literal = "0.4.1"
+serial_test = "3.1.1"
+
+
+[features]
+runtime-benchmarks = [
+    "dep:frame-benchmarking",
+    "pallet-verifiers/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
+]
