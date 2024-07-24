@@ -126,6 +126,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
         let mut props = Properties::new();
         props.insert("tokenSymbol".into(), "ACME".into());
         props.insert("tokenDecimals".into(), 18.into());
+        props.insert("ss58Format".into(), nh_runtime::SS58Prefix::get().into());
         props
     })
     .with_genesis_config_patch(genesis(
@@ -161,6 +162,7 @@ pub fn local_config() -> Result<ChainSpec, String> {
         let mut props = Properties::new();
         props.insert("tokenSymbol".into(), "ACME".into());
         props.insert("tokenDecimals".into(), 18.into());
+        props.insert("ss58Format".into(), nh_runtime::SS58Prefix::get().into());
         props
     })
     .with_genesis_config_patch(genesis(
