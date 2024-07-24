@@ -10,6 +10,7 @@ mod weights;
 // pub mod xcm_config;
 
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+use pallet_aura::Authorities;
 use smallvec::smallvec;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
@@ -346,7 +347,6 @@ impl pallet_balances::Config for Runtime {
     type RuntimeHoldReason = RuntimeHoldReason;
     type RuntimeFreezeReason = RuntimeFreezeReason;
     type FreezeIdentifier = ();
-    type MaxHolds = ConstU32<0>;
     type MaxFreezes = ConstU32<0>;
 }
 
@@ -462,7 +462,6 @@ impl pallet_aura::Config for Runtime {
     type DisabledValidators = ();
     type MaxAuthorities = ConstU32<100_000>;
     type AllowMultipleBlocksPerSlot = ConstBool<false>;
-    #[cfg(feature = "experimental")]
     type SlotDuration = pallet_aura::MinimumPeriodTimesTwo<Self>;
 }
 
@@ -557,7 +556,7 @@ impl_runtime_apis! {
         }
 
         fn authorities() -> Vec<AuraId> {
-            Aura::authorities().into_inner()
+            Authorities::<Runtime>::get().into_inner()
         }
     }
 
@@ -570,7 +569,7 @@ impl_runtime_apis! {
             Executive::execute_block(block)
         }
 
-        fn initialize_block(header: &<Block as BlockT>::Header) {
+        fn initialize_block(header: &<Block as BlockT>::Header) -> sp_runtime::ExtrinsicInclusionMode {
             Executive::initialize_block(header)
         }
     }

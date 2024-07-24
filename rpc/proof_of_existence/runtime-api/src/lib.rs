@@ -30,7 +30,7 @@ sp_api::decl_runtime_apis! {
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Debug, PartialEq, Eq, Encode, Decode, TypeInfo, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Encode, Decode, TypeInfo)]
 pub struct MerkleProof {
     pub root: sp_core::H256,
     pub proof: Vec<sp_core::H256>,

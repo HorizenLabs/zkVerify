@@ -189,11 +189,13 @@ where
         )
         .map(|full| full.task_manager)?;
 
-        sc_storage_monitor::StorageMonitorService::try_spawn(
-            cli.storage_monitor,
-            database_source,
-            &task_manager.spawn_essential_handle(),
-        )?;
+        if let Some(path) = database_source.path() {
+            sc_storage_monitor::StorageMonitorService::try_spawn(
+                cli.storage_monitor,
+                path.to_path_buf(),
+                &task_manager.spawn_essential_handle(),
+            )?;
+        }
 
         Ok(task_manager)
     })
@@ -230,7 +232,7 @@ pub fn run() -> Result<()> {
     match &cli.subcommand {
         None => run_node_inner(
             cli,
-            service::RealOverseerGen,
+            service::ValidatorOverseerGen,
             None,
             polkadot_node_metrics::logger_hook(),
         ),
@@ -399,7 +401,7 @@ pub fn run() -> Result<()> {
 
                     if cfg!(feature = "runtime-benchmarks") {
                         runner.sync_run(|config| {
-                            cmd.run::<service::Block, ()>(config)
+                            cmd.run::<sp_runtime::traits::HashingFor<service::Block>, ()>(config)
                                 .map_err(Error::SubstrateCli)
                         })
                     } else {

@@ -420,10 +420,7 @@ fn genesis(
             "key": Some(root_key),
         },
         "configuration": {
-            "config": polkadot_runtime_parachains::configuration::HostConfiguration {
-                max_validators_per_core: Some(1),
-                ..default_parachains_host_configuration()
-            },
+            "config": default_parachains_host_configuration(),
         },
 
     })
@@ -441,8 +438,6 @@ fn default_parachains_host_configuration(
         max_code_size: MAX_CODE_SIZE,
         max_pov_size: MAX_POV_SIZE,
         max_head_data_size: 32 * 1024,
-        group_rotation_frequency: 20,
-        paras_availability_period: 4,
         max_upward_queue_count: 8,
         max_upward_queue_size: 1024 * 1024,
         max_downward_message_size: 1024 * 1024,
