@@ -52,8 +52,8 @@ hex-literal = { version = "0.4.1" }
 
 sc-cli = { version = "0.40.0" }
 sc-executor = { version = "0.36.0" }
-sc-network = { version = "0.38.0" }
-sc-service = { version = "0.39.0" }
+sc-network = { version = "0.38.0", default-features = false }
+sc-service = { version = "0.39.0", default-features = false }
 sc-telemetry = { version = "18.0.0" }
 sc-transaction-pool = { version = "32.0.0" }
 sc-transaction-pool-api = { version = "32.0.0" }
@@ -189,87 +189,127 @@ zkv-relay = { path = "relay-node" }
 zkv-cli = { path = "relay-node/cli" }
 service = { package = "zkv-service", path = "relay-node/service" }
 
-sc-authority-discovery = { version = "0.33.0" }
-beefy = { package = "sc-consensus-beefy", version = "12.0.0" }
-sc-consensus-beefy-rpc = { version = "12.0.0" }
-mmr-gadget = { version = "28.0.0" }
-sp-mmr-primitives = { version = "25.0.0", default-features = false }
-mmr-rpc = { version = "27.0.0" }
-sc-block-builder = { version = "0.32.0" }
-sc-chain-spec = { version = "26.0.0" }
-sc-client-db = { version = "0.34.0" }
-sc-consensus-slots = { version = "0.32.0" }
-sc-network-common = { version = "0.32.0" }
-sc-network-sync = { version = "0.32.0" }
+polkadot-node-core-pvf = { version = "11.0.0" }
+polkadot-node-core-pvf-prepare-worker = { version = "11.0.0" }
+polkadot-overseer = { version = "11.0.0" }
+polkadot-node-core-pvf-common = { version = "11.0.0" }
+polkadot-node-core-pvf-execute-worker = { version = "11.0.0" }
+
+
+sc-authority-discovery = { version = "0.38.0" }
+beefy = { package = "sc-consensus-beefy", version = "17.0.0" }
+sc-consensus-beefy-rpc = { version = "17.0.0" }
+mmr-gadget = { version = "33.0.0" }
+sp-mmr-primitives = { version = "30.0.0", default-features = false }
+mmr-rpc = { version = "32.0.0" }
+sc-block-builder = { version = "0.37.0" }
+sc-chain-spec = { version = "31.0.0" }
+sc-client-db = { version = "0.39.0" }
+sc-consensus-slots = { version = "0.37.0" }
+sc-network-common = { version = "0.37.0" }
+sc-network-sync = { version = "0.37.0" }
 # sc-sync-state-rpc = { version = "0.33.0" }
-sc-keystore = { version = "24.0.0" }
-telemetry = { package = "sc-telemetry", version = "14.0.0" }
-sp-authority-discovery = { version = "25.0.0", default-features = false }
-consensus_common = { package = "sp-consensus", version = "0.31.0" }
-beefy-primitives = { package = "sp-consensus-beefy", version = "12.0.0", default-features = false }
-sp-state-machine = { version = "0.34.0" }
-prometheus-endpoint = { package = "substrate-prometheus-endpoint", version = "0.16.0" }
-substrate-state-trie-migration-rpc = { version = "26.0.0" }
+sc-keystore = { version = "29.0.0" }
+telemetry = { package = "sc-telemetry", version = "18.0.0" }
+sp-authority-discovery = { version = "30.0.0", default-features = false }
+consensus_common = { package = "sp-consensus", version = "0.36.0" }
+beefy-primitives = { package = "sp-consensus-beefy", version = "17.0.0", default-features = false }
+sp-state-machine = { version = "0.39.0" }
+prometheus-endpoint = { package = "substrate-prometheus-endpoint", version = "0.17.0" }
+substrate-state-trie-migration-rpc = { version = "31.0.0" }
 
-polkadot-node-metrics = { version = "6.0.0" }     # Our own
-polkadot-node-primitives = { version = "6.0.0" }
-sc-storage-monitor = { version = "0.15.0" }
-sc-tracing = { version = "27.0.0" }
-sp-maybe-compressed-blob = { version = "10.0.0" }
+polkadot-node-metrics = { version = "11.0.0" }    # Our own
+polkadot-node-primitives = { version = "11.0.0" }
+sc-storage-monitor = { version = "0.20.0" }
+sc-tracing = { version = "32.0.0" }
+sp-maybe-compressed-blob = { version = "11.0.0" }
 
-gum = { package = "tracing-gum", version = "6.0.0" }
+gum = { package = "tracing-gum", version = "11.0.0" }
 
-polkadot-approval-distribution = { version = "6.0.0" }
-polkadot-availability-bitfield-distribution = { version = "6.0.0" }
-polkadot-availability-distribution = { version = "6.0.0" }
-polkadot-availability-recovery = { version = "6.0.0" }
-polkadot-collator-protocol = { version = "6.0.0" }
-polkadot-dispute-distribution = { version = "6.0.0" }
-polkadot-gossip-support = { version = "6.0.0" }
-polkadot-network-bridge = { version = "6.0.0" }
-polkadot-node-collation-generation = { version = "6.0.0" }
-polkadot-node-core-approval-voting = { version = "6.0.0" }
-polkadot-node-core-av-store = { version = "6.0.0" }
-polkadot-node-core-backing = { version = "6.0.0" }
-polkadot-node-core-bitfield-signing = { version = "6.0.0" }
-polkadot-node-core-candidate-validation = { version = "6.0.0" }
-polkadot-node-core-chain-api = { version = "6.0.0" }
-polkadot-node-core-chain-selection = { version = "6.0.0" }
-polkadot-node-core-dispute-coordinator = { version = "6.0.0" }
-polkadot-node-core-prospective-parachains = { version = "5.0.0" }
-polkadot-node-core-provisioner = { version = "6.0.0" }
-polkadot-node-core-pvf = { version = "6.0.0" }
-polkadot-node-core-pvf-checker = { version = "6.0.0" }
-polkadot-node-core-runtime-api = { version = "6.0.0" }
-polkadot-statement-distribution = { version = "6.0.0" }
+polkadot-approval-distribution = { version = "11.0.0" }
+polkadot-availability-bitfield-distribution = { version = "11.0.0" }
+polkadot-availability-distribution = { version = "11.0.0" }
+polkadot-availability-recovery = { version = "11.0.0" }
+polkadot-collator-protocol = { version = "11.0.0" }
+polkadot-dispute-distribution = { version = "11.0.0" }
+polkadot-gossip-support = { version = "11.0.0" }
+polkadot-network-bridge = { version = "11.0.0" }
+polkadot-node-collation-generation = { version = "11.0.0" }
+polkadot-node-core-approval-voting = { version = "11.0.0" }
+polkadot-node-core-av-store = { version = "11.0.0" }
+polkadot-node-core-backing = { version = "11.0.0" }
+polkadot-node-core-bitfield-signing = { version = "11.0.0" }
+polkadot-node-core-candidate-validation = { version = "11.0.0" }
+polkadot-node-core-chain-api = { version = "11.0.0" }
+polkadot-node-core-chain-selection = { version = "11.0.0" }
+polkadot-node-core-dispute-coordinator = { version = "11.0.0" }
+polkadot-node-core-prospective-parachains = { version = "10.0.0" }
+polkadot-node-core-provisioner = { version = "11.0.0" }
+polkadot-node-core-pvf-checker = { version = "11.0.0" }
+polkadot-node-core-runtime-api = { version = "11.0.0" }
+polkadot-statement-distribution = { version = "11.0.0" }
 
-polkadot-core-primitives = { version = "6.0.0" }
-polkadot-node-core-parachains-inherent = { version = "6.0.0" }
-polkadot-overseer = { version = "6.0.0" }
-polkadot-parachain-primitives = { version = "5.0.0", default-features = false }
-polkadot-primitives = { version = "6.0.0", default-features = false }
-polkadot-rpc = { version = "6.0.0" }
-polkadot-node-subsystem = { version = "6.0.0" }
-polkadot-node-subsystem-util = { version = "6.0.0" }
-polkadot-node-subsystem-types = { version = "6.0.0" }
-polkadot-runtime-parachains = { version = "6.0.0", default-features = false }
-polkadot-node-network-protocol = { version = "6.0.0" }
+polkadot-core-primitives = { version = "11.0.0" }
+polkadot-node-core-parachains-inherent = { version = "11.0.0" }
+polkadot-parachain-primitives = { version = "10.0.0", default-features = false }
+polkadot-primitives = { version = "11.0.0", default-features = false }
+polkadot-rpc = { version = "11.0.0" }
+polkadot-node-subsystem = { version = "11.0.0" }
+polkadot-node-subsystem-util = { version = "11.0.0" }
+polkadot-node-subsystem-types = { version = "11.0.0" }
+polkadot-runtime-parachains = { version = "11.0.0", default-features = false }
+polkadot-node-network-protocol = { version = "11.0.0" }
+
+authority-discovery-primitives = { package = "sp-authority-discovery", version = "30.0.0", default-features = false }
+pallet-authority-discovery = { default-features = false, version = "32.0.0" }
+polkadot-runtime-common = { default-features = false, version = "11.0.0" }
 
 # TEST
 substrate-test-client = { path = "relay-node/test/substrate/client" }
-pallet-authority-discovery = { default-features = false, version = "27.0.0" }
-polkadot-runtime-common = { default-features = false, version = "6.0.0" }
-sp-trie = { version = "28.0.0" }
-sp-arithmetic = { version = "22.0.0" }
+sp-trie = { version = "33.0.0" }
+sp-arithmetic = { version = "26.0.0" }
 substrate-test-utils = { version = "3.0.0" }
-sc-utils = { version = "13.0.0" }
-sp-application-crypto = { version = "29.0.0", default-features = false }
-pallet-indices = { version = "27.0.0", default-features = false }
-pallet-vesting-test = { package = "pallet-vesting", version = "27.0.0", default-features = false }
-pallet-xcm = { version = "6.0.0", default-features = false }
-xcm-builder = { package = "staging-xcm-builder", version = "6.0.2", default-features = false }
-xcm-executor = { package = "staging-xcm-executor", version = "6.0.2", default-features = false }
-xcm = { package = "staging-xcm", version = "6.0.0", default-features = false }
+sc-utils = { version = "17.0.0" }
+sp-application-crypto = { version = "34.0.0", default-features = false }
+pallet-indices = { version = "32.0.0", default-features = false }
+pallet-xcm = { version = "11.0.0", default-features = false }
+xcm-builder = { package = "staging-xcm-builder", version = "11.0.0", default-features = false }
+xcm-executor = { package = "staging-xcm-executor", version = "11.0.0", default-features = false }
+xcm = { package = "staging-xcm", version = "11.0.0", default-features = false }
+
+# PARATEST
+# Polkadot
+# pallet-xcm = { default-features = false, version = "6.0.0" }
+# xcm = { package = "staging-xcm", default-features = false, version = "6.0.0" }
+# xcm-builder = { package = "staging-xcm-builder", default-features = false, version = "6.0.2" }
+# xcm-executor = { package = "staging-xcm-executor", default-features = false, version = "6.0.2" }
+
+pallet-aura = { default-features = false, version = "31.0.0" }
+sp-consensus-aura = { default-features = false, version = "0.36.0" }
+
+# Cumulus
+cumulus-client-cli = { version = "0.11.0" }
+cumulus-client-collator = { version = "0.11.0" }
+cumulus-client-consensus-aura = { version = "0.11.0" }
+cumulus-client-consensus-common = { version = "0.11.0" }
+cumulus-client-consensus-proposer = { version = "0.11.0" }
+cumulus-client-service = { version = "0.11.0" }
+cumulus-primitives-parachain-inherent = { version = "0.11.0" }
+cumulus-relay-chain-interface = { version = "0.11.0" }
+
+
+cumulus-pallet-aura-ext = { default-features = false, version = "0.11.0" }
+cumulus-pallet-dmp-queue = { default-features = false, version = "0.11.0" }
+cumulus-pallet-parachain-system = { default-features = false, version = "0.11.0" }
+cumulus-pallet-session-benchmarking = { default-features = false, version = "13.0.0" }
+# cumulus-pallet-xcm = { default-features = false, version = "0.6.0" }
+# cumulus-pallet-xcmp-queue = { default-features = false, version = "0.6.0" }
+cumulus-primitives-core = { default-features = false, version = "0.11.0" }
+cumulus-primitives-utility = { default-features = false, version = "0.11.0" }
+pallet-collator-selection = { default-features = false, version = "13.0.1" }
+parachains-common = { default-features = false, version = "11.0.0" }
+parachain-info = { package = "staging-parachain-info", default-features = false, version = "0.11.0" }
+
 
 [patch.crates-io]
 cumulus-relay-chain-inprocess-interface = { path = "patches/cumulus/client/relay-chain-inprocess-interface" }

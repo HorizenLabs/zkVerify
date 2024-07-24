@@ -90,13 +90,13 @@ pallet-groth16-verifier = { workspace = true }
 pallet-risc0-verifier = { workspace = true }
 pallet-ultraplonk-verifier = { workspace = true }
 
-authority-discovery-primitives = { package = "sp-authority-discovery", version = "25.0.0", default-features = false, optional = true }
+authority-discovery-primitives = { workspace = true, optional = true }
 
-polkadot-primitives = { version = "6.0.0", default-features = false, optional = true }
-polkadot-runtime-parachains = { version = "6.0.0", default-features = false, optional = true }
-pallet-authority-discovery = { version = "27.0.0", default-features = false, optional = true }
+polkadot-primitives = { workspace = true, optional = true }
+polkadot-runtime-parachains = { workspace = true, optional = true }
+pallet-authority-discovery = { workspace = true, optional = true }
 
-polkadot-runtime-common = { version = "6.0.0", default-features = false, optional = true }
+polkadot-runtime-common = { workspace = true, optional = true }
 
 # pallet-message-queue = { version = "30.0.0", default-features = false }
 # xcm = { package = "staging-xcm", version = "6.0.0", default-features = false }

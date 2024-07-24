@@ -60,7 +60,7 @@ frame-system-rpc-runtime-api = { workspace = true }
 test-runtime-constants = { path = "constants", default-features = false }
 pallet-timestamp = { workspace = true }
 pallet-sudo = { workspace = true }
-pallet-vesting-test = { workspace = true }
+pallet-vesting = { workspace = true }
 
 polkadot-runtime-common = { workspace = true }
 polkadot-primitives = { workspace = true }
@@ -117,7 +117,7 @@ std = [
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
-	"pallet-vesting-test/std",
+	"pallet-vesting/std",
 	"pallet-xcm/std",
 	"parity-scale-codec/std",
 	"polkadot-parachain-primitives/std",
@@ -157,7 +157,7 @@ runtime-benchmarks = [
 	"pallet-staking/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
-	"pallet-vesting-test/runtime-benchmarks",
+	"pallet-vesting/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"polkadot-parachain-primitives/runtime-benchmarks",
 	"polkadot-runtime-parachains/runtime-benchmarks",

@@ -17,7 +17,6 @@
 //! Polkadot service. Specialized wrapper over substrate service.
 
 #![deny(unused_results)]
-#![allow(clippy::type_complexity)]
 
 pub mod benchmarking;
 pub mod chain_spec;
@@ -33,7 +32,12 @@ pub mod overseer;
 pub mod workers;
 
 #[cfg(feature = "full-node")]
-pub use self::overseer::{OverseerGen, OverseerGenArgs, RealOverseerGen};
+pub use self::overseer::{
+    CollatorOverseerGen, ExtendedOverseerGenArgs, OverseerGen, OverseerGenArgs,
+    ValidatorOverseerGen,
+};
+
+pub use sc_consensus_babe as babe;
 
 #[cfg(test)]
 mod tests;
@@ -56,7 +60,9 @@ use {
         request_response::ReqProtocolNames,
     },
     sc_client_api::BlockBackend,
-    sc_consensus_grandpa::{self, FinalityProofProvider as GrandpaFinalityProofProvider},
+    sc_consensus_grandpa::{
+        self as grandpa, FinalityProofProvider as GrandpaFinalityProofProvider,
+    },
     sc_transaction_pool_api::OffchainTransactionPoolFactory,
     sp_core::traits::SpawnNamed,
 };
@@ -80,9 +86,10 @@ use polkadot_node_subsystem::jaeger;
 use std::{collections::HashMap, path::PathBuf, sync::Arc, time::Duration};
 
 use prometheus_endpoint::Registry;
+pub use sc_service as service;
 #[cfg(feature = "full-node")]
-use sc_service::KeystoreContainer;
-use sc_service::RpcHandlers;
+use service::KeystoreContainer;
+use service::RpcHandlers;
 use telemetry::TelemetryWorker;
 #[cfg(feature = "full-node")]
 use telemetry::{Telemetry, TelemetryWorkerHandle};
@@ -90,12 +97,13 @@ use telemetry::{Telemetry, TelemetryWorkerHandle};
 pub use consensus_common::{Proposal, SelectChain};
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use mmr_gadget::MmrGadget;
+use polkadot_node_subsystem_types::DefaultSubsystemClient;
 pub use polkadot_primitives::{Block, BlockId, BlockNumber, CollatorPair, Hash, Id as ParaId};
 pub use sc_client_api::{Backend, CallExecutor};
 pub use sc_consensus::{BlockImport, LongestChain};
 pub use sc_executor::NativeExecutionDispatch;
 use sc_executor::{HeapAllocStrategy, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
-pub use sc_service::{
+pub use service::{
     config::{DatabaseSource, PrometheusConfig},
     ChainSpec, Configuration, Error as SubstrateServiceError, PruningMode, Role, RuntimeGenesis,
     TFullBackend, TFullCallExecutor, TFullClient, TaskManager, TransactionPoolOptions,
@@ -106,10 +114,15 @@ pub use sp_runtime::{
     traits::{self as runtime_traits, BlakeTwo256, Block as BlockT, Header as HeaderT, NumberFor},
 };
 
+#[cfg(feature = "rococo-native")]
+pub use {rococo_runtime, rococo_runtime_constants};
+#[cfg(feature = "westend-native")]
+pub use {westend_runtime, westend_runtime_constants};
+
 pub use fake_runtime_api::{GetLastTimestamp, RuntimeApi};
 
 #[cfg(feature = "full-node")]
-pub type FullBackend = sc_service::TFullBackend<Block>;
+pub type FullBackend = service::TFullBackend<Block>;
 
 pub type FullWasmExecutor = WasmExecutor<(
     sp_io::SubstrateHostFunctions,
@@ -240,7 +253,7 @@ pub enum Error {
     },
 
     #[cfg(feature = "full-node")]
-    #[error("Worker binaries could not be found, make sure polkadot was built/installed correctly. If you ran with `cargo run`, please run `cargo build` first. Searched given workers path ({given_workers_path:?}), polkadot binary path ({current_exe_path:?}), and lib path (/usr/lib/polkadot), workers names: {workers_names:?}")]
+    #[error("Worker binaries could not be found, make sure polkadot was built and installed correctly. Please see the readme for the latest instructions (https://github.com/paritytech/polkadot-sdk/tree/master/polkadot). If you ran with `cargo run`, please run `cargo build` first. Searched given workers path ({given_workers_path:?}), polkadot binary path ({current_exe_path:?}), and lib path (/usr/lib/polkadot), workers names: {workers_names:?}")]
     MissingWorkerBinaries {
         given_workers_path: Option<PathBuf>,
         current_exe_path: PathBuf,
@@ -285,7 +298,6 @@ impl IdentifyVariant for Box<dyn ChainSpec> {
     fn is_dev(&self) -> bool {
         self.id().ends_with("dev")
     }
-
     fn identify_chain(&self) -> Chain {
         if self.is_zkv_testnet() {
             Chain::ZkvTestnet
@@ -356,7 +368,7 @@ fn jaeger_launch_collector_with_agent(
 type FullSelectChain = relay_chain_selection::SelectRelayChain<FullBackend>;
 #[cfg(feature = "full-node")]
 type FullGrandpaBlockImport<ChainSelection = FullSelectChain> =
-    sc_consensus_grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, ChainSelection>;
+    grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, ChainSelection>;
 #[cfg(feature = "full-node")]
 type FullBeefyBlockImport<InnerBlockImport> =
     beefy::import::BeefyBlockImport<Block, FullBackend, FullClient, InnerBlockImport>;
@@ -408,8 +420,8 @@ fn new_partial_basics(
         .build();
 
     let (client, backend, keystore_container, task_manager) =
-        sc_service::new_full_parts::<Block, RuntimeApi, _>(
-            config,
+        service::new_full_parts::<Block, RuntimeApi, _>(
+            &config,
             telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
             executor,
         )?;
@@ -449,7 +461,7 @@ fn new_partial<ChainSelection>(
     }: Basics,
     select_chain: ChainSelection,
 ) -> Result<
-    sc_service::PartialComponents<
+    service::PartialComponents<
         FullClient,
         FullBackend,
         ChainSelection,
@@ -461,16 +473,16 @@ fn new_partial<ChainSelection>(
                 polkadot_rpc::SubscriptionTaskExecutor,
             ) -> Result<polkadot_rpc::RpcExtension, SubstrateServiceError>,
             (
-                sc_consensus_babe::BabeBlockImport<
+                babe::BabeBlockImport<
                     Block,
                     FullClient,
                     FullBeefyBlockImport<FullGrandpaBlockImport<ChainSelection>>,
                 >,
-                sc_consensus_grandpa::LinkHalf<Block, FullClient, ChainSelection>,
-                sc_consensus_babe::BabeLink<Block>,
+                grandpa::LinkHalf<Block, FullClient, ChainSelection>,
+                babe::BabeLink<Block>,
                 beefy::BeefyVoterLinks<Block>,
             ),
-            sc_consensus_grandpa::SharedVoterState,
+            grandpa::SharedVoterState,
             sp_consensus_babe::SlotDuration,
             Option<Telemetry>,
         ),
@@ -490,15 +502,14 @@ where
 
     let grandpa_hard_forks = Vec::new();
 
-    let (grandpa_block_import, grandpa_link) =
-        sc_consensus_grandpa::block_import_with_authority_set_hard_forks(
-            client.clone(),
-            GRANDPA_JUSTIFICATION_PERIOD,
-            &(client.clone() as Arc<_>),
-            select_chain.clone(),
-            grandpa_hard_forks,
-            telemetry.as_ref().map(|x| x.handle()),
-        )?;
+    let (grandpa_block_import, grandpa_link) = grandpa::block_import_with_authority_set_hard_forks(
+        client.clone(),
+        GRANDPA_JUSTIFICATION_PERIOD,
+        &(client.clone() as Arc<_>),
+        select_chain.clone(),
+        grandpa_hard_forks,
+        telemetry.as_ref().map(|x| x.handle()),
+    )?;
     let justification_import = grandpa_block_import.clone();
 
     let (beefy_block_import, beefy_voter_links, beefy_rpc_links) =
@@ -509,40 +520,39 @@ where
             config.prometheus_registry().cloned(),
         );
 
-    let babe_config = sc_consensus_babe::configuration(&*client)?;
+    let babe_config = babe::configuration(&*client)?;
     let (block_import, babe_link) =
-        sc_consensus_babe::block_import(babe_config.clone(), beefy_block_import, client.clone())?;
+        babe::block_import(babe_config.clone(), beefy_block_import, client.clone())?;
 
     let slot_duration = babe_link.config().slot_duration();
-    let (import_queue, babe_worker_handle) =
-        sc_consensus_babe::import_queue(sc_consensus_babe::ImportQueueParams {
-            link: babe_link.clone(),
-            block_import: block_import.clone(),
-            justification_import: Some(Box::new(justification_import)),
-            client: client.clone(),
-            select_chain: select_chain.clone(),
-            create_inherent_data_providers: move |_, ()| async move {
-                let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
+    let (import_queue, babe_worker_handle) = babe::import_queue(babe::ImportQueueParams {
+        link: babe_link.clone(),
+        block_import: block_import.clone(),
+        justification_import: Some(Box::new(justification_import)),
+        client: client.clone(),
+        select_chain: select_chain.clone(),
+        create_inherent_data_providers: move |_, ()| async move {
+            let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
-                let slot =
+            let slot =
 				sp_consensus_babe::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
 					*timestamp,
 					slot_duration,
 				);
 
-                let poe = hp_poe::InherentDataProvider::default();
+            let poe = hp_poe::InherentDataProvider::default();
 
-                Ok((slot, timestamp, poe))
-            },
-            spawner: &task_manager.spawn_essential_handle(),
-            registry: config.prometheus_registry(),
-            telemetry: telemetry.as_ref().map(|x| x.handle()),
-            offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool.clone()),
-        })?;
+            Ok((slot, timestamp, poe))
+        },
+        spawner: &task_manager.spawn_essential_handle(),
+        registry: config.prometheus_registry(),
+        telemetry: telemetry.as_ref().map(|x| x.handle()),
+        offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool.clone()),
+    })?;
 
     let justification_stream = grandpa_link.justification_stream();
     let shared_authority_set = grandpa_link.shared_authority_set().clone();
-    let shared_voter_state = sc_consensus_grandpa::SharedVoterState::empty();
+    let shared_voter_state = grandpa::SharedVoterState::empty();
     let finality_proof_provider = GrandpaFinalityProofProvider::new_for_service(
         backend.clone(),
         Some(shared_authority_set.clone()),
@@ -561,7 +571,7 @@ where
 
         move |deny_unsafe,
               subscription_executor: polkadot_rpc::SubscriptionTaskExecutor|
-              -> Result<polkadot_rpc::RpcExtension, sc_service::Error> {
+              -> Result<polkadot_rpc::RpcExtension, service::Error> {
             let deps = polkadot_rpc::FullDeps {
                 client: client.clone(),
                 pool: transaction_pool.clone(),
@@ -587,11 +597,11 @@ where
                 backend: backend.clone(),
             };
 
-            rpc::create_full(deps).map_err(Into::into)
+            polkadot_rpc::create_full(deps).map_err(Into::into)
         }
     };
 
-    Ok(sc_service::PartialComponents {
+    Ok(service::PartialComponents {
         client,
         backend,
         task_manager,
@@ -648,7 +658,6 @@ pub struct NewFull {
 /// Is this node running as in-process node for a parachain node?
 #[cfg(feature = "full-node")]
 #[derive(Clone)]
-#[allow(clippy::large_enum_variant)]
 pub enum IsParachainNode {
     /// This node is running as in-process node for a parachain collator.
     Collator(CollatorPair),
@@ -723,7 +732,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
     }: NewFullParams<OverseerGenerator>,
 ) -> Result<NewFull, Error> {
     use polkadot_node_network_protocol::request_response::IncomingRequest;
-    use sc_network_sync::warp::WarpSyncParams;
+    use sc_network_sync::WarpSyncParams;
 
     let is_offchain_indexing_enabled = config.offchain_worker.indexing_enabled;
     let role = config.role.clone();
@@ -741,12 +750,8 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
     let overseer_connector = OverseerConnector::default();
     let overseer_handle = Handle::new(overseer_connector.handle());
 
-    // let chain_spec = config.chain_spec.cloned_box();
-
     let keystore = basics.keystore_container.local_keystore();
     let auth_or_collator = role.is_authority() || is_parachain_node.is_collator();
-    // We only need to enable the pvf checker when this is a validator.
-    let pvf_checker_enabled = role.is_authority();
 
     let select_chain = if auth_or_collator {
         let metrics =
@@ -762,7 +767,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
         SelectRelayChain::new_longest_chain(basics.backend.clone())
     };
 
-    let sc_service::PartialComponents::<_, _, SelectRelayChain<_>, _, _, _> {
+    let service::PartialComponents::<_, _, SelectRelayChain<_>, _, _, _> {
         client,
         backend,
         mut task_manager,
@@ -775,6 +780,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
 
     let shared_voter_state = rpc_setup;
     let auth_disc_publish_non_global_ips = config.network.allow_non_globals_in_dht;
+    let auth_disc_public_addresses = config.network.public_addresses.clone();
     let mut net_config = sc_network::config::FullNetworkConfiguration::new(&config.network);
 
     let genesis_hash = client
@@ -786,14 +792,13 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
     // Note: GrandPa is pushed before the Polkadot-specific protocols. This doesn't change
     // anything in terms of behaviour, but makes the logs more consistent with the other
     // Substrate nodes.
-    let grandpa_protocol_name =
-        sc_consensus_grandpa::protocol_standard_name(&genesis_hash, &config.chain_spec);
+    let grandpa_protocol_name = grandpa::protocol_standard_name(&genesis_hash, &config.chain_spec);
     let (grandpa_protocol_config, grandpa_notification_service) =
-        sc_consensus_grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone());
+        grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone());
     net_config.add_notification_protocol(grandpa_protocol_config);
 
     let beefy_gossip_proto_name =
-        beefy::gossip_protocol_name(genesis_hash, config.chain_spec.fork_id());
+        beefy::gossip_protocol_name(&genesis_hash, config.chain_spec.fork_id());
     // `beefy_on_demand_justifications_handler` is given to `beefy-gadget` task to be run,
     // while `beefy_req_resp_cfg` is added to `config.network.request_response_protocols`.
     let (beefy_on_demand_justifications_handler, beefy_req_resp_cfg) =
@@ -844,12 +849,8 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
             std::collections::HashMap::new()
         };
 
-    let req_protocol_names = ReqProtocolNames::new(genesis_hash, config.chain_spec.fork_id());
+    let req_protocol_names = ReqProtocolNames::new(&genesis_hash, config.chain_spec.fork_id());
 
-    let (pov_req_receiver, cfg) = IncomingRequest::get_config_receiver(&req_protocol_names);
-    net_config.add_request_response_protocol(cfg);
-    let (chunk_req_receiver, cfg) = IncomingRequest::get_config_receiver(&req_protocol_names);
-    net_config.add_request_response_protocol(cfg);
     let (collation_req_v1_receiver, cfg) =
         IncomingRequest::get_config_receiver(&req_protocol_names);
     net_config.add_request_response_protocol(cfg);
@@ -859,24 +860,84 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
     let (available_data_req_receiver, cfg) =
         IncomingRequest::get_config_receiver(&req_protocol_names);
     net_config.add_request_response_protocol(cfg);
-    let (statement_req_receiver, cfg) = IncomingRequest::get_config_receiver(&req_protocol_names);
+    let (pov_req_receiver, cfg) = IncomingRequest::get_config_receiver(&req_protocol_names);
     net_config.add_request_response_protocol(cfg);
-    let (candidate_req_v2_receiver, cfg) =
-        IncomingRequest::get_config_receiver(&req_protocol_names);
-    net_config.add_request_response_protocol(cfg);
-    let (dispute_req_receiver, cfg) = IncomingRequest::get_config_receiver(&req_protocol_names);
+    let (chunk_req_receiver, cfg) = IncomingRequest::get_config_receiver(&req_protocol_names);
     net_config.add_request_response_protocol(cfg);
 
     let grandpa_hard_forks = Vec::new();
 
-    let warp_sync = Arc::new(sc_consensus_grandpa::warp_proof::NetworkProvider::new(
+    let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
         backend.clone(),
         import_setup.1.shared_authority_set().clone(),
         grandpa_hard_forks,
     ));
 
+    let ext_overseer_args = if is_parachain_node.is_running_alongside_parachain_node() {
+        None
+    } else {
+        let parachains_db = open_database(&config.database)?;
+        let candidate_validation_config = if role.is_authority() {
+            let (prep_worker_path, exec_worker_path) = workers::determine_workers_paths(
+                workers_path,
+                workers_names,
+                node_version.clone(),
+            )?;
+            log::info!("🚀 Using prepare-worker binary at: {:?}", prep_worker_path);
+            log::info!("🚀 Using execute-worker binary at: {:?}", exec_worker_path);
+
+            Some(CandidateValidationConfig {
+                artifacts_cache_path: config
+                    .database
+                    .path()
+                    .ok_or(Error::DatabasePathRequired)?
+                    .join("pvf-artifacts"),
+                node_version,
+                secure_validator_mode,
+                prep_worker_path,
+                exec_worker_path,
+            })
+        } else {
+            None
+        };
+        let (statement_req_receiver, cfg) =
+            IncomingRequest::get_config_receiver(&req_protocol_names);
+        net_config.add_request_response_protocol(cfg);
+        let (candidate_req_v2_receiver, cfg) =
+            IncomingRequest::get_config_receiver(&req_protocol_names);
+        net_config.add_request_response_protocol(cfg);
+        let (dispute_req_receiver, cfg) = IncomingRequest::get_config_receiver(&req_protocol_names);
+        net_config.add_request_response_protocol(cfg);
+        let approval_voting_config = ApprovalVotingConfig {
+            col_approval_data: parachains_db::REAL_COLUMNS.col_approval_data,
+            slot_duration_millis: slot_duration.as_millis() as u64,
+        };
+        let dispute_coordinator_config = DisputeCoordinatorConfig {
+            col_dispute_data: parachains_db::REAL_COLUMNS.col_dispute_coordinator_data,
+        };
+        let chain_selection_config = ChainSelectionConfig {
+            col_data: parachains_db::REAL_COLUMNS.col_chain_selection_data,
+            stagnant_check_interval: Default::default(),
+            stagnant_check_mode: chain_selection_subsystem::StagnantCheckMode::PruneOnly,
+        };
+        Some(ExtendedOverseerGenArgs {
+            keystore,
+            parachains_db,
+            candidate_validation_config,
+            availability_config: AVAILABILITY_CONFIG,
+            pov_req_receiver,
+            chunk_req_receiver,
+            statement_req_receiver,
+            candidate_req_v2_receiver,
+            approval_voting_config,
+            dispute_req_receiver,
+            dispute_coordinator_config,
+            chain_selection_config,
+        })
+    };
+
     let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
-        sc_service::build_network(sc_service::BuildNetworkParams {
+        service::build_network(service::BuildNetworkParams {
             config: &config,
             net_config,
             client: client.clone(),
@@ -911,45 +972,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
         );
     }
 
-    let parachains_db = open_database(&config.database)?;
-
-    let approval_voting_config = ApprovalVotingConfig {
-        col_approval_data: parachains_db::REAL_COLUMNS.col_approval_data,
-        slot_duration_millis: slot_duration.as_millis(),
-    };
-
-    let candidate_validation_config = if role.is_authority() {
-        let (prep_worker_path, exec_worker_path) =
-            workers::determine_workers_paths(workers_path, workers_names, node_version.clone())?;
-        log::info!("🚀 Using prepare-worker binary at: {:?}", prep_worker_path);
-        log::info!("🚀 Using execute-worker binary at: {:?}", exec_worker_path);
-
-        Some(CandidateValidationConfig {
-            artifacts_cache_path: config
-                .database
-                .path()
-                .ok_or(Error::DatabasePathRequired)?
-                .join("pvf-artifacts"),
-            node_version,
-            secure_validator_mode,
-            prep_worker_path,
-            exec_worker_path,
-        })
-    } else {
-        None
-    };
-
-    let chain_selection_config = ChainSelectionConfig {
-        col_data: parachains_db::REAL_COLUMNS.col_chain_selection_data,
-        stagnant_check_interval: Default::default(),
-        stagnant_check_mode: chain_selection_subsystem::StagnantCheckMode::PruneOnly,
-    };
-
-    let dispute_coordinator_config = DisputeCoordinatorConfig {
-        col_dispute_data: parachains_db::REAL_COLUMNS.col_dispute_coordinator_data,
-    };
-
-    let rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
+    let rpc_handlers = service::spawn_tasks(service::SpawnTasksParams {
         config,
         backend: backend.clone(),
         client: client.clone(),
@@ -1016,6 +1039,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
 			let (worker, service) = sc_authority_discovery::new_worker_and_service_with_config(
 				sc_authority_discovery::WorkerConfig {
 					publish_non_global_ips: auth_disc_publish_non_global_ips,
+					public_addresses: auth_disc_public_addresses,
 					// Require that authority discovery records are signed.
 					strict_record_validation: true,
 					..Default::default()
@@ -1037,42 +1061,32 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
 			None
 		};
 
+    let runtime_client = Arc::new(DefaultSubsystemClient::new(
+        overseer_client.clone(),
+        OffchainTransactionPoolFactory::new(transaction_pool.clone()),
+    ));
+
     let overseer_handle = if let Some(authority_discovery_service) = authority_discovery_service {
         let (overseer, overseer_handle) = overseer_gen
-            .generate::<sc_service::SpawnTaskHandle, FullClient>(
+            .generate::<service::SpawnTaskHandle, DefaultSubsystemClient<FullClient>>(
                 overseer_connector,
                 OverseerGenArgs {
-                    keystore,
-                    runtime_client: overseer_client.clone(),
-                    parachains_db,
+                    runtime_client,
                     network_service: network.clone(),
                     sync_service: sync_service.clone(),
                     authority_discovery_service,
-                    pov_req_receiver,
-                    chunk_req_receiver,
                     collation_req_v1_receiver,
                     collation_req_v2_receiver,
                     available_data_req_receiver,
-                    statement_req_receiver,
-                    candidate_req_v2_receiver,
-                    dispute_req_receiver,
                     registry: prometheus_registry.as_ref(),
                     spawner,
                     is_parachain_node,
-                    approval_voting_config,
-                    availability_config: AVAILABILITY_CONFIG,
-                    candidate_validation_config,
-                    chain_selection_config,
-                    dispute_coordinator_config,
-                    pvf_checker_enabled,
                     overseer_message_channel_capacity_override,
                     req_protocol_names,
                     peerset_protocol_names,
-                    offchain_transaction_pool_factory: OffchainTransactionPoolFactory::new(
-                        transaction_pool.clone(),
-                    ),
                     notification_services,
                 },
+                ext_overseer_args,
             )
             .map_err(|e| {
                 gum::error!("Failed to init overseer: {}", e);
@@ -1114,7 +1128,6 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
     };
 
     if role.is_authority() {
-        info!("I'm an authority node!!!!");
         let proposer = sc_basic_authorship::ProposerFactory::new(
             task_manager.spawn_handle(),
             client.clone(),
@@ -1129,7 +1142,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
             .ok_or(Error::AuthoritiesRequireRealOverseer)?
             .clone();
         let slot_duration = babe_link.config().slot_duration();
-        let babe_config = sc_consensus_babe::BabeParams {
+        let babe_config = babe::BabeParams {
             keystore: keystore_container.keystore(),
             client: client.clone(),
             select_chain,
@@ -1165,12 +1178,12 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
             force_authoring,
             backoff_authoring_blocks,
             babe_link,
-            block_proposal_slot_portion: sc_consensus_babe::SlotProportion::new(2f32 / 3f32),
+            block_proposal_slot_portion: babe::SlotProportion::new(2f32 / 3f32),
             max_block_proposal_slot_portion: None,
             telemetry: telemetry.as_ref().map(|x| x.handle()),
         };
 
-        let babe = sc_consensus_babe::start_babe(babe_config)?;
+        let babe = babe::start_babe(babe_config)?;
         task_manager
             .spawn_essential_handle()
             .spawn_blocking("babe", None, babe);
@@ -1207,6 +1220,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
             prometheus_registry: prometheus_registry.clone(),
             links: beefy_links,
             on_demand_justifications_handler: beefy_on_demand_justifications_handler,
+            is_authority: role.is_authority(),
         };
 
         let gadget = beefy::start_beefy_gadget::<_, _, _, _, _, _, _>(beefy_params);
@@ -1216,21 +1230,21 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
         task_manager
             .spawn_essential_handle()
             .spawn_blocking("beefy-gadget", None, gadget);
-        // When offchain indexing is enabled, MMR gadget should also run.
-        if is_offchain_indexing_enabled {
-            task_manager.spawn_essential_handle().spawn_blocking(
-                "mmr-gadget",
-                None,
-                MmrGadget::start(
-                    client.clone(),
-                    backend.clone(),
-                    sp_mmr_primitives::INDEXING_PREFIX.to_vec(),
-                ),
-            );
-        }
+    }
+    // When offchain indexing is enabled, MMR gadget should also run.
+    if is_offchain_indexing_enabled {
+        task_manager.spawn_essential_handle().spawn_blocking(
+            "mmr-gadget",
+            None,
+            MmrGadget::start(
+                client.clone(),
+                backend.clone(),
+                sp_mmr_primitives::INDEXING_PREFIX.to_vec(),
+            ),
+        );
     }
 
-    let config = sc_consensus_grandpa::Config {
+    let config = grandpa::Config {
         // FIXME substrate#1578 make this available through chainspec
         // Grandpa performance can be improved a bit by tuning this parameter, see:
         // https://github.com/paritytech/polkadot/issues/5464
@@ -1253,18 +1267,17 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
         // provide better guarantees of block and vote data availability than
         // the observer.
 
-        let mut voting_rules_builder = sc_consensus_grandpa::VotingRulesBuilder::default();
+        let mut voting_rules_builder = grandpa::VotingRulesBuilder::default();
 
         #[cfg(not(feature = "malus"))]
         let _malus_finality_delay = None;
 
         if let Some(delay) = _malus_finality_delay {
             info!(?delay, "Enabling malus finality delay",);
-            voting_rules_builder =
-                voting_rules_builder.add(sc_consensus_grandpa::BeforeBestBlockBy(delay));
+            voting_rules_builder = voting_rules_builder.add(grandpa::BeforeBestBlockBy(delay));
         };
 
-        let grandpa_config = sc_consensus_grandpa::GrandpaParams {
+        let grandpa_config = grandpa::GrandpaParams {
             config,
             link: link_half,
             network: network.clone(),
@@ -1280,7 +1293,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
         task_manager.spawn_essential_handle().spawn_blocking(
             "grandpa-voter",
             None,
-            sc_consensus_grandpa::run_grandpa_voter(grandpa_config)?,
+            grandpa::run_grandpa_voter(grandpa_config)?,
         );
     }
 
@@ -1309,7 +1322,7 @@ macro_rules! chain_ops {
         // use the longest chain selection, since there is no overseer available
         let chain_selection = LongestChain::new(basics.backend.clone());
 
-        let sc_service::PartialComponents {
+        let service::PartialComponents {
             client,
             backend,
             import_queue,
@@ -1334,7 +1347,7 @@ pub fn new_chain_ops(
     ),
     Error,
 > {
-    config.keystore = sc_service::config::KeystoreConfig::InMemory;
+    config.keystore = service::config::KeystoreConfig::InMemory;
 
     chain_ops!(config, jaeger_agent, None)
 }
@@ -1386,8 +1399,8 @@ pub fn revert_backend(
     revert_approval_voting(parachains_db.clone(), hash)?;
     revert_chain_selection(parachains_db, hash)?;
     // Revert Substrate consensus related components
-    sc_consensus_babe::revert(client.clone(), backend, blocks)?;
-    sc_consensus_grandpa::revert(client, blocks)?;
+    babe::revert(client.clone(), backend, blocks)?;
+    grandpa::revert(client, blocks)?;
 
     Ok(())
 }
