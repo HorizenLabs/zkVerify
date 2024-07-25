@@ -39,7 +39,7 @@ mod benchmarks {
         let caller = whitelisted_caller();
         let proof = VALID_PROOF;
         let pubs = public_input();
-        let vk = vk_key();
+        let vk = VALID_VK;
 
         #[extrinsic_call]
         submit_proof(
@@ -55,8 +55,8 @@ mod benchmarks {
         // setup code
         let caller = whitelisted_caller();
         let proof = VALID_PROOF;
-        let pubs = VALID_PUBS;
-        let vk = cdk_key();
+        let pubs = public_input();
+        let vk = VALID_VK;
         let hash = sp_core::H256::repeat_byte(2);
         Vks::<T, Ultraplonk>::insert(hash, vk);
 
@@ -73,7 +73,7 @@ mod benchmarks {
     fn register_vk() {
         // setup code
         let caller = whitelisted_caller();
-        let vk = cdk_key();
+        let vk = VALID_VK;
 
         #[extrinsic_call]
         register_vk(RawOrigin::Signed(caller), vk.clone().into());
