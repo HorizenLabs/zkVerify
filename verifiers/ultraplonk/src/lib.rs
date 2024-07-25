@@ -19,8 +19,8 @@ use std::{os::macos::raw, vec};
 use frame_support::weights::Weight;
 use hp_verifiers::{Cow, Verifier, VerifyError};
 
-pub const PROOF_SIZE: usize = 2144;
-pub const VK_SIZE: usize = 1719;
+const PROOF_SIZE: usize = 2144;
+const VK_SIZE: usize = 1719;
 pub type Proof = [u8; PROOF_SIZE];
 pub type Pubs = Vec<[u8; 32]>;
 pub type Vk = [u8; VK_SIZE];
@@ -48,30 +48,37 @@ impl Verifier for Ultraplonk {
         raw_proof: &Self::Proof,
         raw_pubs: &Self::Pubs,
     ) -> Result<(), VerifyError> {
-        log::trace!("Verifying (native)");
+        let vk = ultraplonk_verifier::VerificationKey::try_from(&raw_vk[..]).map_err(|e| {
+            log::debug!("Cannot parse verification key: {:?}", e);
+            VerifyError::InvalidVerificationKey
+        })?;
 
-        // make sure the public inputs are the correct size
-        if raw_pubs.len() % 32 != 0 {
-            log::debug!("Invalid public inputs size");
-            return Err(VerifyError::InvalidInput);
-        }
-
-        let vk = ultraplonk_verifier::VerificationKey::try_from(&raw_vk[..])
-            .map_err(|e| {
-                log::debug!("Cannot parse verification key: {:?}", e);
-                VerifyError::InvalidVerificationKey
-            })?;
-        let proof = raw_proof.to_vec();
+        let proof = raw_proof;
         let pubs = raw_pubs.to_vec();
 
         match ultraplonk_verifier::verify(&vk, &proof, &pubs) {
             Ok(true) => Ok(()),
             Ok(false) => Err(VerifyError::VerifyError),
+            Err(ultraplonk_verifier::VerifyError::PublicInputNumberError { .. }) => {
+                Err(VerifyError::InvalidInput)
+            }
+            Err(ultraplonk_verifier::VerifyError::VkError(e)) => {
+                log::debug!("Verification failed: {:?}", e);
+                Err(VerifyError::InvalidVerificationKey)
+            }
             Err(e) => {
-                log::debug!("Cannot verify proof: {:?}", e);
+                log::debug!("Verification failed: {:?}", e);
                 Err(VerifyError::VerifyError)
             }
         }
+    }
+
+    fn validate_vk(vk: &Self::Vk) -> Result<(), VerifyError> {
+        let _ = ultraplonk_verifier::VerificationKey::try_from(&vk[..]).map_err(|e| {
+            log::debug!("Cannot parse verification key: {:?}", e);
+            VerifyError::InvalidVerificationKey
+        })?;
+        Ok(())
     }
 
     fn pubs_bytes(pubs: &Self::Pubs) -> Cow<[u8]> {

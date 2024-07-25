@@ -23,7 +23,7 @@ include!("resources.rs");
 #[test]
 #[serial]
 fn verify_valid_proof() {
-    let vk = vk_key();
+    let vk = VALID_VK;
     let proof = VALID_PROOF;
     let pi = public_input();
 
@@ -35,13 +35,29 @@ mod reject {
 
     #[test]
     #[serial]
-    fn invalid_pubs() {
-        let vk = vk_key();
+    fn invalid_public_values() {
+        let vk = VALID_VK;
+        let proof = VALID_PROOF;
+
         let mut invalid_pubs = public_input();
         invalid_pubs[0][0] = 0x10;
 
         assert_eq!(
-            Ultraplonk::verify_proof(&vk, &VALID_PROOF, &invalid_pubs),
+            Ultraplonk::verify_proof(&vk, &proof, &invalid_pubs),
+            Err(VerifyError::VerifyError)
+        );
+    }
+
+    #[test]
+    #[serial]
+    fn invalid_number_of_public_inputs() {
+        let vk = VALID_VK;
+        let proof = VALID_PROOF;
+
+        let invalid_pubs = vec![public_input()[0]];
+
+        assert_eq!(
+            Ultraplonk::verify_proof(&vk, &proof, &invalid_pubs),
             Err(VerifyError::InvalidInput)
         );
     }
@@ -49,10 +65,10 @@ mod reject {
     #[test]
     #[serial]
     fn invalid_proof() {
-        let vk = vk_key();
+        let vk = VALID_VK;
         let pi = public_input();
+
         let mut invalid_proof: Proof = VALID_PROOF;
-        // last byte changed from '0x06' to '0x00' (public inputs)
         invalid_proof[invalid_proof.len() - 1] = 0x00;
 
         assert_eq!(
@@ -64,24 +80,25 @@ mod reject {
     #[test]
     #[serial]
     fn invalid_vk() {
-        let mut vk = vk_key();
+        let proof = VALID_PROOF;
         let pi = public_input();
 
-        vk[10] = vk[10].wrapping_add(1);
+        let mut vk = VALID_VK;
+        vk[0] = 0x10;
 
         assert_eq!(
-            Ultraplonk::verify_proof(&vk, &VALID_PROOF, &pi),
-            Err(VerifyError::VerifyError)
+            Ultraplonk::verify_proof(&vk, &proof, &pi),
+            Err(VerifyError::InvalidVerificationKey)
         );
     }
 
     #[test]
     #[serial]
     fn reject_malformed_proof() {
-        let vk = vk_key();
+        let vk = VALID_VK;
         let pi = public_input();
+
         let mut malformed_proof: Proof = VALID_PROOF;
-        // first byte changed from '0x17' to '0x07' (raw proof data)
         malformed_proof[0] = 0x07;
 
         assert_eq!(
