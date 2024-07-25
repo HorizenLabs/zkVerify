@@ -211,6 +211,8 @@ parameter_types! {
 
     pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
         ::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+
+    // ASCII for ZKV
     pub const SS58Prefix: u8 = 251;
 }
 
