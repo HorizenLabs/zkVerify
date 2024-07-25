@@ -571,6 +571,11 @@ mod use_correct_weights {
     }
 
     #[test]
+    fn pallet_settlement_ultraplonk() {
+        use pallet_ultraplonk_verifier::Ultraplonk;
+    }
+
+    #[test]
     fn pallet_poe() {
         use pallet_poe::WeightInfo;
 
