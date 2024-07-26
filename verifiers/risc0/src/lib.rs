@@ -54,7 +54,7 @@ impl<T: Config> Verifier for Risc0<T> {
 
     type Pubs = Pubs;
 
-    type Vk = H256;
+    type Vk = Vk;
 
     fn hash_context_data() -> &'static [u8] {
         b"risc0"
@@ -93,8 +93,6 @@ impl<T: Config> Verifier for Risc0<T> {
 
 /// The struct to use in runtime pallet configuration to map the weight computed by this crate
 /// benchmarks to the weight needed by the `pallet-verifiers`.
-/// In this case the implementation doesn't depends from the kind of proof or public input and
-/// the crate's benchmarks are mapped 1-1 to the `pallet-verifiers`'s one.
 pub struct Risc0Weight<W: weight::WeightInfo>(PhantomData<W>);
 
 pub static CYCLE_2_POW_FROM_12_TO_13: usize = 215538;
