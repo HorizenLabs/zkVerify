@@ -4799,8 +4799,12 @@ dependencies = [
  "hp-verifiers",
  "log",
  "parity-scale-codec",
+ "regex",
  "risc0-verifier",
  "sp-runtime-interface",
+ "toml 0.8.14",
+ "ultraplonk_verifier",
+ "walkdir",
  "zksync-era-verifier",
  "zksync-era-verifier-deserialize",
 ]
@@ -5564,10 +5568,11 @@ dependencies = [
  "hex-literal",
  "hp-verifiers",
  "log",
+ "native",
  "pallet-verifiers",
  "serial_test",
  "sp-core",
- "ultraplonk_verifier",
+ "sp-std",
 ]
 
 [[package]]
@@ -9815,16 +9820,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sys-info"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b3a0d0aba8bf96a0e1ddfdc352fc53b3df7f39318c71854910c3c4b024ae52c"
-dependencies = [
- "cc",
- "libc",
-]
-
-[[package]]
 name = "system-configuration"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10443,16 +10438,14 @@ dependencies = [
 [[package]]
 name = "ultraplonk_verifier"
 version = "0.1.0"
-source = "git+https://github.com/HorizenLabs/ultraplonk_verifier.git?rev=9b59688431573fe593dd8f9a731cd137358da462#9b59688431573fe593dd8f9a731cd137358da462"
+source = "git+https://github.com/HorizenLabs/ultraplonk_verifier.git?rev=8ee13b33c8abd2d34e965bb79c0a9694cef5a568#8ee13b33c8abd2d34e965bb79c0a9694cef5a568"
 dependencies = [
  "bindgen 0.69.4",
  "byteorder",
  "cc",
  "cmake",
  "hex-literal",
- "num_cpus",
  "substrate-bn",
- "sys-info",
  "thiserror",
 ]
 

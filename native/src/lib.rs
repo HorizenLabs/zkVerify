@@ -1,29 +1,32 @@
+// Copyright 2024, Horizen Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::{Decode, Encode};
 use sp_runtime_interface::pass_by::PassByCodec;
-use sp_runtime_interface::runtime_interface;
+
+mod risc0;
+mod zksync;
 
 #[derive(PassByCodec, Encode, Decode)]
 pub enum VerifyError {
     InvalidInput,
     InvalidProofData,
+    InvalidVerificationKey,
     VerifyError,
-}
-
-#[cfg(feature = "std")]
-impl From<risc0_verifier::VerifyError> for VerifyError {
-    fn from(value: risc0_verifier::VerifyError) -> Self {
-        match value {
-            risc0_verifier::VerifyError::InvalidData {
-                cause: risc0_verifier::DeserializeError::InvalidProof,
-            } => VerifyError::InvalidProofData,
-            risc0_verifier::VerifyError::InvalidData {
-                cause: risc0_verifier::DeserializeError::InvalidPublicInputs,
-            } => VerifyError::InvalidInput,
-            _ => VerifyError::VerifyError,
-        }
-    }
 }
 
 impl From<VerifyError> for hp_verifiers::VerifyError {
@@ -31,57 +34,35 @@ impl From<VerifyError> for hp_verifiers::VerifyError {
         match value {
             VerifyError::InvalidInput => hp_verifiers::VerifyError::InvalidInput,
             VerifyError::InvalidProofData => hp_verifiers::VerifyError::InvalidProofData,
+            VerifyError::InvalidVerificationKey => {
+                hp_verifiers::VerifyError::InvalidVerificationKey
+            }
             VerifyError::VerifyError => hp_verifiers::VerifyError::VerifyError,
         }
     }
 }
 
-pub const ZKSYNC_PUBS_SIZE: usize = 32;
-pub const ZKSYNC_PROOF_SIZE: usize = 44 * 32;
-
-#[runtime_interface]
-pub trait ZksyncVerify {
-    fn verify(
-        proof_bytes: &[u8; ZKSYNC_PROOF_SIZE],
-        pubs_bytes: [u8; ZKSYNC_PUBS_SIZE],
-    ) -> Result<(), VerifyError> {
-        let pubs = zksync_era_verifier_deserialize::fr(&pubs_bytes)
-            .map_err(|e| log::error!("Cannot extract public inputs: {:?}", e))
-            .map_err(|_| VerifyError::InvalidInput)?;
-        let mut proof = zksync_era_verifier::deserialize_eth_proof(proof_bytes)
-            .map_err(|e| log::debug!("Cannot extract raw proof data: {:?}", e))
-            .map_err(|_| VerifyError::InvalidProofData)?;
-        log::trace!(
-            "Extracted public inputs [{:?}...{:?}] and proof data [{:?}...{:?}]",
-            pubs_bytes[0],
-            pubs_bytes[ZKSYNC_PUBS_SIZE - 1],
-            proof_bytes[0],
-            proof_bytes[ZKSYNC_PROOF_SIZE - 1]
-        );
-        proof.inputs = vec![pubs];
-        zksync_era_verifier::verify(&zksync_era_verifier::default_eth_vk(), &proof)
-            .map_err(|e| log::debug!("Cannot verify proof: {:?}", e))
-            .map_err(|_| VerifyError::VerifyError)
-            .and_then(|verified| verified.then_some(()).ok_or(VerifyError::VerifyError))
-            .map(|_| log::trace!("verified"))
-    }
-}
-
-#[runtime_interface]
-pub trait Risc0Verify {
-    fn verify(vk: [u8; 32], proof: &[u8], pubs: &[u8]) -> Result<(), VerifyError> {
-        risc0_verifier::verify(vk.into(), proof, pubs)
-            .inspect_err(|e| log::debug!("Cannot verify proof: {:?}", e))
-            .map_err(Into::into)
-            .map(|_| log::trace!("verified"))
-    }
-}
-
+mod ultraplonk;
+pub use zksync::zksync_verify;
+pub use zksync::PROOF_SIZE as ZKSYNC_PROOF_SIZE;
+pub use zksync::PUBS_SIZE as ZKSYNC_PUBS_SIZE;
 #[cfg(feature = "std")]
 pub use zksync_verify::HostFunctions as ZksyncVerifierHostFunctions;
 
+pub use risc0::risc_0_verify;
 #[cfg(feature = "std")]
-pub use risc_0_verify::HostFunctions as Risc0VerifierHostFunctions;
+pub use risc0::risc_0_verify::HostFunctions as Risc0VerifierHostFunctions;
+
+pub use ultraplonk::ultraplonk_verify;
+#[cfg(feature = "std")]
+pub use ultraplonk::ultraplonk_verify::HostFunctions as UltraplonkVerifierHostFunctions;
+pub use ultraplonk::PROOF_SIZE as ULTRAPLONK_PROOF_SIZE;
+pub use ultraplonk::PUBS_SIZE as ULTRAPLONK_PUBS_SIZE;
+pub use ultraplonk::VK_SIZE as ULTRAPLONK_VK_SIZE;
 
 #[cfg(feature = "std")]
-pub type HLNativeHostFunctions = (ZksyncVerifierHostFunctions, Risc0VerifierHostFunctions);
+pub type HLNativeHostFunctions = (
+    ZksyncVerifierHostFunctions,
+    Risc0VerifierHostFunctions,
+    UltraplonkVerifierHostFunctions,
+);

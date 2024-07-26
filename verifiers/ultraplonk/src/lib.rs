@@ -13,26 +13,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::marker::PhantomData;
-use std::{os::macos::raw, vec};
-
-use frame_support::weights::Weight;
+use frame_support::{ensure, weights::Weight};
 use hp_verifiers::{Cow, Verifier, VerifyError};
+use sp_std::vec::Vec;
 
-const PROOF_SIZE: usize = 2144;
-const VK_SIZE: usize = 1719;
+use native::ULTRAPLONK_PROOF_SIZE as PROOF_SIZE;
+use native::ULTRAPLONK_PUBS_SIZE as PUBS_SIZE;
+use native::ULTRAPLONK_VK_SIZE as VK_SIZE;
 pub type Proof = [u8; PROOF_SIZE];
-pub type Pubs = Vec<[u8; 32]>;
+pub type Pubs = Vec<[u8; PUBS_SIZE]>;
 pub type Vk = [u8; VK_SIZE];
 // pub use weight::WeightInfo;
+
+pub const MAX_NUM_INPUTS: u32 = 32;
+
+pub trait Config: 'static {
+    /// Maximum supported number of public inputs.
+    const MAX_NUM_INPUTS: u32;
+}
 
 mod benchmarking;
 mod verifier_should;
 
 #[pallet_verifiers::verifier]
-pub struct Ultraplonk;
+pub struct Ultraplonk<T>;
 
-impl Verifier for Ultraplonk {
+impl<T: Config> Verifier for Ultraplonk<T> {
     type Proof = Proof;
 
     type Pubs = Pubs;
@@ -44,41 +50,25 @@ impl Verifier for Ultraplonk {
     }
 
     fn verify_proof(
-        raw_vk: &Self::Vk,
-        raw_proof: &Self::Proof,
-        raw_pubs: &Self::Pubs,
+        vk: &Self::Vk,
+        proof: &Self::Proof,
+        pubs: &Self::Pubs,
     ) -> Result<(), VerifyError> {
-        let vk = ultraplonk_verifier::VerificationKey::try_from(&raw_vk[..]).map_err(|e| {
-            log::debug!("Cannot parse verification key: {:?}", e);
-            VerifyError::InvalidVerificationKey
-        })?;
+        ensure!(
+            pubs.len() <= T::MAX_NUM_INPUTS as usize,
+            hp_verifiers::VerifyError::InvalidInput
+        );
 
-        let proof = raw_proof;
-        let pubs = raw_pubs.to_vec();
-
-        match ultraplonk_verifier::verify(&vk, &proof, &pubs) {
-            Ok(true) => Ok(()),
-            Ok(false) => Err(VerifyError::VerifyError),
-            Err(ultraplonk_verifier::VerifyError::PublicInputNumberError { .. }) => {
-                Err(VerifyError::InvalidInput)
-            }
-            Err(ultraplonk_verifier::VerifyError::VkError(e)) => {
-                log::debug!("Verification failed: {:?}", e);
-                Err(VerifyError::InvalidVerificationKey)
-            }
-            Err(e) => {
-                log::debug!("Verification failed: {:?}", e);
-                Err(VerifyError::VerifyError)
-            }
-        }
+        log::trace!("Verifying (native)");
+        native::ultraplonk_verify::verify((*vk).into(), proof, pubs).map_err(Into::into)
     }
 
     fn validate_vk(vk: &Self::Vk) -> Result<(), VerifyError> {
-        let _ = ultraplonk_verifier::VerificationKey::try_from(&vk[..]).map_err(|e| {
-            log::debug!("Cannot parse verification key: {:?}", e);
-            VerifyError::InvalidVerificationKey
-        })?;
-        Ok(())
+        native::ultraplonk_verify::validate_vk(vk).map_err(Into::into)
+    }
+
+    fn vk_bytes(vk: &Self::Vk) -> Cow<[u8]> {
+        Cow::Borrowed(vk)
     }
 
     fn pubs_bytes(pubs: &Self::Pubs) -> Cow<[u8]> {
