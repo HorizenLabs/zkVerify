@@ -631,6 +631,21 @@ impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> f
     >;
 }
 
+parameter_types! {
+    pub const FooSomeParameter: u8 = 1; // arbitrary value
+}
+
+impl pallet_foo_verifier::Config for Runtime {
+    type SomeParameter = FooSomeParameter;
+}
+
+impl pallet_verifiers::Config<pallet_foo_verifier::Foo<Runtime>> for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type OnProofVerified = Poe;
+    type WeightInfo =
+        pallet_foo_verifier::FooWeight<weights::pallet_foo_verifier::ZKVWeight<Runtime>>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub struct Runtime {
@@ -660,6 +675,7 @@ construct_runtime!(
         SettlementGroth16Pallet: pallet_groth16_verifier,
         SettlementRisc0Pallet: pallet_risc0_verifier,
         SettlementUltraplonkPallet: pallet_ultraplonk_verifier,
+        SettlementFooPallet: pallet_foo_verifier,
     }
 );
 
@@ -729,6 +745,7 @@ mod benches {
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
         [pallet_risc0_verifier, Risc0VerifierBench::<Runtime>]
         [pallet_ultraplonk_verifier, UltraplonkVerifierBench::<Runtime>]
+        [pallet_foo_verifier, FooVerifierBench::<Runtime>]
     );
 }
 
@@ -977,6 +994,7 @@ impl_runtime_apis! {
             use pallet_groth16_verifier::benchmarking::Pallet as Groth16VerifierBench;
             use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
             use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
+            use pallet_foo_verifier::benchmarking::Pallet as FooVerifierBench;
 
             let mut list = Vec::<BenchmarkList>::new();
 
@@ -1000,6 +1018,7 @@ impl_runtime_apis! {
             use pallet_groth16_verifier::benchmarking::Pallet as Groth16VerifierBench;
             use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
             use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
+            use pallet_foo_verifier::benchmarking::Pallet as FooVerifierBench;
 
             impl frame_system_benchmarking::Config for Runtime {}
             impl baseline::Config for Runtime {}
