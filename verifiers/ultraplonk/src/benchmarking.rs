@@ -22,13 +22,13 @@ use hp_verifiers::Verifier;
 use pallet_verifiers::{VkOrHash, Vks};
 
 pub struct Pallet<T: Config>(crate::Pallet<T>);
-pub trait Config: pallet_verifiers::Config<Ultraplonk> {}
-impl<T: pallet_verifiers::Config<Ultraplonk>> Config for T {}
-pub type Call<T> = pallet_verifiers::Call<T, Ultraplonk>;
+pub trait Config: crate::Config {}
+impl<T: crate::Config> Config for T {}
+pub type Call<T> = pallet_verifiers::Call<T, Ultraplonk<T>>;
 
 include!("resources.rs");
 
-#[benchmarks]
+#[benchmarks(where T: pallet_verifiers::Config<Ultraplonk<T>>)]
 mod benchmarks {
 
     use super::*;
@@ -58,7 +58,7 @@ mod benchmarks {
         let pubs = public_input();
         let vk = VALID_VK;
         let hash = sp_core::H256::repeat_byte(2);
-        Vks::<T, Ultraplonk>::insert(hash, vk);
+        Vks::<T, Ultraplonk<T>>::insert(hash, vk);
 
         #[extrinsic_call]
         submit_proof(
@@ -79,7 +79,7 @@ mod benchmarks {
         register_vk(RawOrigin::Signed(caller), vk.clone().into());
 
         // Verify
-        assert!(Vks::<T, Ultraplonk>::get(Ultraplonk::vk_hash(&vk)).is_some());
+        assert!(Vks::<T, Ultraplonk<T>>::get(Ultraplonk::<T>::vk_hash(&vk)).is_some());
     }
 
     // impl_benchmark_test_suite!(Pallet, super::mock::test_ext(), super::mock::Test);
