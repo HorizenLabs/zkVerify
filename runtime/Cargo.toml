@@ -174,6 +174,7 @@ std = [
 	"pallet-zksync-verifier/std",
 	"pallet-groth16-verifier/std",
 	"pallet-risc0-verifier/std",
+	"pallet-ultraplonk-verifier/std",
 	"hp-verifiers/std",
 	"substrate-wasm-builder",
 ]

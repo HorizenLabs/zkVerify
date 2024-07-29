@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
 use frame_support::{ensure, weights::Weight};
 use hp_verifiers::{Cow, Verifier, VerifyError};
 use sp_std::vec::Vec;
@@ -32,7 +34,7 @@ pub trait Config: 'static {
     const MAX_NUM_INPUTS: u32;
 }
 
-mod benchmarking;
+// mod benchmarking;
 mod verifier_should;
 
 #[pallet_verifiers::verifier]
