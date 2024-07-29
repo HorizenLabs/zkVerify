@@ -1,8 +1,9 @@
-FROM rust:1-buster as builder
+FROM rust:1-bookworm as builder
 
 RUN apt-get update -qq \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
   protobuf-compiler \
+  cmake \
   clang \
   && rustup target add wasm32-unknown-unknown \
   && rustup component add rust-src \
