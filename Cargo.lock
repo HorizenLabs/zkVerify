@@ -5570,8 +5570,12 @@ dependencies = [
  "log",
  "native",
  "pallet-verifiers",
+ "parity-scale-codec",
+ "scale-info",
  "serial_test",
  "sp-core",
+ "sp-io",
+ "sp-runtime",
  "sp-std",
 ]
 

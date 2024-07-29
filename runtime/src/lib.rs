@@ -615,6 +615,20 @@ impl pallet_verifiers::Config<pallet_risc0_verifier::Risc0<Runtime>> for Runtime
         pallet_risc0_verifier::Risc0Weight<weights::pallet_risc0_verifier::ZKVWeight<Runtime>>;
 }
 
+parameter_types! {
+    pub const UltraplonkMaxPubs: u32 = 16;
+}
+
+impl pallet_ultraplonk_verifier::Config for Runtime {
+    type MaxPubs = UltraplonkMaxPubs;
+}
+
+impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type OnProofVerified = Poe;
+    type WeightInfo = pallet_ultraplonk_verifier::UltraplonkWeight<()>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub struct Runtime {
@@ -643,6 +657,7 @@ construct_runtime!(
         SettlementZksyncPallet: pallet_zksync_verifier,
         SettlementGroth16Pallet: pallet_groth16_verifier,
         SettlementRisc0Pallet: pallet_risc0_verifier,
+        SettlementUltraplonkPallet: pallet_ultraplonk_verifier,
     }
 );
 
@@ -711,6 +726,7 @@ mod benches {
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
         [pallet_risc0_verifier, Risc0VerifierBench::<Runtime>]
+        [pallet_ultraplonk_verifier, UltraplonkVerifierBench::<Runtime>]
     );
 }
 
@@ -958,6 +974,7 @@ impl_runtime_apis! {
             use pallet_zksync_verifier::benchmarking::Pallet as ZksyncVerifierBench;
             use pallet_groth16_verifier::benchmarking::Pallet as Groth16VerifierBench;
             use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
+            use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
 
             let mut list = Vec::<BenchmarkList>::new();
 
@@ -980,6 +997,7 @@ impl_runtime_apis! {
             use pallet_zksync_verifier::benchmarking::Pallet as ZksyncVerifierBench;
             use pallet_groth16_verifier::benchmarking::Pallet as Groth16VerifierBench;
             use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
+            use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
 
             impl frame_system_benchmarking::Config for Runtime {}
             impl baseline::Config for Runtime {}

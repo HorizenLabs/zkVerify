@@ -24,6 +24,10 @@ native = { workspace = true }
 [dev-dependencies]
 hex-literal = "0.4.1"
 serial_test = "3.1.1"
+codec = { workspace = true }
+scale-info = { workspace = true }
+sp-runtime = { workspace = true }
+sp-io = { workspace = true }
 
 [features]
 std = [

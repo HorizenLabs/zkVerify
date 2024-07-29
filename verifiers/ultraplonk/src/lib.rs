@@ -17,6 +17,7 @@
 
 use frame_support::{ensure, weights::Weight};
 use hp_verifiers::{Cow, Verifier, VerifyError};
+use sp_core::Get;
 use sp_std::{marker::PhantomData, vec::Vec};
 
 use native::ULTRAPLONK_PROOF_SIZE as PROOF_SIZE;
@@ -26,14 +27,12 @@ pub type Proof = [u8; PROOF_SIZE];
 pub type Pubs = Vec<[u8; PUBS_SIZE]>;
 pub type Vk = [u8; VK_SIZE];
 
-pub const MAX_NUM_INPUTS: u32 = 32;
-
 pub trait Config: 'static {
     /// Maximum supported number of public inputs.
-    const MAX_NUM_INPUTS: u32;
+    type MaxPubs: Get<u32>;
 }
 
-mod benchmarking;
+pub mod benchmarking;
 mod verifier_should;
 
 #[pallet_verifiers::verifier]
@@ -56,7 +55,7 @@ impl<T: Config> Verifier for Ultraplonk<T> {
         pubs: &Self::Pubs,
     ) -> Result<(), VerifyError> {
         ensure!(
-            pubs.len() <= T::MAX_NUM_INPUTS as usize,
+            pubs.len() <= T::MaxPubs::get() as usize,
             hp_verifiers::VerifyError::InvalidInput
         );
 
@@ -116,5 +115,19 @@ mod weight {
         fn submit_proof_with_vk_hash() -> Weight;
 
         fn register_vk() -> Weight;
+    }
+
+    impl WeightInfo for () {
+        fn submit_proof() -> Weight {
+            Default::default()
+        }
+
+        fn submit_proof_with_vk_hash() -> Weight {
+            Default::default()
+        }
+
+        fn register_vk() -> Weight {
+            Default::default()
+        }
     }
 }

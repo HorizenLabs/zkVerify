@@ -23,7 +23,7 @@ include!("resources.rs");
 struct MockRuntime;
 
 impl crate::Config for MockRuntime {
-    const MAX_NUM_INPUTS: u32 = 3;
+    type MaxPubs = sp_core::ConstU32<3>;
 }
 
 #[test]
