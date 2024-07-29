@@ -11505,6 +11505,7 @@ dependencies = [
  "pallet-conviction-voting",
  "pallet-election-provider-support-benchmarking",
  "pallet-fflonk-verifier",
+ "pallet-foo-verifier",
  "pallet-grandpa",
  "pallet-groth16-verifier",
  "pallet-im-online",
