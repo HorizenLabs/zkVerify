@@ -20,6 +20,12 @@ use serial_test::serial;
 use super::*;
 include!("resources.rs");
 
+struct MockRuntime;
+
+impl crate::Config for MockRuntime {
+    const MAX_NUM_INPUTS: u32 = 3;
+}
+
 #[test]
 #[serial]
 fn verify_valid_proof() {
@@ -27,7 +33,7 @@ fn verify_valid_proof() {
     let proof = VALID_PROOF;
     let pi = public_input();
 
-    assert!(Ultraplonk::verify_proof(&vk, &proof, &pi).is_ok());
+    assert!(Ultraplonk::<MockRuntime>::verify_proof(&vk, &proof, &pi).is_ok());
 }
 
 mod reject {
@@ -43,7 +49,7 @@ mod reject {
         invalid_pubs[0][0] = 0x10;
 
         assert_eq!(
-            Ultraplonk::verify_proof(&vk, &proof, &invalid_pubs),
+            Ultraplonk::<MockRuntime>::verify_proof(&vk, &proof, &invalid_pubs),
             Err(VerifyError::VerifyError)
         );
     }
@@ -57,7 +63,7 @@ mod reject {
         let invalid_pubs = vec![public_input()[0]];
 
         assert_eq!(
-            Ultraplonk::verify_proof(&vk, &proof, &invalid_pubs),
+            Ultraplonk::<MockRuntime>::verify_proof(&vk, &proof, &invalid_pubs),
             Err(VerifyError::InvalidInput)
         );
     }
@@ -72,7 +78,7 @@ mod reject {
         invalid_proof[invalid_proof.len() - 1] = 0x00;
 
         assert_eq!(
-            Ultraplonk::verify_proof(&vk, &invalid_proof, &pi),
+            Ultraplonk::<MockRuntime>::verify_proof(&vk, &invalid_proof, &pi),
             Err(VerifyError::VerifyError)
         );
     }
@@ -87,7 +93,7 @@ mod reject {
         vk[0] = 0x10;
 
         assert_eq!(
-            Ultraplonk::verify_proof(&vk, &proof, &pi),
+            Ultraplonk::<MockRuntime>::verify_proof(&vk, &proof, &pi),
             Err(VerifyError::InvalidVerificationKey)
         );
     }
@@ -102,7 +108,7 @@ mod reject {
         malformed_proof[0] = 0x07;
 
         assert_eq!(
-            Ultraplonk::verify_proof(&vk, &malformed_proof, &pi),
+            Ultraplonk::<MockRuntime>::verify_proof(&vk, &malformed_proof, &pi),
             Err(VerifyError::VerifyError)
         );
     }
