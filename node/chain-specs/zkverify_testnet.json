@@ -19,7 +19,8 @@
   "protocolId": "tacme",
   "properties": {
     "tokenDecimals": 18,
-    "tokenSymbol": "ACME"
+    "tokenSymbol": "ACME",
+    "ss58Format": "251"
   },
   "codeSubstitutes": {},
   "genesis": {

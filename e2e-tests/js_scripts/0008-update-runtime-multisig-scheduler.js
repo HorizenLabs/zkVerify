@@ -28,7 +28,7 @@ async function run(nodeName, networkInfo, args) {
      *****************************************************************************************************/
     const threshold = 2;
     const multisigAddress = util.createKeyMulti([alice.address, bob.address, charlie.address], threshold);
-    const SS58Prefix = 42;
+    const SS58Prefix = 251;
     const Ss58MultiAddress = util.encodeAddress(multisigAddress, SS58Prefix);
     console.log(`multisigAddress ${Ss58MultiAddress}`);
 

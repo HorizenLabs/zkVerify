@@ -3,6 +3,8 @@
   "version": "0.0.1",
   "author": "HorizenLabs' Mainchain team",
   "dependencies": {
-    "@polkadot/api": "10.11.2"
+    "@polkadot/api": "10.11.2",
+    "@polkadot/util-crypto": "12.6.2",
+    "@polkadot/util": "12.6.2"
   }
 }
