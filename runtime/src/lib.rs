@@ -626,7 +626,9 @@ impl pallet_ultraplonk_verifier::Config for Runtime {
 impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
-    type WeightInfo = pallet_ultraplonk_verifier::UltraplonkWeight<()>;
+    type WeightInfo = pallet_ultraplonk_verifier::UltraplonkWeight<
+        weights::pallet_ultraplonk_verifier::ZKVWeight<Runtime>,
+    >;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
