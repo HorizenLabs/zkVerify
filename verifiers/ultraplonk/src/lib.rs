@@ -20,12 +20,13 @@ use hp_verifiers::{Cow, Verifier, VerifyError};
 use sp_core::Get;
 use sp_std::{marker::PhantomData, vec::Vec};
 
-use native::ULTRAPLONK_PROOF_SIZE as PROOF_SIZE;
-use native::ULTRAPLONK_PUBS_SIZE as PUBS_SIZE;
-use native::ULTRAPLONK_VK_SIZE as VK_SIZE;
+pub use native::ULTRAPLONK_PROOF_SIZE as PROOF_SIZE;
+pub use native::ULTRAPLONK_PUBS_SIZE as PUBS_SIZE;
+pub use native::ULTRAPLONK_VK_SIZE as VK_SIZE;
 pub type Proof = [u8; PROOF_SIZE];
 pub type Pubs = Vec<[u8; PUBS_SIZE]>;
 pub type Vk = [u8; VK_SIZE];
+pub use weights::WeightInfo;
 
 pub trait Config: 'static {
     /// Maximum supported number of public inputs.
@@ -82,9 +83,9 @@ impl<T: Config> Verifier for Ultraplonk<T> {
 
 /// The struct to use in runtime pallet configuration to map the weight computed by this crate
 /// benchmarks to the weight needed by the `pallet-verifiers`.
-pub struct UltraplonkWeight<W: weight::WeightInfo>(PhantomData<W>);
+pub struct UltraplonkWeight<W: weights::WeightInfo>(PhantomData<W>);
 
-impl<T: Config, W: weight::WeightInfo> pallet_verifiers::WeightInfo<Ultraplonk<T>>
+impl<T: Config, W: weights::WeightInfo> pallet_verifiers::WeightInfo<Ultraplonk<T>>
     for UltraplonkWeight<W>
 {
     fn submit_proof(
@@ -106,7 +107,7 @@ impl<T: Config, W: weight::WeightInfo> pallet_verifiers::WeightInfo<Ultraplonk<T
     }
 }
 
-mod weight {
+mod weights {
     use frame_support::weights::Weight;
 
     pub trait WeightInfo {

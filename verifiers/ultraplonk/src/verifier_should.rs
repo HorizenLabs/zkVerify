@@ -56,6 +56,23 @@ mod reject {
 
     #[test]
     #[serial]
+    fn if_provided_too_much_public_inputs() {
+        let vk = VALID_VK;
+        let proof = VALID_PROOF;
+
+        let mut invalid_pubs = public_input();
+        while (invalid_pubs.len() as u32) < <MockRuntime as Config>::MaxPubs::get() {
+            invalid_pubs.push(public_input()[0]);
+        }
+
+        assert_eq!(
+            Ultraplonk::<MockRuntime>::verify_proof(&vk, &proof, &invalid_pubs),
+            Err(VerifyError::InvalidInput)
+        );
+    }
+
+    #[test]
+    #[serial]
     fn invalid_number_of_public_inputs() {
         let vk = VALID_VK;
         let proof = VALID_PROOF;
