@@ -199,4 +199,24 @@ impl<T: frame_system::Config> pallet_scheduler::WeightInfo for ZKVWeight<T> {
             .saturating_add(T::DbWeight::get().reads(2_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
+
+    fn schedule_retry(_foo: u32) -> Weight {
+      Weight::from_parts(0, 0) // will be overwritten soon
+    }
+
+    fn set_retry() -> Weight {
+      Weight::from_parts(0, 0) // will be overwritten soon
+    }
+
+    fn set_retry_named() -> Weight {
+      Weight::from_parts(0, 0) // will be overwritten soon
+    }
+
+    fn cancel_retry() -> Weight {
+      Weight::from_parts(0, 0) // will be overwritten soon
+    }
+
+    fn cancel_retry_named() -> Weight {
+      Weight::from_parts(0, 0) // will be overwritten soon
+    }
 }

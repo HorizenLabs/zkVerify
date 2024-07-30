@@ -18,7 +18,7 @@ use std::sync::Arc;
 use jsonrpsee::{
     core::RpcResult,
     proc_macros::rpc,
-    types::error::{CallError, ErrorObject},
+    types::error::{ErrorObject, ErrorObjectOwned},
 };
 use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
@@ -93,12 +93,8 @@ where
         let api = self.client.runtime_api();
         let at_hash = at.unwrap_or_else(|| self.client.info().best_hash);
 
-        fn map_err(error: impl ToString, desc: &'static str) -> CallError {
-            CallError::Custom(ErrorObject::owned(
-                Error::RuntimeError.into(),
-                desc,
-                Some(error.to_string()),
-            ))
+        fn map_err(error: impl ToString, desc: &'static str) -> ErrorObjectOwned {
+            ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
         }
 
         api.get_proof_path(at_hash, attestation_id, proof_hash)
@@ -108,21 +104,19 @@ where
     }
 }
 
-fn convert_attestation_error(e: AttestationPathRequestError) -> CallError {
+fn convert_attestation_error(e: AttestationPathRequestError) -> ErrorObjectOwned {
     match e {
-        AttestationPathRequestError::ProofNotFound(id, h) => CallError::Custom(ErrorObject::owned(
+        AttestationPathRequestError::ProofNotFound(id, h) => ErrorObject::owned(
             Error::ProofNotFound.into(),
             "Proof not found",
             Some(format!(
                 "Proof {h} not found in Storage for attestation id {id}"
             )),
-        )),
-        AttestationPathRequestError::AttestationIdNotPublished(id) => {
-            CallError::Custom(ErrorObject::owned(
-                Error::AttestationNotPublished.into(),
-                "Attestation not published yet",
-                Some(format!("Attestation {id} not published yet")),
-            ))
-        }
+        ),
+        AttestationPathRequestError::AttestationIdNotPublished(id) => ErrorObject::owned(
+            Error::AttestationNotPublished.into(),
+            "Attestation not published yet",
+            Some(format!("Attestation {id} not published yet")),
+        ),
     }
 }
