@@ -72,7 +72,7 @@ fn new_test_ext() -> sp_io::TestExternalities {
 
     pallet_babe::GenesisConfig::<super::Runtime> {
         authorities: vec![],
-        epoch_config: Some(TEST_BABE_GENESIS_EPOCH_CONFIG),
+        epoch_config: TEST_BABE_GENESIS_EPOCH_CONFIG,
         ..Default::default()
     }
     .assimilate_storage(&mut t)
@@ -960,17 +960,11 @@ mod pallets_interact {
                     1 * currency::ACME
                 ));
 
-                // Check existing sudo key
-                let existing_sudo_key = Sudo::key();
-
                 // Setting the multisig account as the new sudo account
                 assert_ok!(Sudo::set_key(
-                    RuntimeOrigin::signed(existing_sudo_key.expect("No sudo key")),
+                    RuntimeOrigin::signed(account_ids[0].clone()),
                     MultiAddress::Id(multi.clone())
                 ));
-
-                // Ensure the sudo key is set correctly
-                assert_eq!(Sudo::key(), Some(multi.clone()));
 
                 // Prepare a sudo call to change the sudo key again to a new account (account_ids[1])
                 let sudo_call = pallet_sudo::Call::set_key {
@@ -999,7 +993,9 @@ mod pallets_interact {
                 ));
 
                 // Ensure the sudo key has been updated correctly to account_ids[1]
-                assert_eq!(Sudo::key(), Some(account_ids[1].clone()));
+                assert_ok!(Sudo::remove_key(RuntimeOrigin::signed(
+                    account_ids[1].clone()
+                )));
             });
         }
     }
