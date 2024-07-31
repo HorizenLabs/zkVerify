@@ -23,7 +23,7 @@ use sp_std::{marker::PhantomData, vec::Vec};
 pub use native::ULTRAPLONK_PROOF_SIZE as PROOF_SIZE;
 pub use native::ULTRAPLONK_PUBS_SIZE as PUBS_SIZE;
 pub use native::ULTRAPLONK_VK_SIZE as VK_SIZE;
-pub type Proof = [u8; PROOF_SIZE];
+pub type Proof = Vec<u8>;
 pub type Pubs = Vec<[u8; PUBS_SIZE]>;
 pub type Vk = [u8; VK_SIZE];
 pub use weight::WeightInfo;
@@ -56,6 +56,10 @@ impl<T: Config> Verifier for Ultraplonk<T> {
         proof: &Self::Proof,
         pubs: &Self::Pubs,
     ) -> Result<(), VerifyError> {
+        ensure!(
+            proof.len() == PROOF_SIZE as usize,
+            hp_verifiers::VerifyError::InvalidInput
+        );
         ensure!(
             pubs.len() <= T::MaxPubs::get() as usize,
             hp_verifiers::VerifyError::InvalidInput

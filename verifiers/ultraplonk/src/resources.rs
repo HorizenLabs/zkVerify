@@ -22,7 +22,7 @@ fn public_input() -> crate::Pubs {
 }
 
 #[allow(dead_code)]
-static VALID_PROOF: crate::Proof = hex_literal::hex!(
+static VALID_PROOF: [u8; crate::PROOF_SIZE] = hex_literal::hex!(
     "
         0520122e5831cc97fd2c08ab73ea798207d9ee8064ab401cc0722a2575f093e0
         11f9bdeccd1f282b7f6c8cffeafb68dd1a0fe3e8163e53ba0a43e38455025fc8

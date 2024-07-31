@@ -42,15 +42,16 @@ impl From<ultraplonk_verifier::VerifyError> for VerifyError {
 pub trait UltraplonkVerify {
     fn verify(
         raw_vk: [u8; VK_SIZE],
-        raw_proof: &[u8; PROOF_SIZE],
+        raw_proof: &[u8],
         pubs: &[[u8; PUBS_SIZE]],
     ) -> Result<(), VerifyError> {
         let vk = ultraplonk_verifier::VerificationKey::try_from(&raw_vk[..]).map_err(|e| {
             log::debug!("Cannot parse verification key: {:?}", e);
             VerifyError::InvalidVerificationKey
         })?;
-
-        let proof = raw_proof;
+        let proof = raw_proof
+            .try_into()
+            .expect("Just vec of {PROOF_SIZE} bytes can be used");
 
         ultraplonk_verifier::verify(&vk, &proof, pubs).map_err(Into::into)
     }

@@ -350,7 +350,7 @@ fn pallet_ultraplonk_availability() {
         let dummy_origin = AccountId32::new([0; 32]);
 
         let dummy_vk = [0; pallet_ultraplonk_verifier::VK_SIZE];
-        let dummy_proof = [0; pallet_ultraplonk_verifier::PROOF_SIZE];
+        let dummy_proof = vec![0; pallet_ultraplonk_verifier::PROOF_SIZE];
         let dummy_pubs = Vec::new();
 
         assert!(SettlementUltraplonkPallet::submit_proof(
@@ -598,7 +598,7 @@ mod use_correct_weights {
             <<Runtime as pallet_verifiers::Config<Ultraplonk<Runtime>>>::WeightInfo as
                 pallet_verifiers::WeightInfo<Ultraplonk<Runtime>>>
                 ::submit_proof(
-                &[0; pallet_ultraplonk_verifier::PROOF_SIZE],
+                &vec![0; pallet_ultraplonk_verifier::PROOF_SIZE],
                 &Vec::new()
             ),
             crate::weights::pallet_ultraplonk_verifier::ZKVWeight::<Runtime>::submit_proof()

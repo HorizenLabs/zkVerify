@@ -37,34 +37,33 @@ pub mod benchmarks {
     fn submit_proof() {
         // setup code
         let caller = whitelisted_caller();
-        let proof = VALID_PROOF;
-        let pubs = public_input();
+        let proof = VALID_PROOF.to_vec().into();
+        let pubs = public_input().into();
         let vk = VALID_VK;
 
         #[extrinsic_call]
         submit_proof(
             RawOrigin::Signed(caller),
             VkOrHash::from_vk(vk),
-            proof.into(),
-            pubs.into(),
+            proof,
+            pubs,
         );
     }
 
     #[benchmark]
     fn submit_proof_1() {
         // setup code
-        // setup code
         let caller = whitelisted_caller();
-        let proof = *include_bytes!("resources/01_proof");
-        let pubs = vec![*include_bytes!("resources/01_pubs")];
+        let proof = include_bytes!("resources/01_proof").to_vec().into();
+        let pubs = vec![*include_bytes!("resources/01_pubs")].into();
         let vk = *include_bytes!("resources/01_vk");
 
         #[extrinsic_call]
         submit_proof(
             RawOrigin::Signed(caller),
             VkOrHash::from_vk(vk),
-            proof.into(),
-            pubs.into(),
+            proof,
+            pubs,
         );
     }
 
@@ -72,7 +71,7 @@ pub mod benchmarks {
     fn submit_proof_8() {
         // setup code
         let caller = whitelisted_caller();
-        let proof = *include_bytes!("resources/08_proof");
+        let proof = include_bytes!("resources/08_proof").to_vec().into();
         let pubs: Vec<_> = include_bytes!("resources/08_pubs")
             .chunks_exact(crate::PUBS_SIZE)
             .map(TryInto::try_into)
@@ -84,7 +83,7 @@ pub mod benchmarks {
         submit_proof(
             RawOrigin::Signed(caller),
             VkOrHash::from_vk(vk),
-            proof.into(),
+            proof,
             pubs.into(),
         );
     }
@@ -93,7 +92,7 @@ pub mod benchmarks {
     fn submit_proof_16() {
         // setup code
         let caller = whitelisted_caller();
-        let proof = *include_bytes!("resources/16_proof");
+        let proof = include_bytes!("resources/16_proof").to_vec().into();
         let pubs: Vec<_> = include_bytes!("resources/16_pubs")
             .chunks_exact(crate::PUBS_SIZE)
             .map(TryInto::try_into)
@@ -105,7 +104,7 @@ pub mod benchmarks {
         submit_proof(
             RawOrigin::Signed(caller),
             VkOrHash::from_vk(vk),
-            proof.into(),
+            proof,
             pubs.into(),
         );
     }
@@ -114,7 +113,7 @@ pub mod benchmarks {
     fn submit_proof_32() {
         // setup code
         let caller = whitelisted_caller();
-        let proof = *include_bytes!("resources/32_proof");
+        let proof = include_bytes!("resources/32_proof").to_vec().into();
         let pubs: Vec<_> = include_bytes!("resources/32_pubs")
             .chunks_exact(crate::PUBS_SIZE)
             .map(TryInto::try_into)
@@ -126,7 +125,7 @@ pub mod benchmarks {
         submit_proof(
             RawOrigin::Signed(caller),
             VkOrHash::from_vk(vk),
-            proof.into(),
+            proof,
             pubs.into(),
         );
     }
@@ -135,7 +134,7 @@ pub mod benchmarks {
     fn submit_proof_with_vk_hash() {
         // setup code
         let caller = whitelisted_caller();
-        let proof = VALID_PROOF;
+        let proof = VALID_PROOF.to_vec().into();
         let pubs = public_input();
         let vk = VALID_VK;
         let hash = sp_core::H256::repeat_byte(2);
@@ -145,7 +144,7 @@ pub mod benchmarks {
         submit_proof(
             RawOrigin::Signed(caller),
             VkOrHash::from_hash(hash),
-            proof.into(),
+            proof,
             pubs.into(),
         );
     }
@@ -154,7 +153,7 @@ pub mod benchmarks {
     fn submit_proof_32_with_vk_hash() {
         // setup code
         let caller = whitelisted_caller();
-        let proof = *include_bytes!("resources/32_proof");
+        let proof = include_bytes!("resources/32_proof").to_vec().into();
         let pubs: Vec<_> = include_bytes!("resources/32_pubs")
             .chunks_exact(crate::PUBS_SIZE)
             .map(TryInto::try_into)
@@ -168,7 +167,7 @@ pub mod benchmarks {
         submit_proof(
             RawOrigin::Signed(caller),
             VkOrHash::from_hash(hash),
-            proof.into(),
+            proof,
             pubs.into(),
         );
     }

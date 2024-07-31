@@ -400,7 +400,7 @@ impl pallet_scheduler::Config for Runtime {
 }
 
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
-pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 5;
+pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 16;
 // We should avoid publishing attestations for empty trees
 static_assertions::const_assert!(MIN_PROOFS_FOR_ROOT_PUBLISHING > 0);
 

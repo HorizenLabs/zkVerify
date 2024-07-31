@@ -30,7 +30,7 @@ impl crate::Config for MockRuntime {
 #[serial]
 fn verify_valid_proof() {
     let vk = VALID_VK;
-    let proof = VALID_PROOF;
+    let proof = VALID_PROOF.to_vec();
     let pi = public_input();
 
     assert!(Ultraplonk::<MockRuntime>::verify_proof(&vk, &proof, &pi).is_ok());
@@ -39,7 +39,7 @@ fn verify_valid_proof() {
 #[test]
 #[serial]
 fn verify_valid_proof_with_8_public_inputs() {
-    let proof = *include_bytes!("resources/08_proof");
+    let proof = include_bytes!("resources/08_proof").to_vec();
     let pubs: Vec<_> = include_bytes!("resources/08_pubs")
         .chunks_exact(crate::PUBS_SIZE)
         .map(TryInto::try_into)
@@ -57,7 +57,7 @@ mod reject {
     #[serial]
     fn invalid_public_values() {
         let vk = VALID_VK;
-        let proof = VALID_PROOF;
+        let proof = VALID_PROOF.to_vec();
 
         let mut invalid_pubs = public_input();
         invalid_pubs[0][0] = 0x10;
@@ -71,7 +71,7 @@ mod reject {
     #[test]
     #[serial]
     fn proof_with_8_public_inputs_with_one_not_valid() {
-        let proof = *include_bytes!("resources/08_proof");
+        let proof = include_bytes!("resources/08_proof").to_vec();
         let mut pubs: Vec<[u8; PUBS_SIZE]> = include_bytes!("resources/08_pubs")
             .chunks_exact(crate::PUBS_SIZE)
             .map(TryInto::try_into)
@@ -90,7 +90,7 @@ mod reject {
     #[serial]
     fn if_provided_too_much_public_inputs() {
         let vk = VALID_VK;
-        let proof = VALID_PROOF;
+        let proof = VALID_PROOF.to_vec();
 
         let mut invalid_pubs = public_input();
         while (invalid_pubs.len() as u32) < <MockRuntime as Config>::MaxPubs::get() {
@@ -107,7 +107,7 @@ mod reject {
     #[serial]
     fn invalid_number_of_public_inputs() {
         let vk = VALID_VK;
-        let proof = VALID_PROOF;
+        let proof = VALID_PROOF.to_vec();
 
         let invalid_pubs = vec![public_input()[0]];
 
@@ -123,8 +123,8 @@ mod reject {
         let vk = VALID_VK;
         let pi = public_input();
 
-        let mut invalid_proof: Proof = VALID_PROOF;
-        invalid_proof[invalid_proof.len() - 1] = 0x00;
+        let mut invalid_proof: Proof = VALID_PROOF.to_vec();
+        invalid_proof[PROOF_SIZE - 1] = 0x00;
 
         assert_eq!(
             Ultraplonk::<MockRuntime>::verify_proof(&vk, &invalid_proof, &pi),
@@ -134,8 +134,38 @@ mod reject {
 
     #[test]
     #[serial]
+    fn big_proof() {
+        let vk = VALID_VK;
+        let pi = public_input();
+
+        let mut invalid_proof: Proof = VALID_PROOF.to_vec();
+        invalid_proof.push(0);
+
+        assert_eq!(
+            Ultraplonk::<MockRuntime>::verify_proof(&vk, &invalid_proof, &pi),
+            Err(VerifyError::InvalidInput)
+        );
+    }
+
+    #[test]
+    #[serial]
+    fn small_proof() {
+        let vk = VALID_VK;
+        let pi = public_input();
+
+        let mut invalid_proof: Proof = VALID_PROOF.to_vec();
+        invalid_proof.pop();
+
+        assert_eq!(
+            Ultraplonk::<MockRuntime>::verify_proof(&vk, &invalid_proof, &pi),
+            Err(VerifyError::InvalidInput)
+        );
+    }
+
+    #[test]
+    #[serial]
     fn invalid_vk() {
-        let proof = VALID_PROOF;
+        let proof = VALID_PROOF.to_vec();
         let pi = public_input();
 
         let mut vk = VALID_VK;
@@ -153,7 +183,7 @@ mod reject {
         let vk = VALID_VK;
         let pi = public_input();
 
-        let mut malformed_proof: Proof = VALID_PROOF;
+        let mut malformed_proof: Proof = VALID_PROOF.to_vec();
         malformed_proof[0] = 0x07;
 
         assert_eq!(
