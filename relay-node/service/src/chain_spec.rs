@@ -16,7 +16,10 @@
 
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use polkadot_primitives::{AssignmentId, ValidatorId};
+use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::{ChainType, Properties};
+use sc_sync_state_rpc::LightSyncStateExtension;
+use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
@@ -29,6 +32,12 @@ use zkv_runtime::{
     WASM_BINARY,
 };
 
+/// The extensions for the [`ChainSpec`].
+#[derive(Default, Clone, Serialize, Deserialize, ChainSpecExtension)]
+pub struct Extensions {
+    light_sync_state: LightSyncStateExtension,
+}
+
 // The connection strings for bootnodes
 const BOOTNODE_1_DNS: &str = "bootnode-tn-1.zkverify.io";
 const BOOTNODE_1_PEER_ID: &str = "12D3KooWNhvf6iSowraUY4tZnjpNZXEe85oy9zDWYRKFBnWivukc";
@@ -39,7 +48,7 @@ const BOOTNODE_2_PEER_ID: &str = "12D3KooWEjVadU1YWyfDGvyRXPbCq2rXhzJtXaG4RxJZBk
 const STAGING_TELEMETRY_URL: &str = "wss://testnet-telemetry.zkverify.io/submit/";
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig>;
+pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensions>;
 
 const ENDOWMENT: Balance = 1_000_000 * ACME;
 const STASH_BOND: Balance = ENDOWMENT / 100;
@@ -184,7 +193,7 @@ fn chain_properties() -> Properties {
 pub fn development_config() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
-        None,
+        Default::default(),
     )
     .with_name("Development")
     .with_id("dev")
@@ -213,7 +222,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 pub fn local_config() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
-        None,
+        Default::default(),
     )
     .with_name("NH Local")
     .with_id("nh_local")
@@ -248,7 +257,7 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
 pub fn testnet_config_build() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
-        None,
+        Default::default(),
     )
     .with_name("NH Testnet")
     .with_id("nh_testnet")
