@@ -26,7 +26,7 @@ pub use native::ULTRAPLONK_VK_SIZE as VK_SIZE;
 pub type Proof = [u8; PROOF_SIZE];
 pub type Pubs = Vec<[u8; PUBS_SIZE]>;
 pub type Vk = [u8; VK_SIZE];
-pub use weights::WeightInfo;
+pub use weight::WeightInfo;
 
 pub trait Config: 'static {
     /// Maximum supported number of public inputs.
@@ -35,6 +35,7 @@ pub trait Config: 'static {
 
 pub mod benchmarking;
 mod verifier_should;
+pub mod weight;
 
 #[pallet_verifiers::verifier]
 pub struct Ultraplonk<T>;
@@ -83,52 +84,30 @@ impl<T: Config> Verifier for Ultraplonk<T> {
 
 /// The struct to use in runtime pallet configuration to map the weight computed by this crate
 /// benchmarks to the weight needed by the `pallet-verifiers`.
-pub struct UltraplonkWeight<W: weights::WeightInfo>(PhantomData<W>);
+pub struct UltraplonkWeight<W: weight::WeightInfo>(PhantomData<W>);
 
-impl<T: Config, W: weights::WeightInfo> pallet_verifiers::WeightInfo<Ultraplonk<T>>
+impl<T: Config, W: weight::WeightInfo> pallet_verifiers::WeightInfo<Ultraplonk<T>>
     for UltraplonkWeight<W>
 {
     fn submit_proof(
         _proof: &<Ultraplonk<T> as hp_verifiers::Verifier>::Proof,
         _pubs: &<Ultraplonk<T> as hp_verifiers::Verifier>::Pubs,
     ) -> Weight {
-        W::submit_proof()
+        // The verification time does not depends on the number of public inputs: we use
+        // the one from 32 public inputs
+        W::submit_proof_32()
     }
 
     fn submit_proof_with_vk_hash(
         _proof: &<Ultraplonk<T> as hp_verifiers::Verifier>::Proof,
         _pubs: &<Ultraplonk<T> as hp_verifiers::Verifier>::Pubs,
     ) -> Weight {
-        W::submit_proof_with_vk_hash()
+        // The verification time does not depends on the number of public inputs: we use
+        // the one from 32 public inputs
+        W::submit_proof_32_with_vk_hash()
     }
 
     fn register_vk(_vk: &<Ultraplonk<T> as hp_verifiers::Verifier>::Vk) -> Weight {
         W::register_vk()
-    }
-}
-
-mod weights {
-    use frame_support::weights::Weight;
-
-    pub trait WeightInfo {
-        fn submit_proof() -> Weight;
-
-        fn submit_proof_with_vk_hash() -> Weight;
-
-        fn register_vk() -> Weight;
-    }
-
-    impl WeightInfo for () {
-        fn submit_proof() -> Weight {
-            Default::default()
-        }
-
-        fn submit_proof_with_vk_hash() -> Weight {
-            Default::default()
-        }
-
-        fn register_vk() -> Weight {
-            Default::default()
-        }
     }
 }

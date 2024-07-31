@@ -616,7 +616,7 @@ impl pallet_verifiers::Config<pallet_risc0_verifier::Risc0<Runtime>> for Runtime
 }
 
 parameter_types! {
-    pub const UltraplonkMaxPubs: u32 = 16;
+    pub const UltraplonkMaxPubs: u32 = 32;
 }
 
 impl pallet_ultraplonk_verifier::Config for Runtime {

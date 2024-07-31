@@ -31,7 +31,32 @@ impl<T: frame_system::Config> pallet_ultraplonk_verifier::WeightInfo for ZKVWeig
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
+    fn submit_proof_1() -> Weight {
+        Weight::from_parts(11_000_000_000, 3537)
+            .saturating_add(T::DbWeight::get().reads(3_u64))
+            .saturating_add(T::DbWeight::get().writes(2_u64))
+    }
+    fn submit_proof_8() -> Weight {
+        Weight::from_parts(11_000_000_000, 3537)
+            .saturating_add(T::DbWeight::get().reads(3_u64))
+            .saturating_add(T::DbWeight::get().writes(2_u64))
+    }
+    fn submit_proof_16() -> Weight {
+        Weight::from_parts(11_000_000_000, 3537)
+            .saturating_add(T::DbWeight::get().reads(3_u64))
+            .saturating_add(T::DbWeight::get().writes(2_u64))
+    }
+    fn submit_proof_32() -> Weight {
+        Weight::from_parts(11_000_000_000, 3537)
+            .saturating_add(T::DbWeight::get().reads(3_u64))
+            .saturating_add(T::DbWeight::get().writes(2_u64))
+    }
     fn submit_proof_with_vk_hash() -> Weight {
+        Weight::from_parts(14_000_000_000, 3537)
+            .saturating_add(T::DbWeight::get().reads(4_u64))
+            .saturating_add(T::DbWeight::get().writes(2_u64))
+    }
+    fn submit_proof_32_with_vk_hash() -> Weight {
         Weight::from_parts(14_000_000_000, 3537)
             .saturating_add(T::DbWeight::get().reads(4_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
