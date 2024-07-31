@@ -21,6 +21,7 @@ members = [
     "verifiers/groth16",
     "verifiers/risc0",
     "verifiers/ultraplonk",
+    "verifiers/foo",
 ]
 
 [workspace.dependencies]
