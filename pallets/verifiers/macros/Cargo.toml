@@ -17,8 +17,7 @@ syn = "2.0.66"
 proc-macro2 = "1.0.85"
 derive-syn-parse = "0.2.0"
 proc-macro-crate = "3.1.0"
-rstest.workspace = true
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
-pallet-verifiers = { workspace = true, features = ["std"] }
+rstest.workspace = true

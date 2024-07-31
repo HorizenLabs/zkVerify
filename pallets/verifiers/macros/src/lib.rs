@@ -17,8 +17,7 @@
 //! a new verifier pallet based on `pallet-verifiers` abstraction.
 //!
 
-use proc_macro_crate::FoundCrate;
-use quote::{format_ident, quote, ToTokens};
+use quote::{quote, ToTokens};
 use syn::{parse_macro_input, parse_quote, Attribute, Ident, Token, Type, Visibility};
 
 #[derive(Clone)]
@@ -125,7 +124,11 @@ fn verifier_render(item: Item) -> proc_macro2::TokenStream {
     }
 }
 
+#[cfg(not(test))]
 fn crate_name() -> syn::Path {
+    use proc_macro_crate::FoundCrate;
+    use quote::format_ident;
+
     match proc_macro_crate::crate_name("pallet-verifiers")
         .expect("pallet-verifiers is present in `Cargo.toml` qed")
     {
@@ -135,6 +138,10 @@ fn crate_name() -> syn::Path {
             parse_quote! { #myself }
         }
     }
+}
+#[cfg(test)]
+fn crate_name() -> syn::Path {
+    parse_quote! { pallet_verifiers }
 }
 
 #[cfg(test)]
