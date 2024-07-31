@@ -23,7 +23,7 @@ include!("resources.rs");
 struct MockRuntime;
 
 impl crate::Config for MockRuntime {
-    type MaxPubs = sp_core::ConstU32<3>;
+    type MaxPubs = sp_core::ConstU32<10>;
 }
 
 #[test]
@@ -34,6 +34,20 @@ fn verify_valid_proof() {
     let pi = public_input();
 
     assert!(Ultraplonk::<MockRuntime>::verify_proof(&vk, &proof, &pi).is_ok());
+}
+
+#[test]
+#[serial]
+fn verify_valid_proof_with_8_public_inputs() {
+    let proof = *include_bytes!("resources/08_proof");
+    let pubs: Vec<_> = include_bytes!("resources/08_pubs")
+        .chunks_exact(crate::PUBS_SIZE)
+        .map(TryInto::try_into)
+        .map(Result::unwrap)
+        .collect();
+    let vk = *include_bytes!("resources/08_vk");
+
+    assert!(Ultraplonk::<MockRuntime>::verify_proof(&vk, &proof, &pubs).is_ok());
 }
 
 mod reject {
@@ -50,6 +64,24 @@ mod reject {
 
         assert_eq!(
             Ultraplonk::<MockRuntime>::verify_proof(&vk, &proof, &invalid_pubs),
+            Err(VerifyError::VerifyError)
+        );
+    }
+
+    #[test]
+    #[serial]
+    fn proof_with_8_public_inputs_with_one_not_valid() {
+        let proof = *include_bytes!("resources/08_proof");
+        let mut pubs: Vec<[u8; PUBS_SIZE]> = include_bytes!("resources/08_pubs")
+            .chunks_exact(crate::PUBS_SIZE)
+            .map(TryInto::try_into)
+            .map(Result::unwrap)
+            .collect();
+        pubs[0][0] += 1;
+        let vk = *include_bytes!("resources/08_vk");
+
+        assert_eq!(
+            Ultraplonk::<MockRuntime>::verify_proof(&vk, &proof, &pubs),
             Err(VerifyError::VerifyError)
         );
     }
