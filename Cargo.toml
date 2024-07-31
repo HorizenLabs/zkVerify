@@ -208,7 +208,7 @@ sc-client-db = { version = "0.39.0" }
 sc-consensus-slots = { version = "0.37.0" }
 sc-network-common = { version = "0.37.0" }
 sc-network-sync = { version = "0.37.0" }
-# sc-sync-state-rpc = { version = "0.33.0" }
+sc-sync-state-rpc = { version = "0.38.0" }
 sc-keystore = { version = "29.0.0" }
 telemetry = { package = "sc-telemetry", version = "18.0.0" }
 sp-authority-discovery = { version = "30.0.0", default-features = false }
