@@ -16019,6 +16019,7 @@ dependencies = [
  "sc-network-sync",
  "sc-offchain",
  "sc-service",
+ "sc-sync-state-rpc",
  "sc-sysinfo",
  "sc-telemetry",
  "sc-transaction-pool",
