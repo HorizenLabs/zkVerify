@@ -236,7 +236,7 @@ impl frame_system::Config for Runtime {
     /// Maximum number of block number to block hash mappings to keep (oldest pruned first).
     type BlockHashCount = BlockHashCount;
     /// The weight of database operations that the runtime can invoke.
-    type DbWeight = RocksDbWeight;
+    type DbWeight = weights::db::constants::RocksDbWeight;
     /// Version of the runtime.
     type Version = Version;
     /// The data to be stored in an account.
