@@ -177,10 +177,6 @@ impl From<&Table> for EnvMap {
 }
 
 impl EnvMap {
-    pub fn new() -> Self {
-        Default::default()
-    }
-
     pub fn add(&mut self, dependency: &impl Dependency) {
         self.0.insert(
             dependency.env_key().to_owned(),
