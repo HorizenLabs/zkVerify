@@ -142,4 +142,12 @@ impl<T: frame_system::Config> frame_system::WeightInfo for ZKVWeight<T> {
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(p.into())))
 			.saturating_add(Weight::from_parts(0, 70).saturating_mul(p.into()))
 	}
+
+	fn authorize_upgrade() -> Weight {
+		Weight::from_parts(0, 0) // will be overwritten soon
+  }
+
+	fn apply_authorized_upgrade() -> Weight {
+		Weight::from_parts(0, 0) // will be overwritten soon
+  }
 }

@@ -311,7 +311,6 @@ impl pallet_balances::Config for Runtime {
     type MaxFreezes = ();
     type RuntimeHoldReason = RuntimeHoldReason;
     type RuntimeFreezeReason = ();
-    type MaxHolds = ConstU32<3>;
 }
 
 parameter_types! {
@@ -516,6 +515,7 @@ impl pallet_staking::Config for Runtime {
     type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
     type BenchmarkingConfig = ElectionProviderBenchmarkConfig;
     type MaxExposurePageSize = ConstU32<64>;
+    type MaxControllersInDeprecationBatch = ConstU32<0>; // We do not have any controller accounts
 }
 
 impl pallet_authorship::Config for Runtime {
@@ -731,7 +731,7 @@ impl_runtime_apis! {
             Executive::execute_block(block);
         }
 
-        fn initialize_block(header: &<Block as BlockT>::Header) {
+        fn initialize_block(header: &<Block as BlockT>::Header) -> sp_runtime::ExtrinsicInclusionMode {
             Executive::initialize_block(header)
         }
     }
