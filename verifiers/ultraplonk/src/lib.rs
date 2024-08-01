@@ -57,7 +57,7 @@ impl<T: Config> Verifier for Ultraplonk<T> {
         pubs: &Self::Pubs,
     ) -> Result<(), VerifyError> {
         ensure!(
-            proof.len() == PROOF_SIZE as usize,
+            proof.len() == PROOF_SIZE,
             hp_verifiers::VerifyError::InvalidInput
         );
         ensure!(
@@ -66,7 +66,7 @@ impl<T: Config> Verifier for Ultraplonk<T> {
         );
 
         log::trace!("Verifying (native)");
-        native::ultraplonk_verify::verify((*vk).into(), proof, pubs).map_err(Into::into)
+        native::ultraplonk_verify::verify(*vk, proof, pubs).map_err(Into::into)
     }
 
     fn validate_vk(vk: &Self::Vk) -> Result<(), VerifyError> {
