@@ -25,29 +25,6 @@ const LOG_TARGET: &str = "parachain::db";
 /// Column configuration per version.
 #[cfg(any(test, feature = "full-node"))]
 pub(crate) mod columns {
-    pub mod v0 {
-        pub const NUM_COLUMNS: u32 = 3;
-    }
-
-    pub mod v1 {
-        pub const NUM_COLUMNS: u32 = 5;
-    }
-
-    pub mod v2 {
-        pub const NUM_COLUMNS: u32 = 6;
-
-        #[cfg(test)]
-        pub const COL_SESSION_WINDOW_DATA: u32 = 5;
-    }
-
-    // Version 4 only changed structures in approval voting, so we can re-export the v4 definitions.
-    pub mod v3 {
-        #[allow(unused)]
-        pub use super::v4::{
-            COL_APPROVAL_DATA, COL_AVAILABILITY_DATA, COL_AVAILABILITY_META,
-            COL_CHAIN_SELECTION_DATA, COL_DISPUTE_COORDINATOR_DATA, NUM_COLUMNS, ORDERED_COL,
-        };
-    }
 
     pub mod v4 {
         pub const NUM_COLUMNS: u32 = 5;
