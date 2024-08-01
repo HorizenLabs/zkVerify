@@ -185,48 +185,9 @@ pub mod benchmarks {
         assert!(Vks::<T, Ultraplonk<T>>::get(Ultraplonk::<T>::vk_hash(&vk)).is_some());
     }
 
-    impl_benchmark_test_suite!(Pallet, super::mock::test_ext(), super::mock::Test);
-}
-
-#[cfg(test)]
-mod mock {
-    use frame_support::derive_impl;
-    use sp_runtime::{traits::IdentityLookup, BuildStorage};
-
-    // Configure a mock runtime to test the pallet.
-    frame_support::construct_runtime!(
-        pub enum Test
-        {
-            System: frame_system,
-            VerifierPallet: crate,
-        }
-    );
-
-    #[derive_impl(frame_system::config_preludes::SolochainDefaultConfig as frame_system::DefaultConfig)]
-    impl frame_system::Config for Test {
-        type Block = frame_system::mocking::MockBlockU32<Test>;
-        type AccountId = u64;
-        type Lookup = IdentityLookup<Self::AccountId>;
-    }
-
-    impl crate::Config for Test {
-        type MaxPubs = sp_core::ConstU32<32>;
-    }
-
-    impl pallet_verifiers::Config<crate::Ultraplonk<Test>> for Test {
-        type RuntimeEvent = RuntimeEvent;
-        type OnProofVerified = ();
-        type WeightInfo = crate::UltraplonkWeight<()>;
-    }
-
-    /// Build genesis storage according to the mock runtime.
-    pub fn test_ext() -> sp_io::TestExternalities {
-        let mut ext = sp_io::TestExternalities::from(
-            frame_system::GenesisConfig::<Test>::default()
-                .build_storage()
-                .unwrap(),
-        );
-        ext.execute_with(|| System::set_block_number(1));
-        ext
-    }
+    // WE CANNOT IMPLEMENT TESTS FOR BENCHMARKS FOR THIS PALLET
+    // That's because thie pallet need that the tests are not run in parallel
+    // (we use `serial_test` crate to achieve this) but using this macro doesn't
+    // give a way to achieve this. When we'll write our own maybe we'll can do it.
+    // impl_benchmark_test_suite!(Pallet, super::mock::test_ext(), super::mock::Test);
 }
