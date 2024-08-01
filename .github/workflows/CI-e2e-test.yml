@@ -12,6 +12,7 @@ env:
   DOCKER_COMPOSE_CMD: "docker compose -f ${GITHUB_WORKSPACE}/ci/docker-compose.yml run --rm cargo-container"
   DOCKER_BUILD_DIR: /build
   DOCKER_CARGO_HOME: /tmp/.cargo
+  CMAKE_INSTALL: true
 
 jobs:
   e2e-test:

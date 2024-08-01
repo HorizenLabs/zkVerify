@@ -18,6 +18,7 @@ services:
       - "DOCKER_CARGO_HOME=${DOCKER_CARGO_HOME:-}"
       - "CARGO_BINARIES_INSTALL=${CARGO_BINARIES_INSTALL:-}"
       - "NODEJS_VERSION_INSTALL=${NODEJS_VERSION_INSTALL:-}"
+      - "CMAKE_INSTALL=${CMAKE_INSTALL:-}"
       - "LOCAL_USER_ID=${USER_ID:-}"
       - "LOCAL_GRP_ID=${GRP_ID:-}"
     entrypoint: ${DOCKER_BUILD_DIR}/ci/entrypoint.sh
