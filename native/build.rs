@@ -30,12 +30,16 @@ macro_rules! log {
 }
 
 fn main() {
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=../Cargo.lock");
     let cargo_config = PathBuf::from(env!("CARGO_HOME")).join("config.toml");
     println!("cargo::rerun-if-changed={:?}", cargo_config);
 
     let profile = env::var("PROFILE").expect("Should have a PROFILE environment variable");
 
-    let ultraplonk = UltraplonkDependency::new(&profile, "../deps".into());
+    let cache_root: PathBuf = env::current_dir().unwrap().join("../deps");
+
+    let ultraplonk = UltraplonkDependency::new(&profile, cache_root);
     let libs_cached = cache_cpp_libs(&ultraplonk, &profile);
 
     set_env_paths(&ultraplonk, !libs_cached);
