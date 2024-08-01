@@ -5563,7 +5563,6 @@ name = "pallet-verifiers-macros"
 version = "0.1.0"
 dependencies = [
  "derive-syn-parse 0.2.0",
- "pallet-verifiers",
  "pretty_assertions",
  "proc-macro-crate 3.1.0",
  "proc-macro2",
