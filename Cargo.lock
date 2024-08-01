@@ -5605,6 +5605,7 @@ name = "pallet-verifiers-macros"
 version = "0.1.0"
 dependencies = [
  "derive-syn-parse 0.2.0",
+ "pallet-verifiers",
  "pretty_assertions",
  "proc-macro-crate 3.1.0",
  "proc-macro2",
@@ -10442,7 +10443,7 @@ dependencies = [
 [[package]]
 name = "ultraplonk_verifier"
 version = "0.1.0"
-source = "git+https://github.com/HorizenLabs/ultraplonk_verifier.git?rev=8ee13b33c8abd2d34e965bb79c0a9694cef5a568#8ee13b33c8abd2d34e965bb79c0a9694cef5a568"
+source = "git+https://github.com/HorizenLabs/ultraplonk_verifier.git?tag=v0.1.0#792b1ae23c70a3d3404c267d583bea53db1ceede"
 dependencies = [
  "bindgen 0.69.4",
  "byteorder",
