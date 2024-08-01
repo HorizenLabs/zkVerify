@@ -18,7 +18,7 @@ sp-core = { workspace = true }
 fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", default-features = false, tag = "v0.4.0" }
 hp-verifiers = { workspace = true }
 log = "0.4.20"
-hex-literal = { version = "0.4.1", optional = true }
+hex-literal = { workspace = true, optional = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
@@ -32,7 +32,7 @@ sp-io = { workspace = true, optional = true }
 fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", default-features = false, features = [
     "serde",
 ], tag = "v0.4.0" }
-hex-literal = { version = "0.4.1" }
+hex-literal = { workspace = true }
 serde_json = { version = "1.0.117" }
 
 

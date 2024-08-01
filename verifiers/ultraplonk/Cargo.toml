@@ -18,11 +18,11 @@ frame-system = { workspace = true }
 pallet-verifiers = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 log = "0.4.21"
-hex-literal = { version = "0.4.1", optional = true }
+hex-literal = { workspace = true, optional = true }
 native = { workspace = true }
 
 [dev-dependencies]
-hex-literal = "0.4.1"
+hex-literal = { workspace = true }
 serial_test = "3.1.1"
 codec = { workspace = true }
 scale-info = { workspace = true }
