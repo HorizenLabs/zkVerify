@@ -12,7 +12,7 @@ dev_release="${DEV_RELEASE:-false}"
 test_release="${TEST_RELEASE:-false}"
 github_ref_name="${GITHUB_REF_NAME:-}"
 common_file_location="${COMMON_FILE_LOCATION:-not-set}"
-docker_file_path='docker/dockerfiles/hl-node.Dockerfile'
+docker_file_path='docker/dockerfiles/zkv-node.Dockerfile'
 
 # Requirement
 if ! [ -f "${common_file_location}" ]; then

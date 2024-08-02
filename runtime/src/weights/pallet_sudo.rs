@@ -51,7 +51,7 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weights for `pallet_sudo` using the New Horizen node and recommended hardware.
+/// Weights for `pallet_sudo` using the zkVerify node and recommended hardware.
 pub struct ZKVWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> pallet_sudo::WeightInfo for ZKVWeight<T> {
