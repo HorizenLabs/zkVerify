@@ -91,7 +91,7 @@ pub fn new_full(
             secure_validator_mode: false,
             workers_path,
             workers_names: None,
-            overseer_gen: service::RealOverseerGen,
+            overseer_gen: service::ValidatorOverseerGen,
             overseer_message_channel_capacity_override: None,
             malus_finality_delay: None,
             hwbench: None,
@@ -195,6 +195,9 @@ pub fn node_config(
         rpc_id_provider: None,
         rpc_max_subs_per_conn: Default::default(),
         rpc_port: 9944,
+        rpc_batch_config: sc_service::config::RpcBatchRequestConfig::Limit(999), // TODO: check these 999
+        rpc_message_buffer_capacity: 999,
+        rpc_rate_limit: std::num::NonZeroU32::new(999),
         prometheus_config: None,
         telemetry_endpoints: None,
         default_heap_pages: None,

@@ -25,8 +25,6 @@ use std::{
 
 use polkadot_node_core_approval_voting::approval_db::{
     common::{Config as ApprovalDbConfig, Result as ApprovalDbResult},
-    v2::migration_helpers::v1_to_latest,
-    v3::migration_helpers::v2_to_latest,
 };
 use polkadot_node_subsystem_util::database::{
     kvdb_impl::DbAdapter as RocksDbAdapter, paritydb_impl::DbAdapter as ParityDbAdapter, Database,
@@ -48,6 +46,8 @@ pub enum Error {
     Io(#[from] io::Error),
     #[error("The version file format is incorrect")]
     CorruptedVersionFile,
+    #[error("Parachains DB has an old version (expected {current:?})")]
+    OldVersion { current: Version },
     #[error("Parachains DB has a future version (expected {current:?}, found {got:?})")]
     FutureVersion { current: Version, got: Version },
     #[error("Parachain DB migration failed")]
@@ -96,20 +96,18 @@ pub(crate) fn try_upgrade_db(
 /// If successful, it returns the current version.
 pub(crate) fn try_upgrade_db_to_next_version(
     db_path: &Path,
-    db_kind: DatabaseKind,
+    _db_kind: DatabaseKind,
 ) -> Result<Version, Error> {
     let is_empty = db_path.read_dir().map_or(true, |mut d| d.next().is_none());
 
     let new_version = if !is_empty {
         match get_db_version(db_path)? {
-            // 0 -> 1 migration
-            Some(0) => unreachable!(), //migrate_from_version_0_to_1(db_path, db_kind)?,
-            // 1 -> 2 migration
-            Some(1) => unreachable!(), //migrate_from_version_0_to_1(db_path, db_kind)?,
-            // 2 -> 3 migration
-            Some(2) => unreachable!(),
-            Some(3) => unreachable!(),
-            Some(4) => unreachable!(),
+            // Older, unsupported versions
+            Some(..= 4) => {
+                return Err(Error::OldVersion {
+                    current: CURRENT_VERSION,
+                })
+            },
             // Already at current version, do nothing.
             Some(CURRENT_VERSION) => CURRENT_VERSION,
             // This is an arbitrary future version, we don't handle it.
@@ -224,7 +222,6 @@ pub(crate) fn paritydb_version_3_config(path: &Path) -> parity_db::Options {
 }
 
 
-
 /// Remove the lock file. If file is locked, it will wait up to 1s.
 #[cfg(test)]
 pub fn remove_file_lock(path: &std::path::Path) {
@@ -253,18 +250,3 @@ pub fn remove_file_lock(path: &std::path::Path) {
     );
 }
 
-#[cfg(test)]
-mod tests {
-    use super::{
-        columns::{v2::COL_SESSION_WINDOW_DATA, v4::*},
-        *,
-    };
-    use kvdb_rocksdb::{Database, DatabaseConfig};
-    use polkadot_node_core_approval_voting::approval_db::{
-        v2::migration_helpers::v1_fill_test_data,
-        v3::migration_helpers::{v1_to_latest_sanity_check, v2_fill_test_data},
-    };
-    use polkadot_node_subsystem_util::database::kvdb_impl::DbAdapter;
-    use test_helpers::dummy_candidate_receipt;
-
-}
