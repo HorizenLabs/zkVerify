@@ -415,7 +415,7 @@ where
 mod tests {
     #[test]
     fn parses_error_properly() {
-        let (_, rx) = futures::channel::mpsc::unbounded();
+        let (_, rx) = tokio::sync::mpsc::channel(1);
         assert!(super::parse_rpc_result(
             r#"{
 				"jsonrpc": "2.0",
@@ -427,7 +427,7 @@ mod tests {
         )
         .is_ok());
 
-        let (_, rx) = futures::channel::mpsc::unbounded();
+        let (_, rx) = tokio::sync::mpsc::channel(1);
         let error = super::parse_rpc_result(
             r#"{
 				"jsonrpc": "2.0",
@@ -445,7 +445,7 @@ mod tests {
         assert_eq!(error.message, "Method not found");
         assert!(error.data.is_none());
 
-        let (_, rx) = futures::channel::mpsc::unbounded();
+        let (_, rx) = tokio::sync::mpsc::channel(1);
         let error = super::parse_rpc_result(
             r#"{
 				"jsonrpc": "2.0",
