@@ -22,6 +22,7 @@ const { PROOF: ZKSYNC_PROOF, PUBS: ZKSYNC_PUBS } = require('./zksync_data.js');
 const { PROOF: FFLONK_PROOF, PUBS: FFLONK_PUBS, VK: FFLONK_VK } = require('./fflonk_data.js');
 const { PROOF: GROTH16_PROOF, PUBS: GROTH16_PUBS, VK: GROTH16_VK } = require('./groth16_data.js');
 const { PROOF: RISC0_PROOF, PUBS: RISC0_PUBS, VK: RISC0_VK } = require('./risc0_data.js');
+const { PROOF: ULTRAPLONK_PROOF, PUBS: ULTRAPLONK_PUBS, VK: ULTRAPLONK_VK } = require('./ultraplonk_data.js');
 
 async function run(nodeName, networkInfo, _args) {
     const api = await init_api(zombie, nodeName, networkInfo);
@@ -53,6 +54,11 @@ async function run(nodeName, networkInfo, _args) {
             name: "Groth16",
             pallet: api.tx.settlementGroth16Pallet,
             args: [{ 'Vk': GROTH16_VK }, GROTH16_PROOF, GROTH16_PUBS],
+        },
+        {
+            name: "Ultraplonk",
+            pallet: api.tx.settlementUltraplonkPallet,
+            args: [{ 'Vk': ULTRAPLONK_VK }, ULTRAPLONK_PROOF, ULTRAPLONK_PUBS],
         }
     ];
 

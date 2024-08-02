@@ -20,6 +20,7 @@ members = [
     "verifiers/zksync",
     "verifiers/groth16",
     "verifiers/risc0",
+    "verifiers/ultraplonk",
 ]
 
 [workspace.dependencies]
@@ -32,6 +33,7 @@ async-trait = { version = "0.1.57" }
 serde = { version = "1.0.197" }
 rstest = { version = "0.19.0" }
 rstest_reuse = { version = "0.7.0" }
+hex-literal = { version = "0.4.1" }
 
 sc-cli = { version = "0.40.0" }
 sc-executor = { version = "0.36.0" }
@@ -65,6 +67,7 @@ pallet-fflonk-verifier = { path = "verifiers/fflonk", default-features = false }
 pallet-zksync-verifier = { path = "verifiers/zksync", default-features = false }
 pallet-groth16-verifier = { path = "verifiers/groth16", default-features = false }
 pallet-risc0-verifier = { path = "verifiers/risc0", default-features = false }
+pallet-ultraplonk-verifier = { path = "verifiers/ultraplonk", default-features = false }
 
 zkv-runtime = { path = "runtime", default-features = false }
 

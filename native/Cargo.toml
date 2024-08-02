@@ -11,17 +11,25 @@ homepage.workspace = true
 zksync-era-verifier = { git = "https://github.com/HorizenLabs/zksync-era-verifier.git", tag = "v0.1.0", optional = true }
 zksync-era-verifier-deserialize = { git = "https://github.com/HorizenLabs/zksync-era-verifier.git", tag = "v0.1.0", optional = true }
 risc0-verifier = { git = "https://github.com/HorizenLabs/risc0-verifier.git", tag = "v0.1.0", optional = true }
-sp-runtime-interface = { workspace = true, default-features = false }
-codec = { workspace = true, default-features = false }
+ultraplonk_verifier = { git = "https://github.com/HorizenLabs/ultraplonk_verifier.git", tag = "v0.1.0", optional = true }
+sp-runtime-interface = { workspace = true }
+codec = { workspace = true }
 log = "0.4.11"
 hp-verifiers = { workspace = true }
+
+[build-dependencies]
+toml = "0.8.14"
+walkdir = "2.5.0"
+regex = "1.10.5"
 
 [features]
 default = ["std"]
 std = [
     "sp-runtime-interface/std",
     "codec/std",
+    "hp-verifiers/std",
     "dep:zksync-era-verifier",
     "dep:zksync-era-verifier-deserialize",
     "dep:risc0-verifier",
+    "dep:ultraplonk_verifier",
 ]

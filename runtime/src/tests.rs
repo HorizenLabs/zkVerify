@@ -344,6 +344,26 @@ fn pallet_risc0_availability() {
     });
 }
 
+#[test]
+fn pallet_ultraplonk_availability() {
+    new_test_ext().execute_with(|| {
+        let dummy_origin = AccountId32::new([0; 32]);
+
+        let dummy_vk = [0; pallet_ultraplonk_verifier::VK_SIZE];
+        let dummy_proof = vec![0; pallet_ultraplonk_verifier::PROOF_SIZE];
+        let dummy_pubs = Vec::new();
+
+        assert!(SettlementUltraplonkPallet::submit_proof(
+            RuntimeOrigin::signed(dummy_origin),
+            VkOrHash::Vk(dummy_vk.into()),
+            dummy_proof.into(),
+            dummy_pubs.into()
+        )
+        .is_err());
+        // just checking code builds, hence the pallet is available to the runtime
+    });
+}
+
 // Test definition and execution. Test body must be written in the execute_with closure.
 #[test]
 fn pallet_poe_availability() {
@@ -567,6 +587,21 @@ mod use_correct_weights {
                 &Vec::new()
             ),
             crate::weights::pallet_risc0_verifier::ZKVWeight::<Runtime>::submit_proof_cycle_2_pow_12()
+        );
+    }
+
+    #[test]
+    fn pallet_settlement_ultraplonk() {
+        use pallet_ultraplonk_verifier::{Ultraplonk, WeightInfo};
+
+        assert_eq!(
+            <<Runtime as pallet_verifiers::Config<Ultraplonk<Runtime>>>::WeightInfo as
+                pallet_verifiers::WeightInfo<Ultraplonk<Runtime>>>
+                ::submit_proof(
+                &vec![0; pallet_ultraplonk_verifier::PROOF_SIZE],
+                &Vec::new()
+            ),
+            crate::weights::pallet_ultraplonk_verifier::ZKVWeight::<Runtime>::submit_proof()
         );
     }
 

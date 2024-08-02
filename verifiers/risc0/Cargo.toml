@@ -10,7 +10,7 @@ license = "Apache-2.0"
 
 [dependencies]
 log = "0.4.21"
-hex-literal = { version = "0.4.1", optional = true }
+hex-literal = { workspace = true, optional = true }
 
 hp-verifiers = { workspace = true }
 pallet-verifiers = { workspace = true }
@@ -23,7 +23,7 @@ frame-system = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
-hex-literal = { version = "0.4.1" }
+hex-literal = { workspace = true }
 
 [features]
 std = [
