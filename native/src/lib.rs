@@ -18,7 +18,9 @@
 use codec::{Decode, Encode};
 use sp_runtime_interface::pass_by::PassByCodec;
 
+mod foo;
 mod risc0;
+mod ultraplonk;
 mod zksync;
 
 #[derive(PassByCodec, Encode, Decode)]
@@ -42,7 +44,6 @@ impl From<VerifyError> for hp_verifiers::VerifyError {
     }
 }
 
-mod ultraplonk;
 pub use zksync::zksync_verify;
 pub use zksync::PROOF_SIZE as ZKSYNC_PROOF_SIZE;
 pub use zksync::PUBS_SIZE as ZKSYNC_PUBS_SIZE;
@@ -60,9 +61,14 @@ pub use ultraplonk::PROOF_SIZE as ULTRAPLONK_PROOF_SIZE;
 pub use ultraplonk::PUBS_SIZE as ULTRAPLONK_PUBS_SIZE;
 pub use ultraplonk::VK_SIZE as ULTRAPLONK_VK_SIZE;
 
+pub use foo::foo_verify;
+#[cfg(feature = "std")]
+pub use foo::foo_verify::HostFunctions as FooVerifierHostFunctions;
+
 #[cfg(feature = "std")]
 pub type HLNativeHostFunctions = (
     ZksyncVerifierHostFunctions,
     Risc0VerifierHostFunctions,
     UltraplonkVerifierHostFunctions,
+    FooVerifierHostFunctions,
 );
