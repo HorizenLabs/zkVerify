@@ -141,7 +141,7 @@ pub fn run() -> sc_cli::Result<()> {
         }
         Some(Subcommand::Benchmark(cmd)) => {
             let runner = cli.create_runner(cmd)?;
-
+            sc_cli::print_node_infos::<Cli>(runner.config());
             runner.sync_run(|config| {
                 // This switch needs to be in the client, since the client decides
                 // which sub-commands it wants to support.

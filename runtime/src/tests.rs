@@ -387,6 +387,14 @@ mod use_correct_weights {
     }
 
     #[test]
+    fn db() {
+        assert_eq!(
+            <Runtime as frame_system::Config>::DbWeight::get(),
+            crate::weights::db::constants::RocksDbWeight::get()
+        );
+    }
+
+    #[test]
     fn pallet_babe() {
         use pallet_babe::WeightInfo;
 

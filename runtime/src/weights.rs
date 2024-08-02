@@ -1,4 +1,5 @@
 pub mod block_weights;
+pub mod db;
 pub mod extrinsic_weights;
 pub mod frame_election_provider_support;
 pub mod frame_system;

@@ -236,7 +236,7 @@ impl frame_system::Config for Runtime {
     /// Maximum number of block number to block hash mappings to keep (oldest pruned first).
     type BlockHashCount = BlockHashCount;
     /// The weight of database operations that the runtime can invoke.
-    type DbWeight = RocksDbWeight;
+    type DbWeight = weights::db::constants::RocksDbWeight;
     /// Version of the runtime.
     type Version = Version;
     /// The data to be stored in an account.
@@ -724,6 +724,9 @@ mod benches {
         [pallet_im_online, ImOnline]
         [frame_election_provider_support, ElectionProviderBench::<Runtime>]
         [pallet_poe, Poe]
+        [pallet_conviction_voting, ConvictionVoting]
+        [pallet_referenda, Referenda]
+        [pallet_whitelist, Whitelist]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
