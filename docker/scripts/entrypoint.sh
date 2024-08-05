@@ -124,5 +124,16 @@ if [[ (-n "${ZKV_CONF_BASE_PATH:-}") && (-n "${ZKV_CONF_CHAIN:-}") && (-f "${ZKV
   cp "${ZKV_NODE_KEY_FILE}" "${destination}/secret_ed25519"
 fi
 
+BASE_CHAINS="/data/node/chains"
+
+for chain in local testnet ; do
+  source_chain_dir="${BASE_CHAINS}/nh_${chain}";
+  dest_chain_dir="${BASE_CHAINS}/zkv_${chain}";
+
+  [ -d "$source_chain_dir" ] && [ ! -e "$dest_chain_dir" ] && \
+    echo "Move ${source_chain_dir} to ${dest_chain_dir}" && \
+    mv "${source_chain_dir}" "${dest_chain_dir}"
+done
+
 echo "Launching ${ZKV_NODE} with args ${conf_args[*]}"
 exec "${ZKV_NODE}" "${conf_args[@]}"
