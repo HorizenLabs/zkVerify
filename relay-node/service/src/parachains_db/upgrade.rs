@@ -96,11 +96,11 @@ pub(crate) fn try_upgrade_db_to_next_version(
     let new_version = if !is_empty {
         match get_db_version(db_path)? {
             // Older, unsupported versions
-            Some(..= 4) => {
+            Some(..=4) => {
                 return Err(Error::OldVersion {
                     current: CURRENT_VERSION,
                 })
-            },
+            }
             // Already at current version, do nothing.
             Some(CURRENT_VERSION) => CURRENT_VERSION,
             // This is an arbitrary future version, we don't handle it.
@@ -157,7 +157,6 @@ pub(crate) fn paritydb_version_3_config(path: &Path) -> parity_db::Options {
     options
 }
 
-
 /// Remove the lock file. If file is locked, it will wait up to 1s.
 #[cfg(test)]
 pub fn remove_file_lock(path: &std::path::Path) {
@@ -185,4 +184,3 @@ pub fn remove_file_lock(path: &std::path::Path) {
         lock_path
     );
 }
-

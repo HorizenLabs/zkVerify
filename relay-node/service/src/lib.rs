@@ -20,7 +20,6 @@
 
 pub mod benchmarking;
 pub mod chain_spec;
-mod fake_runtime_api;
 mod grandpa_support;
 mod parachains_db;
 mod relay_chain_selection;
@@ -114,7 +113,6 @@ pub use sp_runtime::{
     traits::{self as runtime_traits, BlakeTwo256, Block as BlockT, Header as HeaderT, NumberFor},
 };
 
-//pub use fake_runtime_api::{GetLastTimestamp, RuntimeApi};
 pub use zkv_runtime::{self, opaque::Block, RuntimeApi};
 
 #[cfg(feature = "full-node")]

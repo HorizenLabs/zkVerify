@@ -213,58 +213,6 @@ fn sign_call(
     .into()
 }
 
-#[cfg(feature = "rococo-native")]
-fn rococo_sign_call(
-    call: rococo_runtime::RuntimeCall,
-    nonce: u32,
-    current_block: u64,
-    period: u64,
-    genesis: sp_core::H256,
-    acc: sp_core::sr25519::Pair,
-) -> OpaqueExtrinsic {
-    use codec::Encode;
-    use rococo_runtime as runtime;
-    use sp_core::Pair;
-
-    let extra: runtime::SignedExtra = (
-        frame_system::CheckNonZeroSender::<runtime::Runtime>::new(),
-        frame_system::CheckSpecVersion::<runtime::Runtime>::new(),
-        frame_system::CheckTxVersion::<runtime::Runtime>::new(),
-        frame_system::CheckGenesis::<runtime::Runtime>::new(),
-        frame_system::CheckMortality::<runtime::Runtime>::from(sp_runtime::generic::Era::mortal(
-            period,
-            current_block,
-        )),
-        frame_system::CheckNonce::<runtime::Runtime>::from(nonce),
-        frame_system::CheckWeight::<runtime::Runtime>::new(),
-        pallet_transaction_payment::ChargeTransactionPayment::<runtime::Runtime>::from(0),
-    );
-
-    let payload = runtime::SignedPayload::from_raw(
-        call.clone(),
-        extra.clone(),
-        (
-            (),
-            runtime::VERSION.spec_version,
-            runtime::VERSION.transaction_version,
-            genesis,
-            genesis,
-            (),
-            (),
-            (),
-        ),
-    );
-
-    let signature = payload.using_encoded(|p| acc.sign(p));
-    runtime::UncheckedExtrinsic::new_signed(
-        call,
-        sp_runtime::AccountId32::from(acc.public()).into(),
-        polkadot_core_primitives::Signature::Sr25519(signature.clone()),
-        extra,
-    )
-    .into()
-}
-
 /// Generates inherent data for benchmarking Polkadot, Kusama, Westend and Rococo.
 ///
 /// Not to be used outside of benchmarking since it returns mocked values.
