@@ -98,7 +98,7 @@ pub use consensus_common::{Proposal, SelectChain};
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use mmr_gadget::MmrGadget;
 use polkadot_node_subsystem_types::DefaultSubsystemClient;
-pub use polkadot_primitives::{Block, BlockId, BlockNumber, CollatorPair, Hash, Id as ParaId};
+pub use polkadot_primitives::{BlockId, BlockNumber, CollatorPair, Hash, Id as ParaId};
 pub use sc_client_api::{Backend, CallExecutor};
 pub use sc_consensus::{BlockImport, LongestChain};
 pub use sc_executor::NativeExecutionDispatch;
@@ -114,12 +114,8 @@ pub use sp_runtime::{
     traits::{self as runtime_traits, BlakeTwo256, Block as BlockT, Header as HeaderT, NumberFor},
 };
 
-#[cfg(feature = "rococo-native")]
-pub use {rococo_runtime, rococo_runtime_constants};
-#[cfg(feature = "westend-native")]
-pub use {westend_runtime, westend_runtime_constants};
-
-pub use fake_runtime_api::{GetLastTimestamp, RuntimeApi};
+//pub use fake_runtime_api::{GetLastTimestamp, RuntimeApi};
+pub use zkv_runtime::{self, opaque::Block, RuntimeApi};
 
 #[cfg(feature = "full-node")]
 pub type FullBackend = service::TFullBackend<Block>;
@@ -241,9 +237,9 @@ pub enum Error {
     #[error("Creating a custom database is required for validators")]
     DatabasePathRequired,
 
-    #[cfg(feature = "full-node")]
-    #[error("Expected at least one of polkadot, kusama, westend or rococo runtime feature")]
-    NoRuntime,
+    //#[cfg(feature = "full-node")]
+    //#[error("Expected at least one of polkadot, kusama, westend or rococo runtime feature")]
+    //NoRuntime,
 
     #[cfg(feature = "full-node")]
     #[error("Worker binaries not executable, prepare binary: {prep_worker_path:?}, execute binary: {exec_worker_path:?}")]
@@ -597,7 +593,7 @@ where
                 backend: backend.clone(),
             };
 
-            polkadot_rpc::create_full(deps).map_err(Into::into)
+            crate::rpc::create_full(deps).map_err(Into::into)
         }
     };
 

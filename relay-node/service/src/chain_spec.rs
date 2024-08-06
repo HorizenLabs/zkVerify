@@ -16,7 +16,7 @@
 
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use polkadot_primitives::{AssignmentId, ValidatorId};
-use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
+use sc_chain_spec::ChainSpecExtension;
 use sc_service::{ChainType, Properties};
 use sc_sync_state_rpc::LightSyncStateExtension;
 use serde::{Deserialize, Serialize};

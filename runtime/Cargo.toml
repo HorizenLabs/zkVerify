@@ -16,6 +16,9 @@ targets = ["x86_64-unknown-linux-gnu"]
 codec = { workspace = true, features = ["derive"] }
 scale-info = { workspace = true, features = ["derive", "serde"] }
 
+beefy-primitives = { workspace = true }
+sp-mmr-primitives = { workspace = true }
+
 pallet-offences = { workspace = true }
 pallet-im-online = { workspace = true }
 pallet-authorship = { workspace = true }

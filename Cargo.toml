@@ -179,6 +179,7 @@ frame-system-benchmarking = { default-features = false, version = "32.0.0" }
 
 substrate-wasm-builder = { version = "21.0.0" }
 substrate-build-script-utils = { version = "11.0.0" }
+polkadot-service = { version = "11.0.0" }
 
 # Used for relay chain
 

@@ -41,6 +41,8 @@ sc-sysinfo = { workspace = true }
 sc-executor = { workspace = true }
 sc-storage-monitor = { workspace = true }
 
+zkv-runtime = { workspace = true }
+
 [build-dependencies]
 substrate-build-script-utils = { workspace = true }
 

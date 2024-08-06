@@ -34,6 +34,7 @@ where
     C::Api: frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
     C::Api: mmr_rpc::MmrRuntimeApi<Block, <Block as sp_runtime::traits::Block>::Hash, BlockNumber>,
     C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
+    C::Api: proof_of_existence_rpc::PoERuntimeApi<Block>,
     C::Api: BabeApi<Block>,
     C::Api: BlockBuilder<Block>,
     P: sc_transaction_pool_api::TransactionPool + Sync + Send + 'static,
@@ -44,6 +45,7 @@ where
     use frame_rpc_system::{System, SystemApiServer};
     use mmr_rpc::{Mmr, MmrApiServer};
     use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
+    use proof_of_existence_rpc::{PoE, PoEApiServer};
     use sc_consensus_babe_rpc::{Babe, BabeApiServer};
     use sc_consensus_beefy_rpc::{Beefy, BeefyApiServer};
     use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
@@ -108,6 +110,8 @@ where
         )?
         .into_rpc(),
     )?;
+
+    io.merge(PoE::new(client).into_rpc())?;
 
     Ok(io)
 }
