@@ -15,20 +15,13 @@
 
 #![cfg(feature = "full-node")]
 
-use super::{columns, other_io_error, DatabaseKind, LOG_TARGET};
+use super::{columns, DatabaseKind};
 use std::{
     fs, io,
     path::{Path, PathBuf},
     str::FromStr,
-    sync::Arc,
 };
 
-use polkadot_node_core_approval_voting::approval_db::{
-    common::{Config as ApprovalDbConfig, Result as ApprovalDbResult},
-};
-use polkadot_node_subsystem_util::database::{
-    kvdb_impl::DbAdapter as RocksDbAdapter, paritydb_impl::DbAdapter as ParityDbAdapter, Database,
-};
 type Version = u32;
 
 /// Version file name.
@@ -103,7 +96,7 @@ pub(crate) fn try_upgrade_db_to_next_version(
     let new_version = if !is_empty {
         match get_db_version(db_path)? {
             // Older, unsupported versions
-            Some(..= 4) => {
+            Some(..= (CURRENT_VERSION-1)) => {
                 return Err(Error::OldVersion {
                     current: CURRENT_VERSION,
                 })
@@ -151,63 +144,6 @@ fn version_file_path(path: &Path) -> PathBuf {
     let mut file_path = path.to_owned();
     file_path.push(VERSION_FILE_NAME);
     file_path
-}
-
-// This currently clears columns which had their configs altered between versions.
-// The columns to be changed are constrained by the `allowed_columns` vector.
-fn paritydb_fix_columns(
-    path: &Path,
-    options: parity_db::Options,
-    allowed_columns: Vec<u32>,
-) -> io::Result<()> {
-    // Figure out which columns to delete. This will be determined by inspecting
-    // the metadata file.
-    if let Some(metadata) = parity_db::Options::load_metadata(&path)
-        .map_err(|e| other_io_error(format!("Error reading metadata {:?}", e)))?
-    {
-        let columns_to_clear = metadata
-            .columns
-            .into_iter()
-            .enumerate()
-            .filter(|(idx, _)| allowed_columns.contains(&(*idx as u32)))
-            .filter_map(|(idx, opts)| {
-                let changed = opts != options.columns[idx];
-                if changed {
-                    gum::debug!(
-                        target: LOG_TARGET,
-                        "Column {} will be cleared. Old options: {:?}, New options: {:?}",
-                        idx,
-                        opts,
-                        options.columns[idx]
-                    );
-                    Some(idx)
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-
-        if columns_to_clear.len() > 0 {
-            gum::debug!(
-                target: LOG_TARGET,
-                "Database column changes detected, need to cleanup {} columns.",
-                columns_to_clear.len()
-            );
-        }
-
-        for column in columns_to_clear {
-            gum::debug!(target: LOG_TARGET, "Clearing column {}", column,);
-            parity_db::clear_column(path, column.try_into().expect("Invalid column ID"))
-                .map_err(|e| other_io_error(format!("Error clearing column {:?}", e)))?;
-        }
-
-        // Write the updated column options.
-        options
-            .write_metadata(path, &metadata.salt)
-            .map_err(|e| other_io_error(format!("Error writing metadata {:?}", e)))?;
-    }
-
-    Ok(())
 }
 
 /// Database configuration for version 3.

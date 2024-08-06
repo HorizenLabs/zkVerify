@@ -132,6 +132,11 @@ pub fn open_creating_rocksdb(
         .to_str()
         .ok_or_else(|| other_io_error(format!("Bad database path: {:?}", path)))?;
 
+    gum::debug!(
+        target: LOG_TARGET,
+        "Creating RocksDB db version {}.",
+        upgrade::CURRENT_VERSION
+    );
     std::fs::create_dir_all(path_str)?;
     upgrade::try_upgrade_db(&path, DatabaseKind::RocksDB, upgrade::CURRENT_VERSION)?;
     let db = Database::open(&db_config, path_str)?;
@@ -154,6 +159,11 @@ pub fn open_creating_paritydb(
         .to_str()
         .ok_or_else(|| other_io_error(format!("Bad database path: {:?}", path)))?;
 
+    gum::debug!(
+        target: LOG_TARGET,
+        "Creating ParityDB db version {}.",
+        upgrade::CURRENT_VERSION
+    );
     std::fs::create_dir_all(path_str)?;
     upgrade::try_upgrade_db(&path, DatabaseKind::ParityDB, upgrade::CURRENT_VERSION)?;
 
