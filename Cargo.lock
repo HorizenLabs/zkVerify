@@ -14699,6 +14699,7 @@ dependencies = [
  "substrate-test-client",
  "test-runtime",
  "test-service",
+ "zkv-runtime",
 ]
 
 [[package]]

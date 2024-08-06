@@ -124,7 +124,7 @@ pub fn dummy_validator() -> ValidatorId {
 
 /// Create a meaningless collator signature.
 pub fn dummy_collator_signature() -> CollatorSignature {
-    CollatorSignature::from(sr25519::Signature([0u8; 64]))
+    CollatorSignature::from(sr25519::Signature::from_raw([0u8; 64]))
 }
 
 /// Create a meaningless persisted validation data.

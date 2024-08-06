@@ -15,10 +15,13 @@ proof-of-existence-rpc = { workspace = true, features = ["std"] }
 
 sc-authority-discovery = { workspace = true }
 sc-consensus-babe = { workspace = true }
+
 beefy = { workspace = true }
-sc-consensus-grandpa = { workspace = true }
+beefy-primitives = { workspace = true }
 mmr-gadget = { workspace = true }
 sp-mmr-primitives = { workspace = true }
+
+sc-consensus-grandpa = { workspace = true }
 sc-block-builder = { workspace = true }
 sc-chain-spec = { workspace = true }
 sc-client-api = { workspace = true }
@@ -40,7 +43,6 @@ sc-service = { workspace = true }
 telemetry = { workspace = true }
 sp-authority-discovery = { workspace = true }
 consensus_common = { workspace = true }
-beefy-primitives = { workspace = true }
 sp-inherents = { workspace = true }
 sp-keyring = { workspace = true }
 sp-api = { workspace = true }

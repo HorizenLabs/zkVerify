@@ -68,7 +68,7 @@ pub type Client = FullClient;
 /// WasmExecutor type.
 pub type WasmExecutor = FullWasmExecutor;
 
-pub use service::{FullBackend, GetLastTimestamp};
+pub use service::FullBackend;
 
 /// Create a new full node.
 #[sc_tracing::logging::prefix_logs_with(config.network.node_name.as_str())]
