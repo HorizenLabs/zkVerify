@@ -5,6 +5,7 @@ pub mod frame_election_provider_support;
 pub mod frame_system;
 pub mod pallet_babe;
 pub mod pallet_balances;
+pub mod pallet_bounties;
 pub mod pallet_conviction_voting;
 pub mod pallet_fflonk_verifier;
 pub mod pallet_grandpa;

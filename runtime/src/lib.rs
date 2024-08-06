@@ -428,7 +428,7 @@ impl pallet_treasury::Config for Runtime {
     type BurnDestination = ();
     type MaxApprovals = MaxApprovals;
     type WeightInfo = weights::pallet_treasury::ZKVWeight<Runtime>;
-    type SpendFunds = ();
+    type SpendFunds = Bounties;
     type SpendOrigin = TreasurySpender;
     type AssetKind = ();
     type Beneficiary = AccountId;
@@ -438,6 +438,32 @@ impl pallet_treasury::Config for Runtime {
     type PayoutPeriod = PayoutSpendPeriod;
     #[cfg(feature = "runtime-benchmarks")]
     type BenchmarkHelper = ();
+}
+
+parameter_types! {
+    pub const BountyDepositBase: Balance = 1 * ACME;
+    pub const BountyDepositPayoutDelay: BlockNumber = 8 * DAYS;
+    pub const BountyUpdatePeriod: BlockNumber = 90 * DAYS;
+    pub const MaximumReasonLength: u32 = 16384;
+    pub const CuratorDepositMultiplier: Permill = Permill::from_percent(50);
+    pub const CuratorDepositMin: Balance = 10 * ACME;
+    pub const CuratorDepositMax: Balance = 200 * ACME;
+    pub const BountyValueMinimum: Balance = 10 * ACME;
+    pub DataDepositPerByte: Balance = deposit(0, 1);
+}
+impl pallet_bounties::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type BountyDepositBase = BountyDepositBase;
+    type BountyDepositPayoutDelay = BountyDepositPayoutDelay;
+    type BountyUpdatePeriod = BountyUpdatePeriod;
+    type CuratorDepositMultiplier = CuratorDepositMultiplier;
+    type CuratorDepositMin = CuratorDepositMin;
+    type CuratorDepositMax = CuratorDepositMax;
+    type BountyValueMinimum = BountyValueMinimum;
+    type ChildBountyManager = ();
+    type DataDepositPerByte = DataDepositPerByte;
+    type MaximumReasonLength = MaximumReasonLength;
+    type WeightInfo = weights::pallet_bounties::ZKVWeight<Runtime>;
 }
 
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
@@ -702,6 +728,7 @@ construct_runtime!(
         SettlementRisc0Pallet: pallet_risc0_verifier,
         SettlementUltraplonkPallet: pallet_ultraplonk_verifier,
         Treasury: pallet_treasury,
+        Bounties: pallet_bounties,
     }
 );
 
@@ -768,6 +795,7 @@ mod benches {
         [pallet_poe, Poe]
         [pallet_conviction_voting, ConvictionVoting]
         [pallet_treasury, Treasury]
+        [pallet_bounties, Bounties]
         [pallet_referenda, Referenda]
         [pallet_whitelist, Whitelist]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
