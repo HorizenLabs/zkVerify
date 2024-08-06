@@ -5557,6 +5557,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-treasury"
+version = "31.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac957446c936a57417ff7a4866f3463f7f2f49d9bb2daed81093c2de8f0cceaf"
+dependencies = [
+ "docify",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "impl-trait-for-tuples",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-ultraplonk-verifier"
 version = "0.1.0"
 dependencies = [
@@ -11498,6 +11518,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-treasury",
  "pallet-ultraplonk-verifier",
  "pallet-verifiers",
  "pallet-whitelist",

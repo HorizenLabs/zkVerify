@@ -47,13 +47,14 @@ use frame_election_provider_support::{
 use frame_support::genesis_builder_helper::{build_config, create_default_config};
 
 // A few exports that help ease life for downstream crates.
-use frame_support::traits::EqualPrivilegeOnly;
+use frame_support::traits::{EitherOfDiverse, EqualPrivilegeOnly};
 
 pub use frame_support::{
     construct_runtime, derive_impl,
     dispatch::DispatchClass,
     parameter_types,
     traits::{
+        tokens::{PayFromAccount, UnityAssetBalanceConversion},
         ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, KeyOwnerProofSystem, Randomness,
         StorageInfo,
     },
@@ -61,7 +62,7 @@ pub use frame_support::{
         constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
         IdentityFee, Weight,
     },
-    StorageValue,
+    PalletId, StorageValue,
 };
 pub use frame_system::Call as SystemCall;
 use frame_system::EnsureRoot;
@@ -73,12 +74,13 @@ use weights::block_weights::BlockExecutionWeight;
 use weights::extrinsic_weights::ExtrinsicBaseWeight;
 
 use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier};
+use sp_runtime::traits::{AccountIdConversion, IdentityLookup};
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
 pub mod governance;
-use governance::pallet_custom_origins;
+use governance::{pallet_custom_origins, Treasurer, TreasurySpender};
 
 #[cfg(test)]
 mod tests;
@@ -399,6 +401,45 @@ impl pallet_scheduler::Config for Runtime {
     type Preimages = Preimage;
 }
 
+parameter_types! {
+    pub const TreasuryPalletId: PalletId = PalletId(*b"zk/trsry");
+    pub const ProposalBond: Permill = Permill::from_percent(5);
+    pub const ProposalBondMinimum: Balance = 2000 * CENTS;
+    pub const ProposalBondMaximum: Balance = 1 * THOUSANDS;
+    pub const SpendPeriod: BlockNumber = 6 * DAYS;
+    pub const Burn: Permill = Permill::from_percent(1);
+    pub const PayoutSpendPeriod: BlockNumber = 30 * DAYS;
+    pub const MaxApprovals: u32 = 100;
+    pub ZKVerifyTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
+}
+
+impl pallet_treasury::Config for Runtime {
+    type PalletId = TreasuryPalletId;
+    type Currency = Balances;
+    type ApproveOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
+    type RejectOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
+    type RuntimeEvent = RuntimeEvent;
+    type OnSlash = Treasury;
+    type ProposalBond = ProposalBond;
+    type ProposalBondMinimum = ProposalBondMinimum;
+    type ProposalBondMaximum = ProposalBondMaximum;
+    type SpendPeriod = SpendPeriod;
+    type Burn = Burn;
+    type BurnDestination = ();
+    type MaxApprovals = MaxApprovals;
+    type WeightInfo = weights::pallet_treasury::ZKVWeight<Runtime>;
+    type SpendFunds = ();
+    type SpendOrigin = TreasurySpender;
+    type AssetKind = ();
+    type Beneficiary = AccountId;
+    type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
+    type Paymaster = PayFromAccount<Balances, ZKVerifyTreasuryAccount>;
+    type BalanceConverter = UnityAssetBalanceConversion;
+    type PayoutPeriod = PayoutSpendPeriod;
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = ();
+}
+
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
 pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 16;
 // We should avoid publishing attestations for empty trees
@@ -660,6 +701,7 @@ construct_runtime!(
         SettlementGroth16Pallet: pallet_groth16_verifier,
         SettlementRisc0Pallet: pallet_risc0_verifier,
         SettlementUltraplonkPallet: pallet_ultraplonk_verifier,
+        Treasury: pallet_treasury,
     }
 );
 
@@ -725,6 +767,7 @@ mod benches {
         [frame_election_provider_support, ElectionProviderBench::<Runtime>]
         [pallet_poe, Poe]
         [pallet_conviction_voting, ConvictionVoting]
+        [pallet_treasury, Treasury]
         [pallet_referenda, Referenda]
         [pallet_whitelist, Whitelist]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
