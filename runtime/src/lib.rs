@@ -29,7 +29,10 @@ use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
     create_runtime_str, generic, impl_opaque_keys,
-    traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, One, OpaqueKeys, Verify},
+    traits::{
+        AccountIdConversion, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup,
+        NumberFor, One, OpaqueKeys, Verify,
+    },
     transaction_validity::{TransactionSource, TransactionValidity},
     ApplyExtrinsicResult, MultiSignature,
 };
@@ -46,17 +49,14 @@ use frame_election_provider_support::{
 };
 use frame_support::genesis_builder_helper::{build_config, create_default_config};
 
-// A few exports that help ease life for downstream crates.
-use frame_support::traits::{EitherOfDiverse, EqualPrivilegeOnly};
-
 pub use frame_support::{
     construct_runtime, derive_impl,
     dispatch::DispatchClass,
     parameter_types,
     traits::{
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
-        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, KeyOwnerProofSystem, Randomness,
-        StorageInfo,
+        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly,
+        KeyOwnerProofSystem, Randomness, StorageInfo,
     },
     weights::{
         constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
@@ -74,7 +74,6 @@ use weights::block_weights::BlockExecutionWeight;
 use weights::extrinsic_weights::ExtrinsicBaseWeight;
 
 use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier};
-use sp_runtime::traits::{AccountIdConversion, IdentityLookup};
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
