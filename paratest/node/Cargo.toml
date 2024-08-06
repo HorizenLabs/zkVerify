@@ -51,7 +51,7 @@ sp-io = { workspace = true, default-features = true }
 sp-runtime = { workspace = true, default-features = true }
 sp-timestamp = { workspace = true, default-features = true }
 substrate-frame-rpc-system = { workspace = true, default-features = true }
-substrate-prometheus-endpoint = { version = "0.16.0" }
+prometheus-endpoint = { workspace = true }
 
 # Polkadot
 zkv-cli = { workspace = true }
