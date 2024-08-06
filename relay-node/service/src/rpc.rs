@@ -1,7 +1,7 @@
+use crate::polkadot_rpc::{BabeDeps, FullDeps, GrandpaDeps, RpcExtension};
 use consensus_common::SelectChain;
 use jsonrpsee::RpcModule;
-use polkadot_primitives::{AccountId, Balance, Block, BlockNumber, Nonce};
-use polkadot_rpc::{BabeDeps, FullDeps, GrandpaDeps, RpcExtension};
+use polkadot_primitives::{AccountId, Balance, Block, Nonce};
 use sc_client_api::AuxStore;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
@@ -19,7 +19,6 @@ pub fn create_full<C, P, SC, B>(
         deny_unsafe,
         babe,
         grandpa,
-        beefy,
         backend,
     }: FullDeps<C, P, SC, B>,
 ) -> Result<RpcExtension, Box<dyn std::error::Error + Send + Sync>>
@@ -32,7 +31,6 @@ where
         + Sync
         + 'static,
     C::Api: frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
-    C::Api: mmr_rpc::MmrRuntimeApi<Block, <Block as sp_runtime::traits::Block>::Hash, BlockNumber>,
     C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
     C::Api: proof_of_existence_rpc::PoERuntimeApi<Block>,
     C::Api: BabeApi<Block>,
@@ -43,11 +41,9 @@ where
     B::State: sc_client_api::StateBackend<sp_runtime::traits::HashingFor<Block>>,
 {
     use frame_rpc_system::{System, SystemApiServer};
-    use mmr_rpc::{Mmr, MmrApiServer};
     use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
     use proof_of_existence_rpc::{PoE, PoEApiServer};
     use sc_consensus_babe_rpc::{Babe, BabeApiServer};
-    use sc_consensus_beefy_rpc::{Beefy, BeefyApiServer};
     use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
     use substrate_state_trie_migration_rpc::{StateMigration, StateMigrationApiServer};
 
@@ -68,15 +64,6 @@ where
     io.merge(System::new(client.clone(), pool.clone(), deny_unsafe).into_rpc())?;
     io.merge(TransactionPayment::new(client.clone()).into_rpc())?;
     io.merge(
-        Mmr::new(
-            client.clone(),
-            backend
-                .offchain_storage()
-                .ok_or("Backend doesn't provide the required offchain storage")?,
-        )
-        .into_rpc(),
-    )?;
-    io.merge(
         Babe::new(
             client.clone(),
             babe_worker_handle.clone(),
@@ -96,21 +83,6 @@ where
         )
         .into_rpc(),
     )?;
-    // What we removed from polkadot_rpc::create_full();
-    // io.merge(
-    //     SyncState::new(chain_spec, client, shared_authority_set, babe_worker_handle)?
-    //         .into_rpc(),
-    // )?;
-
-    io.merge(
-        Beefy::<Block>::new(
-            beefy.beefy_finality_proof_stream,
-            beefy.beefy_best_block_stream,
-            beefy.subscription_executor,
-        )?
-        .into_rpc(),
-    )?;
-
     io.merge(PoE::new(client).into_rpc())?;
 
     Ok(io)

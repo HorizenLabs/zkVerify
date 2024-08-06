@@ -18,7 +18,6 @@ tokio = "1.24.2"
 polkadot-overseer = { workspace = true }
 polkadot-primitives = { workspace = true }
 polkadot-parachain-primitives = { workspace = true }
-polkadot-rpc = { workspace = true }
 polkadot-runtime-common = { workspace = true }
 service = { workspace = true }
 polkadot-node-subsystem = { workspace = true }

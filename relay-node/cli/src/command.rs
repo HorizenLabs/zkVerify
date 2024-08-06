@@ -17,7 +17,6 @@
 use crate::cli::{Cli, Subcommand, NODE_VERSION};
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
 use futures::future::TryFutureExt;
-use log::warn;
 use sc_cli::SubstrateCli;
 use service::{
     self,
@@ -118,24 +117,6 @@ where
         .map_err(Error::from)?;
     let chain_spec = &runner.config().chain_spec;
 
-    // By default, enable BEEFY on all networks, unless explicitly disabled through CLI.
-    let mut enable_beefy = !cli.run.no_beefy;
-    // BEEFY doesn't (yet) support warp sync:
-    // Until we implement https://github.com/paritytech/substrate/issues/14756
-    // - disallow warp sync for validators,
-    // - disable BEEFY when warp sync for non-validators.
-    if enable_beefy && runner.config().network.sync_mode.is_warp() {
-        if runner.config().role.is_authority() {
-            return Err(Error::Other(
-                "Warp sync not supported for validator nodes running BEEFY.".into(),
-            ));
-        } else {
-            // disable BEEFY for non-validator nodes that are warp syncing
-            warn!("🥩 BEEFY not supported when warp syncing. Disabling BEEFY.");
-            enable_beefy = false;
-        }
-    }
-
     set_default_ss58_version(chain_spec.as_ref());
 
     let jaeger_agent = if let Some(ref jaeger_agent) = cli.run.jaeger_agent {
@@ -171,7 +152,6 @@ where
             config,
             service::NewFullParams {
                 is_parachain_node: service::IsParachainNode::No,
-                enable_beefy,
                 force_authoring_backoff: cli.run.force_authoring_backoff,
                 jaeger_agent,
                 telemetry_worker_handle: None,

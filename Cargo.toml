@@ -254,6 +254,7 @@ polkadot-node-network-protocol = { version = "11.0.0" }
 authority-discovery-primitives = { package = "sp-authority-discovery", version = "30.0.0", default-features = false }
 pallet-authority-discovery = { default-features = false, version = "32.0.0" }
 polkadot-runtime-common = { default-features = false, version = "11.0.0" }
+sc-rpc-spec-v2 = { version = "0.38.0" }
 
 # TEST
 substrate-test-client = { path = "relay-node/test/substrate/client" }
@@ -301,11 +302,11 @@ cumulus-primitives-utility = { default-features = false, version = "0.11.0" }
 pallet-collator-selection = { default-features = false, version = "13.0.1" }
 parachains-common = { default-features = false, version = "11.0.0" }
 parachain-info = { package = "staging-parachain-info", default-features = false, version = "0.11.0" }
-
+cumulus-relay-chain-rpc-interface = { version = "0.11.0" }
 
 [patch.crates-io]
 cumulus-relay-chain-inprocess-interface = { path = "patches/cumulus/client/relay-chain-inprocess-interface" }
-
+cumulus-relay-chain-minimal-node = { path = "patches/cumulus/client/relay-chain-minimal-node" }
 [profile.release]
 # Polkadot runtime requires unwinding.
 panic = "unwind"

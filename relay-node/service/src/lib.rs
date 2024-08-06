@@ -22,6 +22,7 @@ pub mod benchmarking;
 pub mod chain_spec;
 mod grandpa_support;
 mod parachains_db;
+pub mod polkadot_rpc;
 mod relay_chain_selection;
 mod rpc;
 
@@ -95,7 +96,6 @@ use telemetry::{Telemetry, TelemetryWorkerHandle};
 
 pub use consensus_common::{Proposal, SelectChain};
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
-use mmr_gadget::MmrGadget;
 use polkadot_node_subsystem_types::DefaultSubsystemClient;
 pub use polkadot_primitives::{BlockId, BlockNumber, CollatorPair, Hash, Id as ParaId};
 pub use sc_client_api::{Backend, CallExecutor};
@@ -238,7 +238,6 @@ pub enum Error {
     //#[cfg(feature = "full-node")]
     //#[error("Expected at least one of polkadot, kusama, westend or rococo runtime feature")]
     //NoRuntime,
-
     #[cfg(feature = "full-node")]
     #[error("Worker binaries not executable, prepare binary: {prep_worker_path:?}, execute binary: {exec_worker_path:?}")]
     InvalidWorkerBinaries {
@@ -364,10 +363,6 @@ type FullSelectChain = relay_chain_selection::SelectRelayChain<FullBackend>;
 type FullGrandpaBlockImport<ChainSelection = FullSelectChain> =
     grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, ChainSelection>;
 #[cfg(feature = "full-node")]
-type FullBeefyBlockImport<InnerBlockImport> =
-    beefy::import::BeefyBlockImport<Block, FullBackend, FullClient, InnerBlockImport>;
-
-#[cfg(feature = "full-node")]
 struct Basics {
     task_manager: TaskManager,
     client: Arc<FullClient>,
@@ -467,14 +462,9 @@ fn new_partial<ChainSelection>(
                 polkadot_rpc::SubscriptionTaskExecutor,
             ) -> Result<polkadot_rpc::RpcExtension, SubstrateServiceError>,
             (
-                babe::BabeBlockImport<
-                    Block,
-                    FullClient,
-                    FullBeefyBlockImport<FullGrandpaBlockImport<ChainSelection>>,
-                >,
+                babe::BabeBlockImport<Block, FullClient, FullGrandpaBlockImport<ChainSelection>>,
                 grandpa::LinkHalf<Block, FullClient, ChainSelection>,
                 babe::BabeLink<Block>,
-                beefy::BeefyVoterLinks<Block>,
             ),
             grandpa::SharedVoterState,
             sp_consensus_babe::SlotDuration,
@@ -506,17 +496,9 @@ where
     )?;
     let justification_import = grandpa_block_import.clone();
 
-    let (beefy_block_import, beefy_voter_links, beefy_rpc_links) =
-        beefy::beefy_block_import_and_links(
-            grandpa_block_import,
-            backend.clone(),
-            client.clone(),
-            config.prometheus_registry().cloned(),
-        );
-
     let babe_config = babe::configuration(&*client)?;
     let (block_import, babe_link) =
-        babe::block_import(babe_config.clone(), beefy_block_import, client.clone())?;
+        babe::block_import(babe_config.clone(), grandpa_block_import, client.clone())?;
 
     let slot_duration = babe_link.config().slot_duration();
     let (import_queue, babe_worker_handle) = babe::import_queue(babe::ImportQueueParams {
@@ -552,7 +534,7 @@ where
         Some(shared_authority_set.clone()),
     );
 
-    let import_setup = (block_import, grandpa_link, babe_link, beefy_voter_links);
+    let import_setup = (block_import, grandpa_link, babe_link);
     let rpc_setup = shared_voter_state.clone();
 
     let rpc_extensions_builder = {
@@ -583,11 +565,6 @@ where
                     subscription_executor: subscription_executor.clone(),
                     finality_provider: finality_proof_provider.clone(),
                 },
-                beefy: polkadot_rpc::BeefyDeps {
-                    beefy_finality_proof_stream: beefy_rpc_links.from_voter_justif_stream.clone(),
-                    beefy_best_block_stream: beefy_rpc_links.from_voter_best_beefy_stream.clone(),
-                    subscription_executor,
-                },
                 backend: backend.clone(),
             };
 
@@ -616,7 +593,6 @@ where
 #[cfg(feature = "full-node")]
 pub struct NewFullParams<OverseerGenerator: OverseerGen> {
     pub is_parachain_node: IsParachainNode,
-    pub enable_beefy: bool,
     /// Whether to enable the block authoring backoff on production networks
     /// where it isn't enabled by default.
     pub force_authoring_backoff: bool,
@@ -711,7 +687,6 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
     mut config: Configuration,
     NewFullParams {
         is_parachain_node,
-        enable_beefy,
         force_authoring_backoff,
         jaeger_agent,
         telemetry_worker_handle,
@@ -728,7 +703,6 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
     use polkadot_node_network_protocol::request_response::IncomingRequest;
     use sc_network_sync::WarpSyncParams;
 
-    let is_offchain_indexing_enabled = config.offchain_worker.indexing_enabled;
     let role = config.role.clone();
     let force_authoring = config.force_authoring;
     let backoff_authoring_blocks = force_authoring_backoff
@@ -790,29 +764,6 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
     let (grandpa_protocol_config, grandpa_notification_service) =
         grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone());
     net_config.add_notification_protocol(grandpa_protocol_config);
-
-    let beefy_gossip_proto_name =
-        beefy::gossip_protocol_name(&genesis_hash, config.chain_spec.fork_id());
-    // `beefy_on_demand_justifications_handler` is given to `beefy-gadget` task to be run,
-    // while `beefy_req_resp_cfg` is added to `config.network.request_response_protocols`.
-    let (beefy_on_demand_justifications_handler, beefy_req_resp_cfg) =
-        beefy::communication::request_response::BeefyJustifsRequestHandler::new(
-            &genesis_hash,
-            config.chain_spec.fork_id(),
-            client.clone(),
-            prometheus_registry.clone(),
-        );
-    let beefy_notification_service = match enable_beefy {
-        false => None,
-        true => {
-            let (beefy_notification_config, beefy_notification_service) =
-                beefy::communication::beefy_peers_set_config(beefy_gossip_proto_name.clone());
-
-            net_config.add_notification_protocol(beefy_notification_config);
-            net_config.add_request_response_protocol(beefy_req_resp_cfg);
-            Some(beefy_notification_service)
-        }
-    };
 
     // validation/collation protocols are enabled only if `Overseer` is enabled
     let peerset_protocol_names =
@@ -1004,7 +955,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
         }
     }
 
-    let (block_import, link_half, babe_link, beefy_links) = import_setup;
+    let (block_import, link_half, babe_link) = import_setup;
 
     let overseer_client = client.clone();
     let spawner = task_manager.spawn_handle();
@@ -1190,53 +1141,6 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
     } else {
         None
     };
-
-    // beefy is enabled if its notification service exists
-    if let Some(notification_service) = beefy_notification_service {
-        let justifications_protocol_name = beefy_on_demand_justifications_handler.protocol_name();
-        let network_params = beefy::BeefyNetworkParams {
-            network: network.clone(),
-            sync: sync_service.clone(),
-            gossip_protocol_name: beefy_gossip_proto_name,
-            justifications_protocol_name,
-            notification_service,
-            _phantom: core::marker::PhantomData::<Block>,
-        };
-        let payload_provider = beefy_primitives::mmr::MmrRootProvider::new(client.clone());
-        let beefy_params = beefy::BeefyParams {
-            client: client.clone(),
-            backend: backend.clone(),
-            payload_provider,
-            runtime: client.clone(),
-            key_store: keystore_opt.clone(),
-            network_params,
-            min_block_delta: 8,
-            prometheus_registry: prometheus_registry.clone(),
-            links: beefy_links,
-            on_demand_justifications_handler: beefy_on_demand_justifications_handler,
-            is_authority: role.is_authority(),
-        };
-
-        let gadget = beefy::start_beefy_gadget::<_, _, _, _, _, _, _>(beefy_params);
-
-        // BEEFY is part of consensus, if it fails we'll bring the node down with it to make sure it
-        // is noticed.
-        task_manager
-            .spawn_essential_handle()
-            .spawn_blocking("beefy-gadget", None, gadget);
-    }
-    // When offchain indexing is enabled, MMR gadget should also run.
-    if is_offchain_indexing_enabled {
-        task_manager.spawn_essential_handle().spawn_blocking(
-            "mmr-gadget",
-            None,
-            MmrGadget::start(
-                client.clone(),
-                backend.clone(),
-                sp_mmr_primitives::INDEXING_PREFIX.to_vec(),
-            ),
-        );
-    }
 
     let config = grandpa::Config {
         // FIXME substrate#1578 make this available through chainspec

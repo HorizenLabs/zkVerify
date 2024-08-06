@@ -23,7 +23,6 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 #[cfg(feature = "relay")]
-use beefy_primitives::ecdsa_crypto::{AuthorityId as BeefyId, Signature as BeefySignature};
 use pallet_babe::AuthorityId as BabeId;
 use pallet_grandpa::AuthorityId as GrandpaId;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
@@ -1474,67 +1473,6 @@ impl_runtime_apis! {
             proof_hash: sp_core::H256
         ) -> Result<MerkleProof, proof_of_existence_rpc_runtime_api::AttestationPathRequestError> {
             Poe::get_proof_path_from_pallet(attestation_id, proof_hash).map(|c| c.into())
-        }
-    }
-
-    #[cfg(feature = "relay")]
-    impl sp_mmr_primitives::MmrApi<Block, Hash, BlockNumber> for Runtime {
-        fn mmr_root() -> Result<Hash, sp_mmr_primitives::Error> {
-            unimplemented!()
-        }
-
-        fn mmr_leaf_count() -> Result<sp_mmr_primitives::LeafIndex, sp_mmr_primitives::Error> {
-            unimplemented!()
-        }
-
-        fn generate_proof(
-            _: Vec<BlockNumber>,
-            _: Option<BlockNumber>,
-        ) -> Result<(Vec<sp_mmr_primitives::EncodableOpaqueLeaf>, sp_mmr_primitives::Proof<Hash>), sp_mmr_primitives::Error> {
-            unimplemented!()
-        }
-
-        fn verify_proof(_: Vec<sp_mmr_primitives::EncodableOpaqueLeaf>, _: sp_mmr_primitives::Proof<Hash>)
-            -> Result<(), sp_mmr_primitives::Error>
-        {
-            unimplemented!()
-        }
-
-        fn verify_proof_stateless(
-            _: Hash,
-            _: Vec<sp_mmr_primitives::EncodableOpaqueLeaf>,
-            _: sp_mmr_primitives::Proof<Hash>
-        ) -> Result<(), sp_mmr_primitives::Error> {
-            unimplemented!()
-        }
-    }
-
-    #[cfg(feature = "relay")]
-    impl beefy_primitives::BeefyApi<Block, BeefyId> for Runtime {
-        fn beefy_genesis() -> Option<BlockNumber> {
-            unimplemented!()
-        }
-
-        fn validator_set() -> Option<beefy_primitives::ValidatorSet<BeefyId>> {
-            unimplemented!()
-        }
-
-        fn submit_report_equivocation_unsigned_extrinsic(
-            _: beefy_primitives::EquivocationProof<
-                BlockNumber,
-                BeefyId,
-                BeefySignature,
-            >,
-            _: beefy_primitives::OpaqueKeyOwnershipProof,
-        ) -> Option<()> {
-            unimplemented!()
-        }
-
-        fn generate_key_ownership_proof(
-            _: beefy_primitives::ValidatorSetId,
-            _: BeefyId,
-        ) -> Option<beefy_primitives::OpaqueKeyOwnershipProof> {
-            unimplemented!()
         }
     }
 

@@ -15,12 +15,6 @@ proof-of-existence-rpc = { workspace = true, features = ["std"] }
 
 sc-authority-discovery = { workspace = true }
 sc-consensus-babe = { workspace = true }
-
-beefy = { workspace = true }
-beefy-primitives = { workspace = true }
-mmr-gadget = { workspace = true }
-sp-mmr-primitives = { workspace = true }
-
 sc-consensus-grandpa = { workspace = true }
 sc-block-builder = { workspace = true }
 sc-chain-spec = { workspace = true }
@@ -73,7 +67,6 @@ prometheus-endpoint = { workspace = true }
 frame-support = { workspace = true }
 frame-benchmarking-cli = { workspace = true }
 frame-benchmarking = { workspace = true }
-
 sp-staking = { workspace = true }
 
 # External Crates
@@ -100,7 +93,6 @@ polkadot-overseer = { workspace = true }
 polkadot-parachain-primitives = { workspace = true }
 polkadot-primitives = { workspace = true }
 polkadot-node-primitives = { workspace = true }
-polkadot-rpc = { workspace = true }
 polkadot-node-subsystem = { workspace = true }
 polkadot-node-subsystem-util = { workspace = true }
 polkadot-node-subsystem-types = { workspace = true }
@@ -110,8 +102,6 @@ substrate-frame-rpc-system = { workspace = true }
 pallet-transaction-payment-rpc = { workspace = true }
 sc-consensus-babe-rpc = { workspace = true }
 sc-consensus-grandpa-rpc = { workspace = true }
-mmr-rpc = { workspace = true }
-sc-consensus-beefy-rpc = { workspace = true }
 substrate-state-trie-migration-rpc = { workspace = true }
 
 # Polkadot Subsystems
@@ -138,7 +128,9 @@ polkadot-node-core-pvf = { workspace = true, optional = true }
 polkadot-node-core-pvf-checker = { workspace = true, optional = true }
 polkadot-node-core-runtime-api = { workspace = true, optional = true }
 polkadot-statement-distribution = { workspace = true, optional = true }
-polkadot-service = { workspace = true }
+
+sc-rpc = { workspace = true }
+sc-rpc-spec-v2 = { workspace = true }
 
 [dev-dependencies]
 test-client = { path = "../test/client", features = ["runtime-benchmarks"] }
