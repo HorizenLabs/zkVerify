@@ -85,7 +85,6 @@ pub fn new_full(
         config,
         service::NewFullParams {
             is_parachain_node,
-            enable_beefy: true,
             force_authoring_backoff: false,
             jaeger_agent: None,
             telemetry_worker_handle: None,
