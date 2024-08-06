@@ -2047,7 +2047,7 @@ dependencies = [
  "sp-runtime",
  "sp-state-machine",
  "sp-timestamp",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "tracing",
 ]
 
@@ -2077,7 +2077,7 @@ dependencies = [
  "sp-runtime",
  "sp-timestamp",
  "sp-trie",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "tracing",
 ]
 
@@ -2436,8 +2436,6 @@ dependencies = [
 [[package]]
 name = "cumulus-relay-chain-minimal-node"
 version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f946e5e8f6199bad20b4e65b3e56fb6feeb3c59d50ede9909dcfa9c73697db2"
 dependencies = [
  "array-bytes 6.2.3",
  "async-trait",
@@ -2458,7 +2456,6 @@ dependencies = [
  "polkadot-node-subsystem-util",
  "polkadot-overseer",
  "polkadot-primitives",
- "polkadot-service",
  "sc-authority-discovery",
  "sc-client-api",
  "sc-network",
@@ -2471,9 +2468,10 @@ dependencies = [
  "sp-consensus",
  "sp-consensus-babe",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "tokio 1.40.0",
  "tracing",
+ "zkv-service",
 ]
 
 [[package]]
@@ -5910,42 +5908,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mmr-gadget"
-version = "33.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "463f3038aebf0766b75c231e293293dec7b85f2358120a2696470159008ddfd2"
-dependencies = [
- "futures 0.3.30",
- "log",
- "parity-scale-codec",
- "sc-client-api",
- "sc-offchain",
- "sp-api",
- "sp-blockchain",
- "sp-consensus",
- "sp-consensus-beefy",
- "sp-core",
- "sp-mmr-primitives",
- "sp-runtime",
-]
-
-[[package]]
-name = "mmr-rpc"
-version = "32.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d17ec87c5d04009e7d7b149abb2aa8495e2893c5920ce4a83679c76e5d6320f7"
-dependencies = [
- "jsonrpsee",
- "parity-scale-codec",
- "serde",
- "sp-api",
- "sp-blockchain",
- "sp-core",
- "sp-mmr-primitives",
- "sp-runtime",
-]
-
-[[package]]
 name = "mockall"
 version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7597,7 +7559,7 @@ dependencies = [
  "sp-timestamp",
  "substrate-build-script-utils 11.0.0",
  "substrate-frame-rpc-system",
- "substrate-prometheus-endpoint 0.16.0",
+ "substrate-prometheus-endpoint",
  "zkv-cli",
 ]
 
@@ -8575,7 +8537,7 @@ dependencies = [
  "sc-cli",
  "sc-service",
  "sc-tracing",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "tracing-gum",
 ]
 
@@ -8664,7 +8626,7 @@ dependencies = [
  "sp-blockchain",
  "sp-consensus-babe",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -8771,40 +8733,6 @@ dependencies = [
  "sp-runtime",
  "sp-staking",
  "sp-std",
-]
-
-[[package]]
-name = "polkadot-rpc"
-version = "11.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb29231d3184c38d011a7bffea09a2c1724b5d7544d43d6159aaa3870ae74e26"
-dependencies = [
- "jsonrpsee",
- "mmr-rpc",
- "pallet-transaction-payment-rpc",
- "polkadot-primitives",
- "sc-chain-spec",
- "sc-client-api",
- "sc-consensus-babe",
- "sc-consensus-babe-rpc",
- "sc-consensus-beefy",
- "sc-consensus-beefy-rpc",
- "sc-consensus-epochs",
- "sc-consensus-grandpa",
- "sc-consensus-grandpa-rpc",
- "sc-rpc",
- "sc-rpc-spec-v2",
- "sc-sync-state-rpc",
- "sc-transaction-pool-api",
- "sp-api",
- "sp-block-builder",
- "sp-blockchain",
- "sp-consensus",
- "sp-consensus-babe",
- "sp-keystore",
- "sp-runtime",
- "substrate-frame-rpc-system",
- "substrate-state-trie-migration-rpc",
 ]
 
 [[package]]
@@ -8922,123 +8850,6 @@ dependencies = [
  "staging-xcm",
  "staging-xcm-executor",
  "static_assertions",
-]
-
-[[package]]
-name = "polkadot-service"
-version = "11.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f276b38deaab6bff3ddfe061331901196ff992f76398bd0abc78382f4f115cf0"
-dependencies = [
- "async-trait",
- "frame-benchmarking",
- "frame-benchmarking-cli",
- "frame-support",
- "frame-system",
- "frame-system-rpc-runtime-api",
- "futures 0.3.30",
- "hex-literal",
- "is_executable",
- "kvdb",
- "kvdb-rocksdb",
- "log",
- "mmr-gadget",
- "pallet-babe",
- "pallet-staking",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "parity-db",
- "parity-scale-codec",
- "parking_lot 0.12.3",
- "polkadot-approval-distribution",
- "polkadot-availability-bitfield-distribution",
- "polkadot-availability-distribution",
- "polkadot-availability-recovery",
- "polkadot-collator-protocol",
- "polkadot-core-primitives",
- "polkadot-dispute-distribution",
- "polkadot-gossip-support",
- "polkadot-network-bridge",
- "polkadot-node-collation-generation",
- "polkadot-node-core-approval-voting",
- "polkadot-node-core-av-store",
- "polkadot-node-core-backing",
- "polkadot-node-core-bitfield-signing",
- "polkadot-node-core-candidate-validation",
- "polkadot-node-core-chain-api",
- "polkadot-node-core-chain-selection",
- "polkadot-node-core-dispute-coordinator",
- "polkadot-node-core-parachains-inherent",
- "polkadot-node-core-prospective-parachains",
- "polkadot-node-core-provisioner",
- "polkadot-node-core-pvf",
- "polkadot-node-core-pvf-checker",
- "polkadot-node-core-runtime-api",
- "polkadot-node-network-protocol",
- "polkadot-node-primitives",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-types",
- "polkadot-node-subsystem-util",
- "polkadot-overseer",
- "polkadot-parachain-primitives",
- "polkadot-primitives",
- "polkadot-rpc",
- "polkadot-runtime-parachains",
- "polkadot-statement-distribution",
- "sc-authority-discovery",
- "sc-basic-authorship",
- "sc-block-builder",
- "sc-chain-spec",
- "sc-client-api",
- "sc-client-db",
- "sc-consensus",
- "sc-consensus-babe",
- "sc-consensus-beefy",
- "sc-consensus-grandpa",
- "sc-consensus-slots",
- "sc-executor",
- "sc-keystore",
- "sc-network",
- "sc-network-common",
- "sc-network-sync",
- "sc-offchain",
- "sc-service",
- "sc-sync-state-rpc",
- "sc-sysinfo",
- "sc-telemetry",
- "sc-transaction-pool",
- "sc-transaction-pool-api",
- "schnellru",
- "serde",
- "serde_json",
- "sp-api",
- "sp-authority-discovery",
- "sp-block-builder",
- "sp-blockchain",
- "sp-consensus",
- "sp-consensus-babe",
- "sp-consensus-beefy",
- "sp-consensus-grandpa",
- "sp-core",
- "sp-inherents",
- "sp-io",
- "sp-keyring",
- "sp-keystore",
- "sp-mmr-primitives",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
- "sp-state-machine",
- "sp-storage",
- "sp-timestamp",
- "sp-transaction-pool",
- "sp-version",
- "sp-weights",
- "staging-xcm",
- "substrate-prometheus-endpoint 0.17.0",
- "thiserror",
- "tracing-gum",
- "xcm-fee-payment-runtime-api",
 ]
 
 [[package]]
@@ -10619,7 +10430,7 @@ dependencies = [
  "sp-core",
  "sp-keystore",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -10643,7 +10454,7 @@ dependencies = [
  "sp-core",
  "sp-inherents",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
 ]
 
 [[package]]
@@ -10768,7 +10579,7 @@ dependencies = [
  "sp-statement-store",
  "sp-storage",
  "sp-trie",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
 ]
 
 [[package]]
@@ -10820,7 +10631,7 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "sp-state-machine",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -10850,7 +10661,7 @@ dependencies = [
  "sp-inherents",
  "sp-keystore",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -10887,7 +10698,7 @@ dependencies = [
  "sp-inherents",
  "sp-keystore",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -10910,63 +10721,6 @@ dependencies = [
  "sp-consensus-babe",
  "sp-core",
  "sp-keystore",
- "sp-runtime",
- "thiserror",
-]
-
-[[package]]
-name = "sc-consensus-beefy"
-version = "17.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87f0cdd776453ce7d73fdb548648bdfefdac6c497d198083222aa0d7636445ed"
-dependencies = [
- "array-bytes 6.2.3",
- "async-channel 1.9.0",
- "async-trait",
- "fnv",
- "futures 0.3.30",
- "log",
- "parity-scale-codec",
- "parking_lot 0.12.3",
- "sc-client-api",
- "sc-consensus",
- "sc-network",
- "sc-network-gossip",
- "sc-network-sync",
- "sc-utils",
- "sp-api",
- "sp-application-crypto",
- "sp-arithmetic",
- "sp-blockchain",
- "sp-consensus",
- "sp-consensus-beefy",
- "sp-core",
- "sp-crypto-hashing",
- "sp-keystore",
- "sp-mmr-primitives",
- "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
- "thiserror",
- "tokio 1.40.0",
- "wasm-timer",
-]
-
-[[package]]
-name = "sc-consensus-beefy-rpc"
-version = "17.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f8193f51766e9bf5a94f044333f4807918f7243eab404e9ff91b98ba268f2e9"
-dependencies = [
- "futures 0.3.30",
- "jsonrpsee",
- "log",
- "parity-scale-codec",
- "parking_lot 0.12.3",
- "sc-consensus-beefy",
- "sc-rpc",
- "serde",
- "sp-consensus-beefy",
- "sp-core",
  "sp-runtime",
  "thiserror",
 ]
@@ -11025,7 +10779,7 @@ dependencies = [
  "sp-crypto-hashing",
  "sp-keystore",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -11241,7 +10995,7 @@ dependencies = [
  "sp-blockchain",
  "sp-core",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
  "tokio 1.40.0",
  "tokio-stream",
@@ -11305,7 +11059,7 @@ dependencies = [
  "sc-network-sync",
  "schnellru",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "tracing",
 ]
 
@@ -11362,7 +11116,7 @@ dependencies = [
  "sp-consensus-grandpa",
  "sp-core",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
  "tokio 1.40.0",
  "tokio-stream",
@@ -11385,7 +11139,7 @@ dependencies = [
  "sc-utils",
  "sp-consensus",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
 ]
 
 [[package]]
@@ -11430,7 +11184,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f680a0bed67dab19898624246376ba85d5f70a89859ba030830aacd079c28d3c"
 dependencies = [
  "log",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
 ]
 
 [[package]]
@@ -11500,7 +11254,7 @@ dependencies = [
  "jsonrpsee",
  "log",
  "serde_json",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "tokio 1.40.0",
  "tower",
  "tower-http",
@@ -11595,7 +11349,7 @@ dependencies = [
  "sp-trie",
  "sp-version",
  "static_init",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "tempfile",
  "thiserror",
  "tokio 1.40.0",
@@ -11758,7 +11512,7 @@ dependencies = [
  "sp-runtime",
  "sp-tracing",
  "sp-transaction-pool",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -13590,19 +13344,6 @@ dependencies = [
 
 [[package]]
 name = "substrate-prometheus-endpoint"
-version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ededbe617291db8a47d6e5155486ff1e5425f0bbf5dcb7f752730466a62bd293"
-dependencies = [
- "hyper",
- "log",
- "prometheus",
- "thiserror",
- "tokio 1.40.0",
-]
-
-[[package]]
-name = "substrate-prometheus-endpoint"
 version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d8fe06b03b8a291c09507c42f92a2c2c10dd3d62975d02c7f64a92d87bfe09b"
@@ -14001,7 +13742,6 @@ dependencies = [
  "polkadot-overseer",
  "polkadot-parachain-primitives",
  "polkadot-primitives",
- "polkadot-rpc",
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
  "rand 0.8.5",
@@ -15913,13 +15653,11 @@ dependencies = [
  "sp-authority-discovery",
  "sp-block-builder",
  "sp-consensus-babe",
- "sp-consensus-beefy",
  "sp-consensus-grandpa",
  "sp-core",
  "sp-genesis-builder",
  "sp-inherents",
  "sp-io",
- "sp-mmr-primitives",
  "sp-offchain",
  "sp-runtime",
  "sp-session",
@@ -15953,8 +15691,6 @@ dependencies = [
  "kvdb",
  "kvdb-rocksdb",
  "log",
- "mmr-gadget",
- "mmr-rpc",
  "native",
  "node-subsystem-test-helpers",
  "pallet-babe",
@@ -15998,9 +15734,7 @@ dependencies = [
  "polkadot-overseer",
  "polkadot-parachain-primitives",
  "polkadot-primitives",
- "polkadot-rpc",
  "polkadot-runtime-parachains",
- "polkadot-service",
  "polkadot-statement-distribution",
  "proof-of-existence-rpc",
  "rand 0.8.5",
@@ -16013,8 +15747,6 @@ dependencies = [
  "sc-consensus",
  "sc-consensus-babe",
  "sc-consensus-babe-rpc",
- "sc-consensus-beefy",
- "sc-consensus-beefy-rpc",
  "sc-consensus-grandpa",
  "sc-consensus-grandpa-rpc",
  "sc-consensus-slots",
@@ -16024,6 +15756,8 @@ dependencies = [
  "sc-network-common",
  "sc-network-sync",
  "sc-offchain",
+ "sc-rpc",
+ "sc-rpc-spec-v2",
  "sc-service",
  "sc-sync-state-rpc",
  "sc-sysinfo",
@@ -16041,14 +15775,12 @@ dependencies = [
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-babe",
- "sp-consensus-beefy",
  "sp-consensus-grandpa",
  "sp-core",
  "sp-inherents",
  "sp-io",
  "sp-keyring",
  "sp-keystore",
- "sp-mmr-primitives",
  "sp-offchain",
  "sp-runtime",
  "sp-session",
@@ -16060,7 +15792,7 @@ dependencies = [
  "sp-version",
  "sp-weights",
  "substrate-frame-rpc-system",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "substrate-state-trie-migration-rpc",
  "tempfile",
  "test-client",
