@@ -404,7 +404,7 @@ parameter_types! {
     pub const TreasuryPalletId: PalletId = PalletId(*b"zk/trsry");
     pub const ProposalBond: Permill = Permill::from_percent(5);
     pub const ProposalBondMinimum: Balance = 2000 * CENTS;
-    pub const ProposalBondMaximum: Balance = 1 * THOUSANDS;
+    pub const ProposalBondMaximum: Balance = THOUSANDS;
     pub const SpendPeriod: BlockNumber = 6 * DAYS;
     pub const Burn: Permill = Permill::from_percent(1);
     pub const PayoutSpendPeriod: BlockNumber = 30 * DAYS;
@@ -440,7 +440,7 @@ impl pallet_treasury::Config for Runtime {
 }
 
 parameter_types! {
-    pub const BountyDepositBase: Balance = 1 * ACME;
+    pub const BountyDepositBase: Balance = ACME;
     pub const BountyDepositPayoutDelay: BlockNumber = 8 * DAYS;
     pub const BountyUpdatePeriod: BlockNumber = 90 * DAYS;
     pub const MaximumReasonLength: u32 = 16384;
