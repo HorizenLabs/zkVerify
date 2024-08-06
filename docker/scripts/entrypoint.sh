@@ -84,6 +84,18 @@ while IFS='=' read -r -d '' var_name var_value; do
   fi
 done < <(env -0)
 
+if [ -n "${ZKV_CONF_BASE_PATH}" ]; then
+  BASE_CHAINS="${ZKV_CONF_BASE_PATH}/chains"
+
+  for chain in local testnet ; do
+    source_chain_dir="${BASE_CHAINS}/nh_${chain}";
+    dest_chain_dir="${BASE_CHAINS}/zkv_${chain}";
+    [ -d "$source_chain_dir" ] && [ ! -e "$dest_chain_dir" ] && \
+      echo "Move ${source_chain_dir} to ${dest_chain_dir}" && \
+      mv "${source_chain_dir}" "${dest_chain_dir}"
+  done
+fi
+
 # Keys handling
 if [ -f "${ZKV_SECRET_PHRASE_PATH}" ]; then
   injection_args=()
@@ -123,17 +135,6 @@ if [[ (-n "${ZKV_CONF_BASE_PATH:-}") && (-n "${ZKV_CONF_CHAIN:-}") && (-f "${ZKV
   echo "Copying node key file"
   cp "${ZKV_NODE_KEY_FILE}" "${destination}/secret_ed25519"
 fi
-
-BASE_CHAINS="/data/node/chains"
-
-for chain in local testnet ; do
-  source_chain_dir="${BASE_CHAINS}/nh_${chain}";
-  dest_chain_dir="${BASE_CHAINS}/zkv_${chain}";
-
-  [ -d "$source_chain_dir" ] && [ ! -e "$dest_chain_dir" ] && \
-    echo "Move ${source_chain_dir} to ${dest_chain_dir}" && \
-    mv "${source_chain_dir}" "${dest_chain_dir}"
-done
 
 echo "Launching ${ZKV_NODE} with args ${conf_args[*]}"
 exec "${ZKV_NODE}" "${conf_args[@]}"
