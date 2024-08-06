@@ -25,8 +25,8 @@ mod zksync;
 pub enum VerifyError {
     InvalidInput,
     InvalidProofData,
-    InvalidVerificationKey,
     VerifyError,
+    InvalidVerificationKey,
 }
 
 impl From<VerifyError> for hp_verifiers::VerifyError {
