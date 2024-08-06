@@ -10,6 +10,7 @@ description = "test client helper"
 [dependencies]
 codec = { workspace = true, features = ["derive"] }
 test-runtime = { path = "../runtime" }
+zkv-runtime = { workspace = true }
 test-service = { path = "../service" }
 polkadot-primitives = { workspace = true }
 polkadot-node-subsystem = { workspace = true }

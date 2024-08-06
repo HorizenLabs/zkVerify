@@ -1367,6 +1367,14 @@ pub use polkadot_runtime_parachains::runtime_api_impl::{
     v10 as parachains_runtime_api_impl, vstaging as parachains_staging_runtime_api_impl,
 };
 
+// Used for testing purposes only.
+sp_api::decl_runtime_apis! {
+    pub trait GetLastTimestamp {
+        /// Returns the last timestamp of a runtime.
+        fn get_last_timestamp() -> u64;
+    }
+}
+
 impl_runtime_apis! {
     impl sp_api::Core<Block> for Runtime {
         fn version() -> RuntimeVersion {
@@ -1903,4 +1911,12 @@ impl_runtime_apis! {
             build_config::<RuntimeGenesisConfig>(config)
         }
     }
+
+    // Used only in runtime tests
+    impl crate::GetLastTimestamp<Block> for Runtime {
+        fn get_last_timestamp() -> u64 {
+            Timestamp::now()
+        }
+    }
+
 }
