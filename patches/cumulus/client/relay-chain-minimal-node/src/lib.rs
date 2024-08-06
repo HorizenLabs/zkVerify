@@ -29,7 +29,7 @@ use polkadot_node_network_protocol::{
 
 use polkadot_node_subsystem_util::metrics::prometheus::Registry;
 use polkadot_primitives::CollatorPair;
-use polkadot_service::{overseer::OverseerGenArgs, IsParachainNode};
+use service::{overseer::OverseerGenArgs, IsParachainNode};
 
 use sc_authority_discovery::Service as AuthorityDiscoveryService;
 use sc_network::{config::FullNetworkConfiguration, Event, NetworkEventStream, NetworkService};
@@ -170,7 +170,7 @@ async fn new_minimal_relay_chain(
 		task_manager.spawn_handle().spawn(
 			"prometheus-endpoint",
 			None,
-			substrate_prometheus_endpoint::init_prometheus(port, registry).map(drop),
+			prometheus_endpoint::init_prometheus(port, registry).map(drop),
 		);
 	}
 

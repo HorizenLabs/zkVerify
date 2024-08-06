@@ -20,7 +20,7 @@ use std::sync::Arc;
 use polkadot_overseer::{
 	BlockInfo, Handle, Overseer, OverseerConnector, OverseerHandle, SpawnGlue, UnpinHandle,
 };
-use polkadot_service::overseer::{collator_overseer_builder, OverseerGenArgs};
+use service::overseer::{collator_overseer_builder, OverseerGenArgs};
 
 use sc_service::TaskManager;
 use sc_utils::mpsc::tracing_unbounded;
