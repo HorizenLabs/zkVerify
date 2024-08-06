@@ -96,7 +96,7 @@ pub(crate) fn try_upgrade_db_to_next_version(
     let new_version = if !is_empty {
         match get_db_version(db_path)? {
             // Older, unsupported versions
-            Some(..= (CURRENT_VERSION-1)) => {
+            Some(..= 4) => {
                 return Err(Error::OldVersion {
                     current: CURRENT_VERSION,
                 })
