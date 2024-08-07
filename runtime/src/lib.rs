@@ -466,8 +466,8 @@ impl pallet_bounties::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MaxActiveChildBountyCount: u32 = 100;
-	pub const ChildBountyValueMinimum: Balance = BountyValueMinimum::get() / 10;
+    pub const MaxActiveChildBountyCount: u32 = 100;
+    pub const ChildBountyValueMinimum: Balance = BountyValueMinimum::get() / 10;
 }
 
 impl pallet_child_bounties::Config for Runtime {
