@@ -567,9 +567,9 @@ impl pallet_staking::Config for Runtime {
     type CurrencyBalance = Balance;
     type UnixTime = Timestamp;
     type CurrencyToVote = sp_staking::currency_to_vote::U128CurrencyToVote;
-    type RewardRemainder = (); // burn the remainder, should be Treasury
+    type RewardRemainder = Treasury;
     type RuntimeEvent = RuntimeEvent;
-    type Slash = (); // burn the slashed funds, should be Treasury.
+    type Slash = Treasury;
     type Reward = (); // rewards are minted from the void
     type SessionsPerEra = SessionsPerEra;
     type BondingDuration = BondingDuration;
