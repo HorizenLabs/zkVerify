@@ -43,74 +43,74 @@
 
 /// Storage DB weights for the `ZKV Testnet` runtime and `RocksDb`.
 pub mod constants {
-	use frame_support::weights::constants;
-	use sp_core::parameter_types;
-	use sp_weights::RuntimeDbWeight;
+    use frame_support::weights::constants;
+    use sp_core::parameter_types;
+    use sp_weights::RuntimeDbWeight;
 
-	parameter_types! {
-		/// By default, Substrate uses `RocksDB`, so this will be the weight used throughout
-		/// the runtime.
-		pub const RocksDbWeight: RuntimeDbWeight = RuntimeDbWeight {
-			// Time to read one storage item.
-			// Calculated by multiplying the *Average* of all values with `1.1` and adding `0`.
-			//
-			// Stats nanoseconds:
-			//   Min, Max: 972, 28_764
-			//   Average:  6_810
-			//   Median:   7_133
-			//   Std-Dev:  1328.79
-			//
-			// Percentiles nanoseconds:
-			//   99th: 9_467
-			//   95th: 8_526
-			//   75th: 7_474
-			read: 7_492 * constants::WEIGHT_REF_TIME_PER_NANOS,
+    parameter_types! {
+        /// By default, Substrate uses `RocksDB`, so this will be the weight used throughout
+        /// the runtime.
+        pub const RocksDbWeight: RuntimeDbWeight = RuntimeDbWeight {
+            // Time to read one storage item.
+            // Calculated by multiplying the *Average* of all values with `1.1` and adding `0`.
+            //
+            // Stats nanoseconds:
+            //   Min, Max: 972, 28_764
+            //   Average:  6_810
+            //   Median:   7_133
+            //   Std-Dev:  1328.79
+            //
+            // Percentiles nanoseconds:
+            //   99th: 9_467
+            //   95th: 8_526
+            //   75th: 7_474
+            read: 7_492 * constants::WEIGHT_REF_TIME_PER_NANOS,
 
-			// Time to write one storage item.
-			// Calculated by multiplying the *Average* of all values with `1.1` and adding `0`.
-			//
-			// Stats nanoseconds:
-			//   Min, Max: 7_945, 1_994_029
-			//   Average:  20_322
-			//   Median:   15_449
-			//   Std-Dev:  19581.04
-			//
-			// Percentiles nanoseconds:
-			//   99th: 37_179
-			//   95th: 34_014
-			//   75th: 28_764
-			write: 22_355 * constants::WEIGHT_REF_TIME_PER_NANOS,
-		};
-	}
+            // Time to write one storage item.
+            // Calculated by multiplying the *Average* of all values with `1.1` and adding `0`.
+            //
+            // Stats nanoseconds:
+            //   Min, Max: 7_945, 1_994_029
+            //   Average:  20_322
+            //   Median:   15_449
+            //   Std-Dev:  19581.04
+            //
+            // Percentiles nanoseconds:
+            //   99th: 37_179
+            //   95th: 34_014
+            //   75th: 28_764
+            write: 22_355 * constants::WEIGHT_REF_TIME_PER_NANOS,
+        };
+    }
 
-	#[cfg(test)]
-	mod test_db_weights {
-		use super::constants::RocksDbWeight as W;
-		use sp_weights::constants;
+    #[cfg(test)]
+    mod test_db_weights {
+        use super::constants::RocksDbWeight as W;
+        use sp_weights::constants;
 
-		/// Checks that all weights exist and have sane values.
-		// NOTE: If this test fails but you are sure that the generated values are fine,
-		// you can delete it.
-		#[test]
-		fn bound() {
-			// At least 1 µs.
-			assert!(
-				W::get().reads(1).ref_time() >= constants::WEIGHT_REF_TIME_PER_MICROS,
-				"Read weight should be at least 1 µs."
-			);
-			assert!(
-				W::get().writes(1).ref_time() >= constants::WEIGHT_REF_TIME_PER_MICROS,
-				"Write weight should be at least 1 µs."
-			);
-			// At most 1 ms.
-			assert!(
-				W::get().reads(1).ref_time() <= constants::WEIGHT_REF_TIME_PER_MILLIS,
-				"Read weight should be at most 1 ms."
-			);
-			assert!(
-				W::get().writes(1).ref_time() <= constants::WEIGHT_REF_TIME_PER_MILLIS,
-				"Write weight should be at most 1 ms."
-			);
-		}
-	}
+        /// Checks that all weights exist and have sane values.
+        // NOTE: If this test fails but you are sure that the generated values are fine,
+        // you can delete it.
+        #[test]
+        fn bound() {
+            // At least 1 µs.
+            assert!(
+                W::get().reads(1).ref_time() >= constants::WEIGHT_REF_TIME_PER_MICROS,
+                "Read weight should be at least 1 µs."
+            );
+            assert!(
+                W::get().writes(1).ref_time() >= constants::WEIGHT_REF_TIME_PER_MICROS,
+                "Write weight should be at least 1 µs."
+            );
+            // At most 1 ms.
+            assert!(
+                W::get().reads(1).ref_time() <= constants::WEIGHT_REF_TIME_PER_MILLIS,
+                "Read weight should be at most 1 ms."
+            );
+            assert!(
+                W::get().writes(1).ref_time() <= constants::WEIGHT_REF_TIME_PER_MILLIS,
+                "Write weight should be at most 1 ms."
+            );
+        }
+    }
 }

@@ -594,7 +594,7 @@ mod use_correct_weights {
                 &Vec::new(),
                 &Vec::new()
             ),
-            crate::weights::pallet_risc0_verifier::ZKVWeight::<Runtime>::submit_proof_cycle_2_pow_12()
+            crate::weights::pallet_risc0_verifier::ZKVWeight::<Runtime>::submit_proof_cycle_2_pow_13()
         );
     }
 
@@ -609,7 +609,7 @@ mod use_correct_weights {
                 &vec![0; pallet_ultraplonk_verifier::PROOF_SIZE],
                 &Vec::new()
             ),
-            crate::weights::pallet_ultraplonk_verifier::ZKVWeight::<Runtime>::submit_proof()
+            crate::weights::pallet_ultraplonk_verifier::ZKVWeight::<Runtime>::submit_proof_32()
         );
     }
 
