@@ -255,6 +255,8 @@ pub enum Error {
 /// Identifies the variant of the chain.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Chain {
+    /// Devnet.
+    Dev,
     /// Testnet.
     ZkvTestnet,
     /// Unknown chain?
@@ -281,8 +283,11 @@ impl IdentifyVariant for Box<dyn ChainSpec> {
     fn is_dev(&self) -> bool {
         self.id().ends_with("dev")
     }
+
     fn identify_chain(&self) -> Chain {
-        if self.is_zkv_testnet() {
+        if self.is_dev() {
+            Chain::Dev
+        } else if self.is_zkv_testnet() {
             Chain::ZkvTestnet
         } else {
             Chain::Unknown

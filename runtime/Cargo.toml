@@ -100,11 +100,11 @@ pallet-authority-discovery = { workspace = true, optional = true }
 
 polkadot-runtime-common = { workspace = true, optional = true }
 
-# pallet-message-queue = { version = "30.0.0", default-features = false }
-# xcm = { package = "staging-xcm", version = "6.0.0", default-features = false }
-# xcm-executor = { package = "staging-xcm-executor", version = "6.0.2", default-features = false }
-# xcm-builder = { package = "staging-xcm-builder", version = "6.0.2", default-features = false }
-# pallet-xcm = { version = "6.0.0", default-features = false }
+pallet-message-queue = { workspace = true }
+pallet-xcm = { workspace = true, optional = true }
+xcm-builder = { workspace = true, optional = true }
+xcm-executor = { workspace = true, optional = true }
+xcm = { workspace = true, optional = true }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -150,14 +150,21 @@ runtime-benchmarks = [
 	"polkadot-primitives?/runtime-benchmarks",
 	"polkadot-runtime-parachains?/runtime-benchmarks",
 	"polkadot-runtime-common?/runtime-benchmarks",
+	"xcm-builder?/runtime-benchmarks",
+	"xcm-executor?/runtime-benchmarks",
+	"pallet-xcm?/runtime-benchmarks",
 ]
 fast-runtime = []
 relay = [
-	"dep:polkadot-primitives",
-	"dep:polkadot-runtime-parachains",
-	"dep:pallet-authority-discovery",
-	"dep:authority-discovery-primitives",
-	"dep:polkadot-runtime-common",
+  "dep:polkadot-primitives",
+  "dep:polkadot-runtime-parachains",
+  "dep:pallet-authority-discovery",
+  "dep:authority-discovery-primitives",
+  "dep:polkadot-runtime-common",
+  "dep:xcm",
+  "dep:xcm-builder",
+  "dep:xcm-executor",
+  "dep:pallet-xcm",
 ]
 add-parachain-upgrade = ["relay"]
 default = ["std"]
@@ -196,6 +203,8 @@ std = [
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
+	"pallet-message-queue/std",
+	"pallet-xcm?/std",
 	"pallet-proxy/std",
 	"pallet-verifiers/std",
 	"pallet-poe/std",
@@ -272,4 +281,5 @@ try-runtime = [
 	"polkadot-runtime-parachains?/try-runtime",
 	"pallet-authority-discovery?/try-runtime",
 	"polkadot-runtime-common?/try-runtime",
+	"pallet-xcm?/try-runtime",
 ]
