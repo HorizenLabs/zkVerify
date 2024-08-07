@@ -406,7 +406,7 @@ parameter_types! {
     pub const ProposalBondMinimum: Balance = 2000 * CENTS;
     pub const ProposalBondMaximum: Balance = THOUSANDS;
     pub const SpendPeriod: BlockNumber = 6 * DAYS;
-    pub const Burn: Permill = Permill::from_percent(1);
+    pub const Burn: Permill = Permill::from_percent(0);
     pub const PayoutSpendPeriod: BlockNumber = 30 * DAYS;
     pub const MaxApprovals: u32 = 100;
     pub ZKVerifyTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
