@@ -76,6 +76,7 @@ cumulus-primitives-utility = { workspace = true }
 pallet-collator-selection = { workspace = true }
 parachains-common = { workspace = true }
 parachain-info = { workspace = true }
+cumulus-primitives-aura = { workspace = true }
 
 [features]
 default = ["std"]
@@ -85,6 +86,7 @@ std = [
 	"cumulus-pallet-dmp-queue/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-pallet-session-benchmarking/std",
+	"cumulus-primitives-aura/std",
 	# "cumulus-pallet-xcm/std",
 	# "cumulus-pallet-xcmp-queue/std",
 	"cumulus-primitives-core/std",

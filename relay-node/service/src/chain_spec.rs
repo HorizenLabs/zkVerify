@@ -15,7 +15,8 @@
 #![allow(clippy::type_complexity)]
 
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-use polkadot_primitives::{AssignmentId, ValidatorId};
+use polkadot_primitives::vstaging::SchedulerParams;
+use polkadot_primitives::{AssignmentId, AsyncBackingParams, ValidatorId};
 use sc_chain_spec::ChainSpecExtension;
 use sc_service::{ChainType, Properties};
 use sc_sync_state_rpc::LightSyncStateExtension;
@@ -467,6 +468,14 @@ fn default_parachains_host_configuration(
         relay_vrf_modulo_samples: 2,
         zeroth_delay_tranche_width: 0,
         minimum_validation_upgrade_delay: 5,
+        async_backing_params: AsyncBackingParams {
+            max_candidate_depth: 3,
+            allowed_ancestry_len: 2,
+        },
+        scheduler_params: SchedulerParams {
+            lookahead: 2,
+            ..Default::default()
+        },
         ..Default::default()
     }
 }

@@ -443,7 +443,7 @@ pub mod parachains {
         pub mod add_parachain_upgrade {
             use super::*;
             pub struct AddParachainUpgrade;
-            const ADD_PARACHAIN_VERSION: u32 = 4_000;
+            const ADD_PARACHAIN_VERSION: u32 = 5_000;
             const PARACHAIN_PARATEST_ID: u32 = 1_599;
 
             impl frame_support::traits::OnRuntimeUpgrade for AddParachainUpgrade {
