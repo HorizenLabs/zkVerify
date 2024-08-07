@@ -22,7 +22,6 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-#[cfg(feature = "relay")]
 use pallet_babe::AuthorityId as BabeId;
 use pallet_grandpa::AuthorityId as GrandpaId;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
@@ -768,6 +767,10 @@ construct_runtime!(
         Multisig: pallet_multisig,
         Scheduler: pallet_scheduler,
         Preimage: pallet_preimage,
+        ConvictionVoting: pallet_conviction_voting,
+        Origins: pallet_custom_origins,
+        Whitelist: pallet_whitelist,
+        Referenda: pallet_referenda,
         Offences: pallet_offences,
         Historical: pallet_session_historical::{Pallet},
         ImOnline: pallet_im_online,
@@ -776,6 +779,7 @@ construct_runtime!(
         SettlementZksyncPallet: pallet_zksync_verifier,
         SettlementGroth16Pallet: pallet_groth16_verifier,
         SettlementRisc0Pallet: pallet_risc0_verifier,
+        SettlementUltraplonkPallet: pallet_ultraplonk_verifier,
     }
 );
 
