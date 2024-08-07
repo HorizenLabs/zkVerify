@@ -295,10 +295,11 @@ cumulus-pallet-aura-ext = { default-features = false, version = "0.11.0" }
 cumulus-pallet-dmp-queue = { default-features = false, version = "0.11.0" }
 cumulus-pallet-parachain-system = { default-features = false, version = "0.11.0" }
 cumulus-pallet-session-benchmarking = { default-features = false, version = "13.0.0" }
-# cumulus-pallet-xcm = { default-features = false, version = "0.6.0" }
-# cumulus-pallet-xcmp-queue = { default-features = false, version = "0.6.0" }
+cumulus-pallet-xcm = { default-features = false, version = "0.11.0" }
+cumulus-pallet-xcmp-queue = { default-features = false, version = "0.11.0" }
 cumulus-primitives-core = { default-features = false, version = "0.11.0" }
 cumulus-primitives-utility = { default-features = false, version = "0.11.0" }
+pallet-message-queue = { default-features = false, version = "35.0.0" }
 pallet-collator-selection = { default-features = false, version = "13.0.1" }
 parachains-common = { default-features = false, version = "11.0.0" }
 parachain-info = { package = "staging-parachain-info", default-features = false, version = "0.11.0" }

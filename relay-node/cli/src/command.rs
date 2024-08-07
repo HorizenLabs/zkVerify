@@ -17,6 +17,7 @@
 use crate::cli::{Cli, Subcommand, NODE_VERSION};
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
 use futures::future::TryFutureExt;
+use native::HLNativeHostFunctions;
 use sc_cli::SubstrateCli;
 use service::{
     self,
@@ -26,7 +27,6 @@ use service::{
 use sp_core::crypto::Ss58AddressFormatRegistry;
 use sp_keyring::Sr25519Keyring;
 use std::net::ToSocketAddrs;
-use native::HLNativeHostFunctions;
 
 pub use crate::{error::Error, service::BlockId};
 #[cfg(feature = "pyroscope")]
