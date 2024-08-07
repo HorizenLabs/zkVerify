@@ -59,12 +59,12 @@ pub use frame_support::{
     parameter_types,
     traits::{
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
-        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly,
-        KeyOwnerProofSystem, Randomness, StorageInfo, WithdrawReasons,
+        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, KeyOwnerProofSystem,
+        Randomness, StorageInfo, WithdrawReasons,
     },
     weights::{
         constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
-        IdentityFee, Weight,
+        ConstantMultiplier, IdentityFee, Weight,
     },
     PalletId, StorageValue,
 };
@@ -112,6 +112,10 @@ pub(crate) use macros::prod_or_fast;
 
 #[cfg(feature = "relay")]
 pub mod parachains;
+
+// XCM configurations.
+#[cfg(feature = "relay")]
+pub mod xcm_config;
 // ----------------------------- [ END PARACHAINS ] ----------------------------
 
 #[cfg(feature = "relay")]
@@ -404,6 +408,7 @@ impl pallet_balances::Config for Runtime {
 
 parameter_types! {
     pub FeeMultiplier: Multiplier = Multiplier::one();
+    pub TransactionByteFee: Balance = 10 * MILLICENTS;
 }
 
 impl_opaque_keys! {
@@ -437,7 +442,7 @@ impl pallet_transaction_payment::Config for Runtime {
     type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
     type OperationalFeeMultiplier = ConstU8<5>;
     type WeightToFee = IdentityFee<Balance>;
-    type LengthToFee = IdentityFee<Balance>;
+    type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
     type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
 }
 
@@ -867,7 +872,7 @@ impl pallet_verifiers::Config<pallet_proofofsql_verifier::ProofOfSql<Runtime>> f
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
-#[cfg(feature = "relay")]
+#[cfg(not(feature = "relay"))]
 construct_runtime!(
     pub struct Runtime {
         System: frame_system,
@@ -905,71 +910,92 @@ construct_runtime!(
         Proxy: pallet_proxy,
         CommonVerifiers: pallet_verifiers::common,
         SettlementProofOfSqlPallet: pallet_proofofsql_verifier,
-
-        AuthorityDiscovery: pallet_authority_discovery::{Pallet, Config<T>},
-
-
-        // Parachains pallets. Start indices at 50 to leave room.
-        ParachainsOrigin: parachains::parachains_origin::{Pallet, Origin} = 50,
-        Configuration: parachains::configuration::{Pallet, Call, Storage, Config<T>} = 51,
-        ParasShared: parachains::parachains_shared::{Pallet, Call, Storage} = 52,
-        ParaInclusion: parachains::inclusion::{Pallet, Call, Storage, Event<T>} = 53,
-        ParaInherent: parachains::paras_inherent::{Pallet, Call, Storage, Inherent} = 54,
-        ParaScheduler: parachains::parachains_scheduler::{Pallet, Storage} = 55,
-        Paras: parachains::paras::{Pallet, Call, Storage, Event, Config<T>, ValidateUnsigned} = 56,
-        Initializer: parachains::initializer::{Pallet, Call, Storage} = 57,
-        Dmp: parachains::parachains_dmp::{Pallet, Storage} = 58,
-        Hrmp: parachains::hrmp::{Pallet, Call, Storage, Event<T>, Config<T>} = 60,
-        ParaSessionInfo: parachains::parachains_session_info::{Pallet, Storage} = 61,
-        ParasDisputes: parachains::disputes::{Pallet, Call, Storage, Event<T>} = 62,
-        ParasSlashing: parachains::slashing::{Pallet, Call, Storage, ValidateUnsigned} = 63,
-        // MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 64,
-        // ParaAssignmentProvider: parachains_assigner::{Pallet, Storage} = 65,
-        // OnDemandAssignmentProvider: parachains_assigner_on_demand::{Pallet, Call, Storage, Event<T>} = 66,
-        ParachainsAssignmentProvider: parachains::parachains_assigner_parachains::{Pallet} = 67,
-
-        // Registrar: paras_registrar::{Pallet, Call, Storage, Event<T>, Config<T>} = 70,
-        // Slots: slots::{Pallet, Call, Storage, Event<T>} = 71,
-        ParasSudoWrapper: parachains::paras_sudo_wrapper::{Pallet, Call} = 80,
-
-                // Pallet for sending XCM.
-        // XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 99,
-
     }
 );
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
-#[cfg(not(feature = "relay"))]
+#[cfg(feature = "relay")]
 construct_runtime!(
     pub struct Runtime {
-        System: frame_system,
-        VoterList: pallet_bags_list::<Instance1>,
-        Timestamp: pallet_timestamp,
-        Balances: pallet_balances,
-        Authorship: pallet_authorship,
-        Staking: pallet_staking,
-        Session: pallet_session,
-        Babe: pallet_babe,
-        Grandpa: pallet_grandpa,
-        TransactionPayment: pallet_transaction_payment,
-        Sudo: pallet_sudo,
-        Multisig: pallet_multisig,
-        Scheduler: pallet_scheduler,
-        Preimage: pallet_preimage,
-        ConvictionVoting: pallet_conviction_voting,
-        Origins: pallet_custom_origins,
-        Whitelist: pallet_whitelist,
-        Referenda: pallet_referenda,
-        Offences: pallet_offences,
-        Historical: pallet_session_historical::{Pallet},
-        ImOnline: pallet_im_online,
-        SettlementFFlonkPallet: pallet_fflonk_verifier,
-        Poe: pallet_poe,
-        SettlementZksyncPallet: pallet_zksync_verifier,
-        SettlementGroth16Pallet: pallet_groth16_verifier,
-        SettlementRisc0Pallet: pallet_risc0_verifier,
-        SettlementUltraplonkPallet: pallet_ultraplonk_verifier,
->>>>>>> b361064 (Integrate parachains support)
+        // Basic stuff
+        System: frame_system = 0,
+        Scheduler: pallet_scheduler = 1,
+        Preimage: pallet_preimage = 2,
+
+        Timestamp: pallet_timestamp = 3,
+        Balances: pallet_balances = 4,
+        TransactionPayment: pallet_transaction_payment = 5,
+
+        // Consensus support.
+        // Authorship must be before session in order to note author in the correct session and era
+        // for im-online and staking.
+        Authorship: pallet_authorship = 6,
+        Staking: pallet_staking = 7,
+        Offences: pallet_offences = 8,
+        Historical: pallet_session_historical = 9,
+
+        // Consensus
+        Babe: pallet_babe = 10,
+        Session: pallet_session = 11,
+        Grandpa: pallet_grandpa = 12,
+        AuthorityDiscovery: pallet_authority_discovery = 13,
+
+        // Opengov stuff
+        Treasury: pallet_treasury = 14,
+        ConvictionVoting: pallet_conviction_voting = 15,
+        Referenda: pallet_referenda = 16,
+        Origins: pallet_custom_origins = 17,
+        Whitelist: pallet_whitelist = 18,
+        VoterList: pallet_bags_list::<Instance1> = 19,
+
+        // Bounties modules.
+        Bounties: pallet_bounties = 25,
+        ChildBounties: pallet_child_bounties = 26,
+
+        // Utility modules.
+        Utility: pallet_utility = 30,
+        Multisig: pallet_multisig = 31,
+
+
+        // Pallets that we know are to remove in a future. Start indices at 50 to leave room.
+        Sudo: pallet_sudo = 50,
+        ImOnline: pallet_im_online = 51,
+        // Vesting. Usable initially, but removed once all vesting is finished.
+        Vesting: pallet_vesting = 52,
+
+        // Our stuff
+        Poe: pallet_poe = 80,
+
+        // Verifiers. Start indices at 160 to leave room and till the end (255). Don't add
+        // any kind of other palets after this value.
+        SettlementFFlonkPallet: pallet_fflonk_verifier = 160,
+        SettlementZksyncPallet: pallet_zksync_verifier = 161,
+        SettlementGroth16Pallet: pallet_groth16_verifier = 162,
+        SettlementRisc0Pallet: pallet_risc0_verifier = 163,
+        SettlementUltraplonkPallet: pallet_ultraplonk_verifier = 164,
+
+        // Parachain pallets. Start indices at 100 to leave room.
+        ParachainsOrigin: parachains::parachains_origin = 101,
+        Configuration: parachains::configuration = 102,
+        ParasShared: parachains::parachains_shared = 103,
+        ParaInclusion: parachains::inclusion = 104,
+        ParaInherent: parachains::paras_inherent = 105,
+        ParaScheduler: parachains::parachains_scheduler = 106,
+        Paras: parachains::paras = 107,
+        Initializer: parachains::initializer = 108,
+        Dmp: parachains::parachains_dmp = 109,
+        Hrmp: parachains::hrmp = 110,
+        ParaSessionInfo: parachains::parachains_session_info = 111,
+        ParasDisputes: parachains::disputes = 112,
+        ParasSlashing: parachains::slashing = 113,
+        ParachainsAssignmentProvider: parachains::parachains_assigner_parachains = 115,
+
+        // Parachain chain (removable) pallets. Start indices at 130.
+        ParasSudoWrapper: parachains::paras_sudo_wrapper = 130,
+
+        // XCM Pallet: start indices at 140.
+        XcmPallet: pallet_xcm = 140,
+        MessageQueue: pallet_message_queue = 114,
     }
 );
 
@@ -991,15 +1017,12 @@ pub type SignedExtra = (
     pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 );
 
-<<<<<<< HEAD
 /// All migrations of the runtime, aside from the ones declared in the pallets.
 ///
 /// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
 #[allow(unused_parens)]
 type Migrations = migrations::Unreleased;
 
-=======
->>>>>>> b361064 (Integrate parachains support)
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
     generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
@@ -1025,6 +1048,7 @@ mod benches {
         [frame_benchmarking, BaselineBench::<Runtime>]
         [frame_system, SystemBench::<Runtime>]
         [pallet_balances, Balances]
+        [pallet_bags_list, VoterList]
         [pallet_babe, crate::Babe]
         [pallet_grandpa, crate::Grandpa]
         [pallet_timestamp, Timestamp]
@@ -1038,13 +1062,19 @@ mod benches {
         [frame_election_provider_support, ElectionProviderBench::<Runtime>]
         [pallet_poe, Poe]
         [pallet_conviction_voting, ConvictionVoting]
+        [pallet_treasury, Treasury]
+        [pallet_bounties, Bounties]
+        [pallet_child_bounties, ChildBounties]
+        [pallet_utility, Utility]
+        [pallet_vesting, Vesting]
         [pallet_referenda, Referenda]
         [pallet_whitelist, Whitelist]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
         [pallet_risc0_verifier, Risc0VerifierBench::<Runtime>]
-        [pallet_ultRaplonk_verifier, UltraplonkVerifierBench::<Runtime>]
+        [pallet_ultraplonk_verifier, UltraplonkVerifierBench::<Runtime>]
+        [pallet_proofofsql_verifier, ProofOfSqlVerifierBench::<Runtime>]
     );
 }
 
@@ -1081,9 +1111,7 @@ mod benches {
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
         [pallet_risc0_verifier, Risc0VerifierBench::<Runtime>]
         [pallet_ultraplonk_verifier, UltraplonkVerifierBench::<Runtime>]
-<<<<<<< HEAD
         [pallet_proofofsql_verifier, ProofOfSqlVerifierBench::<Runtime>]
-=======
         // parachains
         [crate::parachains::configuration, Configuration]
         [crate::parachains::disputes, ParasDisputes]
@@ -1095,7 +1123,6 @@ mod benches {
         [crate::parachains::initializer, Initializer]
         [crate::parachains::paras, Paras]
         [crate::parachains::paras_inherent, ParaInherent]
->>>>>>> b361064 (Integrate parachains support)
     );
 }
 
@@ -1590,7 +1617,7 @@ impl_runtime_apis! {
             block: Block,
             state_root_check: bool,
             signature_check: bool,
-            select: frame_try_runtime::TryStateSelect
+            select: frame_try_runtime::TryStateSelect,
         ) -> Weight {
             // NOTE: intentional unwrap: we don't want to propagate the error backwards, and want to
             // have a backtrace here.
