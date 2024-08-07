@@ -24,3 +24,4 @@ pub mod pallet_treasury;
 pub mod pallet_ultraplonk_verifier;
 pub mod pallet_whitelist;
 pub mod pallet_zksync_verifier;
+pub mod pallet_child_bounties;

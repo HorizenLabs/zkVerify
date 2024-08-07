@@ -459,10 +459,22 @@ impl pallet_bounties::Config for Runtime {
     type CuratorDepositMin = CuratorDepositMin;
     type CuratorDepositMax = CuratorDepositMax;
     type BountyValueMinimum = BountyValueMinimum;
-    type ChildBountyManager = ();
+    type ChildBountyManager = ChildBounties;
     type DataDepositPerByte = DataDepositPerByte;
     type MaximumReasonLength = MaximumReasonLength;
     type WeightInfo = weights::pallet_bounties::ZKVWeight<Runtime>;
+}
+
+parameter_types! {
+	pub const MaxActiveChildBountyCount: u32 = 100;
+	pub const ChildBountyValueMinimum: Balance = BountyValueMinimum::get() / 10;
+}
+
+impl pallet_child_bounties::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type MaxActiveChildBountyCount = MaxActiveChildBountyCount;
+    type ChildBountyValueMinimum = ChildBountyValueMinimum;
+    type WeightInfo = weights::pallet_child_bounties::ZKVWeight<Runtime>;
 }
 
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
@@ -728,6 +740,7 @@ construct_runtime!(
         SettlementUltraplonkPallet: pallet_ultraplonk_verifier,
         Treasury: pallet_treasury,
         Bounties: pallet_bounties,
+        ChildBounties: pallet_child_bounties,
     }
 );
 
@@ -795,6 +808,7 @@ mod benches {
         [pallet_conviction_voting, ConvictionVoting]
         [pallet_treasury, Treasury]
         [pallet_bounties, Bounties]
+        [pallet_child_bounties, ChildBounties]
         [pallet_referenda, Referenda]
         [pallet_whitelist, Whitelist]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
