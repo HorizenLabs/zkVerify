@@ -1,13 +1,16 @@
+use frame_support::{
+    traits::{ProcessMessage, ProcessMessageError},
+    weights::WeightMeter,
+};
 use frame_system::EnsureRoot;
 use polkadot_primitives::ValidatorId;
+use xcm::opaque::lts::Junction;
 
 pub use polkadot_runtime_parachains::{
-    assigner_parachains as parachains_assigner_parachains,
-    configuration, disputes,
-    disputes::slashing as slashing,
-    dmp as parachains_dmp, hrmp, inclusion,
-    initializer, origin as parachains_origin, paras,
-    paras_inherent as paras_inherent, reward_points as parachains_reward_points,
+    assigner_parachains as parachains_assigner_parachains, configuration, disputes,
+    disputes::slashing,
+    dmp as parachains_dmp, hrmp, inclusion, initializer, origin as parachains_origin, paras,
+    paras_inherent, reward_points as parachains_reward_points,
     runtime_api_impl::{
         v10 as parachains_runtime_api_impl, vstaging as parachains_staging_runtime_api_impl,
     },
@@ -19,12 +22,14 @@ pub use polkadot_runtime_parachains::{
 pub use polkadot_runtime_common::paras_sudo_wrapper;
 
 use super::{
-    AccountId, Babe, Balances, Historical, KeyOwnerProofSystem, KeyTypeId, MaxAuthorities,
-    Offences, ParaInclusion, ParachainsAssignmentProvider, ParasDisputes, ParasSlashing,
-    ReportLongevity, Runtime, RuntimeEvent, RuntimeOrigin, Session, Weight, weights
+    weights, xcm_config, AccountId, Babe, Balances, BlockWeights, Historical, KeyOwnerProofSystem,
+    KeyTypeId, MaxAuthorities, MessageQueue, Offences, ParaInclusion, ParachainsAssignmentProvider,
+    ParasDisputes, ParasSlashing, Perbill, ReportLongevity, Runtime, RuntimeCall, RuntimeEvent,
+    RuntimeOrigin, Session, Weight,
 };
 use sp_runtime::transaction_validity::TransactionPriority;
 
+use inclusion::AggregateMessageOrigin;
 use sp_core::parameter_types;
 use sp_runtime::FixedU128;
 
@@ -57,11 +62,8 @@ impl slashing::Config for Runtime {
         KeyTypeId,
         ValidatorId,
     )>>::IdentificationTuple;
-    type HandleReports = slashing::SlashingReportHandler<
-        Self::KeyOwnerIdentification,
-        Offences,
-        ReportLongevity,
-    >;
+    type HandleReports =
+        slashing::SlashingReportHandler<Self::KeyOwnerIdentification, Offences, ReportLongevity>;
     //type WeightInfo = weights::parachains::slashing::ZKVWeight<Runtime>;
     type WeightInfo = slashing::TestWeightInfo;
     type BenchmarkingConfig = slashing::BenchConfig<200>;
@@ -103,9 +105,8 @@ impl inclusion::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type DisputesHandler = ParasDisputes;
     type RewardValidators = parachains_reward_points::RewardValidatorsWithEraPoints<Runtime>;
-    // type MessageQueue = MessageQueue;
-    type MessageQueue = ();
-    type WeightInfo = ();//weights::parachains::inclusion::ZKVWeight<Runtime>;
+    type MessageQueue = MessageQueue;
+    type WeightInfo = (); //weights::parachains::inclusion::ZKVWeight<Runtime>;
 }
 
 parameter_types! {
@@ -123,54 +124,56 @@ impl paras::Config for Runtime {
     type WeightInfo = weights::parachains::paras::ZKVWeight<Runtime>;
 }
 
-// parameter_types! {
-//     /// Amount of weight that can be spent per block to service messages.
-//     ///
-//     /// # WARNING
-//     ///
-//     /// This is not a good value for para-chains since the `Scheduler` already uses up to 80% block weight.
-//     pub MessageQueueServiceWeight: Weight = Perbill::from_percent(20) * BlockWeights::get().max_block;
-//     pub const MessageQueueHeapSize: u32 = 32 * 1024;
-//     pub const MessageQueueMaxStale: u32 = 96;
-// }
+parameter_types! {
+    /// Amount of weight that can be spent per block to service messages.
+    ///
+    /// # WARNING
+    ///
+    /// This is not a good value for para-chains since the `Scheduler` already uses up to 80% block weight.
+    pub MessageQueueServiceWeight: Weight = Perbill::from_percent(20) * BlockWeights::get().max_block;
+    pub MessageQueueIdleServiceWeight: Weight = Perbill::from_percent(20) * BlockWeights::get().max_block;
+    pub const MessageQueueHeapSize: u32 = 32 * 1024;
+    pub const MessageQueueMaxStale: u32 = 96;
+}
 
-// /// Message processor to handle any messages that were enqueued into the `MessageQueue` pallet.
-// pub struct MessageProcessor;
+/// Message processor to handle any messages that were enqueued into the `MessageQueue` pallet.
+pub struct MessageProcessor;
 
-// impl ProcessMessage for MessageProcessor {
-//     type Origin = AggregateMessageOrigin;
+impl ProcessMessage for MessageProcessor {
+    type Origin = AggregateMessageOrigin;
 
-//     fn process_message(
-//         message: &[u8],
-//         origin: Self::Origin,
-//         meter: &mut WeightMeter,
-//         id: &mut [u8; 32],
-//     ) -> Result<bool, ProcessMessageError> {
-//         let para = match origin {
-//             AggregateMessageOrigin::Ump(UmpQueueId::Para(para)) => para,
-//         };
-//         xcm_builder::ProcessXcmMessage::<
-//             Junction,
-//             xcm_executor::XcmExecutor<xcm_config::XcmConfig>,
-//             RuntimeCall,
-//         >::process_message(message, Junction::Parachain(para.into()), meter, id)
-//     }
-// }
+    fn process_message(
+        message: &[u8],
+        origin: Self::Origin,
+        meter: &mut WeightMeter,
+        id: &mut [u8; 32],
+    ) -> Result<bool, ProcessMessageError> {
+        let para = match origin {
+            AggregateMessageOrigin::Ump(inclusion::UmpQueueId::Para(para)) => para,
+        };
+        xcm_builder::ProcessXcmMessage::<
+            Junction,
+            xcm_executor::XcmExecutor<xcm_config::XcmConfig>,
+            RuntimeCall,
+        >::process_message(message, Junction::Parachain(para.into()), meter, id)
+    }
+}
 
-// impl pallet_message_queue::Config for Runtime {
-//     type RuntimeEvent = RuntimeEvent;
-//     type Size = u32;
-//     type HeapSize = MessageQueueHeapSize;
-//     type MaxStale = MessageQueueMaxStale;
-//     type ServiceWeight = MessageQueueServiceWeight;
-//     // type MessageProcessor = MessageProcessor;
-//     // #[cfg(feature = "runtime-benchmarks")]
-//     type MessageProcessor =
-//         pallet_message_queue::mock_helpers::NoopMessageProcessor<AggregateMessageOrigin>;
-//     type QueueChangeHandler = ParaInclusion;
-//     type QueuePausedQuery = ();
-//     type WeightInfo = ();
-// }
+impl pallet_message_queue::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type Size = u32;
+    type HeapSize = MessageQueueHeapSize;
+    type MaxStale = MessageQueueMaxStale;
+    type ServiceWeight = MessageQueueServiceWeight;
+    type MessageProcessor = MessageProcessor;
+    #[cfg(feature = "runtime-benchmarks")]
+    type MessageProcessor =
+        pallet_message_queue::mock_helpers::NoopMessageProcessor<AggregateMessageOrigin>;
+    type QueueChangeHandler = ParaInclusion;
+    type QueuePausedQuery = ();
+    type WeightInfo = ();
+    type IdleMaxServiceWeight = MessageQueueIdleServiceWeight;
+}
 
 impl pallet_authority_discovery::Config for Runtime {
     type MaxAuthorities = MaxAuthorities;
