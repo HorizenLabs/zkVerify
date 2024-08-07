@@ -15,7 +15,6 @@
 // along with Polkadot.  If not, see <http://www.gnu.org/licenses/>.
 
 fn main() {
-    println!("cargo:rustc-link-arg=-fuse-ld=lld");
     substrate_build_script_utils::generate_cargo_keys();
     // For the node/worker version check, make sure we always rebuild the node and binary workers
     // when the version changes.

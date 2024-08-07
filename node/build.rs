@@ -21,7 +21,6 @@ use substrate_build_script_utils::{generate_cargo_keys, rerun_if_git_head_change
 fn main() {
     let cargo_config = PathBuf::from(env!("CARGO_HOME")).join("config.toml");
     println!("cargo::rerun-if-changed={:?}", cargo_config);
-    println!("cargo:rustc-link-arg=-fuse-ld=lld");
 
     generate_cargo_keys();
 
