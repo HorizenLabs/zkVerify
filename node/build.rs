@@ -27,6 +27,7 @@ use walkdir::WalkDir;
 fn main() {
     let cargo_config = PathBuf::from(env!("CARGO_HOME")).join("config.toml");
     println!("cargo::rerun-if-changed={:?}", cargo_config);
+    println!("cargo:rustc-link-arg=-fuse-ld=lld");
 
     generate_cargo_keys();
 
