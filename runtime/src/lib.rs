@@ -64,7 +64,7 @@ pub use frame_support::{
     },
     weights::{
         constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
-        IdentityFee, Weight,
+        ConstantMultiplier, IdentityFee, Weight,
     },
     PalletId, StorageValue,
 };
@@ -112,6 +112,10 @@ pub(crate) use macros::prod_or_fast;
 
 #[cfg(feature = "relay")]
 pub mod parachains;
+
+// XCM configurations.
+#[cfg(feature = "relay")]
+pub mod xcm_config;
 // ----------------------------- [ END PARACHAINS ] ----------------------------
 
 #[cfg(feature = "relay")]
@@ -401,6 +405,7 @@ impl pallet_balances::Config for Runtime {
 
 parameter_types! {
     pub FeeMultiplier: Multiplier = Multiplier::one();
+    pub TransactionByteFee: Balance = 10 * MILLICENTS;
 }
 
 impl_opaque_keys! {
@@ -434,7 +439,7 @@ impl pallet_transaction_payment::Config for Runtime {
     type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
     type OperationalFeeMultiplier = ConstU8<5>;
     type WeightToFee = IdentityFee<Balance>;
-    type LengthToFee = IdentityFee<Balance>;
+    type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
     type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
 }
 
@@ -876,7 +881,7 @@ construct_runtime!(
         ParaSessionInfo: parachains::parachains_session_info::{Pallet, Storage} = 61,
         ParasDisputes: parachains::disputes::{Pallet, Call, Storage, Event<T>} = 62,
         ParasSlashing: parachains::slashing::{Pallet, Call, Storage, ValidateUnsigned} = 63,
-        // MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 64,
+        MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 64,
         // ParaAssignmentProvider: parachains_assigner::{Pallet, Storage} = 65,
         // OnDemandAssignmentProvider: parachains_assigner_on_demand::{Pallet, Call, Storage, Event<T>} = 66,
         ParachainsAssignmentProvider: parachains::parachains_assigner_parachains::{Pallet} = 67,
@@ -886,7 +891,7 @@ construct_runtime!(
         ParasSudoWrapper: parachains::paras_sudo_wrapper::{Pallet, Call} = 80,
 
                 // Pallet for sending XCM.
-        // XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 99,
+        XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 99,
 
     }
 );
@@ -1526,7 +1531,7 @@ impl_runtime_apis! {
             block: Block,
             state_root_check: bool,
             signature_check: bool,
-            select: frame_try_runtime::TryStateSelect
+            select: frame_try_runtime::TryStateSelect,
         ) -> Weight {
             // NOTE: intentional unwrap: we don't want to propagate the error backwards, and want to
             // have a backtrace here.

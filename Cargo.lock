@@ -1150,6 +1150,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "bp-xcm-bridge-hub-router"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "063e9ce60db859f26172c1428b251e628751850e7862065104e750310c6afbad"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-runtime",
+]
+
+[[package]]
 name = "bs58"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2368,6 +2380,49 @@ dependencies = [
  "parity-scale-codec",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "cumulus-pallet-xcm"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f14dc8bc002babf1596515a2f1c0158ddeccbf1ef7f5656fe71c8e1fa4bde55"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "staging-xcm",
+]
+
+[[package]]
+name = "cumulus-pallet-xcmp-queue"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5810a98c95f4219d7dcd6bd89d0c149fc45162e7e0c335579ba5545ec4b9c216"
+dependencies = [
+ "bounded-collections",
+ "bp-xcm-bridge-hub-router",
+ "cumulus-primitives-core",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-message-queue",
+ "parity-scale-codec",
+ "polkadot-runtime-common",
+ "polkadot-runtime-parachains",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "staging-xcm",
+ "staging-xcm-executor",
 ]
 
 [[package]]
@@ -7918,6 +7973,8 @@ dependencies = [
  "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-session-benchmarking",
+ "cumulus-pallet-xcm",
+ "cumulus-pallet-xcmp-queue",
  "cumulus-primitives-aura",
  "cumulus-primitives-core",
  "cumulus-primitives-utility",
@@ -7934,12 +7991,14 @@ dependencies = [
  "pallet-authorship",
  "pallet-balances",
  "pallet-collator-selection",
+ "pallet-message-queue",
  "pallet-parachain-template",
  "pallet-session",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-xcm",
  "parachains-common",
  "parity-scale-codec",
  "polkadot-parachain-primitives",
@@ -7959,6 +8018,9 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "staging-parachain-info",
+ "staging-xcm",
+ "staging-xcm-builder",
+ "staging-xcm-executor",
  "substrate-wasm-builder",
 ]
 
@@ -16394,6 +16456,7 @@ dependencies = [
  "pallet-grandpa",
  "pallet-groth16-verifier",
  "pallet-im-online",
+ "pallet-message-queue",
  "pallet-multisig",
  "pallet-offences",
  "pallet-poe",
@@ -16415,6 +16478,7 @@ dependencies = [
  "pallet-verifiers",
  "pallet-vesting",
  "pallet-whitelist",
+ "pallet-xcm",
  "pallet-zksync-verifier",
  "parity-scale-codec",
  "polkadot-primitives",
@@ -16442,6 +16506,9 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "sp-weights",
+ "staging-xcm",
+ "staging-xcm-builder",
+ "staging-xcm-executor",
  "static_assertions",
  "substrate-wasm-builder",
 ]
