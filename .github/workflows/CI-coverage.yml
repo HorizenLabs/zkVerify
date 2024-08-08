@@ -17,6 +17,7 @@ env:
   DOCKER_CARGO_HOME: /tmp/.cargo
   CARGO_BINARIES_INSTALL: "cargo-llvm-cov"
   CMAKE_INSTALL: true
+  LLD_INSTALL: true
 
 jobs:
   coverage:
