@@ -1241,9 +1241,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.1.7"
+version = "1.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26a5c3fd7bfa1ce3897a3a3501d362b2d87b7f2583ebcb4a949ec25911025cbc"
+checksum = "504bdec147f2cc13c8b57ed9401fd8a147cc66b67ad5cb241394244f2c947549"
 dependencies = [
  "jobserver",
  "libc",
@@ -1364,15 +1364,6 @@ dependencies = [
  "crypto-common",
  "inout",
  "zeroize",
-]
-
-[[package]]
-name = "ckb-merkle-mountain-range"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56ccb671c5921be8a84686e6212ca184cb1d7c51cadcdbfcbd1cc3f042f5dfb8"
-dependencies = [
- "cfg-if 1.0.0",
 ]
 
 [[package]]
@@ -10244,9 +10235,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-pki-types"
-version = "1.7.0"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "976295e77ce332211c0d24d92c0e83e50f5c5f046d11082cea19f3df13a3562d"
+checksum = "fc0a2ce646f8655401bb81e7927b812614bd5d91dbc968696be50603510fcaf0"
 
 [[package]]
 name = "rustls-webpki"
@@ -11507,9 +11498,9 @@ dependencies = [
 
 [[package]]
 name = "scc"
-version = "2.1.8"
+version = "2.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d777f59627453628a9a5be1ee8d948745b94b1dfc2d0c3099cbd9e08ab89e7c"
+checksum = "06ff467073ddaff34c3a39e5b454f25dd982484a26fff50254ca793c56a1b714"
 dependencies = [
  "sdd",
 ]
@@ -11697,9 +11688,9 @@ checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "serde"
-version = "1.0.204"
+version = "1.0.205"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc76f558e0cbb2a839d37354c575f1dc3fdc6546b5be373ba43d95f231bf7c12"
+checksum = "e33aedb1a7135da52b7c21791455563facbbcc43d0f0f66165b42c21b3dfb150"
 dependencies = [
  "serde_derive",
 ]
@@ -11715,9 +11706,9 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.204"
+version = "1.0.205"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0cd7e117be63d3c3678776753929474f3b04a43a080c744d6b0ae2a8c28e222"
+checksum = "692d6f5ac90220161d6774db30c662202721e64aed9058d2c394f451261420c1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -12351,27 +12342,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp-consensus-beefy"
-version = "17.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "160ad989b247b55fdc2acd8baa7d5a0b9daca5ad0d4fac6e94ee119ed0fdf164"
-dependencies = [
- "lazy_static",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-api",
- "sp-application-crypto",
- "sp-core",
- "sp-crypto-hashing",
- "sp-io",
- "sp-keystore",
- "sp-mmr-primitives",
- "sp-runtime",
- "strum 0.26.3",
-]
-
-[[package]]
 name = "sp-consensus-grandpa"
 version = "17.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -12611,24 +12581,6 @@ dependencies = [
  "scale-info",
  "sp-api",
  "sp-application-crypto",
-]
-
-[[package]]
-name = "sp-mmr-primitives"
-version = "30.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8abf5586785c20bb4bdbc81243877d5bb2bdf6dff6a03c101b6a3a875bc9278"
-dependencies = [
- "ckb-merkle-mountain-range",
- "log",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-api",
- "sp-core",
- "sp-debug-derive",
- "sp-runtime",
- "thiserror",
 ]
 
 [[package]]
@@ -13512,15 +13464,15 @@ checksum = "61c41af27dd6d1e27b1b16b489db798443478cef1f06a660c96db617ba5de3b1"
 
 [[package]]
 name = "tempfile"
-version = "3.11.0"
+version = "3.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8fcd239983515c23a32fb82099f97d0b11b8c72f654ed659363a95c3dad7a53"
+checksum = "04cbcdd0c794ebb0d4cf35e88edd2f7d2c4c3e9a5a6dab322839b321c6a87a64"
 dependencies = [
  "cfg-if 1.0.0",
  "fastrand 2.1.0",
  "once_cell",
  "rustix 0.38.34",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -13621,13 +13573,11 @@ dependencies = [
  "sp-authority-discovery",
  "sp-block-builder",
  "sp-consensus-babe",
- "sp-consensus-beefy",
  "sp-core",
  "sp-genesis-builder",
  "sp-inherents",
  "sp-io",
  "sp-keyring",
- "sp-mmr-primitives",
  "sp-offchain",
  "sp-runtime",
  "sp-session",

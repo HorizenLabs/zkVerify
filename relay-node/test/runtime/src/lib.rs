@@ -46,7 +46,6 @@ use polkadot_runtime_parachains::{
 };
 
 use authority_discovery_primitives::AuthorityId as AuthorityDiscoveryId;
-use beefy_primitives::ecdsa_crypto::{AuthorityId as BeefyId, Signature as BeefySignature};
 use frame_election_provider_support::{
     bounds::{ElectionBounds, ElectionBoundsBuilder},
     onchain, SequentialPhragmen,
@@ -74,7 +73,6 @@ use runtime_common::{
     SlowAdjustingFeeUpdate,
 };
 use sp_core::{ConstU32, OpaqueMetadata};
-use sp_mmr_primitives as mmr;
 use sp_runtime::{
     create_runtime_str,
     curve::PiecewiseLinear,
@@ -1002,67 +1000,6 @@ sp_api::impl_runtime_apis! {
 
         fn node_features() -> primitives::NodeFeatures {
             runtime_impl::node_features::<Runtime>()
-        }
-    }
-
-    impl beefy_primitives::BeefyApi<Block, BeefyId> for Runtime {
-        fn beefy_genesis() -> Option<BlockNumber> {
-            // dummy implementation due to lack of BEEFY pallet.
-            None
-        }
-
-        fn validator_set() -> Option<beefy_primitives::ValidatorSet<BeefyId>> {
-            // dummy implementation due to lack of BEEFY pallet.
-            None
-        }
-
-        fn submit_report_equivocation_unsigned_extrinsic(
-            _equivocation_proof: beefy_primitives::EquivocationProof<
-                BlockNumber,
-                BeefyId,
-                BeefySignature,
-            >,
-            _key_owner_proof: beefy_primitives::OpaqueKeyOwnershipProof,
-        ) -> Option<()> {
-            None
-        }
-
-        fn generate_key_ownership_proof(
-            _set_id: beefy_primitives::ValidatorSetId,
-            _authority_id: BeefyId,
-        ) -> Option<beefy_primitives::OpaqueKeyOwnershipProof> {
-            None
-        }
-    }
-
-    impl mmr::MmrApi<Block, Hash, BlockNumber> for Runtime {
-        fn mmr_root() -> Result<Hash, mmr::Error> {
-            Err(mmr::Error::PalletNotIncluded)
-        }
-
-        fn mmr_leaf_count() -> Result<mmr::LeafIndex, mmr::Error> {
-            Err(mmr::Error::PalletNotIncluded)
-        }
-
-        fn generate_proof(
-            _block_numbers: Vec<BlockNumber>,
-            _best_known_block_number: Option<BlockNumber>,
-        ) -> Result<(Vec<mmr::EncodableOpaqueLeaf>, mmr::Proof<Hash>), mmr::Error> {
-            Err(mmr::Error::PalletNotIncluded)
-        }
-
-        fn verify_proof(_leaves: Vec<mmr::EncodableOpaqueLeaf>, _proof: mmr::Proof<Hash>)
-            -> Result<(), mmr::Error>
-        {
-            Err(mmr::Error::PalletNotIncluded)
-        }
-
-        fn verify_proof_stateless(
-            _root: Hash,
-            _leaves: Vec<mmr::EncodableOpaqueLeaf>,
-            _proof: mmr::Proof<Hash>
-        ) -> Result<(), mmr::Error> {
-            Err(mmr::Error::PalletNotIncluded)
         }
     }
 

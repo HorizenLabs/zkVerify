@@ -49,7 +49,6 @@ use {
         self as approval_voting_subsystem, Config as ApprovalVotingConfig,
     },
     polkadot_node_core_av_store::Config as AvailabilityConfig,
-    polkadot_node_core_av_store::Error as AvailabilityError,
     polkadot_node_core_candidate_validation::Config as CandidateValidationConfig,
     polkadot_node_core_chain_selection::{
         self as chain_selection_subsystem, Config as ChainSelectionConfig,
@@ -201,9 +200,6 @@ pub enum Error {
     Io(#[from] std::io::Error),
 
     #[error(transparent)]
-    AddrFormatInvalid(#[from] std::net::AddrParseError),
-
-    #[error(transparent)]
     Sub(#[from] SubstrateServiceError),
 
     #[error(transparent)]
@@ -224,10 +220,6 @@ pub enum Error {
     #[error(transparent)]
     Jaeger(#[from] polkadot_node_subsystem::jaeger::JaegerError),
 
-    #[cfg(feature = "full-node")]
-    #[error(transparent)]
-    Availability(#[from] AvailabilityError),
-
     #[error("Authorities require the real overseer implementation")]
     AuthoritiesRequireRealOverseer,
 
@@ -235,9 +227,6 @@ pub enum Error {
     #[error("Creating a custom database is required for validators")]
     DatabasePathRequired,
 
-    //#[cfg(feature = "full-node")]
-    //#[error("Expected at least one of polkadot, kusama, westend or rococo runtime feature")]
-    //NoRuntime,
     #[cfg(feature = "full-node")]
     #[error("Worker binaries not executable, prepare binary: {prep_worker_path:?}, execute binary: {exec_worker_path:?}")]
     InvalidWorkerBinaries {
