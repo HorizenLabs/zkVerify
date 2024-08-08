@@ -198,11 +198,6 @@ polkadot-node-core-pvf-execute-worker = { version = "11.0.0" }
 
 
 sc-authority-discovery = { version = "0.38.0" }
-beefy = { package = "sc-consensus-beefy", version = "17.0.0" }
-sc-consensus-beefy-rpc = { version = "17.0.0" }
-mmr-gadget = { version = "33.0.0" }
-sp-mmr-primitives = { version = "30.0.0", default-features = false }
-mmr-rpc = { version = "32.0.0" }
 sc-block-builder = { version = "0.37.0" }
 sc-chain-spec = { version = "31.0.0" }
 sc-client-db = { version = "0.39.0" }
@@ -214,7 +209,6 @@ sc-keystore = { version = "29.0.0" }
 telemetry = { package = "sc-telemetry", version = "18.0.0" }
 sp-authority-discovery = { version = "30.0.0", default-features = false }
 consensus_common = { package = "sp-consensus", version = "0.36.0" }
-beefy-primitives = { package = "sp-consensus-beefy", version = "17.0.0", default-features = false }
 sp-state-machine = { version = "0.39.0" }
 prometheus-endpoint = { package = "substrate-prometheus-endpoint", version = "0.17.0" }
 substrate-state-trie-migration-rpc = { version = "31.0.0" }

@@ -1434,15 +1434,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ckb-merkle-mountain-range"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56ccb671c5921be8a84686e6212ca184cb1d7c51cadcdbfcbd1cc3f042f5dfb8"
-dependencies = [
- "cfg-if 1.0.0",
-]
-
-[[package]]
 name = "clang-sys"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -13088,27 +13079,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp-consensus-beefy"
-version = "17.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "160ad989b247b55fdc2acd8baa7d5a0b9daca5ad0d4fac6e94ee119ed0fdf164"
-dependencies = [
- "lazy_static",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-api",
- "sp-application-crypto",
- "sp-core",
- "sp-crypto-hashing",
- "sp-io",
- "sp-keystore",
- "sp-mmr-primitives",
- "sp-runtime",
- "strum 0.26.3",
-]
-
-[[package]]
 name = "sp-consensus-grandpa"
 version = "17.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -13348,24 +13318,6 @@ dependencies = [
  "scale-info",
  "sp-api",
  "sp-application-crypto",
-]
-
-[[package]]
-name = "sp-mmr-primitives"
-version = "30.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8abf5586785c20bb4bdbc81243877d5bb2bdf6dff6a03c101b6a3a875bc9278"
-dependencies = [
- "ckb-merkle-mountain-range",
- "log",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-api",
- "sp-core",
- "sp-debug-derive",
- "sp-runtime",
- "thiserror",
 ]
 
 [[package]]
@@ -14487,13 +14439,11 @@ dependencies = [
  "sp-authority-discovery",
  "sp-block-builder",
  "sp-consensus-babe",
- "sp-consensus-beefy",
  "sp-core",
  "sp-genesis-builder",
  "sp-inherents",
  "sp-io",
  "sp-keyring",
- "sp-mmr-primitives",
  "sp-offchain",
  "sp-runtime",
  "sp-session",
