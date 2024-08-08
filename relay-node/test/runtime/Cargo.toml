@@ -24,7 +24,6 @@ smallvec = "1.8.0"
 
 sp-authority-discovery = { workspace = true }
 sp-consensus-babe = { workspace = true }
-beefy-primitives = { workspace = true }
 sp-api = { workspace = true }
 sp-inherents = { workspace = true }
 sp-offchain = { workspace = true }
@@ -34,7 +33,6 @@ sp-runtime = { workspace = true }
 sp-staking = { workspace = true }
 sp-core = { workspace = true }
 sp-genesis-builder = { workspace = true }
-sp-mmr-primitives = { workspace = true }
 sp-session = { workspace = true }
 sp-version = { workspace = true }
 frame-election-provider-support = { workspace = true }
@@ -93,7 +91,6 @@ runtime-metrics = [
 std = [
 	"sp-authority-discovery/std",
 	"sp-consensus-babe/std",
-	"beefy-primitives/std",
 	"bitvec/std",
 	"sp-block-builder/std",
 	"frame-election-provider-support/std",
@@ -132,7 +129,6 @@ std = [
 	"sp-core/std",
 	"sp-genesis-builder/std",
 	"sp-io/std",
-	"sp-mmr-primitives/std",
 	"sp-runtime/std",
 	"sp-session/std",
 	"sp-staking/std",

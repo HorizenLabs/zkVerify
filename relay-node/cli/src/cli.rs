@@ -71,24 +71,6 @@ pub struct RunCmd {
     #[clap(flatten)]
     pub base: sc_cli::RunCmd,
 
-    /// Force using Kusama native runtime.
-    #[arg(long = "force-kusama")]
-    pub force_kusama: bool,
-
-    /// Force using Westend native runtime.
-    #[arg(long = "force-westend")]
-    pub force_westend: bool,
-
-    /// Force using Rococo native runtime.
-    #[arg(long = "force-rococo")]
-    pub force_rococo: bool,
-
-    /// Disable the BEEFY gadget.
-    ///
-    /// Currently enabled by default on 'Rococo', 'Wococo' and 'Versi'.
-    #[arg(long)]
-    pub no_beefy: bool,
-
     /// Allows a validator to run insecurely outside of Secure Validator Mode. Security features
     /// are still enabled on a best-effort basis, but missing features are no longer required. For
     /// more information see <https://github.com/w3f/polkadot-wiki/issues/4881>.
