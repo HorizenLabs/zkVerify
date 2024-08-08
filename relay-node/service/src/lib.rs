@@ -1241,7 +1241,7 @@ pub fn new_chain_ops(
 
 /// Build a full node.
 ///
-/// The actual "flavor", aka if it will use `Polkadot`, `Rococo` or `Kusama` is determined based on
+/// The actual "flavor", aka if it will use `ZkvTestnet` or something else is determined based on
 /// [`IdentifyVariant`] using the chain spec.
 #[cfg(feature = "full-node")]
 pub fn build_full<OverseerGenerator: OverseerGen>(
