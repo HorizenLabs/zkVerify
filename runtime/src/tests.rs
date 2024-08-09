@@ -228,10 +228,7 @@ fn pallet_utility_availability() {
             dest: MultiAddress::Id(dest_2.clone()),
             value: 5000 * currency::ACME,
         });
-        assert_ok!(Utility::batch(
-            RuntimeOrigin::root(),
-            vec![call_1, call_2]
-        ));
+        assert_ok!(Utility::batch(RuntimeOrigin::root(), vec![call_1, call_2]));
     });
 }
 
