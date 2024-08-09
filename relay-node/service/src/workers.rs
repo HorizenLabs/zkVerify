@@ -39,14 +39,14 @@ fn workers_lib_path_override() -> &'static Mutex<Option<PathBuf>> {
 /// Determines the final set of paths to use for the PVF workers.
 ///
 /// 1. Get the binaries from the workers path if it is passed in, or consider all possible
-/// locations on the filesystem in order and get all sets of paths at which the binaries exist.
+///    locations on the filesystem in order and get all sets of paths at which the binaries exist.
 ///
 /// 2. If no paths exist, error out. We can't proceed without workers.
 ///
 /// 3. Log a warning if more than one set of paths exists. Continue with the first set of paths.
 ///
 /// 4. Check if the returned paths are executable. If not it's evidence of a borked installation
-/// so error out.
+///    so error out.
 ///
 /// 5. Do the version check, if mismatch error out.
 ///
