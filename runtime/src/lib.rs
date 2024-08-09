@@ -30,8 +30,8 @@ use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
     create_runtime_str, generic, impl_opaque_keys,
     traits::{
-        AccountIdConversion, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup,
-        NumberFor, One, OpaqueKeys, Verify, ConvertInto
+        AccountIdConversion, BlakeTwo256, Block as BlockT, ConvertInto, IdentifyAccount,
+        IdentityLookup, NumberFor, One, OpaqueKeys, Verify,
     },
     transaction_validity::{TransactionSource, TransactionValidity},
     ApplyExtrinsicResult, MultiSignature,
@@ -56,7 +56,7 @@ pub use frame_support::{
     traits::{
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
         ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly,
-        KeyOwnerProofSystem, Randomness, StorageInfo, WithdrawReasons
+        KeyOwnerProofSystem, Randomness, StorageInfo, WithdrawReasons,
     },
     weights::{
         constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
@@ -293,9 +293,9 @@ impl pallet_utility::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MinVestedTransfer: Balance = 100 * CENTS;
-	pub UnvestedFundsAllowedWithdrawReasons: WithdrawReasons =
-		WithdrawReasons::except(WithdrawReasons::TRANSFER | WithdrawReasons::RESERVE);
+    pub const MinVestedTransfer: Balance = 100 * CENTS;
+    pub UnvestedFundsAllowedWithdrawReasons: WithdrawReasons =
+        WithdrawReasons::except(WithdrawReasons::TRANSFER | WithdrawReasons::RESERVE);
 }
 
 impl pallet_vesting::Config for Runtime {
