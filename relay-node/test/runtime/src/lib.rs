@@ -600,6 +600,7 @@ impl pallet_test_notifier::Config for Runtime {
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet_test_notifier {
+    #![allow(unexpected_cfgs)]
     use frame_support::pallet_prelude::*;
     use frame_system::pallet_prelude::*;
     use pallet_xcm::ensure_response;

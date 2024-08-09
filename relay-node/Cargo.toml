@@ -26,8 +26,7 @@ tikv-jemallocator = { version = "0.5.0", optional = true, features = [
 	"unprefixed_malloc_on_supported_platforms",
 ] }
 
-# Crates in our workspace, defined as dependencies so we can pass them feature flags.
-zkv-cli = { path = "./cli", version = "11.0.0" }
+zkv-cli = { workspace = true }
 polkadot-node-core-pvf = { workspace = true }
 polkadot-node-core-pvf-prepare-worker = { workspace = true }
 polkadot-overseer = { workspace = true }
