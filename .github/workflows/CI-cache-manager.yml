@@ -6,22 +6,35 @@ on:
   workflow_dispatch:
 
 jobs:
+  clear-caches-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear caches
+        run: echo "clear caches"
+        # run: gh cache delete --all --repo ${{ github.repository }}
+        # env:
+        #     GITHUB_TOKEN: ${{ secrets.ACTION_CLEAR_CACHES_TOKEN }}
+
   build-test-job:
+    needs: [clear-caches-job]
     uses: ./.github/workflows/CI-build-test.yml
     with:
       CACHING_MODE: "CACHE_SAVE"
 
   test-coverage-job:
+    needs: [clear-caches-job]
     uses: ./.github/workflows/CI-coverage.yml
     with:
       CACHING_MODE: "CACHE_SAVE"
 
   lint-format-job:
+    needs: [clear-caches-job]
     uses: ./.github/workflows/CI-lint-format.yml
     with:
       CACHING_MODE: "CACHE_SAVE"
     
   e2e-test-job:
+    needs: [clear-caches-job]
     uses: ./.github/workflows/CI-e2e-test.yml
     with:
       CACHING_MODE: "CACHE_SAVE"
