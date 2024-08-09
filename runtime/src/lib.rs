@@ -80,8 +80,7 @@ pub use sp_runtime::{Perbill, Permill};
 
 pub mod governance;
 use governance::pallet_custom_origins;
-// #[cfg(feature = "relay")]
-// use parachains::*;
+
 pub mod macros {
     macro_rules! prod_or_fast {
         ($prod:expr, $test:expr) => {
