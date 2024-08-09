@@ -139,6 +139,10 @@ The client will run a chain with a single validator (Alice) and start producing 
 2024-03-28 11:49:19 💤 Idle (0 peers), best: #2 (0x8226…df51), finalized #1 (0x89e3…c6c4), ⬇ 0 ⬆ 0
 ```
 
+## Hardware Requirements for Validators
+On-chain weights have been computed on an [Amazon AWS EC2 C7a.2xlarge](https://aws.amazon.com/it/ec2/instance-types/c7a/) instance with a storage of type IO2 8000 IOPS.
+We recommend adopting at least an equivalent machine, with at least 50GB of storage space, if you plan to run a validator node.
+
 ## Docker
 
 zkVerify includes some Docker files for building the client and running one or more nodes locally.
