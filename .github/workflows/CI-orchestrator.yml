@@ -8,10 +8,13 @@ on:
 jobs:
   build-test-job:
     uses: ./.github/workflows/CI-build-test.yml
+
   test-coverage-job:
     uses: ./.github/workflows/CI-coverage.yml
+
   lint-format-job:
     uses: ./.github/workflows/CI-lint-format.yml
+    
   e2e-test-job:
     uses: ./.github/workflows/CI-e2e-test.yml
 
