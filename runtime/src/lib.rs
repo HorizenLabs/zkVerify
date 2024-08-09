@@ -29,7 +29,10 @@ use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
     create_runtime_str, generic, impl_opaque_keys,
-    traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, One, OpaqueKeys, Verify},
+    traits::{
+        AccountIdConversion, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup,
+        NumberFor, One, OpaqueKeys, Verify,
+    },
     transaction_validity::{TransactionSource, TransactionValidity},
     ApplyExtrinsicResult, MultiSignature,
 };
@@ -46,22 +49,20 @@ use frame_election_provider_support::{
 };
 use frame_support::genesis_builder_helper::{build_config, create_default_config};
 
-// A few exports that help ease life for downstream crates.
-use frame_support::traits::EqualPrivilegeOnly;
-
 pub use frame_support::{
     construct_runtime, derive_impl,
     dispatch::DispatchClass,
     parameter_types,
     traits::{
-        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, KeyOwnerProofSystem, Randomness,
-        StorageInfo,
+        tokens::{PayFromAccount, UnityAssetBalanceConversion},
+        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly,
+        KeyOwnerProofSystem, Randomness, StorageInfo,
     },
     weights::{
         constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
         IdentityFee, Weight,
     },
-    StorageValue,
+    PalletId, StorageValue,
 };
 pub use frame_system::Call as SystemCall;
 use frame_system::EnsureRoot;
@@ -78,7 +79,7 @@ pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
 pub mod governance;
-use governance::pallet_custom_origins;
+use governance::{pallet_custom_origins, Treasurer, TreasurySpender};
 
 #[cfg(test)]
 mod tests;
@@ -399,6 +400,83 @@ impl pallet_scheduler::Config for Runtime {
     type Preimages = Preimage;
 }
 
+parameter_types! {
+    pub const TreasuryPalletId: PalletId = PalletId(*b"zk/trsry");
+    pub const ProposalBond: Permill = Permill::from_percent(5);
+    pub const ProposalBondMinimum: Balance = 2000 * CENTS;
+    pub const ProposalBondMaximum: Balance = THOUSANDS;
+    pub const SpendPeriod: BlockNumber = 6 * DAYS;
+    pub const Burn: Permill = Permill::from_percent(0);
+    pub const PayoutSpendPeriod: BlockNumber = 30 * DAYS;
+    pub const MaxApprovals: u32 = 100;
+    pub ZKVerifyTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
+}
+
+impl pallet_treasury::Config for Runtime {
+    type PalletId = TreasuryPalletId;
+    type Currency = Balances;
+    type ApproveOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
+    type RejectOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
+    type RuntimeEvent = RuntimeEvent;
+    type OnSlash = Treasury;
+    type ProposalBond = ProposalBond;
+    type ProposalBondMinimum = ProposalBondMinimum;
+    type ProposalBondMaximum = ProposalBondMaximum;
+    type SpendPeriod = SpendPeriod;
+    type Burn = Burn;
+    type BurnDestination = ();
+    type MaxApprovals = MaxApprovals;
+    type WeightInfo = weights::pallet_treasury::ZKVWeight<Runtime>;
+    type SpendFunds = Bounties;
+    type SpendOrigin = TreasurySpender;
+    type AssetKind = ();
+    type Beneficiary = AccountId;
+    type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
+    type Paymaster = PayFromAccount<Balances, ZKVerifyTreasuryAccount>;
+    type BalanceConverter = UnityAssetBalanceConversion;
+    type PayoutPeriod = PayoutSpendPeriod;
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = ();
+}
+
+parameter_types! {
+    pub const BountyDepositBase: Balance = ACME;
+    pub const BountyDepositPayoutDelay: BlockNumber = 8 * DAYS;
+    pub const BountyUpdatePeriod: BlockNumber = 90 * DAYS;
+    pub const MaximumReasonLength: u32 = 16384;
+    pub const CuratorDepositMultiplier: Permill = Permill::from_percent(50);
+    pub const CuratorDepositMin: Balance = 10 * ACME;
+    pub const CuratorDepositMax: Balance = 200 * ACME;
+    pub const BountyValueMinimum: Balance = 10 * ACME;
+    pub DataDepositPerByte: Balance = deposit(0, 1);
+}
+impl pallet_bounties::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type BountyDepositBase = BountyDepositBase;
+    type BountyDepositPayoutDelay = BountyDepositPayoutDelay;
+    type BountyUpdatePeriod = BountyUpdatePeriod;
+    type CuratorDepositMultiplier = CuratorDepositMultiplier;
+    type CuratorDepositMin = CuratorDepositMin;
+    type CuratorDepositMax = CuratorDepositMax;
+    type BountyValueMinimum = BountyValueMinimum;
+    type ChildBountyManager = ChildBounties;
+    type DataDepositPerByte = DataDepositPerByte;
+    type MaximumReasonLength = MaximumReasonLength;
+    type WeightInfo = weights::pallet_bounties::ZKVWeight<Runtime>;
+}
+
+parameter_types! {
+    pub const MaxActiveChildBountyCount: u32 = 100;
+    pub const ChildBountyValueMinimum: Balance = BountyValueMinimum::get() / 10;
+}
+
+impl pallet_child_bounties::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type MaxActiveChildBountyCount = MaxActiveChildBountyCount;
+    type ChildBountyValueMinimum = ChildBountyValueMinimum;
+    type WeightInfo = weights::pallet_child_bounties::ZKVWeight<Runtime>;
+}
+
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
 pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 16;
 // We should avoid publishing attestations for empty trees
@@ -489,9 +567,9 @@ impl pallet_staking::Config for Runtime {
     type CurrencyBalance = Balance;
     type UnixTime = Timestamp;
     type CurrencyToVote = sp_staking::currency_to_vote::U128CurrencyToVote;
-    type RewardRemainder = (); // burn the remainder, should be Treasury
+    type RewardRemainder = Treasury;
     type RuntimeEvent = RuntimeEvent;
-    type Slash = (); // burn the slashed funds, should be Treasury.
+    type Slash = Treasury;
     type Reward = (); // rewards are minted from the void
     type SessionsPerEra = SessionsPerEra;
     type BondingDuration = BondingDuration;
@@ -660,6 +738,9 @@ construct_runtime!(
         SettlementGroth16Pallet: pallet_groth16_verifier,
         SettlementRisc0Pallet: pallet_risc0_verifier,
         SettlementUltraplonkPallet: pallet_ultraplonk_verifier,
+        Treasury: pallet_treasury,
+        Bounties: pallet_bounties,
+        ChildBounties: pallet_child_bounties,
     }
 );
 
@@ -725,6 +806,9 @@ mod benches {
         [frame_election_provider_support, ElectionProviderBench::<Runtime>]
         [pallet_poe, Poe]
         [pallet_conviction_voting, ConvictionVoting]
+        [pallet_treasury, Treasury]
+        [pallet_bounties, Bounties]
+        [pallet_child_bounties, ChildBounties]
         [pallet_referenda, Referenda]
         [pallet_whitelist, Whitelist]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]

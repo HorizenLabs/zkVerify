@@ -22,6 +22,8 @@ pallet-authorship = { workspace = true }
 pallet-session = { workspace = true }
 pallet-staking = { workspace = true }
 pallet-babe = { workspace = true }
+pallet-bounties = { workspace = true }
+pallet-child-bounties = { workspace = true }
 pallet-staking-reward-curve = { workspace = true }
 pallet-balances = { workspace = true }
 frame-support = { workspace = true }
@@ -33,6 +35,7 @@ pallet-preimage = { workspace = true }
 pallet-referenda = { workspace = true }
 pallet-whitelist = { workspace = true }
 pallet-conviction-voting = { workspace = true }
+pallet-treasury = { workspace = true }
 frame-system = { workspace = true }
 frame-try-runtime = { workspace = true, optional = true }
 pallet-timestamp = { workspace = true }
@@ -96,6 +99,8 @@ runtime-benchmarks = [
 	"pallet-election-provider-support-benchmarking/runtime-benchmarks",
 	"pallet-im-online/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
+	"pallet-bounties/runtime-benchmarks",
+	"pallet-child-bounties/runtime-benchmarks",
 	"pallet-babe/runtime-benchmarks",
 	"pallet-grandpa/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
@@ -105,6 +110,7 @@ runtime-benchmarks = [
 	"pallet-referenda/runtime-benchmarks",
 	"pallet-whitelist/runtime-benchmarks",
 	"pallet-conviction-voting/runtime-benchmarks",
+	"pallet-treasury/runtime-benchmarks",
 	"pallet-session-benchmarking/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-poe/runtime-benchmarks",
@@ -133,6 +139,8 @@ std = [
 	"pallet-im-online/std",
 	"pallet-authorship/std",
 	"pallet-babe/std",
+	"pallet-bounties/std",
+	"pallet-child-bounties/std",
 	"pallet-session/std",
 	"pallet-staking/std",
 	"pallet-balances/std",
@@ -144,6 +152,7 @@ std = [
 	"pallet-referenda/std",
 	"pallet-whitelist/std",
 	"pallet-conviction-voting/std",
+	"pallet-treasury/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
@@ -199,6 +208,9 @@ try-runtime = [
 	"pallet-referenda/try-runtime",
 	"pallet-whitelist/try-runtime",
 	"pallet-conviction-voting/try-runtime",
+	"pallet-treasury/try-runtime",
+	"pallet-bounties/try-runtime",
+	"pallet-child-bounties/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-verifiers/try-runtime",

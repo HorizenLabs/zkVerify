@@ -5139,6 +5139,45 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-bounties"
+version = "31.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe92916d8bb2f2ce84195ae5e6baec83c5a65bf685613d7cc207f0b8fd26ea43"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-treasury",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-child-bounties"
+version = "31.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5612487abb09a9e5b6f3a694639fd0826a8b3bae1335047899f032f292f7f410"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-bounties",
+ "pallet-treasury",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-conviction-voting"
 version = "32.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5554,6 +5593,26 @@ dependencies = [
  "sp-api",
  "sp-runtime",
  "sp-weights",
+]
+
+[[package]]
+name = "pallet-treasury"
+version = "31.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac957446c936a57417ff7a4866f3463f7f2f49d9bb2daed81093c2de8f0cceaf"
+dependencies = [
+ "docify",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "impl-trait-for-tuples",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -11477,6 +11536,8 @@ dependencies = [
  "pallet-authorship",
  "pallet-babe",
  "pallet-balances",
+ "pallet-bounties",
+ "pallet-child-bounties",
  "pallet-conviction-voting",
  "pallet-election-provider-support-benchmarking",
  "pallet-fflonk-verifier",
@@ -11498,6 +11559,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-treasury",
  "pallet-ultraplonk-verifier",
  "pallet-verifiers",
  "pallet-whitelist",

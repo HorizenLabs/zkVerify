@@ -293,6 +293,40 @@ fn pallet_whitelist_availability() {
 }
 
 #[test]
+fn pallet_treasury_availability() {
+    new_test_ext().execute_with(|| {
+        let asset_kind = Box::new(());
+        let amount = 1000 * ACME;
+        let beneficiary = Box::new(testsfixtures::SAMPLE_USERS[2].raw_account.into());
+        let valid_from = None;
+
+        let treasury_account = Treasury::account_id();
+        let _ = Balances::make_free_balance_be(&treasury_account, 10000 * ACME);
+
+        assert_ok!(Treasury::spend(
+            RuntimeOrigin::root(),
+            asset_kind,
+            amount,
+            beneficiary,
+            valid_from
+        ));
+    });
+}
+
+#[test]
+fn pallet_bounties_availability() {
+    new_test_ext().execute_with(|| {
+        let proposer = testsfixtures::SAMPLE_USERS[2].raw_account.into();
+        let origin = RuntimeOrigin::signed(proposer);
+
+        let value = 1000 * ACME;
+        let description = vec![0; 100];
+
+        assert_ok!(Bounties::propose_bounty(origin, value, description.clone()));
+    });
+}
+
+#[test]
 fn pallet_zksync_availability() {
     new_test_ext().execute_with(|| {
         let dummy_origin = AccountId32::new([0; 32]);
@@ -511,6 +545,26 @@ mod use_correct_weights {
         assert_eq!(
             <Runtime as pallet_conviction_voting::Config>::WeightInfo::vote_new(),
             crate::weights::pallet_conviction_voting::ZKVWeight::<Runtime>::vote_new()
+        );
+    }
+
+    #[test]
+    fn pallet_treasury() {
+        use pallet_treasury::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_treasury::Config>::WeightInfo::check_status(),
+            crate::weights::pallet_treasury::ZKVWeight::<Runtime>::check_status()
+        );
+    }
+
+    #[test]
+    fn pallet_bounties() {
+        use pallet_bounties::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_bounties::Config>::WeightInfo::propose_curator(),
+            crate::weights::pallet_bounties::ZKVWeight::<Runtime>::propose_curator()
         );
     }
 
