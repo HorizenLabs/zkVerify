@@ -28,8 +28,6 @@ use sp_keyring::Sr25519Keyring;
 use std::net::ToSocketAddrs;
 
 pub use crate::{error::Error, service::BlockId};
-//#[cfg(feature = "hostperfcheck")]
-//pub use polkadot_performance_test::PerfCheckError;
 #[cfg(feature = "pyroscope")]
 use pyroscope_pprofrs::{pprof_backend, PprofConfig};
 
@@ -82,25 +80,6 @@ impl SubstrateCli for Cli {
 
 fn set_default_ss58_version(_spec: &dyn service::ChainSpec) {
     sp_core::crypto::set_default_ss58_version(Ss58AddressFormatRegistry::SubstrateAccount.into());
-}
-
-/// Launch a node, accepting arguments just like a regular node,
-/// accepts an alternative overseer generator, to adjust behavior
-/// for integration tests as needed.
-/// `malus_finality_delay` restrict finality votes of this node
-/// to be at most `best_block - malus_finality_delay` height.
-#[cfg(feature = "malus")]
-pub fn run_node(
-    run: Cli,
-    overseer_gen: impl service::OverseerGen,
-    malus_finality_delay: Option<u32>,
-) -> Result<()> {
-    run_node_inner(
-        run,
-        overseer_gen,
-        malus_finality_delay,
-        |_logger_builder, _config| {},
-    )
 }
 
 fn run_node_inner<F>(
