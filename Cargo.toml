@@ -292,7 +292,7 @@ cumulus-client-consensus-proposer = { version = "0.11.0" }
 cumulus-client-service = { version = "0.11.0" }
 cumulus-primitives-parachain-inherent = { version = "0.11.0" }
 cumulus-relay-chain-interface = { version = "0.11.0" }
-cumulus-primitives-aura = { default_features = false, version = "0.11.0" }
+cumulus-primitives-aura = { default-features = false, version = "0.11.0" }
 
 cumulus-pallet-aura-ext = { default-features = false, version = "0.11.0" }
 cumulus-pallet-dmp-queue = { default-features = false, version = "0.11.0" }
