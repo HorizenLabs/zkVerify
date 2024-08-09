@@ -83,6 +83,10 @@ substrate-wasm-builder = { workspace = true }
 default = ["std"]
 no_std = []
 only-staking = []
+try-runtime = [
+	"sp-runtime/try-runtime",
+  "frame-support/try-runtime",
+]
 runtime-metrics = [
 	"polkadot-runtime-parachains/runtime-metrics",
 	"sp-io/with-tracing",
