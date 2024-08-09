@@ -54,7 +54,7 @@ jobs:
           echo "GRP_ID=$(id -g)" >> $GITHUB_ENV
 
       - name: Cargo build
-        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build --release
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build -p mainchain --release
 
       - name: Yarn install and test
         shell: bash
