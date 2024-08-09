@@ -29,7 +29,7 @@ mod error;
 pub use service::{self, CoreApi, IdentifyVariant, ProvideRuntimeApi, TFullClient};
 
 #[cfg(feature = "malus")]
-pub use service::overseer::prepared_overseer_builder;
+pub use service::overseer::dummy_overseer_builder;
 
 #[cfg(feature = "cli")]
 pub use cli::*;

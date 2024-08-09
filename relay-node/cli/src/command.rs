@@ -28,8 +28,8 @@ use sp_keyring::Sr25519Keyring;
 use std::net::ToSocketAddrs;
 
 pub use crate::{error::Error, service::BlockId};
-#[cfg(feature = "hostperfcheck")]
-pub use polkadot_performance_test::PerfCheckError;
+//#[cfg(feature = "hostperfcheck")]
+//pub use polkadot_performance_test::PerfCheckError;
 #[cfg(feature = "pyroscope")]
 use pyroscope_pprofrs::{pprof_backend, PprofConfig};
 
