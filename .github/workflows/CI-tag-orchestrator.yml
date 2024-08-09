@@ -28,8 +28,8 @@ jobs:
         run: |
           source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
           "${GITHUB_WORKSPACE}/ci/docker.sh"
+
   rustdoc-job:
-    needs: docker-job
     uses: ./.github/workflows/CI-rustdoc.yml
 
   notify-slack:
