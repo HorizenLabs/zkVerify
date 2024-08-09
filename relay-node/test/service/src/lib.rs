@@ -274,7 +274,7 @@ pub fn run_collator_node(
         rpc_handlers,
         overseer_handle,
         ..
-    } = new_full(config, IsParachainNode::Collator(collator_pair), None)
+    } = new_full(config, IsParachainNode::Collator(Box::new(collator_pair)), None)
         .expect("could not create Polkadot test service");
 
     let overseer_handle = overseer_handle.expect("test node must have an overseer handle");
