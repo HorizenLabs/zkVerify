@@ -49,6 +49,7 @@ substrate-build-script-utils = { workspace = true }
 [features]
 default = ["cli", "db", "full-node"]
 db = ["service/db"]
+malus = ["service/malus"]
 cli = [
 	"clap",
 	"frame-benchmarking-cli",

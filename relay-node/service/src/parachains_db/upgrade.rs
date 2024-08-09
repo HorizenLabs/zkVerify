@@ -148,8 +148,7 @@ fn version_file_path(path: &Path) -> PathBuf {
 
 /// Database configuration for version 3.
 pub(crate) fn paritydb_version_3_config(path: &Path) -> parity_db::Options {
-    let mut options =
-        parity_db::Options::with_columns(path, super::columns::v4::NUM_COLUMNS as u8);
+    let mut options = parity_db::Options::with_columns(path, super::columns::v4::NUM_COLUMNS as u8);
     for i in columns::v4::ORDERED_COL {
         options.columns[*i as usize].btree_index = true;
     }
