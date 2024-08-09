@@ -4,7 +4,11 @@ run-name: "Workflow CI/CD Steps: build, unit and integration testing"
 
 on:
   workflow_call:
-
+    inputs:
+      CACHING_MODE:
+        required: true
+        type: string
+        
 env:
   IMAGE_NAME: zencash/sc-ci-base
   IMAGE_TAG: noble_rust-stable_latest
@@ -27,20 +31,25 @@ jobs:
       - name: Set up deps cache
         run: mkdir deps
 
-      - name: Set up cargo cache
-        uses: actions/cache@v4
-        if: ${{ !env.ACT }}
-        continue-on-error: true
+      - name: Restore common cache
+        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
+        uses: actions/cache/restore@v3
         with:
           path: |
             ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            target/
             deps/
-          key: build-test-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: build-test-cargo-
+          key: common-cache
+    
+      - name: Restore build-test cache
+        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            target/
+          key: build-test-cache
 
       - name: Set docker env vars
         run: |
@@ -57,6 +66,26 @@ jobs:
       - name: Cargo integration tests
         shell: bash
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo test --test '*' --all-features --no-fail-fast --release 2>&1 | tee integration_tests_output.txt
+
+      - name: Save common cache
+        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            deps/
+          key: common-cache
+    
+      - name: Save build-test cache
+        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            target/
+          key: build-test-cache
 
       - name: Upload output(s)
         if: ${{ !env.ACT }}
