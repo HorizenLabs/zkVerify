@@ -25,7 +25,7 @@ use std::{
 type Version = u32;
 
 /// Version file name.
-const VERSION_FILE_NAME: &'static str = "parachain_db_version";
+const VERSION_FILE_NAME: &str = "parachain_db_version";
 
 /// Current db version.
 /// Version 4 changes approval db format for `OurAssignment`.
@@ -127,7 +127,7 @@ fn get_db_version(path: &Path) -> Result<Option<Version>, Error> {
         Err(ref err) if err.kind() == io::ErrorKind::NotFound => Ok(None),
         Err(err) => Err(err.into()),
         Ok(content) => u32::from_str(&content)
-            .map(|v| Some(v))
+            .map(Some)
             .map_err(|_| Error::CorruptedVersionFile),
     }
 }
@@ -149,7 +149,7 @@ fn version_file_path(path: &Path) -> PathBuf {
 /// Database configuration for version 3.
 pub(crate) fn paritydb_version_3_config(path: &Path) -> parity_db::Options {
     let mut options =
-        parity_db::Options::with_columns(&path, super::columns::v4::NUM_COLUMNS as u8);
+        parity_db::Options::with_columns(path, super::columns::v4::NUM_COLUMNS as u8);
     for i in columns::v4::ORDERED_COL {
         options.columns[*i as usize].btree_index = true;
     }

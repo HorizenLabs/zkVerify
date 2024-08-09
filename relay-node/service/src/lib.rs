@@ -399,7 +399,7 @@ fn new_partial_basics(
 
     let (client, backend, keystore_container, task_manager) =
         service::new_full_parts::<Block, RuntimeApi, _>(
-            &config,
+            config,
             telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
             executor,
         )?;
@@ -783,7 +783,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
             std::collections::HashMap::new()
         };
 
-    let req_protocol_names = ReqProtocolNames::new(&genesis_hash, config.chain_spec.fork_id());
+    let req_protocol_names = ReqProtocolNames::new(genesis_hash, config.chain_spec.fork_id());
 
     let (collation_req_v1_receiver, cfg) =
         IncomingRequest::get_config_receiver(&req_protocol_names);
@@ -844,7 +844,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
         net_config.add_request_response_protocol(cfg);
         let approval_voting_config = ApprovalVotingConfig {
             col_approval_data: parachains_db::REAL_COLUMNS.col_approval_data,
-            slot_duration_millis: slot_duration.as_millis() as u64,
+            slot_duration_millis: slot_duration.as_millis(),
         };
         let dispute_coordinator_config = DisputeCoordinatorConfig {
             col_dispute_data: parachains_db::REAL_COLUMNS.col_dispute_coordinator_data,
