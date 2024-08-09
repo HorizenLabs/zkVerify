@@ -6,9 +6,8 @@ pub use polkadot_runtime_parachains::{
     configuration as parachains_configuration, disputes as parachains_disputes,
     disputes::slashing as parachains_slashing,
     dmp as parachains_dmp, hrmp as parachains_hrmp, inclusion as parachains_inclusion,
-    initializer as parachains_initializer, origin as parachains_origin,
-    paras as parachains_paras, paras_inherent as parachains_paras_inherent,
-    reward_points as parachains_reward_points,
+    initializer as parachains_initializer, origin as parachains_origin, paras as parachains_paras,
+    paras_inherent as parachains_paras_inherent, reward_points as parachains_reward_points,
     runtime_api_impl::{
         v10 as parachains_runtime_api_impl, vstaging as parachains_staging_runtime_api_impl,
     },
@@ -368,4 +367,3 @@ pub mod migrations {
     /// Unreleased migrations. Add new ones here:
     pub type Unreleased = (AddParachainUpgrade,);
 }
-
