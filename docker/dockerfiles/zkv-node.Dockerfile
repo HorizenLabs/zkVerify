@@ -17,7 +17,10 @@ ARG FEATURES=""
 
 WORKDIR /usr/src/node
 COPY . .
-RUN cargo build --profile ${PROFILE} --features "${FEATURES}"
+
+RUN echo "SUBSTRATE_CLI_GIT_COMMIT_HASH=`git rev-parse --short=11 HEAD`" >> .docker.env
+RUN . ./.docker.env \
+  && cargo build --profile ${PROFILE} --features "${FEATURES}"
 
 FROM ubuntu:22.04 as node
 
