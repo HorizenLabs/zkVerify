@@ -17,6 +17,7 @@
 //! Polkadot service. Specialized wrapper over substrate service.
 
 #![deny(unused_results)]
+#![allow(clippy::type_complexity)]
 
 pub mod benchmarking;
 pub mod chain_spec;
