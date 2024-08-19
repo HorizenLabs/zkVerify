@@ -213,6 +213,25 @@ fn pallet_multisig_availability() {
         ));
     })
 }
+
+#[test]
+fn pallet_utility_availability() {
+    new_test_ext().execute_with(|| {
+        let dest_1: AccountId32 = testsfixtures::SAMPLE_USERS[0].raw_account.into();
+        let dest_2: AccountId32 = testsfixtures::SAMPLE_USERS[1].raw_account.into();
+
+        let call_1 = RuntimeCall::Balances(BalancesCall::transfer_allow_death {
+            dest: MultiAddress::Id(dest_1.clone()),
+            value: 5000 * currency::ACME,
+        });
+        let call_2 = RuntimeCall::Balances(BalancesCall::transfer_allow_death {
+            dest: MultiAddress::Id(dest_2.clone()),
+            value: 5000 * currency::ACME,
+        });
+        assert_ok!(Utility::batch(RuntimeOrigin::root(), vec![call_1, call_2]));
+    });
+}
+
 #[test]
 fn pallet_preimage_availability() {
     new_test_ext().execute_with(|| {
@@ -495,6 +514,16 @@ mod use_correct_weights {
         assert_eq!(
             <Runtime as pallet_multisig::Config>::WeightInfo::as_multi_approve(3, 100),
             crate::weights::pallet_multisig::ZKVWeight::<Runtime>::as_multi_approve(3, 100)
+        );
+    }
+
+    #[test]
+    fn pallet_utility() {
+        use pallet_utility::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_utility::Config>::WeightInfo::dispatch_as(),
+            crate::weights::pallet_utility::ZKVWeight::<Runtime>::dispatch_as()
         );
     }
 

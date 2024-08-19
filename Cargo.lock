@@ -5637,6 +5637,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-utility"
+version = "32.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d770b7c961afe12adc5a727a5d02b44ef09ce38d1dd5923793b3e52e5afde3c"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-verifiers"
 version = "0.1.0"
 dependencies = [
@@ -11561,6 +11578,7 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
  "pallet-ultraplonk-verifier",
+ "pallet-utility",
  "pallet-verifiers",
  "pallet-whitelist",
  "pallet-zksync-verifier",

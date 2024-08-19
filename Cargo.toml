@@ -109,6 +109,7 @@ pallet-multisig = { default-features = false, version = "32.0.0" }
 pallet-scheduler = { default-features = false, version = "33.0.0" }
 pallet-preimage = { default-features = false, version = "32.0.0" }
 pallet-referenda = { default-features = false, version = "32.0.0" }
+pallet-utility = { default-features = false, version = "32.0.0" }
 pallet-whitelist = { default-features = false, version = "31.0.0" }
 pallet-conviction-voting = { default-features = false, version = "32.0.0" }
 pallet-treasury = { default-features = false, version = "31.0.0" }

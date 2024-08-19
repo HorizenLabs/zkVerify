@@ -285,6 +285,13 @@ impl pallet_grandpa::Config for Runtime {
         pallet_grandpa::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
 }
 
+impl pallet_utility::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeCall = RuntimeCall;
+    type PalletsOrigin = OriginCaller;
+    type WeightInfo = weights::pallet_utility::ZKVWeight<Runtime>;
+}
+
 impl pallet_timestamp::Config for Runtime {
     /// A timestamp: milliseconds since the unix epoch.
     type Moment = u64;
@@ -741,6 +748,7 @@ construct_runtime!(
         Treasury: pallet_treasury,
         Bounties: pallet_bounties,
         ChildBounties: pallet_child_bounties,
+        Utility: pallet_utility,
     }
 );
 
@@ -810,6 +818,7 @@ mod benches {
         [pallet_bounties, Bounties]
         [pallet_child_bounties, ChildBounties]
         [pallet_referenda, Referenda]
+        [pallet_utility, Utility]
         [pallet_whitelist, Whitelist]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
