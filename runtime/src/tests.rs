@@ -18,7 +18,7 @@ use super::*;
 use codec::Encode;
 use frame_support::dispatch::GetDispatchInfo;
 use frame_support::traits::schedule::DispatchTime;
-use frame_support::traits::StorePreimage;
+use frame_support::traits::{StorePreimage, VestingSchedule};
 use frame_support::{
     assert_ok,
     traits::{
@@ -229,6 +229,15 @@ fn pallet_utility_availability() {
             value: 5000 * currency::ACME,
         });
         assert_ok!(Utility::batch(RuntimeOrigin::root(), vec![call_1, call_2]));
+    });
+}
+
+#[test]
+fn pallet_vesting_availability() {
+    new_test_ext().execute_with(|| {
+        assert!(
+            Vesting::vesting_balance(&testsfixtures::SAMPLE_USERS[0].raw_account.into()).is_none()
+        );
     });
 }
 
@@ -524,6 +533,16 @@ mod use_correct_weights {
         assert_eq!(
             <Runtime as pallet_utility::Config>::WeightInfo::dispatch_as(),
             crate::weights::pallet_utility::ZKVWeight::<Runtime>::dispatch_as()
+        );
+    }
+
+    #[test]
+    fn pallet_vesting() {
+        use pallet_vesting::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_vesting::Config>::WeightInfo::force_vested_transfer(1, 2),
+            crate::weights::pallet_vesting::ZKVWeight::<Runtime>::force_vested_transfer(1, 2)
         );
     }
 

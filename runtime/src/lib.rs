@@ -30,8 +30,8 @@ use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
     create_runtime_str, generic, impl_opaque_keys,
     traits::{
-        AccountIdConversion, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup,
-        NumberFor, One, OpaqueKeys, Verify,
+        AccountIdConversion, BlakeTwo256, Block as BlockT, ConvertInto, IdentifyAccount,
+        IdentityLookup, NumberFor, One, OpaqueKeys, Verify,
     },
     transaction_validity::{TransactionSource, TransactionValidity},
     ApplyExtrinsicResult, MultiSignature,
@@ -56,7 +56,7 @@ pub use frame_support::{
     traits::{
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
         ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly,
-        KeyOwnerProofSystem, Randomness, StorageInfo,
+        KeyOwnerProofSystem, Randomness, StorageInfo, WithdrawReasons,
     },
     weights::{
         constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
@@ -290,6 +290,23 @@ impl pallet_utility::Config for Runtime {
     type RuntimeCall = RuntimeCall;
     type PalletsOrigin = OriginCaller;
     type WeightInfo = weights::pallet_utility::ZKVWeight<Runtime>;
+}
+
+parameter_types! {
+    pub const MinVestedTransfer: Balance = 100 * CENTS;
+    pub UnvestedFundsAllowedWithdrawReasons: WithdrawReasons =
+        WithdrawReasons::except(WithdrawReasons::TRANSFER | WithdrawReasons::RESERVE);
+}
+
+impl pallet_vesting::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type BlockNumberToBalance = ConvertInto;
+    type MinVestedTransfer = MinVestedTransfer;
+    type WeightInfo = weights::pallet_vesting::ZKVWeight<Runtime>;
+    type UnvestedFundsAllowedWithdrawReasons = UnvestedFundsAllowedWithdrawReasons;
+    type BlockNumberProvider = System;
+    const MAX_VESTING_SCHEDULES: u32 = 28;
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -749,6 +766,7 @@ construct_runtime!(
         Bounties: pallet_bounties,
         ChildBounties: pallet_child_bounties,
         Utility: pallet_utility,
+        Vesting: pallet_vesting,
     }
 );
 
@@ -819,6 +837,7 @@ mod benches {
         [pallet_child_bounties, ChildBounties]
         [pallet_referenda, Referenda]
         [pallet_utility, Utility]
+        [pallet_vesting, Vesting]
         [pallet_whitelist, Whitelist]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]

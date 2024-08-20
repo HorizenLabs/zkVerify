@@ -5688,6 +5688,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-vesting"
+version = "32.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24ce37af22cc31883dfdafa334c4e1f7cea8f2d4fb964f3aa88d77d5eea7ba94"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-whitelist"
 version = "31.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11580,6 +11596,7 @@ dependencies = [
  "pallet-ultraplonk-verifier",
  "pallet-utility",
  "pallet-verifiers",
+ "pallet-vesting",
  "pallet-whitelist",
  "pallet-zksync-verifier",
  "parity-scale-codec",
