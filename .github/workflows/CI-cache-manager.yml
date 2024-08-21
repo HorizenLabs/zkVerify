@@ -26,13 +26,19 @@ jobs:
             gh cache delete --all
           fi
 
-  build-test-job:
+  build-job:
     needs: [clear-caches-job]
-    uses: ./.github/workflows/CI-build-test.yml
+    uses: ./.github/workflows/CI-build.yml
     with:
       CACHING_MODE: "CACHE_SAVE"
 
-  test-coverage-job:
+  test-job:
+    needs: [clear-caches-job]
+    uses: ./.github/workflows/CI-test.yml
+    with:
+      CACHING_MODE: "CACHE_SAVE"
+
+  coverage-job:
     needs: [clear-caches-job]
     uses: ./.github/workflows/CI-coverage.yml
     with:

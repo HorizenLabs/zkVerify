@@ -2,8 +2,8 @@
 set -eEuo pipefail
 
 # Set output file locations
-unit_test_file="./build-and-test-output/unit_tests_output.txt"
-integration_test_file="./build-and-test-output/integration_tests_output.txt"
+unit_test_file="./test-output/unit_tests_output.txt"
+integration_test_file="./test-output/integration_tests_output.txt"
 coverage_report_file="./coverage-output/coverage_report.json"
 e2e_test_file="./e2e-test-output/e2e_test_output.txt"
 
@@ -92,10 +92,10 @@ if [ -f "${coverage_report_file}" ]; then
     instantiations_percent=$(echo "${coverage_totals}" | jq -r '.instantiations.percent' | awk '{printf "%.2f", $0}')
 
     coverage_summary="*Test Coverage Summary (${lines_percent}%)*\n*Functions:* ${functions_count} (${functions_percent}%), *Lines:* ${lines_count} (${lines_percent}%), *Regions:* ${regions_count} (${regions_percent}%), *Instantiations:* ${instantiations_count} (${instantiations_percent}%)"
-    echo "COVERAGE_TEST_SUMMARY=${coverage_summary}" >> $GITHUB_ENV
+    echo "COVERAGE_SUMMARY=${coverage_summary}" >> $GITHUB_ENV
     echo "LINE_COVERAGE_PERCENT=${lines_percent}" >> $GITHUB_ENV
 else
-    echo "COVERAGE_TEST_SUMMARY=Coverage data not found." >> $GITHUB_ENV
+    echo "COVERAGE_SUMMARY=Coverage data not found." >> $GITHUB_ENV
 fi
 
 # Process e2e test file

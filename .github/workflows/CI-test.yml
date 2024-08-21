@@ -1,4 +1,4 @@
-name: Build-and-Test
+name: Test
 
 run-name: "Workflow CI/CD Steps: build, unit and integration testing"
 
@@ -18,7 +18,7 @@ env:
   CMAKE_INSTALL: true
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
@@ -43,21 +43,18 @@ jobs:
             deps/
           key: common-cache
     
-      - name: Restore build-test cache
+      - name: Restore test cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
         uses: actions/cache/restore@v3
         with:
           path: |
             target/
-          key: build-test-cache
+          key: test-cache
 
       - name: Set docker env vars
         run: |
           echo "USER_ID=$(id -u)" >> $GITHUB_ENV
           echo "GRP_ID=$(id -g)" >> $GITHUB_ENV
-
-      - name: Cargo build
-        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build --release
 
       - name: Cargo unit tests
         shell: bash
@@ -79,19 +76,19 @@ jobs:
             deps/
           key: common-cache
     
-      - name: Save build-test cache
+      - name: Save test cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}
         uses: actions/cache/save@v3
         with:
           path: |
             target/
-          key: build-test-cache
+          key: test-cache
 
       - name: Upload output(s)
         if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v4
         with:
-          name: build-and-test-output
+          name: test-output
           path: |
             unit_tests_output.txt
             integration_tests_output.txt

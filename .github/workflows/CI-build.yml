@@ -1,6 +1,6 @@
-name: End-to-end-test
+name: Build
 
-run-name: "Workflow CI/CD Steps: end-to-end test on zombienet"
+run-name: "Workflow CI/CD Steps: build, unit and integration testing"
 
 on:
   workflow_call:
@@ -8,7 +8,7 @@ on:
       CACHING_MODE:
         required: true
         type: string
-
+        
 env:
   IMAGE_NAME: zencash/sc-ci-base
   IMAGE_TAG: noble_rust-stable_latest
@@ -18,11 +18,15 @@ env:
   CMAKE_INSTALL: true
 
 jobs:
-  e2e-test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
+
+      - name: Free up disk space
+        if: ${{ !env.ACT }}
+        run: ${GITHUB_WORKSPACE}/.github/scripts/clean_ci.sh
 
       - name: Set up deps cache
         run: mkdir deps
@@ -39,13 +43,13 @@ jobs:
             deps/
           key: common-cache
     
-      - name: Restore e2e-test cache
+      - name: Restore build cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
         uses: actions/cache/restore@v3
         with:
           path: |
             target/
-          key: build-cache # same cache as "build" job (since "cargo build --release" is used in both jobs)
+          key: build-cache
 
       - name: Set docker env vars
         run: |
@@ -55,25 +59,22 @@ jobs:
       - name: Cargo build
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build --release
 
-      - name: Yarn install and test
-        shell: bash
-        env:
-          NODEJS_VERSION_INSTALL: 18
-        run: |
-          ${{ env.DOCKER_COMPOSE_CMD }} /bin/bash -c '
-            set -o pipefail \
-            && cd ${{ env.DOCKER_BUILD_DIR }}/e2e-tests \
-            && yarn install \
-            && yarn test 2>&1 | tee ${{ env.DOCKER_BUILD_DIR }}/e2e_test_output.txt
-          '
-          
-      - name: Upload output(s)
-        if: ${{ !env.ACT }}
-        uses: actions/upload-artifact@v4
+      - name: Save common cache
+        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}
+        uses: actions/cache/save@v3
         with:
-          name: e2e-test-output
-          path: e2e_test_output.txt
-          if-no-files-found: warn
-          retention-days: 1
-          compression-level: 0
-          overwrite: true
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            deps/
+          key: common-cache
+    
+      - name: Save build cache
+        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            target/
+          key: build-cache
