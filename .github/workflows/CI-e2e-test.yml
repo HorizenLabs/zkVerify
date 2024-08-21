@@ -4,6 +4,10 @@ run-name: "Workflow CI/CD Steps: end-to-end test on zombienet"
 
 on:
   workflow_call:
+    inputs:
+      CACHING_MODE:
+        required: true
+        type: string
 
 env:
   IMAGE_NAME: zencash/sc-ci-base
@@ -23,20 +27,25 @@ jobs:
       - name: Set up deps cache
         run: mkdir deps
 
-      - name: Set up cargo cache
-        uses: actions/cache@v4
-        if: ${{ !env.ACT }}
-        continue-on-error: true
+      - name: Restore common cache
+        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
+        uses: actions/cache/restore@v3
         with:
           path: |
             ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            target/
             deps/
-          key: e2e-test-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: e2e-test-cargo-
+          key: common-cache
+    
+      - name: Restore e2e-test cache
+        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            target/
+          key: e2e-test-cache
 
       - name: Set docker env vars
         run: |
@@ -58,6 +67,14 @@ jobs:
             && yarn test 2>&1 | tee ${{ env.DOCKER_BUILD_DIR }}/e2e_test_output.txt
           '
 
+      - name: Save e2e-test cache
+        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            target/
+          key: e2e-test-cache
+          
       - name: Upload output(s)
         if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v4

@@ -8,15 +8,23 @@ on:
 jobs:
   build-test-job:
     uses: ./.github/workflows/CI-build-test.yml
+    with:
+      CACHING_MODE: "CACHE_RESTORE"
 
   test-coverage-job:
     uses: ./.github/workflows/CI-coverage.yml
+    with:
+      CACHING_MODE: "CACHE_RESTORE"
 
   lint-format-job:
     uses: ./.github/workflows/CI-lint-format.yml
-    
+    with:
+      CACHING_MODE: "CACHE_RESTORE"
+
   e2e-test-job:
     uses: ./.github/workflows/CI-e2e-test.yml
+    with:
+      CACHING_MODE: "CACHE_RESTORE"
 
   check-act:
     runs-on: ubuntu-latest

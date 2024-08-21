@@ -31,6 +31,8 @@ jobs:
 
   rustdoc-job:
     uses: ./.github/workflows/CI-rustdoc.yml
+    with:
+      CACHING_MODE: "CACHE_RESTORE"
 
   notify-slack:
     runs-on: ubuntu-latest
