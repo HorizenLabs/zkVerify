@@ -43,9 +43,3 @@ jobs:
     uses: ./.github/workflows/CI-lint-format.yml
     with:
       CACHING_MODE: "CACHE_SAVE"
-    
-  e2e-test-job:
-    needs: [clear-caches-job]
-    uses: ./.github/workflows/CI-e2e-test.yml
-    with:
-      CACHING_MODE: "CACHE_SAVE"
