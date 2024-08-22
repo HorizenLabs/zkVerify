@@ -115,4 +115,4 @@ fi
 passed_formatted="*Passed*: ${e2e_total_passed}"
 failed_formatted="*Failed*: ${e2e_total_failed}"
 runtime_formatted="*Runtime*: ${e2e_total_runtime}s"
-echo "E2E_TEST_SUMMARY=*E2E Tests*\n${passed_formatted}, ${failed_formatted}, ${runtime_formatted}" >> $GITHUB_ENV
+echo "E2E_TEST_SUMMARY=*E2E Tests |* ${passed_formatted}, ${failed_formatted}, ${runtime_formatted}" >> $GITHUB_ENV
