@@ -25,12 +25,12 @@ use sp_blockchain::HeaderBackend;
 use sp_core::H256;
 use sp_runtime::traits::Block as BlockT;
 
-pub use proof_of_existence_rpc_runtime_api::PoEApi as PoERuntimeApi;
+pub use proof_of_existence_rpc_runtime_api::AttestationApi as AttestationRuntimeApi;
 use proof_of_existence_rpc_runtime_api::{AttestationPathRequestError, MerkleProof};
 
 #[rpc(client, server)]
-pub trait PoEApi<BlockHash, ResponseType> {
-    #[method(name = "poe_proofPath")]
+pub trait AttestationApi<BlockHash, ResponseType> {
+    #[method(name = "attestation_proofPath")]
     fn get_proof_path(
         &self,
         attestation_id: u64,
@@ -40,13 +40,13 @@ pub trait PoEApi<BlockHash, ResponseType> {
 }
 
 // Provides RPC methods to query a dispatchable's class, weight and fee.
-pub struct PoE<C, P> {
+pub struct Attestation<C, P> {
     client: Arc<C>,
     _marker: std::marker::PhantomData<P>,
 }
 
-impl<C, P> PoE<C, P> {
-    // Creates a new instance of the PoE Rpc helper.
+impl<C, P> Attestation<C, P> {
+    // Creates a new instance of the Attestation Rpc helper.
     pub fn new(client: Arc<C>) -> Self {
         Self {
             client,
@@ -78,11 +78,11 @@ impl From<Error> for i32 {
     }
 }
 
-impl<C, Block> PoEApiServer<<Block as BlockT>::Hash, MerkleProof> for PoE<C, Block>
+impl<C, Block> AttestationApiServer<<Block as BlockT>::Hash, MerkleProof> for Attestation<C, Block>
 where
     Block: BlockT,
     C: ProvideRuntimeApi<Block> + HeaderBackend<Block> + Send + Sync + 'static,
-    C::Api: PoERuntimeApi<Block>,
+    C::Api: AttestationRuntimeApi<Block>,
 {
     fn get_proof_path(
         &self,

@@ -180,11 +180,11 @@ pub fn inherent_benchmark_data() -> Result<InherentData> {
     let mut inherent_data = InherentData::new();
     let d = Duration::from_millis(0);
     let timestamp = sp_timestamp::InherentDataProvider::new(d.into());
-    let poe = hp_poe::InherentDataProvider::default();
+    let attestation = hp_attestation::InherentDataProvider::default();
 
     futures::executor::block_on(async {
         timestamp.provide_inherent_data(&mut inherent_data).await?;
-        poe.provide_inherent_data(&mut inherent_data).await
+        attestation.provide_inherent_data(&mut inherent_data).await
     })
     .map_err(|e| format!("creating inherent data: {:?}", e))?;
     Ok(inherent_data)

@@ -83,7 +83,7 @@ pub mod pallet {
     use codec::Encode;
     use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*, Identity};
     use frame_system::pallet_prelude::*;
-    use hp_poe::OnProofVerified;
+    use hp_attestation::OnProofVerified;
     use sp_core::{hexdisplay::AsBytesRef, H256};
     use sp_io::hashing::keccak_256;
     use sp_std::boxed::Box;
@@ -211,7 +211,7 @@ pub mod pallet {
         I: Verifier,
     {
         /// Submit a proof and accept it if and only if is valid.
-        /// On success emit a `poe::NewElement` event.
+        /// On success emit a `attestation::NewProof` event.
         /// Accept either a Vk or its hash. If you use the Vk hash the Vk should be already registered
         /// with `register_vk` extrinsic.
         #[pallet::call_index(0)]

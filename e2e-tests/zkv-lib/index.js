@@ -12,7 +12,7 @@ zkvTypes = {
 
 // This one defines the metadata for the arguments and return value of proofPath RPC call
 zkvRpc = {
-    poe: {
+    attestation: {
         proofPath: {
             description: 'Get the Merkle root and path of a stored proof',
             params: [
@@ -58,7 +58,7 @@ exports.init_api = async (zombie, nodeName, networkInfo) => {
 
 exports.submitProof = async (pallet, signer, ...verifierArgs) => {
     const validProofSubmission = pallet.submitProof(...verifierArgs);
-    return await submitExtrinsic(validProofSubmission, signer, BlockUntil.InBlock, (event) => event.section == "poe" && event.method == "NewElement");
+    return await submitExtrinsic(validProofSubmission, signer, BlockUntil.InBlock, (event) => event.section == "attestation" && event.method == "NewProof");
 }
 
 // Wait for the next attestaion id to be published
@@ -79,7 +79,7 @@ exports.waitForNewAttestation = async (api, timeout) => {
                 // Show what we are busy with
                 console.log(`\t${event.section}: ${event.method}:: (phase = ${phase.toString()})`);
 
-                if ((event.section == "poe") && (event.method == "NewAttestation")) {
+                if ((event.section == "attestation") && (event.method == "NewAttestation")) {
                     clearTimeout(timeout);
                     unsubscribe();
                     resolve(event);

@@ -76,7 +76,7 @@ frame-benchmarking = { workspace = true, optional = true }
 frame-system-benchmarking = { workspace = true, optional = true }
 
 # Custom logic
-pallet-poe = { workspace = true }
+pallet-attestation = { workspace = true }
 static_assertions = "1.1.0"
 proof-of-existence-rpc-runtime-api = { workspace = true }
 
@@ -117,7 +117,7 @@ runtime-benchmarks = [
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-utility/runtime-benchmarks",
 	"pallet-vesting/runtime-benchmarks",
-	"pallet-poe/runtime-benchmarks",
+	"pallet-attestation/runtime-benchmarks",
 	"pallet-staking/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"pallet-verifiers/runtime-benchmarks",
@@ -163,7 +163,7 @@ std = [
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
 	"pallet-verifiers/std",
-	"pallet-poe/std",
+	"pallet-attestation/std",
 	"proof-of-existence-rpc-runtime-api/std",
 	"scale-info/std",
 	"serde_json/std",
@@ -222,7 +222,7 @@ try-runtime = [
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-verifiers/try-runtime",
-	"pallet-poe/try-runtime",
+	"pallet-attestation/try-runtime",
 	"sp-runtime/try-runtime",
 	"pallet-verifiers/try-runtime",
 ]

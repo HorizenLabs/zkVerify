@@ -29,7 +29,7 @@ pub mod on_proof_verified {
         use frame_support::pallet_prelude::*;
         use sp_core::H256;
 
-        use hp_poe::OnProofVerified;
+        use hp_attestation::OnProofVerified;
 
         #[pallet::pallet]
         pub struct Pallet<T>(_);

@@ -41,7 +41,7 @@ pub mod pallet {
     use frame_support::sp_runtime::traits::{Keccak256, SaturatedConversion};
     use frame_system::pallet_prelude::*;
 
-    use hp_poe::{InherentError, InherentType, INHERENT_IDENTIFIER};
+    use hp_attestation::{InherentError, InherentType, INHERENT_IDENTIFIER};
 
     #[derive(Clone, TypeInfo, PartialEq, Eq, Encode, Decode, Debug)]
     pub enum AttestationPathRequestError {
@@ -61,7 +61,7 @@ pub mod pallet {
         type WeightInfo: WeightInfo;
     }
 
-    impl<T: Config> hp_poe::OnProofVerified for Pallet<T> {
+    impl<T: Config> hp_attestation::OnProofVerified for Pallet<T> {
         fn on_proof_verified(pubs_hash: H256) {
             Self::insert(pubs_hash);
         }
@@ -91,7 +91,7 @@ pub mod pallet {
     #[pallet::event]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
-        NewElement { value: H256, attestation_id: u64 },
+        NewProof { value: H256, attestation_id: u64 },
         NewAttestation { id: u64, attestation: H256 },
     }
 
@@ -146,7 +146,7 @@ pub mod pallet {
             log::trace!("Inserting element: {value}");
             Values::<T>::insert(next_attestation, value, ());
 
-            Self::deposit_event(Event::NewElement {
+            Self::deposit_event(Event::NewProof {
                 value,
                 attestation_id: next_attestation,
             });

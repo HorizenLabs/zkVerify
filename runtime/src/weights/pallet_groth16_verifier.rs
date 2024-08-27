@@ -56,14 +56,14 @@ use core::marker::PhantomData;
 pub struct ZKVWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> pallet_groth16_verifier::WeightInfo for ZKVWeight<T> {
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     /// The range of component `n` is `[0, 16]`.
     fn submit_proof_bn254(n: u32, ) -> Weight {
         // Proof Size summary in bytes:
@@ -76,14 +76,14 @@ impl<T: frame_system::Config> pallet_groth16_verifier::WeightInfo for ZKVWeight<
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     /// The range of component `n` is `[0, 16]`.
     fn submit_proof_bls12_381(n: u32, ) -> Weight {
         // Proof Size summary in bytes:
@@ -98,14 +98,14 @@ impl<T: frame_system::Config> pallet_groth16_verifier::WeightInfo for ZKVWeight<
     }
     /// Storage: `SettlementGroth16Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementGroth16Pallet::Vks` (`max_values`: None, `max_size`: Some(3948), added: 6423, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     /// The range of component `n` is `[0, 16]`.
     fn submit_proof_bn254_with_vk_hash(n: u32, ) -> Weight {
         // Proof Size summary in bytes:
@@ -120,14 +120,14 @@ impl<T: frame_system::Config> pallet_groth16_verifier::WeightInfo for ZKVWeight<
     }
     /// Storage: `SettlementGroth16Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementGroth16Pallet::Vks` (`max_values`: None, `max_size`: Some(3948), added: 6423, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     /// The range of component `n` is `[0, 16]`.
     fn submit_proof_bls12_381_with_vk_hash(n: u32, ) -> Weight {
         // Proof Size summary in bytes:

@@ -428,9 +428,9 @@ fn pallet_ultraplonk_availability() {
 
 // Test definition and execution. Test body must be written in the execute_with closure.
 #[test]
-fn pallet_poe_availability() {
+fn pallet_attestation_availability() {
     new_test_ext().execute_with(|| {
-        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
+        assert_ok!(Attestation::publish_attestation(RuntimeOrigin::root()));
         // just checking code builds, hence the pallet is available to the runtime
     });
 }
@@ -716,12 +716,12 @@ mod use_correct_weights {
     }
 
     #[test]
-    fn pallet_poe() {
-        use pallet_poe::WeightInfo;
+    fn pallet_attestation() {
+        use pallet_attestation::WeightInfo;
 
         assert_eq!(
-            <Runtime as pallet_poe::Config>::WeightInfo::publish_attestation(),
-            crate::weights::pallet_poe::ZKVWeight::<Runtime>::publish_attestation()
+            <Runtime as pallet_attestation::Config>::WeightInfo::publish_attestation(),
+            crate::weights::pallet_attestation::ZKVWeight::<Runtime>::publish_attestation()
         );
     }
 }

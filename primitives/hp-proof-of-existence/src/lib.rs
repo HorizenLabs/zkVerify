@@ -22,11 +22,11 @@ use sp_inherents::{InherentIdentifier, IsFatalError};
 pub const INHERENT_IDENTIFIER: InherentIdentifier = *b"PoE-0000";
 
 /// The type of the inherent.
-pub type InherentType = Poe;
+pub type InherentType = Attestation;
 
 /// Timestamp wrapper that represents a proof-of-existence0 inherent.
 #[derive(Default, Debug, Encode, Decode, PartialEq, Eq, Clone, Copy, PartialOrd, Ord)]
-pub struct Poe;
+pub struct Attestation;
 
 /// Errors that can occur while checking the timestamp inherent.
 #[derive(Encode, Decode, snafu::Snafu, sp_runtime::RuntimeDebug)]
@@ -63,7 +63,7 @@ impl InherentError {
 #[cfg(feature = "std")]
 #[derive(Default)]
 pub struct InherentDataProvider {
-    poe: Poe,
+    attestation: Attestation,
 }
 
 #[cfg(feature = "std")]
@@ -73,7 +73,7 @@ impl sp_inherents::InherentDataProvider for InherentDataProvider {
         &self,
         inherent_data: &mut sp_inherents::InherentData,
     ) -> Result<(), sp_inherents::Error> {
-        inherent_data.put_data(INHERENT_IDENTIFIER, &self.poe)
+        inherent_data.put_data(INHERENT_IDENTIFIER, &self.attestation)
     }
 
     async fn try_handle_error(
@@ -89,7 +89,7 @@ impl sp_inherents::InherentDataProvider for InherentDataProvider {
 
 /// Trait used by proof verifier pallets (e.g. pallet-settlement-fflonk) to signal that a successful proof verification
 /// happened.
-/// This must be implemented by proof storage pallets (e.g. pallet-poe) to subscribe to proof verification events.
+/// This must be implemented by proof storage pallets (e.g. pallet-attestation) to subscribe to proof verification events.
 #[impl_trait_for_tuples::impl_for_tuples(10)]
 pub trait OnProofVerified {
     fn on_proof_verified(pubs_hash: H256);

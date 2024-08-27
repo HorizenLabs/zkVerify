@@ -27,7 +27,7 @@ impl pallet_timestamp::Config for Test {
     type WeightInfo = ();
 }
 
-// Poe
+// Attestation
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = 6000;
 pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 2;
 
@@ -56,7 +56,7 @@ frame_support::construct_runtime!(
     pub enum Test
     {
         System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
-        Poe: crate::{Pallet, Call, Storage, Event<T>},
+        Attestation: crate::{Pallet, Call, Storage, Event<T>},
         Timestamp: pallet_timestamp::{Pallet, Call},
     }
 );

@@ -3145,7 +3145,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "hp-poe"
+name = "hp-attestation"
 version = "0.1.0"
 dependencies = [
  "async-trait",
@@ -4429,7 +4429,7 @@ dependencies = [
  "frame-benchmarking-cli",
  "frame-system",
  "futures",
- "hp-poe",
+ "hp-attestation",
  "jsonrpsee",
  "native",
  "pallet-im-online",
@@ -5082,6 +5082,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-attestation"
+version = "0.1.0"
+dependencies = [
+ "binary-merkle-tree",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "hp-attestation",
+ "log",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-authorship"
 version = "32.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5337,26 +5357,6 @@ dependencies = [
  "serde",
  "sp-runtime",
  "sp-staking",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-poe"
-version = "0.1.0"
-dependencies = [
- "binary-merkle-tree",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hex-literal",
- "hp-poe",
- "log",
- "pallet-timestamp",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
  "sp-std",
 ]
 
@@ -5661,7 +5661,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hex-literal",
- "hp-poe",
+ "hp-attestation",
  "hp-verifiers",
  "log",
  "pallet-verifiers-macros",
@@ -6358,7 +6358,7 @@ name = "proof-of-existence-rpc-runtime-api"
 version = "0.1.0"
 dependencies = [
  "binary-merkle-tree",
- "pallet-poe",
+ "pallet-attestation",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -11566,6 +11566,7 @@ dependencies = [
  "frame-try-runtime",
  "hp-verifiers",
  "log",
+ "pallet-attestation",
  "pallet-authorship",
  "pallet-babe",
  "pallet-balances",
@@ -11579,7 +11580,6 @@ dependencies = [
  "pallet-im-online",
  "pallet-multisig",
  "pallet-offences",
- "pallet-poe",
  "pallet-preimage",
  "pallet-referenda",
  "pallet-risc0-verifier",

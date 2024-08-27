@@ -16,13 +16,13 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::{Decode, Encode};
-pub use pallet_poe::AttestationPathRequestError;
+pub use pallet_attestation::AttestationPathRequestError;
 use scale_info::TypeInfo;
 use sp_runtime::{Deserialize, SaturatedConversion, Serialize};
 use sp_std::vec::Vec;
 sp_api::decl_runtime_apis! {
     #[api_version(1)]
-    pub trait PoEApi
+    pub trait AttestationApi
     {
         // Returns the Merkle path for the given attestation id and proof hash
         fn get_proof_path(attestation_id: u64, proof_hash: sp_core::H256) -> Result<MerkleProof, AttestationPathRequestError>;

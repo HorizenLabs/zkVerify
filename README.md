@@ -166,8 +166,8 @@ For this reason, all the crates that include such dependency are GPL 3.0 license
 
 The remaining crates, which are independent of the FFLONK verifier implementation, are released under the [APACHE 2.0 license](LICENSE-APACHE2):
 
-- `pallet-poe`
-- `hp-poe`
+- `pallet-attestation`
+- `hp-attestation`
 - `proof-of-existence-rpc`
 - `proof-of-existence-rpc-runtime-api`
 - `pallet-settlement-zksync`

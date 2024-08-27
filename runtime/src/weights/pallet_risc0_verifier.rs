@@ -56,14 +56,14 @@ use core::marker::PhantomData;
 pub struct ZKVWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T> {
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_cycle_2_pow_12() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `74`
@@ -73,14 +73,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_cycle_2_pow_13() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `74`
@@ -90,14 +90,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_cycle_2_pow_14() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `74`
@@ -107,14 +107,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_cycle_2_pow_15() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `74`
@@ -124,14 +124,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_cycle_2_pow_16() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `74`
@@ -141,14 +141,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_cycle_2_pow_17() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `74`
@@ -158,14 +158,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_cycle_2_pow_18() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `74`
@@ -175,14 +175,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_cycle_2_pow_19() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `74`
@@ -192,14 +192,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_cycle_2_pow_20() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `74`
@@ -209,14 +209,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_cycle_2_pow_21() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `74`
@@ -226,14 +226,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_cycle_2_pow_22() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `74`
@@ -243,14 +243,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_cycle_2_pow_23() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `74`
@@ -260,14 +260,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_cycle_2_pow_24() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `74`
@@ -279,14 +279,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
     }
     /// Storage: `SettlementRisc0Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementRisc0Pallet::Vks` (`max_values`: None, `max_size`: Some(64), added: 2539, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_with_vk_hash_cycle_2_pow_12() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `206`
@@ -298,14 +298,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
     }
     /// Storage: `SettlementRisc0Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementRisc0Pallet::Vks` (`max_values`: None, `max_size`: Some(64), added: 2539, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_with_vk_hash_cycle_2_pow_13() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `206`
@@ -317,14 +317,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
     }
     /// Storage: `SettlementRisc0Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementRisc0Pallet::Vks` (`max_values`: None, `max_size`: Some(64), added: 2539, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_with_vk_hash_cycle_2_pow_14() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `206`
@@ -336,14 +336,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
     }
     /// Storage: `SettlementRisc0Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementRisc0Pallet::Vks` (`max_values`: None, `max_size`: Some(64), added: 2539, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_with_vk_hash_cycle_2_pow_15() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `206`
@@ -355,14 +355,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
     }
     /// Storage: `SettlementRisc0Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementRisc0Pallet::Vks` (`max_values`: None, `max_size`: Some(64), added: 2539, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_with_vk_hash_cycle_2_pow_16() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `206`
@@ -374,14 +374,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
     }
     /// Storage: `SettlementRisc0Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementRisc0Pallet::Vks` (`max_values`: None, `max_size`: Some(64), added: 2539, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_with_vk_hash_cycle_2_pow_17() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `206`
@@ -393,14 +393,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
     }
     /// Storage: `SettlementRisc0Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementRisc0Pallet::Vks` (`max_values`: None, `max_size`: Some(64), added: 2539, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_with_vk_hash_cycle_2_pow_18() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `206`
@@ -412,14 +412,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
     }
     /// Storage: `SettlementRisc0Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementRisc0Pallet::Vks` (`max_values`: None, `max_size`: Some(64), added: 2539, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_with_vk_hash_cycle_2_pow_19() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `206`
@@ -431,14 +431,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
     }
     /// Storage: `SettlementRisc0Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementRisc0Pallet::Vks` (`max_values`: None, `max_size`: Some(64), added: 2539, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_with_vk_hash_cycle_2_pow_20() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `206`
@@ -450,14 +450,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
     }
     /// Storage: `SettlementRisc0Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementRisc0Pallet::Vks` (`max_values`: None, `max_size`: Some(64), added: 2539, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_with_vk_hash_cycle_2_pow_21() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `206`
@@ -469,14 +469,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
     }
     /// Storage: `SettlementRisc0Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementRisc0Pallet::Vks` (`max_values`: None, `max_size`: Some(64), added: 2539, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_with_vk_hash_cycle_2_pow_22() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `206`
@@ -488,14 +488,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
     }
     /// Storage: `SettlementRisc0Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementRisc0Pallet::Vks` (`max_values`: None, `max_size`: Some(64), added: 2539, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_with_vk_hash_cycle_2_pow_23() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `206`
@@ -507,14 +507,14 @@ impl<T: frame_system::Config> pallet_risc0_verifier::WeightInfo for ZKVWeight<T>
     }
     /// Storage: `SettlementRisc0Pallet::Vks` (r:1 w:0)
     /// Proof: `SettlementRisc0Pallet::Vks` (`max_values`: None, `max_size`: Some(64), added: 2539, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::NextAttestation` (r:1 w:0)
-    /// Proof: `Poe::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::Values` (r:1 w:1)
-    /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::NextAttestation` (r:1 w:0)
+    /// Proof: `Attestation::NextAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::Values` (r:1 w:1)
+    /// Proof: `Attestation::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Timestamp::Now` (r:1 w:0)
     /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: `Poe::FirstInsertionTime` (r:0 w:1)
-    /// Proof: `Poe::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+    /// Storage: `Attestation::FirstInsertionTime` (r:0 w:1)
+    /// Proof: `Attestation::FirstInsertionTime` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
     fn submit_proof_with_vk_hash_cycle_2_pow_24() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `206`

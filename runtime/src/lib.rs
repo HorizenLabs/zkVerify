@@ -506,11 +506,11 @@ pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 16;
 // We should avoid publishing attestations for empty trees
 static_assertions::const_assert!(MIN_PROOFS_FOR_ROOT_PUBLISHING > 0);
 
-impl pallet_poe::Config for Runtime {
+impl pallet_attestation::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type MinProofsForPublishing = ConstU32<MIN_PROOFS_FOR_ROOT_PUBLISHING>;
     type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
-    type WeightInfo = weights::pallet_poe::ZKVWeight<Runtime>;
+    type WeightInfo = weights::pallet_attestation::ZKVWeight<Runtime>;
 }
 
 pub struct ValidatorIdOf;
@@ -663,14 +663,14 @@ impl pallet_offences::Config for Runtime {
 
 impl pallet_verifiers::Config<pallet_fflonk_verifier::Fflonk> for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnProofVerified = Poe;
+    type OnProofVerified = Attestation;
     type WeightInfo =
         pallet_fflonk_verifier::FflonkWeight<weights::pallet_fflonk_verifier::ZKVWeight<Runtime>>;
 }
 
 impl pallet_verifiers::Config<pallet_zksync_verifier::Zksync> for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnProofVerified = Poe;
+    type OnProofVerified = Attestation;
     type WeightInfo =
         pallet_zksync_verifier::ZksyncWeight<weights::pallet_zksync_verifier::ZKVWeight<Runtime>>;
 }
@@ -692,7 +692,7 @@ const_assert!(
 
 impl pallet_verifiers::Config<pallet_groth16_verifier::Groth16<Runtime>> for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnProofVerified = Poe;
+    type OnProofVerified = Attestation;
     type WeightInfo = pallet_groth16_verifier::Groth16Weight<
         weights::pallet_groth16_verifier::ZKVWeight<Runtime>,
     >;
@@ -712,7 +712,7 @@ impl pallet_risc0_verifier::Config for Runtime {
 
 impl pallet_verifiers::Config<pallet_risc0_verifier::Risc0<Runtime>> for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnProofVerified = Poe;
+    type OnProofVerified = Attestation;
     type WeightInfo =
         pallet_risc0_verifier::Risc0Weight<weights::pallet_risc0_verifier::ZKVWeight<Runtime>>;
 }
@@ -727,7 +727,7 @@ impl pallet_ultraplonk_verifier::Config for Runtime {
 
 impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnProofVerified = Poe;
+    type OnProofVerified = Attestation;
     type WeightInfo = pallet_ultraplonk_verifier::UltraplonkWeight<
         weights::pallet_ultraplonk_verifier::ZKVWeight<Runtime>,
     >;
@@ -757,7 +757,7 @@ construct_runtime!(
         Historical: pallet_session_historical::{Pallet},
         ImOnline: pallet_im_online,
         SettlementFFlonkPallet: pallet_fflonk_verifier,
-        Poe: pallet_poe,
+        Attestation: pallet_attestation,
         SettlementZksyncPallet: pallet_zksync_verifier,
         SettlementGroth16Pallet: pallet_groth16_verifier,
         SettlementRisc0Pallet: pallet_risc0_verifier,
@@ -830,7 +830,7 @@ mod benches {
         [pallet_staking, Staking]
         [pallet_im_online, ImOnline]
         [frame_election_provider_support, ElectionProviderBench::<Runtime>]
-        [pallet_poe, Poe]
+        [pallet_attestation, Attestation]
         [pallet_conviction_voting, ConvictionVoting]
         [pallet_treasury, Treasury]
         [pallet_bounties, Bounties]
@@ -1066,12 +1066,12 @@ impl_runtime_apis! {
         }
     }
 
-    impl proof_of_existence_rpc_runtime_api::PoEApi<Block> for Runtime {
+    impl proof_of_existence_rpc_runtime_api::AttestationApi<Block> for Runtime {
         fn get_proof_path(
             attestation_id: u64,
             proof_hash: sp_core::H256
         ) -> Result<MerkleProof, proof_of_existence_rpc_runtime_api::AttestationPathRequestError> {
-            Poe::get_proof_path_from_pallet(attestation_id, proof_hash).map(|c| c.into())
+            Attestation::get_proof_path_from_pallet(attestation_id, proof_hash).map(|c| c.into())
         }
     }
 

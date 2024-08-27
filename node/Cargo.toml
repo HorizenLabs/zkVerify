@@ -65,7 +65,7 @@ pallet-transaction-payment-rpc = { workspace = true }
 frame-benchmarking = { workspace = true }
 frame-benchmarking-cli = { workspace = true }
 zkv-runtime = { workspace = true }
-hp-poe = { workspace = true }
+hp-attestation = { workspace = true }
 proof-of-existence-rpc = { workspace = true }
 native = { workspace = true, features = ["std"] }
 

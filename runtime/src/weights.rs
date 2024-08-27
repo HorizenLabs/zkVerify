@@ -13,7 +13,7 @@ pub mod pallet_grandpa;
 pub mod pallet_groth16_verifier;
 pub mod pallet_im_online;
 pub mod pallet_multisig;
-pub mod pallet_poe;
+pub mod pallet_attestation;
 pub mod pallet_preimage;
 pub mod pallet_referenda;
 pub mod pallet_risc0_verifier;
