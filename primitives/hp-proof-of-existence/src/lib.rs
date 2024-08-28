@@ -19,7 +19,7 @@ use sp_core::H256;
 use sp_inherents::{InherentIdentifier, IsFatalError};
 
 /// The identifier for the `proof-of-existence0` inherent.
-pub const INHERENT_IDENTIFIER: InherentIdentifier = *b"PoE-0000";
+pub const INHERENT_IDENTIFIER: InherentIdentifier = *b"Att-0000";
 
 /// The type of the inherent.
 pub type InherentType = Attestation;
