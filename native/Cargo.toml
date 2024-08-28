@@ -12,6 +12,7 @@ zksync-era-verifier = { git = "https://github.com/HorizenLabs/zksync-era-verifie
 zksync-era-verifier-deserialize = { git = "https://github.com/HorizenLabs/zksync-era-verifier.git", tag = "v0.1.0", optional = true }
 risc0-verifier = { git = "https://github.com/HorizenLabs/risc0-verifier.git", tag = "v0.1.0", optional = true }
 ultraplonk_verifier = { git = "https://github.com/HorizenLabs/ultraplonk_verifier.git", tag = "v0.1.0", optional = true }
+proof-of-sql-verifier = { git = "https://github.com/HorizenLabs/proof-of-sql-verifier.git", rev = "9caa1711bbd6c0f33ed754192a8144b444bb1fac", optional = true }
 sp-runtime-interface = { workspace = true }
 codec = { workspace = true }
 log = "0.4.11"
@@ -32,4 +33,5 @@ std = [
     "dep:zksync-era-verifier-deserialize",
     "dep:risc0-verifier",
     "dep:ultraplonk_verifier",
+    "dep:proof-of-sql-verifier",
 ]

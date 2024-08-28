@@ -60,9 +60,16 @@ pub use ultraplonk::PROOF_SIZE as ULTRAPLONK_PROOF_SIZE;
 pub use ultraplonk::PUBS_SIZE as ULTRAPLONK_PUBS_SIZE;
 pub use ultraplonk::VK_SIZE as ULTRAPLONK_VK_SIZE;
 
+mod proofofsql;
+pub use proofofsql::proofofsql_verify;
+#[cfg(feature = "std")]
+pub use proofofsql::proofofsql_verify::HostFunctions as ProofofsqlVerifierHostFunctions;
+pub use proofofsql::VK_SIZE as PROOFOFSQL_VK_SIZE;
+
 #[cfg(feature = "std")]
 pub type HLNativeHostFunctions = (
     ZksyncVerifierHostFunctions,
     Risc0VerifierHostFunctions,
     UltraplonkVerifierHostFunctions,
+    ProofofsqlVerifierHostFunctions,
 );
