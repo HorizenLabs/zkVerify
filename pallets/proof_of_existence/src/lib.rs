@@ -30,6 +30,7 @@ pub use weight::WeightInfo;
 
 #[frame_support::pallet]
 pub mod pallet {
+
     use super::WeightInfo;
     use binary_merkle_tree::MerkleProof;
     use pallet_timestamp::{self as timestamp};
@@ -57,6 +58,8 @@ pub mod pallet {
         type MinProofsForPublishing: Get<u32>;
         /// Maximum time (ms) that an element can wait in a tree before the tree is published
         type MaxElapsedTimeMs: Get<Self::Moment>;
+        /// Maximum number of attestations that are kept in storage
+        type MaxStorageAttestations: Get<u32>;
         /// The weight definition for this pallet
         type WeightInfo: WeightInfo;
     }
@@ -121,6 +124,8 @@ pub mod pallet {
 
             Self::deposit_event(Event::NewAttestation { id, attestation });
 
+            Self::prune_old_attestations_if_needed();
+
             Ok(().into())
         }
     }
@@ -164,6 +169,23 @@ pub mod pallet {
                 || (values > 0 && deadline.unwrap_or_default())
         }
 
+        fn prune_old_attestations_if_needed() {
+            let attestations = Values::<T>::iter_keys()
+                .map(|(k1, _)| k1)
+                .collect::<BTreeSet<_>>();
+            let att_len = attestations.len().saturated_into::<usize>();
+            let max_len = T::MaxStorageAttestations::get().saturated_into::<usize>();
+
+            if att_len > max_len {
+                attestations
+                    .into_iter()
+                    .take(att_len - max_len)
+                    .for_each(|id| {
+                        let _ = Values::<T>::clear_prefix(id, u32::MAX, None);
+                    })
+            }
+        }
+
         fn ensure_inherent(data: &InherentData) {
             let _inherent_data = data
                 .get_data::<InherentType>(&INHERENT_IDENTIFIER)
@@ -184,7 +206,6 @@ pub mod pallet {
             }
 
             // Collect the leaves associated with the attestation_id requested
-            // This should not fail, given the previous check (we have the attestation_id key1 in the map)
             let leaves = Values::<T>::iter_key_prefix(attestation_id).collect::<BTreeSet<_>>();
 
             // Check if the requested proof_hash belongs to this set, i.e. is within the set of leaves

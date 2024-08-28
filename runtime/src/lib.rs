@@ -503,13 +503,19 @@ impl pallet_child_bounties::Config for Runtime {
 
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
 pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 16;
+pub const MAX_STORAGE_ATTESTATIONS: u32 = 100_000;
+
 // We should avoid publishing attestations for empty trees
 static_assertions::const_assert!(MIN_PROOFS_FOR_ROOT_PUBLISHING > 0);
+
+// We should keep in memory at least one attestation
+static_assertions::const_assert!(MAX_STORAGE_ATTESTATIONS > 0);
 
 impl pallet_poe::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type MinProofsForPublishing = ConstU32<MIN_PROOFS_FOR_ROOT_PUBLISHING>;
     type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
+    type MaxStorageAttestations = ConstU32<MAX_STORAGE_ATTESTATIONS>;
     type WeightInfo = weights::pallet_poe::ZKVWeight<Runtime>;
 }
 

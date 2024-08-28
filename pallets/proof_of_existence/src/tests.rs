@@ -27,6 +27,7 @@ use hp_poe::OnProofVerified;
 use hp_poe::INHERENT_IDENTIFIER;
 use sp_core::H256;
 use sp_runtime::traits::Keccak256;
+use sp_runtime::SaturatedConversion;
 
 fn assert_attestation_evt(id: u64, value: H256) {
     assert!(mock::System::events().contains(&EventRecord {
@@ -120,6 +121,61 @@ fn correct_root() {
             "138b734ecc0edcb6a36504258a5907f92734afb254b488156db374cee1d78f54"
         ));
         assert_attestation_evt(0, res);
+    })
+}
+
+#[test]
+fn old_attestations_are_cleared() {
+    new_test_ext().execute_with(|| {
+        let max_attestations =
+            crate::mock::MAX_STORAGE_ATTESTATIONS.saturated_into::<u64>();
+
+        for i in 0..=max_attestations * 2 {
+            // Publish proofs and attestation
+            let pida = H256(HASHES[0]);
+            Poe::on_proof_verified(pida);
+            let pidb = H256(HASHES[1]);
+            Poe::on_proof_verified(pidb);
+
+            assert!(Poe::publish_attestation(RuntimeOrigin::root()).is_ok());
+
+            // When at least MAX_STORAGE_ATTESTATIONS have been published
+            if i >= max_attestations - 1 {
+                // Check that the most recent MAX_STORAGE_ATTESTATIONS attestations are still in storage
+                for j in i - (max_attestations - 1)..=i {
+                    assert!(Poe::values(j, pida).is_some());
+                    assert!(Poe::values(j, pidb).is_some());
+                }
+
+                // Check that, instead, all the previous ones have been eliminated
+                for j in 0..i - (max_attestations - 1) {
+                    assert!(Poe::values(j, pida).is_none());
+                    assert!(Poe::values(j, pidb).is_none());
+                }
+            }
+        }
+    })
+}
+
+#[test]
+fn root_publish_empty_attestations_do_not_cause_clear() {
+    new_test_ext().execute_with(|| {
+        // Publish proofs and a single attestation
+        let pida = H256(HASHES[0]);
+        Poe::on_proof_verified(pida);
+        let pidb = H256(HASHES[1]);
+        Poe::on_proof_verified(pidb);
+        assert!(Poe::publish_attestation(RuntimeOrigin::root()).is_ok());
+
+        // Publish empty attestations via root until reaching MAX_STORAGE_ATTESTATIONS
+        for i in 0..crate::mock::MAX_STORAGE_ATTESTATIONS {
+            assert!(Poe::publish_attestation(RuntimeOrigin::root()).is_ok());
+            assert_attestation_evt(i as u64 + 1, H256::default());
+        }
+
+        // Check old values are still in storage
+        assert!(Poe::values(0, pida).is_some());
+        assert!(Poe::values(0, pidb).is_some());
     })
 }
 

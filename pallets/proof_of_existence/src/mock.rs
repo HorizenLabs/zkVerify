@@ -30,6 +30,7 @@ impl pallet_timestamp::Config for Test {
 // Poe
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = 6000;
 pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 2;
+pub const MAX_STORAGE_ATTESTATIONS: u32 = 2;
 
 pub struct MockWeightInfo;
 
@@ -48,6 +49,7 @@ impl crate::Config for Test {
     type RuntimeEvent = RuntimeEvent;
     type MinProofsForPublishing = ConstU32<MIN_PROOFS_FOR_ROOT_PUBLISHING>;
     type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
+    type MaxStorageAttestations = ConstU32<MAX_STORAGE_ATTESTATIONS>;
     type WeightInfo = MockWeightInfo;
 }
 
