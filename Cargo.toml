@@ -21,7 +21,8 @@ members = [
     "verifiers/zksync",
     "verifiers/groth16",
     "verifiers/risc0",
-    "verifiers/ultraplonk",
+    "verifiers/ultraplonk", 
+    "verifiers/proofofsql",
     "utils/native-cache",
     "utils/generate-bags/node-runtime",
 ]
@@ -72,6 +73,7 @@ pallet-zksync-verifier = { path = "verifiers/zksync", default-features = false }
 pallet-groth16-verifier = { path = "verifiers/groth16", default-features = false }
 pallet-risc0-verifier = { path = "verifiers/risc0", default-features = false }
 pallet-ultraplonk-verifier = { path = "verifiers/ultraplonk", default-features = false }
+pallet-proofofsql-verifier = { path = "verifiers/proofofsql", default-features = false }
 
 native-cache = { path = "utils/native-cache" }
 zkv-runtime = { path = "runtime", default-features = false }
