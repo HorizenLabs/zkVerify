@@ -116,6 +116,16 @@ pub mod pallet {
             }
 
             let id = Self::next_attestation();
+
+            // In case a publish_attestation() is called by root but not proofs has been inserted yet
+            // the corresponding entry is not created in the Values storage variable. To avoid this
+            // inconsistency, we manually do this.
+            if ensure_root(origin.clone()).is_ok()
+                && Values::<T>::iter_key_prefix(id).next().is_none()
+            {
+                Values::<T>::insert(id, H256::default(), ());
+            }
+
             NextAttestation::<T>::set(id + 1);
 
             let attestation = binary_merkle_tree::merkle_root::<Keccak256, _>(

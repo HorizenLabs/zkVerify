@@ -59,7 +59,7 @@ mod benchmarks {
 
         // Check that indeed old attestations have been removed
         let mut test_hash: [u8; 32] = [0; 32];
-        for id in 0..offset  {
+        for id in 0..offset {
             for _ in 0..T::MinProofsForPublishing::get() * 2 {
                 test_hash[0] += 1;
                 assert!(Values::<T>::try_get(id as u64, H256::from_slice(&test_hash)).is_err());
