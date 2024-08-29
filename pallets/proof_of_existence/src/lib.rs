@@ -124,7 +124,9 @@ pub mod pallet {
 
             Self::deposit_event(Event::NewAttestation { id, attestation });
 
-            Self::prune_old_attestations_if_needed();
+            if T::MaxStorageAttestations::get() != u32::default() {
+                Self::prune_old_attestations_if_needed();
+            }
 
             Ok(().into())
         }
