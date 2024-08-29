@@ -4432,11 +4432,11 @@ dependencies = [
  "hp-poe",
  "jsonrpsee",
  "native",
+ "native-cache",
  "pallet-im-online",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc",
  "proof-of-existence-rpc",
- "regex",
  "sc-basic-authorship",
  "sc-cli",
  "sc-client-api",
@@ -4473,9 +4473,7 @@ dependencies = [
  "sp-timestamp",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
- "toml 0.8.19",
  "try-runtime-cli",
- "walkdir",
  "zkv-runtime",
 ]
 
@@ -4796,15 +4794,23 @@ version = "0.2.0"
 dependencies = [
  "hp-verifiers",
  "log",
+ "native-cache",
  "parity-scale-codec",
- "regex",
  "risc0-verifier",
  "sp-runtime-interface",
- "toml 0.8.19",
  "ultraplonk_verifier",
- "walkdir",
  "zksync-era-verifier",
  "zksync-era-verifier-deserialize",
+]
+
+[[package]]
+name = "native-cache"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "regex",
+ "toml 0.8.19",
+ "walkdir",
 ]
 
 [[package]]
