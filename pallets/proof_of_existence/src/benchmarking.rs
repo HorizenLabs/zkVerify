@@ -23,15 +23,21 @@ use sp_core::{Get, H256};
 
 #[benchmarks]
 mod benchmarks {
-    use super::{Pallet as Poe, *};
+    use super::*;
 
+    const OFFSET_FACTOR: u32 = 10000;
     #[benchmark]
     fn publish_attestation() {
         // Setup code
+        // benchmark taking into account situations where attestations left to be cleaned in storage
+        // are bigger than one. shouldn't happen very often so we consider only 0.01% of the
+        // maximum supported ones.
         let max_attestations = T::MaxStorageAttestations::get();
+        let offset = max_attestations.div_ceil(OFFSET_FACTOR);
+
         let mut hash: [u8; 32] = [0; 32];
-        // benchmark with double the maximum number of attestations in storage
-        for id in 0..max_attestations * 2 {
+
+        for id in 0..max_attestations + offset {
             // benchmark with double the minimum number of elements for publishing an attestation
             for _ in 0..T::MinProofsForPublishing::get() * 2 {
                 hash[0] += 1;
@@ -41,7 +47,7 @@ mod benchmarks {
 
         // Check all attestations are present in storage
         let mut test_hash: [u8; 32] = [0; 32];
-        for id in 0..max_attestations * 2 {
+        for id in 0..max_attestations + offset {
             for _ in 0..T::MinProofsForPublishing::get() * 2 {
                 test_hash[0] += 1;
                 assert!(Values::<T>::try_get(id as u64, H256::from_slice(&test_hash)).is_ok());
@@ -53,14 +59,14 @@ mod benchmarks {
 
         // Check that indeed old attestations have been removed
         let mut test_hash: [u8; 32] = [0; 32];
-        for id in 0..max_attestations  {
+        for id in 0..offset  {
             for _ in 0..T::MinProofsForPublishing::get() * 2 {
                 test_hash[0] += 1;
                 assert!(Values::<T>::try_get(id as u64, H256::from_slice(&test_hash)).is_err());
             }
         }
 
-        for id in max_attestations..max_attestations * 2 {
+        for id in offset..max_attestations {
             for _ in 0..T::MinProofsForPublishing::get() * 2 {
                 test_hash[0] += 1;
                 assert!(Values::<T>::try_get(id as u64, H256::from_slice(&test_hash)).is_ok());
@@ -68,5 +74,7 @@ mod benchmarks {
         }
     }
 
+    #[cfg(test)]
+    use crate::Pallet as Poe;
     impl_benchmark_test_suite!(Poe, crate::mock::new_test_ext(), crate::mock::Test,);
 }
