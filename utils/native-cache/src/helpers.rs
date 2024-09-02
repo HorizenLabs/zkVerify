@@ -17,7 +17,7 @@ pub fn is_dyn_or_static_lib(p: impl AsRef<Path>) -> bool {
         .and_then(OsStr::to_str)
         .and_then(|n| p.extension().map(|e| (n, e)))
     {
-        (ext == "a" || ext == "so") && name.starts_with("lib")
+        (ext == "a" || ext == "so" || ext == "dylib") && name.starts_with("lib")
     } else {
         false
     }
