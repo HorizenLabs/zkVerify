@@ -3,11 +3,11 @@ use polkadot_primitives::ValidatorId;
 
 pub use polkadot_runtime_parachains::{
     assigner_parachains as parachains_assigner_parachains,
-    configuration as parachains_configuration, disputes as parachains_disputes,
-    disputes::slashing as parachains_slashing,
-    dmp as parachains_dmp, hrmp as parachains_hrmp, inclusion as parachains_inclusion,
-    initializer as parachains_initializer, origin as parachains_origin, paras as parachains_paras,
-    paras_inherent as parachains_paras_inherent, reward_points as parachains_reward_points,
+    configuration, disputes,
+    disputes::slashing as slashing,
+    dmp as parachains_dmp, hrmp, inclusion,
+    initializer, origin as parachains_origin, paras,
+    paras_inherent as paras_inherent, reward_points as parachains_reward_points,
     runtime_api_impl::{
         v10 as parachains_runtime_api_impl, vstaging as parachains_staging_runtime_api_impl,
     },
@@ -21,7 +21,7 @@ pub use polkadot_runtime_common::paras_sudo_wrapper;
 use super::{
     AccountId, Babe, Balances, Historical, KeyOwnerProofSystem, KeyTypeId, MaxAuthorities,
     Offences, ParaInclusion, ParachainsAssignmentProvider, ParasDisputes, ParasSlashing,
-    ReportLongevity, Runtime, RuntimeEvent, RuntimeOrigin, Session, Weight,
+    ReportLongevity, Runtime, RuntimeEvent, RuntimeOrigin, Session, Weight, weights
 };
 use sp_runtime::transaction_validity::TransactionPriority;
 
@@ -34,24 +34,22 @@ parameter_types! {
 
 impl parachains_assigner_parachains::Config for Runtime {}
 
-impl parachains_initializer::Config for Runtime {
+impl initializer::Config for Runtime {
     type Randomness = pallet_babe::RandomnessFromOneEpochAgo<Runtime>;
     type ForceOrigin = EnsureRoot<AccountId>;
-    // type WeightInfo = weights::runtime_parachains_initializer::WeightInfo<Runtime>;
-    type WeightInfo = ();
+    type WeightInfo = weights::parachains::initializer::ZKVWeight<Runtime>;
 
     type CoretimeOnNewSession = ();
 }
 
-impl parachains_disputes::Config for Runtime {
+impl disputes::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type RewardValidators = parachains_reward_points::RewardValidatorsWithEraPoints<Runtime>;
-    type SlashingHandler = parachains_slashing::SlashValidatorsForDisputes<ParasSlashing>;
-    // type WeightInfo = weights::runtime_parachains_disputes::WeightInfo<Runtime>;
-    type WeightInfo = parachains_disputes::TestWeightInfo;
+    type SlashingHandler = slashing::SlashValidatorsForDisputes<ParasSlashing>;
+    type WeightInfo = weights::parachains::disputes::ZKVWeight<Runtime>;
 }
 
-impl parachains_slashing::Config for Runtime {
+impl slashing::Config for Runtime {
     type KeyOwnerProofSystem = Historical;
     type KeyOwnerProof =
         <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, ValidatorId)>>::Proof;
@@ -59,29 +57,28 @@ impl parachains_slashing::Config for Runtime {
         KeyTypeId,
         ValidatorId,
     )>>::IdentificationTuple;
-    type HandleReports = parachains_slashing::SlashingReportHandler<
+    type HandleReports = slashing::SlashingReportHandler<
         Self::KeyOwnerIdentification,
         Offences,
         ReportLongevity,
     >;
-    type WeightInfo = parachains_slashing::TestWeightInfo;
-    type BenchmarkingConfig = parachains_slashing::BenchConfig<200>;
+    //type WeightInfo = weights::parachains::slashing::ZKVWeight<Runtime>;
+    type WeightInfo = slashing::TestWeightInfo;
+    type BenchmarkingConfig = slashing::BenchConfig<200>;
 }
 
 impl parachains_dmp::Config for Runtime {}
 
-impl parachains_hrmp::Config for Runtime {
+impl hrmp::Config for Runtime {
     type RuntimeOrigin = RuntimeOrigin;
     type RuntimeEvent = RuntimeEvent;
     type ChannelManager = EnsureRoot<AccountId>;
     type Currency = Balances;
-    // type WeightInfo = weights::runtime_parachains_hrmp::WeightInfo<Runtime>;
-    type WeightInfo = parachains_hrmp::TestWeightInfo;
+    type WeightInfo = weights::parachains::hrmp::ZKVWeight<Runtime>;
 }
 
-impl parachains_paras_inherent::Config for Runtime {
-    // type WeightInfo = weights::runtime_parachains_paras_inherent::WeightInfo<Runtime>;
-    type WeightInfo = parachains_paras_inherent::TestWeightInfo;
+impl paras_inherent::Config for Runtime {
+    type WeightInfo = weights::parachains::paras_inherent::ZKVWeight<Runtime>;
 }
 
 impl parachains_scheduler::Config for Runtime {
@@ -90,41 +87,8 @@ impl parachains_scheduler::Config for Runtime {
 
 impl parachains_origin::Config for Runtime {}
 
-pub struct FakeParachainConfigWeight;
-impl parachains_configuration::WeightInfo for FakeParachainConfigWeight {
-    fn set_config_with_block_number() -> Weight {
-        Default::default()
-    }
-    fn set_config_with_u32() -> Weight {
-        Default::default()
-    }
-    fn set_config_with_option_u32() -> Weight {
-        Default::default()
-    }
-    fn set_config_with_balance() -> Weight {
-        Default::default()
-    }
-    fn set_hrmp_open_request_ttl() -> Weight {
-        Default::default()
-    }
-    fn set_config_with_executor_params() -> Weight {
-        Default::default()
-    }
-    fn set_config_with_perbill() -> Weight {
-        Default::default()
-    }
-    fn set_node_feature() -> Weight {
-        Default::default()
-    }
-
-    fn set_config_with_scheduler_params() -> Weight {
-        Default::default()
-    }
-}
-
-impl parachains_configuration::Config for Runtime {
-    // type WeightInfo = weights::runtime_parachains_configuration::WeightInfo<Runtime>;
-    type WeightInfo = FakeParachainConfigWeight;
+impl configuration::Config for Runtime {
+    type WeightInfo = weights::parachains::configuration::ZKVWeight<Runtime>;
 }
 
 impl parachains_shared::Config for Runtime {
@@ -135,75 +99,28 @@ impl parachains_session_info::Config for Runtime {
     type ValidatorSet = Historical;
 }
 
-impl parachains_inclusion::Config for Runtime {
+impl inclusion::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type DisputesHandler = ParasDisputes;
     type RewardValidators = parachains_reward_points::RewardValidatorsWithEraPoints<Runtime>;
     // type MessageQueue = MessageQueue;
     type MessageQueue = ();
-    // type WeightInfo = weights::runtime_parachains_inclusion::WeightInfo<Runtime>;
-    type WeightInfo = ();
+    type WeightInfo = ();//weights::parachains::inclusion::ZKVWeight<Runtime>;
 }
 
 parameter_types! {
     pub const ParasUnsignedPriority: TransactionPriority = TransactionPriority::MAX;
 }
 
-pub struct FakeParasWeightInfo;
-
-impl parachains_paras::WeightInfo for FakeParasWeightInfo {
-    fn force_set_current_code(_c: u32) -> Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn force_set_current_head(_s: u32) -> Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn force_set_most_recent_context() -> Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn force_schedule_code_upgrade(_c: u32) -> Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn force_note_new_head(_s: u32) -> Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn force_queue_action() -> Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn add_trusted_validation_code(_c: u32) -> Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn poke_unused_validation_code() -> Weight {
-        Weight::from_parts(0, 0)
-    }
-
-    fn include_pvf_check_statement_finalize_upgrade_accept() -> Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn include_pvf_check_statement_finalize_upgrade_reject() -> Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn include_pvf_check_statement_finalize_onboarding_accept() -> Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn include_pvf_check_statement_finalize_onboarding_reject() -> Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn include_pvf_check_statement() -> Weight {
-        Weight::from_parts(0, 0)
-    }
-}
-
-impl parachains_paras::Config for Runtime {
+impl paras::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type WeightInfo = FakeParasWeightInfo;
-    // type WeightInfo = weights::runtime_parachains_paras::WeightInfo<Runtime>;
     type UnsignedPriority = ParasUnsignedPriority;
     type QueueFootprinter = ParaInclusion;
     type NextSessionRotation = Babe;
     // type OnNewHead = Registrar;
     type OnNewHead = ();
     type AssignCoretime = ();
+    type WeightInfo = weights::parachains::paras::ZKVWeight<Runtime>;
 }
 
 // parameter_types! {
@@ -340,14 +257,14 @@ pub mod migrations {
                 let genesis = include_bytes!("paratest_genesis").to_vec();
                 let wasm = include_bytes!("paratest_wasm").to_vec();
 
-                let genesis = parachains_paras::GenesisConfig::<Runtime> {
+                let genesis = paras::GenesisConfig::<Runtime> {
                     _config: core::marker::PhantomData,
                     paras: sp_std::vec![(
                         PARACHAIN_PARATEST_ID.into(),
-                        parachains_paras::ParaGenesisArgs {
+                        paras::ParaGenesisArgs {
                             genesis_head: genesis.into(),
                             validation_code: wasm.into(),
-                            para_kind: parachains_paras::ParaKind::Parachain,
+                            para_kind: paras::ParaKind::Parachain,
                         }
                     )],
                 };
