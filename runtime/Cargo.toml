@@ -78,7 +78,7 @@ frame-system-benchmarking = { workspace = true, optional = true }
 # Custom logic
 pallet-attestation = { workspace = true }
 static_assertions = "1.1.0"
-proof-of-existence-rpc-runtime-api = { workspace = true }
+attestation-rpc-runtime-api = { workspace = true }
 
 pallet-verifiers = { workspace = true }
 hp-verifiers = { workspace = true }
@@ -164,7 +164,7 @@ std = [
 	"pallet-transaction-payment/std",
 	"pallet-verifiers/std",
 	"pallet-attestation/std",
-	"proof-of-existence-rpc-runtime-api/std",
+	"attestation-rpc-runtime-api/std",
 	"scale-info/std",
 	"serde_json/std",
 	"sp-io/std",

@@ -39,7 +39,7 @@
 // --header
 // /home/mdamico/devel/ZKV-core/HEADER-APACHE2
 // --output
-// pallets/proof_of_existence/src/weight.rs
+// pallets/attestation/src/weight.rs
 // --template
 // /home/mdamico/devel/ZKV-core/node/zkv-pallets-weight-template.hbs
 

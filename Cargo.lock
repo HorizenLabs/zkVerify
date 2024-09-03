@@ -563,6 +563,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "attestation-rpc"
+version = "0.1.0"
+dependencies = [
+ "attestation-rpc-runtime-api",
+ "jsonrpsee",
+ "parity-scale-codec",
+ "sc-rpc-api",
+ "sp-api",
+ "sp-blockchain",
+ "sp-core",
+ "sp-runtime",
+]
+
+[[package]]
+name = "attestation-rpc-runtime-api"
+version = "0.1.0"
+dependencies = [
+ "binary-merkle-tree",
+ "pallet-attestation",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-api",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4424,6 +4453,7 @@ dependencies = [
 name = "mainchain"
 version = "0.5.1"
 dependencies = [
+ "attestation-rpc",
  "clap",
  "frame-benchmarking",
  "frame-benchmarking-cli",
@@ -4435,7 +4465,6 @@ dependencies = [
  "pallet-im-online",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc",
- "proof-of-existence-rpc",
  "regex",
  "sc-basic-authorship",
  "sc-cli",
@@ -6337,35 +6366,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.72",
-]
-
-[[package]]
-name = "proof-of-existence-rpc"
-version = "0.1.0"
-dependencies = [
- "jsonrpsee",
- "parity-scale-codec",
- "proof-of-existence-rpc-runtime-api",
- "sc-rpc-api",
- "sp-api",
- "sp-blockchain",
- "sp-core",
- "sp-runtime",
-]
-
-[[package]]
-name = "proof-of-existence-rpc-runtime-api"
-version = "0.1.0"
-dependencies = [
- "binary-merkle-tree",
- "pallet-attestation",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-api",
- "sp-core",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -11555,6 +11555,7 @@ dependencies = [
 name = "zkv-runtime"
 version = "0.5.1"
 dependencies = [
+ "attestation-rpc-runtime-api",
  "finality-grandpa",
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -11600,7 +11601,6 @@ dependencies = [
  "pallet-whitelist",
  "pallet-zksync-verifier",
  "parity-scale-codec",
- "proof-of-existence-rpc-runtime-api",
  "scale-info",
  "serde_json",
  "sp-api",

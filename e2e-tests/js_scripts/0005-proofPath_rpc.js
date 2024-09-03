@@ -108,19 +108,19 @@ async function run(nodeName, networkInfo, _args) {
         return ReturnCode.ErrWrongAttestationTiming;
     }
 
-    // // For each proof, get its Merkle path and evaluate the root
-    // const attId = parseInt(interestingAttId.data['id']);
-    // for (verifier of verifiers) {
-    //     verifier.path = await api.rpc.attestation.proofPath(attId, verifier.statementHash);
-    //     console.log(`##### proofPath RPC returned (proof ${verifier.name}): ` + JSON.stringify(verifier.path));
-    //     let checked = await verifyProof(verifier.path, publishedRoot);
-    //     console.log(`Proof ${verifier.name} checked: ${checked}`);
-    //     failed |= !checked;
-    // }
-    //
-    // if (failed) {
-    //     return ReturnCode.ErrAttProofFailedVerification;
-    // }
+    // For each proof, get its Merkle path and evaluate the root
+    const attId = parseInt(interestingAttId.data['id']);
+    for (verifier of verifiers) {
+        verifier.path = await api.rpc.attestation.proofPath(attId, verifier.statementHash);
+        console.log(`##### proofPath RPC returned (proof ${verifier.name}): ` + JSON.stringify(verifier.path));
+        let checked = await verifyProof(verifier.path, publishedRoot);
+        console.log(`Proof ${verifier.name} checked: ${checked}`);
+        failed |= !checked;
+    }
+
+    if (failed) {
+        return ReturnCode.ErrAttProofFailedVerification;
+    }
 
     // Any return value different from 1 is considered an error
     return ReturnCode.Ok;

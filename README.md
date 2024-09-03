@@ -168,6 +168,6 @@ The remaining crates, which are independent of the FFLONK verifier implementatio
 
 - `pallet-attestation`
 - `hp-attestation`
-- `proof-of-existence-rpc`
-- `proof-of-existence-rpc-runtime-api`
+- `attestation-rpc`
+- `attestation-rpc-runtime-api`
 - `pallet-settlement-zksync`

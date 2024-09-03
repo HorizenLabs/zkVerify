@@ -85,7 +85,7 @@ where
     C::Api: BabeApi<Block>,
     C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
     C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
-    C::Api: proof_of_existence_rpc::AttestationRuntimeApi<Block>,
+    C::Api: attestation_rpc::AttestationRuntimeApi<Block>,
     C::Api: BlockBuilder<Block>,
     P: TransactionPool + 'static,
     SC: SelectChain<Block> + 'static,
@@ -93,7 +93,7 @@ where
     B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashingFor<Block>>,
 {
     use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
-    use proof_of_existence_rpc::{Attestation, AttestationApiServer};
+    use attestation_rpc::{Attestation, AttestationApiServer};
     use sc_consensus_babe_rpc::{Babe, BabeApiServer};
     use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
     use substrate_frame_rpc_system::{System, SystemApiServer};

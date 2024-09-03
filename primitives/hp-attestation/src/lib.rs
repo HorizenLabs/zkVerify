@@ -18,13 +18,13 @@ use codec::{Decode, Encode};
 use sp_core::H256;
 use sp_inherents::{InherentIdentifier, IsFatalError};
 
-/// The identifier for the `proof-of-existence0` inherent.
-pub const INHERENT_IDENTIFIER: InherentIdentifier = *b"Att-0000";
+/// The identifier for the `attestation0` inherent.
+pub const INHERENT_IDENTIFIER: InherentIdentifier = *b"PoE-0000";
 
 /// The type of the inherent.
 pub type InherentType = Attestation;
 
-/// Timestamp wrapper that represents a proof-of-existence0 inherent.
+/// Timestamp wrapper that represents an attestation0 inherent.
 #[derive(Default, Debug, Encode, Decode, PartialEq, Eq, Clone, Copy, PartialOrd, Ord)]
 pub struct Attestation;
 

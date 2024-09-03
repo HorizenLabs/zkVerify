@@ -25,8 +25,8 @@ use sp_blockchain::HeaderBackend;
 use sp_core::H256;
 use sp_runtime::traits::Block as BlockT;
 
-pub use proof_of_existence_rpc_runtime_api::AttestationApi as AttestationRuntimeApi;
-use proof_of_existence_rpc_runtime_api::{AttestationPathRequestError, MerkleProof};
+pub use attestation_rpc_runtime_api::AttestationApi as AttestationRuntimeApi;
+use attestation_rpc_runtime_api::{AttestationPathRequestError, MerkleProof};
 
 #[rpc(client, server)]
 pub trait AttestationApi<BlockHash, ResponseType> {

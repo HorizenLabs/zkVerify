@@ -66,7 +66,7 @@ frame-benchmarking = { workspace = true }
 frame-benchmarking-cli = { workspace = true }
 zkv-runtime = { workspace = true }
 hp-attestation = { workspace = true }
-proof-of-existence-rpc = { workspace = true }
+attestation-rpc = { workspace = true }
 native = { workspace = true, features = ["std"] }
 
 # CLI-specific dependencies

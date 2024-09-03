@@ -1,7 +1,7 @@
 [package]
-name = "proof-of-existence-rpc-runtime-api"
+name = "attestation-rpc-runtime-api"
 version = "0.1.0"
-description = "Add RPC commands to the Proof of Existence pallet - runtime side"
+description = "Add RPC commands to the Attestation pallet - runtime side"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true

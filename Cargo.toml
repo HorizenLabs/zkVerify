@@ -10,8 +10,8 @@ resolver = "2"
 members = [
     "node",
     "runtime",
-    "pallets/proof_of_existence",
-    "primitives/hp-proof-of-existence",
+    "pallets/attestation",
+    "primitives/hp-attestation",
     "native",
     "pallets/verifiers",
     "pallets/verifiers/macros",
@@ -59,7 +59,7 @@ sp-keyring = { version = "35.0.0" }
 sp-keystore = { version = "0.38.0" }
 
 native = { default-features = false, path = "native" }
-pallet-attestation = { path = "pallets/proof_of_existence", default-features = false }
+pallet-attestation = { path = "pallets/attestation", default-features = false }
 pallet-verifiers = { path = "pallets/verifiers", default-features = false }
 pallet-verifiers-macros = { path = "pallets/verifiers/macros" }
 hp-verifiers = { path = "primitives/hp-verifiers", default-features = false }
@@ -150,9 +150,9 @@ serde_json = { version = "1.0.108", default-features = false, features = [
 ] }
 sp-weights = { default-features = false, version = "31.0.0" }
 sp-genesis-builder = { default-features = false, version = "0.11.0" }
-hp-attestation = { default-features = false, path = "primitives/hp-proof-of-existence" }
-proof-of-existence-rpc = { default-features = false, path = "rpc/proof_of_existence" }
-proof-of-existence-rpc-runtime-api = { default-features = false, path = "rpc/proof_of_existence/runtime-api" }
+hp-attestation = { default-features = false, path = "primitives/hp-attestation" }
+attestation-rpc = { default-features = false, path = "rpc/attestation" }
+attestation-rpc-runtime-api = { default-features = false, path = "rpc/attestation/runtime-api" }
 
 # Used for the node template's RPCs
 frame-system-rpc-runtime-api = { default-features = false, version = "30.0.0" }
