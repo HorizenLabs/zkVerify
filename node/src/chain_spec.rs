@@ -239,84 +239,84 @@ pub fn testnet_config_build() -> Result<ChainSpec, String> {
             // zkv-validator-t1
             (
                 authority_ids_from_ss58(
-                    "5ETuZEyLnfVzQCaDM8aQCcsNnz6xjPKvQCtqynCLqwng8QLd",
-                    "5CbPYnSSw7KpKAJR3caCYv7KP3ChaAUgw5BgC3GPppnfiK5E",
+                    "xphbr12gjGuofiQR6UNn6ts9rhABwJSD3AqRfDMDMRerCEZve",
+                    "xpfjKza9qRMdVdN9JArmuFAPoHDHg9DMohhiVRcHQQXrBpsKc",
                 )?,
                 280 * currency::MILLIONS,
             ),
             // zkv-validator-t2
             (
                 authority_ids_from_ss58(
-                    "5D29UEzgStCBTnjKNdkurDNvd3FHePHgTkPEUvjXYvg3brJj",
-                    "5H5XnaSsh5eebN2BSTx19qCUweMziyJATuUVb9qdWVDhHQ3K",
+                    "xpgA5v2i4w8VrmzaCVsxcYTfQXDLGDSAoENv3iVkY8djZiG8g",
+                    "xpkDUENAGBKxKuZs4Zi9hr5UxqpSyJ2BHEY1Jpire6CHDPawo",
                 )?,
                 280 * currency::MILLIONS,
             ),
             // zkv-validator-t3
             (
                 authority_ids_from_ss58(
-                    "5DiMVAp8WmFyWAwaTwAr7sU4K3brXcgNCBDbHoBWj3M46PiP",
-                    "5CYcXe9bodJ31HE6pLT9EyUK5mrB3otXDNhDXVFSSmTAYm4f",
+                    "xpgrHvxXX11ZepNnTbBNYp7kYDDgq6fZUxokQXNCXJkQaCw6w",
+                    "xpfgYyRrzHsbiKV4ywaeqwDknyww9crmdz1E2m4GT2UWgf6Q8",
                 )?,
                 140 * currency::MILLIONS,
             ),
         ],
         // Sudo account [zkv-sudo-t1]
-        from_ss58check("5D9txxK9DTvgCznTjJo7q1cxAgmWa83CzHvcz8zhBtLgaLBV")
+        from_ss58check("xpgHqQk2XhiEMXCdLrYzpXFuS4rrV9AvKkvTSDi1hmbQCgm2L")
             .map_err(|error| error.to_string())?,
         // Initial balances
         vec![
             // zkv-validator-t1
             (
-                from_ss58check("5ETuZEyLnfVzQCaDM8aQCcsNnz6xjPKvQCtqynCLqwng8QLd")
+                from_ss58check("xphbr12gjGuofiQR6UNn6ts9rhABwJSD3AqRfDMDMRerCEZve")
                     .map_err(|error| error.to_string())?,
                 280 * currency::MILLIONS + 1000 * currency::ACME,
             ),
             // zkv-validator-t2
             (
-                from_ss58check("5D29UEzgStCBTnjKNdkurDNvd3FHePHgTkPEUvjXYvg3brJj")
+                from_ss58check("xpgA5v2i4w8VrmzaCVsxcYTfQXDLGDSAoENv3iVkY8djZiG8g")
                     .map_err(|error| error.to_string())?,
                 280 * currency::MILLIONS + 1000 * currency::ACME,
             ),
             // zkv-validator-t3
             (
-                from_ss58check("5DiMVAp8WmFyWAwaTwAr7sU4K3brXcgNCBDbHoBWj3M46PiP")
+                from_ss58check("xpgrHvxXX11ZepNnTbBNYp7kYDDgq6fZUxokQXNCXJkQaCw6w")
                     .map_err(|error| error.to_string())?,
                 140 * currency::MILLIONS + 1000 * currency::ACME,
             ),
             // zkv-sudo-t1
             (
-                from_ss58check("5EhREncHsntgJaax9YQphk1xN3LxPu2Rzbz4A3g7Ut8cRXWq")
+                from_ss58check("xphqMgaKgN3CMcnRqGncXPzJSGDRvxwuYmEWsPch84bC8Xphs")
                     .map_err(|error| error.to_string())?,
                 7 * currency::MILLIONS,
             ),
             // zkv-wallet-custody-t1
             (
-                from_ss58check("5C84NU2477uHCUF1A8rHb89sP2D2ZsnquPaGa2Htv75FN9gm")
+                from_ss58check("xpfFzpFjSbNCxWg5tHP3zHNSMHCJ18vfxg275obJuVp8mUekG")
                     .map_err(|error| error.to_string())?,
                 70 * currency::MILLIONS,
             ),
             // zkv-wallet-custody-t2
             (
-                from_ss58check("5HdZjrmNAkWQhYQUPNv7YRYnT4vyQswjbNm8eXBvULNQz5wH")
+                from_ss58check("xpkmWBeUkezp61kFMWd7pEfqGMF1wyvprN1Hwt6Cw43Rw6TMN")
                     .map_err(|error| error.to_string())?,
                 70 * currency::MILLIONS,
             ),
             // zkv-wallet-automated-t1
             (
-                from_ss58check("5HjFLKpiCStQgRm6ZM1fT1R5pLKAqQdUG3uh7pvzaQfhdFuB")
+                from_ss58check("xpksBn7Y6ghC5zdbygbDN9FhZiWQ9QTWb2gSWMPx1A7jDjaNV")
                     .map_err(|error| error.to_string())?,
                 35 * currency::MILLIONS,
             ),
             // zkv-wallet-user-t1
             (
-                from_ss58check("5ECktCamcAtBFJirEzvvJmXFxgLMCTAejhqZwLT1Dxn2fwB1")
+                from_ss58check("xphLhKzJA6RBrZWZjNF8d11ojrrRKmW3mWLNPAuU1ofqYnM62")
                     .map_err(|error| error.to_string())?,
                 7 * currency::MILLIONS,
             ),
             // zkv-wallet-faucet-t1
             (
-                from_ss58check("5EZbvFqx3j7ejqBSPWseif8xL3PwoqMQHdMT8rs9qWoHcdR3")
+                from_ss58check("xphhYN3ZLXyRL432KWm5MQuRSEDUvNtEX4FtGNRtARDroivXv")
                     .map_err(|error| error.to_string())?,
                 70 * currency::MILLIONS,
             ),

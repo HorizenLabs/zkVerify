@@ -23,6 +23,7 @@ use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory};
 use native::HLNativeHostFunctions;
 use sc_cli::SubstrateCli;
 use sc_service::PartialComponents;
+use sp_core::crypto::Ss58AddressFormat;
 use sp_keyring::Sr25519Keyring;
 use zkv_runtime::{Block, EXISTENTIAL_DEPOSIT};
 
@@ -66,6 +67,10 @@ impl SubstrateCli for Cli {
 /// Parse and run command line arguments
 pub fn run() -> sc_cli::Result<()> {
     let cli = Cli::from_args();
+
+    sp_core::crypto::set_default_ss58_version(Ss58AddressFormat::from(
+        zkv_runtime::SS58Prefix::get(),
+    ));
 
     match &cli.subcommand {
         Some(Subcommand::Key(cmd)) => cmd.run(&cli),
