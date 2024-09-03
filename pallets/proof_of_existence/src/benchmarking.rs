@@ -20,57 +20,60 @@ use super::*;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 use sp_core::{Get, H256};
+use sp_runtime::SaturatedConversion;
 
 #[benchmarks]
 mod benchmarks {
     use super::*;
 
-    const OFFSET_FACTOR: u32 = 10000;
+    const OFFSET_FACTOR: u64 = 10000;
     #[benchmark]
     fn publish_attestation() {
         // Setup code
         // benchmark taking into account situations where attestations left to be cleaned in storage
         // are bigger than one. shouldn't happen very often so we consider only 0.01% of the
         // maximum supported ones.
-        let max_attestations = T::MaxStorageAttestations::get();
-        let offset = max_attestations.div_ceil(OFFSET_FACTOR);
+        let max_attestations = T::MaxStorageAttestations::get().saturated_into::<u64>();
+        let offset = max_attestations
+            .div_ceil(OFFSET_FACTOR)
+            .saturated_into::<u64>();
 
         let mut hash: [u8; 32] = [0; 32];
 
         for id in 0..max_attestations + offset {
-            // benchmark with double the minimum number of elements for publishing an attestation
-            for _ in 0..T::MinProofsForPublishing::get() * 2 {
-                hash[0] += 1;
-                Values::<T>::insert(id as u64, H256::from_slice(&hash), ());
+            if id < offset + 1 {
+                // benchmark with double the minimum number of elements for publishing an attestation
+                for _ in 0..T::MinProofsForPublishing::get() * 2 {
+                    hash[0] += 1;
+                    Values::<T>::insert(id, H256::from_slice(&hash), ());
+                }
+            } else {
+                Values::<T>::insert(id, H256::default(), ());
             }
         }
 
-        // Check all attestations are present in storage
-        let mut test_hash: [u8; 32] = [0; 32];
-        for id in 0..max_attestations + offset {
-            for _ in 0..T::MinProofsForPublishing::get() * 2 {
-                test_hash[0] += 1;
-                assert!(Values::<T>::try_get(id as u64, H256::from_slice(&test_hash)).is_ok());
-            }
-        }
+        NextAttestation::<T>::set(max_attestations + offset - 1);
+
+        assert_eq!(
+            Values::<T>::iter_keys().count(),
+            (((offset + 1) * T::MinProofsForPublishing::get().saturated_into::<u64>()) * 2
+                + (max_attestations - 1)) as usize
+        );
 
         #[extrinsic_call]
         publish_attestation(RawOrigin::Root);
 
         // Check that indeed old attestations have been removed
         let mut test_hash: [u8; 32] = [0; 32];
-        for id in 0..offset {
+        for id in 0..offset + 1 {
             for _ in 0..T::MinProofsForPublishing::get() * 2 {
                 test_hash[0] += 1;
-                assert!(Values::<T>::try_get(id as u64, H256::from_slice(&test_hash)).is_err());
+                assert!(Values::<T>::try_get(id, H256::from_slice(&test_hash)).is_err());
             }
         }
 
-        for id in offset..max_attestations {
-            for _ in 0..T::MinProofsForPublishing::get() * 2 {
-                test_hash[0] += 1;
-                assert!(Values::<T>::try_get(id as u64, H256::from_slice(&test_hash)).is_ok());
-            }
+        for id in offset + 1..max_attestations + 1 {
+            assert!(Values::<T>::try_get(id, H256::default()).is_ok());
         }
     }
 

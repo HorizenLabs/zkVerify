@@ -58,7 +58,7 @@ pub mod pallet {
         type MinProofsForPublishing: Get<u32>;
         /// Maximum time (ms) that an element can wait in a tree before the tree is published
         type MaxElapsedTimeMs: Get<Self::Moment>;
-        /// Maximum number of attestations that are kept in storage
+        /// Maximum number of attestations that are kept in storage (including the current one)
         type MaxStorageAttestations: Get<u32>;
         /// The weight definition for this pallet
         type WeightInfo: WeightInfo;
@@ -72,6 +72,10 @@ pub mod pallet {
 
     #[pallet::pallet]
     pub struct Pallet<T>(_);
+
+    #[pallet::storage]
+    #[pallet::getter(fn oldest_attestation)]
+    pub type OldestAttestation<T> = StorageValue<_, u64, ValueQuery>;
 
     #[pallet::storage]
     #[pallet::getter(fn next_attestation)]
@@ -182,19 +186,15 @@ pub mod pallet {
         }
 
         fn prune_old_attestations_if_needed() {
-            let attestations = Values::<T>::iter_keys()
-                .map(|(k1, _)| k1)
-                .collect::<BTreeSet<_>>();
-            let att_len = attestations.len().saturated_into::<usize>();
-            let max_len = T::MaxStorageAttestations::get().saturated_into::<usize>();
+            let newest_attestation_id = Self::next_attestation();
+            let oldest_attestation_id = Self::oldest_attestation();
+            let max_attestations = T::MaxStorageAttestations::get().saturated_into::<u64>();
 
-            if att_len > max_len {
-                attestations
-                    .into_iter()
-                    .take(att_len - max_len)
-                    .for_each(|id| {
-                        let _ = Values::<T>::clear_prefix(id, u32::MAX, None);
-                    })
+            if newest_attestation_id - oldest_attestation_id > (max_attestations - 1) {
+                for id in oldest_attestation_id..newest_attestation_id - (max_attestations - 1) {
+                    let _ = Values::<T>::clear_prefix(id, u32::MAX, None);
+                }
+                OldestAttestation::<T>::set(newest_attestation_id - (max_attestations - 1));
             }
         }
 
