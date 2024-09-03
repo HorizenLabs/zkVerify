@@ -28,3 +28,14 @@ pub mod pallet_utility;
 pub mod pallet_vesting;
 pub mod pallet_whitelist;
 pub mod pallet_zksync_verifier;
+
+// Parachains
+#[cfg(feature = "relay")]
+pub mod parachains {
+    pub mod configuration;
+    pub mod disputes;
+    pub mod hrmp;
+    pub mod initializer;
+    pub mod paras;
+    pub mod paras_inherent;
+}
