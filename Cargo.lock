@@ -15442,6 +15442,7 @@ dependencies = [
  "frame-benchmarking-cli",
  "futures 0.3.30",
  "log",
+ "native",
  "polkadot-node-metrics",
  "polkadot-node-primitives",
  "pyroscope",

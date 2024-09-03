@@ -26,6 +26,7 @@ use service::{
 use sp_core::crypto::Ss58AddressFormatRegistry;
 use sp_keyring::Sr25519Keyring;
 use std::net::ToSocketAddrs;
+use native::HLNativeHostFunctions;
 
 pub use crate::{error::Error, service::BlockId};
 #[cfg(feature = "pyroscope")]
@@ -360,7 +361,7 @@ pub fn run() -> Result<()> {
 
                     if cfg!(feature = "runtime-benchmarks") {
                         runner.sync_run(|config| {
-                            cmd.run::<sp_runtime::traits::HashingFor<service::Block>, ()>(config)
+                            cmd.run::<sp_runtime::traits::HashingFor<service::Block>, HLNativeHostFunctions>(config)
                                 .map_err(Error::SubstrateCli)
                         })
                     } else {

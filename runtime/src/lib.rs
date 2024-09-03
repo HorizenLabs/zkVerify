@@ -722,18 +722,18 @@ construct_runtime!(
 
         // Parachains pallets. Start indices at 50 to leave room.
         ParachainsOrigin: parachains::parachains_origin::{Pallet, Origin} = 50,
-        Configuration: parachains::parachains_configuration::{Pallet, Call, Storage, Config<T>} = 51,
+        Configuration: parachains::configuration::{Pallet, Call, Storage, Config<T>} = 51,
         ParasShared: parachains::parachains_shared::{Pallet, Call, Storage} = 52,
-        ParaInclusion: parachains::parachains_inclusion::{Pallet, Call, Storage, Event<T>} = 53,
-        ParaInherent: parachains::parachains_paras_inherent::{Pallet, Call, Storage, Inherent} = 54,
+        ParaInclusion: parachains::inclusion::{Pallet, Call, Storage, Event<T>} = 53,
+        ParaInherent: parachains::paras_inherent::{Pallet, Call, Storage, Inherent} = 54,
         ParaScheduler: parachains::parachains_scheduler::{Pallet, Storage} = 55,
-        Paras: parachains::parachains_paras::{Pallet, Call, Storage, Event, Config<T>, ValidateUnsigned} = 56,
-        Initializer: parachains::parachains_initializer::{Pallet, Call, Storage} = 57,
+        Paras: parachains::paras::{Pallet, Call, Storage, Event, Config<T>, ValidateUnsigned} = 56,
+        Initializer: parachains::initializer::{Pallet, Call, Storage} = 57,
         Dmp: parachains::parachains_dmp::{Pallet, Storage} = 58,
-        Hrmp: parachains::parachains_hrmp::{Pallet, Call, Storage, Event<T>, Config<T>} = 60,
+        Hrmp: parachains::hrmp::{Pallet, Call, Storage, Event<T>, Config<T>} = 60,
         ParaSessionInfo: parachains::parachains_session_info::{Pallet, Storage} = 61,
-        ParasDisputes: parachains::parachains_disputes::{Pallet, Call, Storage, Event<T>} = 62,
-        ParasSlashing: parachains::parachains_slashing::{Pallet, Call, Storage, ValidateUnsigned} = 63,
+        ParasDisputes: parachains::disputes::{Pallet, Call, Storage, Event<T>} = 62,
+        ParasSlashing: parachains::slashing::{Pallet, Call, Storage, ValidateUnsigned} = 63,
         // MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 64,
         // ParaAssignmentProvider: parachains_assigner::{Pallet, Storage} = 65,
         // OnDemandAssignmentProvider: parachains_assigner_on_demand::{Pallet, Call, Storage, Event<T>} = 66,
@@ -819,7 +819,36 @@ pub type Executive = frame_executive::Executive<
 #[macro_use]
 extern crate frame_benchmarking;
 
-#[cfg(feature = "runtime-benchmarks")]
+#[cfg(all(feature = "runtime-benchmarks", not(feature = "relay")))]
+mod benches {
+    define_benchmarks!(
+        [frame_benchmarking, BaselineBench::<Runtime>]
+        [frame_system, SystemBench::<Runtime>]
+        [pallet_balances, Balances]
+        [pallet_babe, crate::Babe]
+        [pallet_grandpa, crate::Grandpa]
+        [pallet_timestamp, Timestamp]
+        [pallet_sudo, Sudo]
+        [pallet_multisig, Multisig]
+        [pallet_scheduler, Scheduler]
+        [pallet_preimage, Preimage]
+        [pallet_session, SessionBench::<Runtime>]
+        [pallet_staking, Staking]
+        [pallet_im_online, ImOnline]
+        [frame_election_provider_support, ElectionProviderBench::<Runtime>]
+        [pallet_poe, Poe]
+        [pallet_conviction_voting, ConvictionVoting]
+        [pallet_referenda, Referenda]
+        [pallet_whitelist, Whitelist]
+        [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
+        [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
+        [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
+        [pallet_risc0_verifier, Risc0VerifierBench::<Runtime>]
+        [pallet_ultRaplonk_verifier, UltraplonkVerifierBench::<Runtime>]
+    );
+}
+
+#[cfg(all(feature = "runtime-benchmarks", feature = "relay"))]
 mod benches {
     define_benchmarks!(
         [frame_benchmarking, BaselineBench::<Runtime>]
@@ -845,6 +874,17 @@ mod benches {
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
         [pallet_risc0_verifier, Risc0VerifierBench::<Runtime>]
         [pallet_ultraplonk_verifier, UltraplonkVerifierBench::<Runtime>]
+        // parachains
+        [crate::parachains::configuration, Configuration]
+        [crate::parachains::disputes, ParasDisputes]
+        // FIXME
+        //[crate::parachains::slashing, ParasSlashing]
+        [crate::parachains::hrmp, Hrmp]
+        // needs message queue
+        //[crate::parachains::inclusion, ParaInclusion]
+        [crate::parachains::initializer, Initializer]
+        [crate::parachains::paras, Paras]
+        [crate::parachains::paras_inherent, ParaInherent]
     );
 }
 
@@ -1309,6 +1349,8 @@ impl_runtime_apis! {
             impl pallet_election_provider_support_benchmarking::Config for Runtime {}
 
             impl pallet_session_benchmarking::Config for Runtime {}
+
+            impl parachains::slashing::benchmarking::Config for Runtime {}
 
             use frame_support::traits::WhitelistedStorageKeys;
             let whitelist: Vec<TrackedStorageKey> = AllPalletsWithSystem::whitelisted_storage_keys();

@@ -41,6 +41,7 @@ sc-sysinfo = { workspace = true }
 sc-executor = { workspace = true }
 sc-storage-monitor = { workspace = true }
 
+native = { workspace = true, features = ["std"] }
 zkv-runtime = { workspace = true }
 
 [build-dependencies]

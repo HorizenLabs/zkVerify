@@ -22,3 +22,14 @@ pub mod pallet_timestamp;
 pub mod pallet_ultraplonk_verifier;
 pub mod pallet_whitelist;
 pub mod pallet_zksync_verifier;
+
+// Parachains
+#[cfg(feature = "relay")]
+pub mod parachains {
+    pub mod configuration;
+    pub mod disputes;
+    pub mod hrmp;
+    pub mod initializer;
+    pub mod paras;
+    pub mod paras_inherent;
+}
