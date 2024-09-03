@@ -92,8 +92,8 @@ where
     B: sc_client_api::Backend<Block> + Send + Sync + 'static,
     B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashingFor<Block>>,
 {
-    use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
     use attestation_rpc::{Attestation, AttestationApiServer};
+    use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
     use sc_consensus_babe_rpc::{Babe, BabeApiServer};
     use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
     use substrate_frame_rpc_system::{System, SystemApiServer};
