@@ -51,9 +51,12 @@ pub fn handle_dependency(
     dependency: &impl Dependency,
     profile: &str,
 ) -> anyhow::Result<()> {
-    let valid = cache_dependency(&target_root, dependency, profile)?;
+    let target_path = target_path(target_root, profile);
+    let valid = cache_dependency(&target_path, dependency)?;
     if valid {
         dependency.rerun_if();
+    } else {
+        println!("cargo::rerun-if-changed={}", target_path.display());
     }
     set_env_paths(dependency, !valid)
 }
@@ -74,18 +77,20 @@ pub fn handle_dependencies<'a>(
     Ok(())
 }
 
-fn cache_dependency(
-    target_root: impl AsRef<Path>,
-    dependency: &impl Dependency,
-    profile: &str,
-) -> anyhow::Result<bool> {
-    let target_path = target_root
+fn target_path(target_root: impl AsRef<Path>, profile: &str) -> PathBuf {
+    target_root
         .as_ref()
         .to_path_buf()
         .join(profile)
-        .join("build");
+        .join("build")
+}
 
+fn cache_dependency(
+    target_path: impl AsRef<Path>,
+    dependency: &impl Dependency,
+) -> anyhow::Result<bool> {
     if !dependency.is_valid_cache() {
+        let target_path = target_path.as_ref();
         // We ignore the error because doesn't matter if the cache folder doesn't exist.
         let _ = fs::remove_dir_all(dependency.cache_path());
         log!("Rebuild from {}", target_path.display());
