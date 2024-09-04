@@ -17,6 +17,7 @@
 use codec::{Decode, Encode};
 use sp_core::H256;
 use sp_inherents::{InherentIdentifier, IsFatalError};
+use sp_runtime::SaturatedConversion;
 
 /// The identifier for the `proof-of-existence0` inherent.
 pub const INHERENT_IDENTIFIER: InherentIdentifier = *b"PoE-0000";
@@ -93,4 +94,26 @@ impl sp_inherents::InherentDataProvider for InherentDataProvider {
 #[impl_trait_for_tuples::impl_for_tuples(10)]
 pub trait OnProofVerified {
     fn on_proof_verified(pubs_hash: H256);
+}
+
+/// Wrapper around u32 for MaxStorageAttestations
+#[derive(Eq, PartialEq)]
+pub struct MaxStorageAttestations(pub u32);
+
+impl Into<u32> for MaxStorageAttestations {
+    fn into(self) -> u32 {
+        self.0
+    }
+}
+
+impl Into<u64> for MaxStorageAttestations {
+    fn into(self) -> u64 {
+        self.0.saturated_into::<u64>()
+    }
+}
+
+impl Default for MaxStorageAttestations {
+    fn default() -> Self {
+        MaxStorageAttestations(u32::MAX)
+    }
 }

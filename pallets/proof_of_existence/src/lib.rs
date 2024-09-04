@@ -43,6 +43,7 @@ pub mod pallet {
     use frame_system::pallet_prelude::*;
 
     use hp_poe::{InherentError, InherentType, INHERENT_IDENTIFIER};
+    pub use hp_poe::MaxStorageAttestations;
 
     #[derive(Clone, TypeInfo, PartialEq, Eq, Encode, Decode, Debug)]
     pub enum AttestationPathRequestError {
@@ -59,7 +60,7 @@ pub mod pallet {
         /// Maximum time (ms) that an element can wait in a tree before the tree is published
         type MaxElapsedTimeMs: Get<Self::Moment>;
         /// Maximum number of attestations that are kept in storage (including the current one)
-        type MaxStorageAttestations: Get<u32>;
+        type MaxStorageAttestations: Get<MaxStorageAttestations>;
         /// The weight definition for this pallet
         type WeightInfo: WeightInfo;
     }
@@ -138,8 +139,16 @@ pub mod pallet {
 
             Self::deposit_event(Event::NewAttestation { id, attestation });
 
-            if T::MaxStorageAttestations::get() != u32::default() {
-                Self::prune_old_attestations_if_needed();
+            // Prune old attestations
+            // Rationale: ids are incremental, no more than one attestation
+            // for each publish_attestation call will need to be removed from storage
+            let max_attestations = T::MaxStorageAttestations::get();
+            if max_attestations != MaxStorageAttestations::default()
+                && id + 1 >= max_attestations.into()
+            {
+                let oldest_attestation_id = Self::oldest_attestation();
+                let _ = Values::<T>::clear_prefix(oldest_attestation_id, u32::MAX, None);
+                OldestAttestation::<T>::set(oldest_attestation_id + 1);
             }
 
             Ok(().into())
@@ -183,19 +192,6 @@ pub mod pallet {
                 .map(|d| now >= d);
             values >= T::MinProofsForPublishing::get()
                 || (values > 0 && deadline.unwrap_or_default())
-        }
-
-        fn prune_old_attestations_if_needed() {
-            let newest_attestation_id = Self::next_attestation();
-            let oldest_attestation_id = Self::oldest_attestation();
-            let max_attestations = T::MaxStorageAttestations::get().saturated_into::<u64>();
-
-            if newest_attestation_id - oldest_attestation_id > (max_attestations - 1) {
-                for id in oldest_attestation_id..newest_attestation_id - (max_attestations - 1) {
-                    let _ = Values::<T>::clear_prefix(id, u32::MAX, None);
-                }
-                OldestAttestation::<T>::set(newest_attestation_id - (max_attestations - 1));
-            }
         }
 
         fn ensure_inherent(data: &InherentData) {

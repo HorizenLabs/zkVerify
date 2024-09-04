@@ -26,55 +26,54 @@ use sp_runtime::SaturatedConversion;
 mod benchmarks {
     use super::*;
 
-    const OFFSET_FACTOR: u64 = 10000;
     #[benchmark]
     fn publish_attestation() {
         // Setup code
-        // benchmark taking into account situations where attestations left to be cleaned in storage
-        // are bigger than one. shouldn't happen very often so we consider only 0.01% of the
-        // maximum supported ones.
-        let max_attestations = T::MaxStorageAttestations::get().saturated_into::<u64>();
-        let offset = max_attestations
-            .div_ceil(OFFSET_FACTOR)
-            .saturated_into::<u64>();
+        let max_attestations: u64 = T::MaxStorageAttestations::get().into();
 
         let mut hash: [u8; 32] = [0; 32];
-
-        for id in 0..max_attestations + offset {
-            if id < offset + 1 {
-                // benchmark with double the minimum number of elements for publishing an attestation
-                for _ in 0..T::MinProofsForPublishing::get() * 2 {
-                    hash[0] += 1;
-                    Values::<T>::insert(id, H256::from_slice(&hash), ());
-                }
-            } else {
-                Values::<T>::insert(id, H256::default(), ());
-            }
+        // Fill completely first attestation that will be pruned
+        for _ in 0..T::MinProofsForPublishing::get() * 2 {
+            hash[0] += 1;
+            Values::<T>::insert(0, H256::from_slice(&hash), ());
         }
 
-        NextAttestation::<T>::set(max_attestations + offset - 1);
+        // Fill the others partially
+        for id in 1..max_attestations - 1 {
+            Values::<T>::insert(id, H256::default(), ());
+        }
 
+        // Fill the last one completely (as it is the one that will be published)
+        for _ in 0..T::MinProofsForPublishing::get() * 2 {
+            hash[0] += 1;
+            Values::<T>::insert(max_attestations - 1, H256::from_slice(&hash), ());
+        }
+
+        // Check all inserted values are present
         assert_eq!(
             Values::<T>::iter_keys().count(),
-            (((offset + 1) * T::MinProofsForPublishing::get().saturated_into::<u64>()) * 2
-                + (max_attestations - 1)) as usize
+            ((2 * 2 * T::MinProofsForPublishing::get().saturated_into::<u64>())
+                + (max_attestations - 2)) as usize
         );
+
+        NextAttestation::<T>::set(max_attestations - 1);
 
         #[extrinsic_call]
         publish_attestation(RawOrigin::Root);
 
-        // Check that indeed old attestations have been removed
-        let mut test_hash: [u8; 32] = [0; 32];
-        for id in 0..offset + 1 {
-            for _ in 0..T::MinProofsForPublishing::get() * 2 {
-                test_hash[0] += 1;
-                assert!(Values::<T>::try_get(id, H256::from_slice(&test_hash)).is_err());
-            }
+        // Check that indeed oldest attestation has been removed
+        assert!(Values::<T>::iter_key_prefix(0).next().is_none());
+
+        // Check the others are still present
+        for id in 1..max_attestations - 1 {
+            assert!(Values::<T>::iter_key_prefix(id).next().is_some());
         }
 
-        for id in offset + 1..max_attestations + 1 {
-            assert!(Values::<T>::try_get(id, H256::default()).is_ok());
-        }
+        assert_eq!(
+            Values::<T>::iter_key_prefix(max_attestations - 1).count(),
+            (T::MinProofsForPublishing::get() * 2) as usize
+        );
+
     }
 
     #[cfg(test)]

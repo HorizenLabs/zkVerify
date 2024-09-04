@@ -131,7 +131,7 @@ fn correct_root() {
 #[test]
 fn old_attestations_are_cleared() {
     new_test_ext().execute_with(|| {
-        let max_attestations = crate::mock::MAX_STORAGE_ATTESTATIONS.saturated_into::<u64>();
+        let max_attestations: u64 = crate::mock::MAX_STORAGE_ATTESTATIONS.saturated_into::<u64>();
 
         for i in 0..=max_attestations * 2 {
             // Publish proofs and attestation
