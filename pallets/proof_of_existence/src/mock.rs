@@ -15,9 +15,9 @@
 
 use frame_support::{derive_impl, parameter_types};
 use frame_system as system;
+use hp_poe::MaxStorageAttestations;
 use sp_core::{ConstU32, ConstU64};
 use sp_runtime::{traits::IdentityLookup, BuildStorage};
-use hp_poe::MaxStorageAttestations;
 
 // Timestamp
 impl pallet_timestamp::Config for Test {

@@ -42,8 +42,8 @@ pub mod pallet {
     use frame_support::sp_runtime::traits::{Keccak256, SaturatedConversion};
     use frame_system::pallet_prelude::*;
 
-    use hp_poe::{InherentError, InherentType, INHERENT_IDENTIFIER};
     pub use hp_poe::MaxStorageAttestations;
+    use hp_poe::{InherentError, InherentType, INHERENT_IDENTIFIER};
 
     #[derive(Clone, TypeInfo, PartialEq, Eq, Encode, Decode, Debug)]
     pub enum AttestationPathRequestError {

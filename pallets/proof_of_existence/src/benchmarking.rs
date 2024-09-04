@@ -73,7 +73,6 @@ mod benchmarks {
             Values::<T>::iter_key_prefix(max_attestations - 1).count(),
             (T::MinProofsForPublishing::get() * 2) as usize
         );
-
     }
 
     #[cfg(test)]
