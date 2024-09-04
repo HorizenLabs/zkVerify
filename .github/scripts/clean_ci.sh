@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-# This script frees up 28 GB of disk space by deleting unneeded packages and 
+# This script frees up some disk space by deleting unneeded packages and 
 # cached docker images.
 #
 echo "=============================================================================="
@@ -24,14 +24,6 @@ echo "==========================================================================
 
 echo "********************************* START SIZE *********************************"
 df -h
-
-# echo "Removing Android library"
-# sudo rm -rf /usr/local/lib/android
-# echo "Removing .NET runtime"
-# sudo rm -rf /usr/share/dotnet
-# echo "Removing Haskell runtime"
-# sudo rm -rf /opt/ghc
-# sudo rm -rf /usr/local/.ghcup
 
 PACKAGES_TO_REMOVE_COUNT=10
 echo "Listing ${PACKAGES_TO_REMOVE_COUNT} largest packages"
