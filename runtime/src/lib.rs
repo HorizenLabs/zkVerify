@@ -509,7 +509,7 @@ pub const MAX_STORAGE_ATTESTATIONS: u32 = 100_000;
 static_assertions::const_assert!(MIN_PROOFS_FOR_ROOT_PUBLISHING > 0);
 
 // We should keep in memory at least one attestation
-static_assertions::const_assert!(MAX_STORAGE_ATTESTATIONS > 0);
+static_assertions::const_assert!(MAX_STORAGE_ATTESTATIONS > 1);
 
 use pallet_poe::MaxStorageAttestations;
 parameter_types! {
