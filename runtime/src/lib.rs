@@ -26,7 +26,7 @@ use pallet_grandpa::AuthorityId as GrandpaId;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use proof_of_existence_rpc_runtime_api::MerkleProof;
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, crypto::Ss58AddressFormat, OpaqueMetadata};
+use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
     create_runtime_str, generic, impl_opaque_keys,
     traits::{
@@ -1157,12 +1157,10 @@ impl_runtime_apis! {
 
     impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
         fn create_default_config() -> Vec<u8> {
-            sp_core::crypto::set_default_ss58_version(Ss58AddressFormat::from(SS58Prefix::get()));
             create_default_config::<RuntimeGenesisConfig>()
         }
 
         fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
-            sp_core::crypto::set_default_ss58_version(Ss58AddressFormat::from(SS58Prefix::get()));
             build_config::<RuntimeGenesisConfig>(config)
         }
     }

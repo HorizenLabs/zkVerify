@@ -68,10 +68,6 @@ impl SubstrateCli for Cli {
 pub fn run() -> sc_cli::Result<()> {
     let cli = Cli::from_args();
 
-    sp_core::crypto::set_default_ss58_version(Ss58AddressFormat::from(
-        zkv_runtime::SS58Prefix::get(),
-    ));
-
     match &cli.subcommand {
         Some(Subcommand::Key(cmd)) => cmd.run(&cli),
         Some(Subcommand::BuildSpec(cmd)) => {
@@ -80,6 +76,11 @@ pub fn run() -> sc_cli::Result<()> {
         }
         Some(Subcommand::CheckBlock(cmd)) => {
             let runner = cli.create_runner(cmd)?;
+
+            sp_core::crypto::set_default_ss58_version(Ss58AddressFormat::from(
+                zkv_runtime::SS58Prefix::get(),
+            ));
+
             runner.async_run(|config| {
                 let PartialComponents {
                     client,
@@ -92,6 +93,11 @@ pub fn run() -> sc_cli::Result<()> {
         }
         Some(Subcommand::ExportBlocks(cmd)) => {
             let runner = cli.create_runner(cmd)?;
+
+            sp_core::crypto::set_default_ss58_version(Ss58AddressFormat::from(
+                zkv_runtime::SS58Prefix::get(),
+            ));
+
             runner.async_run(|config| {
                 let PartialComponents {
                     client,
@@ -103,6 +109,11 @@ pub fn run() -> sc_cli::Result<()> {
         }
         Some(Subcommand::ExportState(cmd)) => {
             let runner = cli.create_runner(cmd)?;
+
+            sp_core::crypto::set_default_ss58_version(Ss58AddressFormat::from(
+                zkv_runtime::SS58Prefix::get(),
+            ));
+
             runner.async_run(|config| {
                 let PartialComponents {
                     client,
@@ -114,6 +125,11 @@ pub fn run() -> sc_cli::Result<()> {
         }
         Some(Subcommand::ImportBlocks(cmd)) => {
             let runner = cli.create_runner(cmd)?;
+
+            sp_core::crypto::set_default_ss58_version(Ss58AddressFormat::from(
+                zkv_runtime::SS58Prefix::get(),
+            ));
+
             runner.async_run(|config| {
                 let PartialComponents {
                     client,
@@ -130,6 +146,11 @@ pub fn run() -> sc_cli::Result<()> {
         }
         Some(Subcommand::Revert(cmd)) => {
             let runner = cli.create_runner(cmd)?;
+
+            sp_core::crypto::set_default_ss58_version(Ss58AddressFormat::from(
+                zkv_runtime::SS58Prefix::get(),
+            ));
+
             runner.async_run(|config| {
                 let PartialComponents {
                     client,
@@ -152,6 +173,10 @@ pub fn run() -> sc_cli::Result<()> {
                 // which sub-commands it wants to support.
                 match cmd {
                     BenchmarkCmd::Pallet(cmd) => {
+                        sp_core::crypto::set_default_ss58_version(Ss58AddressFormat::from(
+                            zkv_runtime::SS58Prefix::get(),
+                        ));
+
                         if !cfg!(feature = "runtime-benchmarks") {
                             return Err(
                                 "Runtime benchmarking wasn't enabled when building the node. \
@@ -227,6 +252,10 @@ pub fn run() -> sc_cli::Result<()> {
         }
         None => {
             let runner = cli.create_runner(&cli.run)?;
+            sp_core::crypto::set_default_ss58_version(Ss58AddressFormat::from(
+                zkv_runtime::SS58Prefix::get(),
+            ));
+
             runner.run_node_until_exit(|config| async move {
                 service::new_full(config).map_err(sc_cli::Error::Service)
             })
