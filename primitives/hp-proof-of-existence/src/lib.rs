@@ -100,15 +100,15 @@ pub trait OnProofVerified {
 #[derive(Eq, PartialEq)]
 pub struct MaxStorageAttestations(pub u32);
 
-impl Into<u32> for MaxStorageAttestations {
-    fn into(self) -> u32 {
-        self.0
+impl From<MaxStorageAttestations> for u32 {
+    fn from(val: MaxStorageAttestations) -> Self {
+        val.0
     }
 }
 
-impl Into<u64> for MaxStorageAttestations {
-    fn into(self) -> u64 {
-        self.0.saturated_into::<u64>()
+impl From<MaxStorageAttestations> for u64 {
+    fn from(val: MaxStorageAttestations) -> Self {
+        val.0.saturated_into::<u64>()
     }
 }
 
