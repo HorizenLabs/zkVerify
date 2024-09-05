@@ -1,0 +1,19 @@
+[package]
+name = "native-cache"
+version = "0.1.0"
+license = "Apache-2.0"
+description = "Provide library for caching native dependency"
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[dependencies]
+toml = "0.8.14"
+walkdir = "2.5.0"
+regex = "1.10.5"
+anyhow = "1.0"
+
+[features]
+rocksdb = []
+ultraplonk = []
