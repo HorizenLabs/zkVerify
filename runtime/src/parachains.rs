@@ -165,6 +165,7 @@ impl pallet_message_queue::Config for Runtime {
     type HeapSize = MessageQueueHeapSize;
     type MaxStale = MessageQueueMaxStale;
     type ServiceWeight = MessageQueueServiceWeight;
+    #[cfg(not(feature = "runtime-benchmarks"))]
     type MessageProcessor = MessageProcessor;
     #[cfg(feature = "runtime-benchmarks")]
     type MessageProcessor =

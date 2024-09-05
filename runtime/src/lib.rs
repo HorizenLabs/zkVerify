@@ -59,8 +59,8 @@ pub use frame_support::{
     parameter_types,
     traits::{
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
-        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly,
-        KeyOwnerProofSystem, Randomness, StorageInfo, WithdrawReasons,
+        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, KeyOwnerProofSystem,
+        Randomness, StorageInfo, WithdrawReasons,
     },
     weights::{
         constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
