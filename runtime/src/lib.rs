@@ -503,7 +503,7 @@ impl pallet_child_bounties::Config for Runtime {
 
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
 pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 16;
-pub const MAX_STORAGE_ATTESTATIONS: u32 = 100_000;
+pub const MAX_STORAGE_ATTESTATIONS: u64 = 100_000;
 
 // We should avoid publishing attestations for empty trees
 static_assertions::const_assert!(MIN_PROOFS_FOR_ROOT_PUBLISHING > 0);

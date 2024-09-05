@@ -127,6 +127,7 @@ pub mod pallet {
             if ensure_root(origin.clone()).is_ok()
                 && Values::<T>::iter_key_prefix(id).next().is_none()
             {
+                log::debug!("Creating empty attestation with id: {}", id);
                 Values::<T>::insert(id, H256::default(), ());
             }
 
@@ -140,7 +141,7 @@ pub mod pallet {
 
             // Prune old attestations
             // Rationale: ids are incremental, no more than one attestation
-            // for each publish_attestation call will need to be removed from storage
+            // for each publish_attestation call will need to be removed from storage.
             let max_attestations = T::MaxStorageAttestations::get();
             if max_attestations != MaxStorageAttestations::default()
                 && id + 1 >= max_attestations.into()
