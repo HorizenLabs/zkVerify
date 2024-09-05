@@ -14,7 +14,7 @@ path = "src/bin/prepare-worker.rs"
 name = "zkv-relay"
 description = "Implementation of a ZkVerify relay node in Rust based on the Substrate framework."
 license = "GPL-3.0"
-rust-version = "1.64.0"
+rust-version = "1.77.0"
 authors.workspace = true
 edition.workspace = true
 version = "11.0.0"
@@ -43,11 +43,12 @@ assert_cmd = "2.0.4"
 nix = { version = "0.27.1", features = ["signal"] }
 tempfile = "3.2.0"
 tokio = "1.24.2"
-# substrate-rpc-client = { path = "../substrate/utils/frame/rpc/client" }
-# polkadot-core-primitives = { path = "core-primitives" }
+substrate-rpc-client = { workspace = true }
+polkadot-core-primitives = { workspace = true }
 
 [build-dependencies]
 substrate-build-script-utils = { version = "11.0.0" }
+native-cache = { workspace = true, features = ["rocksdb"] }
 
 [features]
 runtime-benchmarks = ["zkv-cli/runtime-benchmarks"]
