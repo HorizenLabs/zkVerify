@@ -304,6 +304,7 @@ pallet-collator-selection = { default-features = false, version = "13.0.1" }
 parachains-common = { default-features = false, version = "11.0.0" }
 parachain-info = { package = "staging-parachain-info", default-features = false, version = "0.11.0" }
 cumulus-relay-chain-rpc-interface = { version = "0.11.0" }
+substrate-rpc-client = { version = "0.37.0" }
 
 [patch.crates-io]
 cumulus-relay-chain-inprocess-interface = { path = "patches/cumulus/client/relay-chain-inprocess-interface" }

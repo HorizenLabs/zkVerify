@@ -34,7 +34,7 @@ macro_rules! identify_chain {
 		$generic_code:expr $(,)*
 	) => {
         match $chain {
-            Chain::ZkvTestnet => {
+            Chain::ZkvTestnet | Chain::Dev => {
                 use zkv_runtime as runtime;
 
                 let call = $generic_code;
@@ -225,7 +225,12 @@ pub fn benchmark_inherent_data(
     // Assume that all runtimes have the `timestamp` pallet.
     let d = std::time::Duration::from_millis(0);
     let timestamp = sp_timestamp::InherentDataProvider::new(d.into());
-    futures::executor::block_on(timestamp.provide_inherent_data(&mut inherent_data))?;
+    let poe = hp_poe::InherentDataProvider::default();
+
+    futures::executor::block_on(async {
+        timestamp.provide_inherent_data(&mut inherent_data).await?;
+        poe.provide_inherent_data(&mut inherent_data).await
+    })?;
 
     let para_data = polkadot_primitives::InherentData {
         bitfields: Vec::new(),
