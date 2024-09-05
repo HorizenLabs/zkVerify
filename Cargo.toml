@@ -261,7 +261,7 @@ sc-rpc-spec-v2 = { version = "0.38.0" }
 substrate-test-client = { path = "relay-node/test/substrate/client" }
 sp-trie = { version = "33.0.0" }
 sp-arithmetic = { version = "26.0.0" }
-substrate-test-utils = { version = "3.0.0" }
+substrate-test-utils = { version = "3.0.0", git = "https://github.com/paritytech/polkadot-sdk", branch = "release-crates-io-v1.10.0" }
 sc-utils = { version = "17.0.0" }
 sp-application-crypto = { version = "34.0.0", default-features = false }
 pallet-indices = { version = "32.0.0", default-features = false }

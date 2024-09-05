@@ -40,19 +40,17 @@ tikv-jemallocator = { version = "0.5.0", features = [
 
 [dev-dependencies]
 assert_cmd = "2.0.4"
-nix = { version = "0.26.1", features = ["signal"] }
+nix = { version = "0.27.1", features = ["signal"] }
 tempfile = "3.2.0"
 tokio = "1.24.2"
 # substrate-rpc-client = { path = "../substrate/utils/frame/rpc/client" }
 # polkadot-core-primitives = { path = "core-primitives" }
 
 [build-dependencies]
-substrate-build-script-utils = { version = "10.0.0" }
+substrate-build-script-utils = { version = "11.0.0" }
 
 [features]
-runtime-benchmarks = [
-  "zkv-cli/runtime-benchmarks",
-]
+runtime-benchmarks = ["zkv-cli/runtime-benchmarks"]
 try-runtime = ["zkv-cli/try-runtime"]
 fast-runtime = ["zkv-cli/fast-runtime"]
 runtime-metrics = ["zkv-cli/runtime-metrics"]
