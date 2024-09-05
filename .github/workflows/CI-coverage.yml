@@ -4,7 +4,10 @@ run-name: "Workflow CI/CD Steps: coverage"
 
 on:
   workflow_call:
-  workflow_dispatch:
+    inputs:
+      CACHING_MODE:
+        required: true
+        type: string
 
 env:
   IMAGE_NAME: zencash/sc-ci-base
@@ -29,20 +32,25 @@ jobs:
       - name: Set up deps cache
         run: mkdir deps
 
-      - name: Set up cargo cache
-        uses: actions/cache@v4
-        if: ${{ !env.ACT }}
-        continue-on-error: true
+      - name: Restore common cache
+        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
+        uses: actions/cache/restore@v3
         with:
           path: |
             ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            target/
             deps/
-          key: coverage-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: coverage-cargo-
+          key: common-cache
+    
+      - name: Restore coverage cache
+        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            target/
+          key: coverage-cache
 
       - name: Set docker env vars
         run: |
@@ -59,6 +67,14 @@ jobs:
             && cargo llvm-cov report --json --output-path coverage_report.json --summary-only \
             && cargo llvm-cov report | tee coverage_summary.txt
           '
+
+      - name: Save coverage cache
+        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            target/
+          key: coverage-cache
 
       - name: Upload output(s)
         if: ${{ !env.ACT }}

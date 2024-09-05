@@ -6,14 +6,30 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-test-job:
-    uses: ./.github/workflows/CI-build-test.yml
-  test-coverage-job:
+  build-job:
+    uses: ./.github/workflows/CI-build.yml
+    with:
+      CACHING_MODE: "CACHE_RESTORE"
+
+  test-job:
+    uses: ./.github/workflows/CI-test.yml
+    with:
+      CACHING_MODE: "CACHE_RESTORE"
+      
+  coverage-job:
     uses: ./.github/workflows/CI-coverage.yml
+    with:
+      CACHING_MODE: "CACHE_RESTORE"
+
   lint-format-job:
     uses: ./.github/workflows/CI-lint-format.yml
+    with:
+      CACHING_MODE: "CACHE_RESTORE"
+
   e2e-test-job:
     uses: ./.github/workflows/CI-e2e-test.yml
+    with:
+      CACHING_MODE: "CACHE_RESTORE"
 
   check-act:
     runs-on: ubuntu-latest
@@ -31,7 +47,7 @@ jobs:
 
   set-overall-result:
     runs-on: ubuntu-latest
-    needs: [build-test-job, test-coverage-job, lint-format-job, e2e-test-job, check-act]
+    needs: [build-job, test-job, coverage-job, lint-format-job, e2e-test-job, check-act]
     if: ${{ always() && needs.check-act.outputs.act == 'false' }}
     outputs:
       branch-name: ${{ steps.get-info.outputs.BRANCH_NAME }}
@@ -62,36 +78,42 @@ jobs:
             OVERALL_STATUS="cancelled"
           else
             OVERALL_STATUS="success"
-            if [ "${{ needs.build-test-job.result }}" != "success" ] || 
-                [ "${{ needs.test-coverage-job.result }}" != "success" ] ||
+            if [ "${{ needs.build-job.result }}" != "success" ] || 
+                [ "${{ needs.test-job.result }}" != "success" ] ||
+                [ "${{ needs.coverage-job.result }}" != "success" ] ||
                 [ "${{ needs.lint-format-job.result }}" != "success" ] || 
                 [ "${{ needs.e2e-test-job.result }}" != "success" ]; then
               OVERALL_STATUS="failure"
             fi
   
-            echo Setting overall result
-            curl -L --fail \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${LAST_COMMIT_SHA}" \
-            -d '{"state":"'${OVERALL_STATUS}'","context":"Orchestrator"}'
+            if [ ${LAST_COMMIT_SHA} != "" ]; then
+              echo Setting overall result
+              curl -L --fail \
+              -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${LAST_COMMIT_SHA}" \
+              -d '{"state":"'${OVERALL_STATUS}'","context":"Orchestrator"}'
+            else
+              echo Unable to set overall result
+            fi
           fi
   
           echo "OVERALL_STATUS=$OVERALL_STATUS" >> $GITHUB_OUTPUT
           
   notify-slack:
     runs-on: ubuntu-latest
-    needs: [build-test-job, test-coverage-job, lint-format-job, e2e-test-job, check-act, set-overall-result]
+    needs: [build-job, test-job, coverage-job, lint-format-job, e2e-test-job, check-act, set-overall-result]
     if: ${{ always() && needs.check-act.outputs.act == 'false' && needs.set-overall-result.outputs.overall-status != 'cancelled' }}
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
       - name: Report Job Statuses
         run: |
-          echo "Build and Test Job Status: ${{ needs.build-test-job.result }}"
-          echo "Test Coverage Job Status: ${{ needs.test-coverage-job.result }}"
+          echo "Build Job Status: ${{ needs.build-job.result }}"
+          echo "Test Job Status: ${{ needs.test-job.result }}"
+          echo "Coverage Job Status: ${{ needs.coverage-job.result }}"
           echo "Lint and Format Job Status: ${{ needs.lint-format-job.result }}"
           echo "E2E Test Job Status: ${{ needs.e2e-test-job.result }}"
       - name: Download All Artifacts
@@ -102,15 +124,15 @@ jobs:
         run: ./.github/scripts/summarize_tests.sh
       - name: Display unit test output
         run: |
-          if [ -f "./build-and-test-output/unit_tests_output.txt" ]; then
-            cat "./build-and-test-output/unit_tests_output.txt"
+          if [ -f "./test-output/unit_tests_output.txt" ]; then
+            cat "./test-output/unit_tests_output.txt"
           else
             echo "Unit test output not found."
           fi
       - name: Display integration test output
         run: |
-          if [ -f "./build-and-test-output/integration_tests_output.txt" ]; then
-            cat "./build-and-test-output/integration_tests_output.txt"
+          if [ -f "./test-output/integration_tests_output.txt" ]; then
+            cat "./test-output/integration_tests_output.txt"
           else
             echo "Integration test output not found."
           fi
@@ -119,7 +141,7 @@ jobs:
           if [ -f "./coverage-output/coverage_report.json" ]; then
             cat "./coverage-output/coverage_report.json"
           else
-            echo "Test Coverage output not found."
+            echo "Coverage output not found."
           fi
       - name: Display linting output
         run: |
@@ -168,24 +190,30 @@ jobs:
             echo "OVERALL_STATUS_EMOJI=:alert:" >> $GITHUB_ENV
           fi
       
-          if [[ "${{ needs.build-test-job.result }}" == "success" ]]; then
-            echo "BUILD_TEST_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
+          if [[ "${{ needs.build-job.result }}" == "success" ]]; then
+            echo "BUILD_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
-            echo "BUILD_TEST_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
+            echo "BUILD_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
+          fi
+
+          if [[ "${{ needs.test-job.result }}" == "success" ]]; then
+            echo "TEST_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
+          else
+            echo "TEST_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
           fi
       
           if [[ -z "${LINE_COVERAGE_PERCENT}" ]]; then
-            if [[ "${{ needs.test-coverage-job.result }}" == "success" ]]; then
-              echo "TEST_COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
+            if [[ "${{ needs.coverage-job.result }}" == "success" ]]; then
+              echo "COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
             else
-              echo "TEST_COVERAGE_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
+              echo "COVERAGE_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
             fi
-          elif [[ "${{ needs.test-coverage-job.result }}" == "success" ]] && (( $(echo "$LINE_COVERAGE_PERCENT >= 70" | bc -l) )); then
-            echo "TEST_COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
-          elif [[ "${{ needs.test-coverage-job.result }}" == "success" ]]; then
-            echo "TEST_COVERAGE_JOB_EMOJI=:large_yellow_circle:" >> $GITHUB_ENV
+          elif [[ "${{ needs.coverage-job.result }}" == "success" ]] && (( $(echo "$LINE_COVERAGE_PERCENT >= 70" | bc -l) )); then
+            echo "COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
+          elif [[ "${{ needs.coverage-job.result }}" == "success" ]]; then
+            echo "COVERAGE_JOB_EMOJI=:large_yellow_circle:" >> $GITHUB_ENV
           else
-            echo "TEST_COVERAGE_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
+            echo "COVERAGE_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
           fi
       
           if [[ "${{ needs.lint-format-job.result }}" == "success" ]]; then
@@ -216,21 +244,28 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ env.BUILD_TEST_JOB_EMOJI }} *Build & Test:* ${{ needs.build-test-job.result }}\n\n${{ env.UNIT_TEST_SUMMARY }}\n${{ env.INTEGRATION_TEST_SUMMARY }}"
+                    "text": "${{ env.BUILD_JOB_EMOJI }} *Build:* ${{ needs.build-job.result }}"
                   }
                 },
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ env.TEST_COVERAGE_JOB_EMOJI }} *Test Coverage:* ${{ needs.test-coverage-job.result }}\n\n${{ env.COVERAGE_TEST_SUMMARY }}"
+                    "text": "${{ env.TEST_JOB_EMOJI }} *Test:* ${{ needs.test-job.result }}\n\n${{ env.UNIT_TEST_SUMMARY }}\n${{ env.INTEGRATION_TEST_SUMMARY }}"
                   }
                 },
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ env.LINT_FORMAT_JOB_EMOJI }} *Lint & Format:*  ${{ needs.lint-format-job.result }}"
+                    "text": "${{ env.COVERAGE_JOB_EMOJI }} *Coverage:* ${{ needs.coverage-job.result }}\n\n${{ env.COVERAGE_SUMMARY }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ env.LINT_FORMAT_JOB_EMOJI }} *Lint & Format:* ${{ needs.lint-format-job.result }}"
                   }
                 },
                 {
