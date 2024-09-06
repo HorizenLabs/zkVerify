@@ -85,7 +85,7 @@ You can access to the parachain interface to point polkadot.js to `ws://localhos
 
 ### By Upgrade Runtime
 
-- Increase the runtime `spec_version` in `runtime/src/lib.rs`
+- Increase the runtime `spec_version` in `runtime/src/lib.rs` wit a number greater than `1_000_000`
 - Convert parachain genesis state and wasm to binary format:
   
   ```sh
