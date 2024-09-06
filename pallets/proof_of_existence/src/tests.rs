@@ -185,7 +185,6 @@ fn old_attestations_are_cleared_batch() {
         for id in max_attestations + 1..max_attestations * 2 {
             assert!(Poe::values(id, H256::default()).is_some());
         }
-
     })
 }
 
