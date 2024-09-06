@@ -28,7 +28,6 @@ use hp_poe::OnProofVerified;
 use hp_poe::INHERENT_IDENTIFIER;
 use sp_core::H256;
 use sp_runtime::traits::Keccak256;
-use sp_runtime::SaturatedConversion;
 
 fn assert_attestation_evt(id: u64, value: H256) {
     assert!(mock::System::events().contains(&EventRecord {
@@ -129,9 +128,9 @@ fn correct_root() {
 }
 
 #[test]
-fn old_attestations_are_cleared() {
+fn old_attestations_are_cleared_stepwise() {
     new_test_ext().execute_with(|| {
-        let max_attestations: u64 = crate::mock::MAX_STORAGE_ATTESTATIONS.saturated_into::<u64>();
+        let max_attestations = crate::mock::MAX_STORAGE_ATTESTATIONS;
 
         for i in 0..=max_attestations * 2 {
             // Publish proofs and attestation
@@ -161,9 +160,39 @@ fn old_attestations_are_cleared() {
 }
 
 #[test]
+fn old_attestations_are_cleared_batch() {
+    new_test_ext().execute_with(|| {
+        let max_attestations = crate::mock::MAX_STORAGE_ATTESTATIONS;
+
+        // Fill with double max attestations
+        for id in 0..max_attestations * 2 {
+            crate::Values::<Test>::insert(id, H256::default(), ());
+        }
+
+        // Set proper attestation id
+        crate::NextAttestation::<Test>::set(max_attestations * 2 - 1);
+
+        // Publish attestation, should trigger the removal of the oldest
+        // 'max_attestation' attestations
+        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
+
+        // Check removal
+        for id in 0..=max_attestations {
+            assert!(Poe::values(id, H256::default()).is_none());
+        }
+
+        // Check still present
+        for id in max_attestations + 1..max_attestations * 2 {
+            assert!(Poe::values(id, H256::default()).is_some());
+        }
+
+    })
+}
+
+#[test]
 fn root_publish_empty_attestations_cause_clear() {
     new_test_ext().execute_with(|| {
-        let max_attestations = crate::mock::MAX_STORAGE_ATTESTATIONS.saturated_into::<u64>();
+        let max_attestations = crate::mock::MAX_STORAGE_ATTESTATIONS;
 
         for i in 0..=max_attestations * 2 {
             // Publish empty attestation

@@ -131,7 +131,8 @@ pub mod pallet {
                 Values::<T>::insert(id, H256::default(), ());
             }
 
-            NextAttestation::<T>::set(id + 1);
+            let next_attestation_id = id + 1;
+            NextAttestation::<T>::set(next_attestation_id);
 
             let attestation = binary_merkle_tree::merkle_root::<Keccak256, _>(
                 Values::<T>::iter_key_prefix(id).collect::<BTreeSet<_>>(),
@@ -142,13 +143,24 @@ pub mod pallet {
             // Prune old attestations
             // Rationale: ids are incremental, no more than one attestation
             // for each publish_attestation call will need to be removed from storage.
-            let max_attestations = T::MaxStorageAttestations::get();
-            if max_attestations != MaxStorageAttestations::default()
-                && id + 1 >= max_attestations.into()
+            let max_attestations: u64 = T::MaxStorageAttestations::get().into();
+            if max_attestations != Into::<u64>::into(MaxStorageAttestations::default())
+                && next_attestation_id >= max_attestations
             {
                 let oldest_attestation_id = Self::oldest_attestation();
-                let _ = Values::<T>::clear_prefix(oldest_attestation_id, u32::MAX, None);
-                OldestAttestation::<T>::set(oldest_attestation_id + 1);
+
+                // Handle situations in which there is more than one attestation to be cleared
+                // from storage. This could only happen, for instance, due to a runtime upgrade
+                // changing the MaxAttestations value.
+                // NOTE: When doing this, make sure that the attestations left to be cleared are
+                // not too many otherwise the transaction weight might explode and the transaction
+                // never executed, thus blocking the chain.
+                // This behaviour will be changed in the future.
+                let limit = next_attestation_id - max_attestations + 1;
+                for id in oldest_attestation_id..limit {
+                    let _ = Values::<T>::clear_prefix(id, u32::MAX, None);
+                }
+                OldestAttestation::<T>::set(limit);
             }
 
             Ok(().into())
