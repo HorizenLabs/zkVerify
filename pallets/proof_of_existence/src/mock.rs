@@ -13,8 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use frame_support::derive_impl;
+use frame_support::{derive_impl, parameter_types};
 use frame_system as system;
+use hp_poe::MaxStorageAttestations;
 use sp_core::{ConstU32, ConstU64};
 use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
@@ -30,6 +31,11 @@ impl pallet_timestamp::Config for Test {
 // Poe
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = 6000;
 pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 2;
+pub const MAX_STORAGE_ATTESTATIONS: u64 = 10;
+
+parameter_types! {
+    pub MaxAttestations: MaxStorageAttestations = MaxStorageAttestations(MAX_STORAGE_ATTESTATIONS);
+}
 
 pub struct MockWeightInfo;
 
@@ -48,6 +54,7 @@ impl crate::Config for Test {
     type RuntimeEvent = RuntimeEvent;
     type MinProofsForPublishing = ConstU32<MIN_PROOFS_FOR_ROOT_PUBLISHING>;
     type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
+    type MaxStorageAttestations = MaxAttestations;
     type WeightInfo = MockWeightInfo;
 }
 

@@ -22,7 +22,6 @@ mod tests;
 #[cfg(test)]
 pub mod mock;
 
-#[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 
 mod weight;
@@ -30,6 +29,7 @@ pub use weight::WeightInfo;
 
 #[frame_support::pallet]
 pub mod pallet {
+
     use super::WeightInfo;
     use binary_merkle_tree::MerkleProof;
     use pallet_timestamp::{self as timestamp};
@@ -41,6 +41,7 @@ pub mod pallet {
     use frame_support::sp_runtime::traits::{Keccak256, SaturatedConversion};
     use frame_system::pallet_prelude::*;
 
+    pub use hp_poe::MaxStorageAttestations;
     use hp_poe::{InherentError, InherentType, INHERENT_IDENTIFIER};
 
     #[derive(Clone, TypeInfo, PartialEq, Eq, Encode, Decode, Debug)]
@@ -57,6 +58,8 @@ pub mod pallet {
         type MinProofsForPublishing: Get<u32>;
         /// Maximum time (ms) that an element can wait in a tree before the tree is published
         type MaxElapsedTimeMs: Get<Self::Moment>;
+        /// Maximum number of attestations that are kept in storage (including the current one)
+        type MaxStorageAttestations: Get<MaxStorageAttestations>;
         /// The weight definition for this pallet
         type WeightInfo: WeightInfo;
     }
@@ -69,6 +72,10 @@ pub mod pallet {
 
     #[pallet::pallet]
     pub struct Pallet<T>(_);
+
+    #[pallet::storage]
+    #[pallet::getter(fn oldest_attestation)]
+    pub type OldestAttestation<T> = StorageValue<_, u64, ValueQuery>;
 
     #[pallet::storage]
     #[pallet::getter(fn next_attestation)]
@@ -113,13 +120,48 @@ pub mod pallet {
             }
 
             let id = Self::next_attestation();
-            NextAttestation::<T>::set(id + 1);
+
+            // In case a publish_attestation() is called by root but not proofs has been inserted yet
+            // the corresponding entry is not created in the Values storage variable. To avoid this
+            // inconsistency, we manually do this.
+            if ensure_root(origin.clone()).is_ok()
+                && Values::<T>::iter_key_prefix(id).next().is_none()
+            {
+                log::debug!("Creating empty attestation with id: {}", id);
+                Values::<T>::insert(id, H256::default(), ());
+            }
+
+            let next_attestation_id = id + 1;
+            NextAttestation::<T>::set(next_attestation_id);
 
             let attestation = binary_merkle_tree::merkle_root::<Keccak256, _>(
                 Values::<T>::iter_key_prefix(id).collect::<BTreeSet<_>>(),
             );
 
             Self::deposit_event(Event::NewAttestation { id, attestation });
+
+            // Prune old attestations
+            // Rationale: ids are incremental, no more than one attestation
+            // for each publish_attestation call will need to be removed from storage.
+            let max_attestations: u64 = T::MaxStorageAttestations::get().into();
+            if max_attestations != Into::<u64>::into(MaxStorageAttestations::default())
+                && next_attestation_id >= max_attestations
+            {
+                let oldest_attestation_id = Self::oldest_attestation();
+
+                // Handle situations in which there is more than one attestation to be cleared
+                // from storage. This could only happen, for instance, due to a runtime upgrade
+                // changing the MaxAttestations value.
+                // NOTE: When doing this, make sure that the attestations left to be cleared are
+                // not too many otherwise the transaction weight might explode and the transaction
+                // never executed, thus blocking the chain.
+                // This behaviour will be changed in the future.
+                let limit = next_attestation_id - max_attestations + 1;
+                for id in oldest_attestation_id..limit {
+                    let _ = Values::<T>::clear_prefix(id, u32::MAX, None);
+                }
+                OldestAttestation::<T>::set(limit);
+            }
 
             Ok(().into())
         }
@@ -184,7 +226,6 @@ pub mod pallet {
             }
 
             // Collect the leaves associated with the attestation_id requested
-            // This should not fail, given the previous check (we have the attestation_id key1 in the map)
             let leaves = Values::<T>::iter_key_prefix(attestation_id).collect::<BTreeSet<_>>();
 
             // Check if the requested proof_hash belongs to this set, i.e. is within the set of leaves

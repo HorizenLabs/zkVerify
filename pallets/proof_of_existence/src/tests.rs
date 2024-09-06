@@ -17,6 +17,7 @@ use crate::mock;
 use crate::mock::RuntimeEvent as TestEvent;
 use crate::mock::*;
 use crate::AttestationPathRequestError;
+use frame_support::assert_ok;
 use frame_support::dispatch::GetDispatchInfo;
 use frame_support::dispatch::Pays;
 use frame_support::inherent::ProvideInherent;
@@ -58,21 +59,24 @@ pub static HASHES: [[u8; 32]; 5] = [
     hex!("86de95769384558243ad17a2da0f305d2ea9888dcb7b6f933b6492f8dea56d7f"),
 ];
 
+pub static DEFAULT_EMPTY_ATT: [u8; 32] =
+    hex!("290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563");
+
 #[test]
 fn root_publish_attestation() {
     new_test_ext().execute_with(|| {
-        assert!(Poe::publish_attestation(RuntimeOrigin::root()).is_ok());
-        assert_attestation_evt(0, H256::default());
+        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
+        assert_attestation_evt(0, H256(DEFAULT_EMPTY_ATT));
     })
 }
 
 #[test]
 fn root_publish_two_attestations() {
     new_test_ext().execute_with(|| {
-        assert!(Poe::publish_attestation(RuntimeOrigin::root()).is_ok());
-        assert!(Poe::publish_attestation(RuntimeOrigin::root()).is_ok());
-        assert_attestation_evt(0, H256::default());
-        assert_attestation_evt(1, H256::default());
+        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
+        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
+        assert_attestation_evt(0, H256(DEFAULT_EMPTY_ATT));
+        assert_attestation_evt(1, H256(DEFAULT_EMPTY_ATT));
     })
 }
 
@@ -93,7 +97,7 @@ fn one_tree_per_block() {
             Poe::on_proof_verified(pid);
             assert_element_evt(0, pid);
         }
-        assert!(Poe::publish_attestation(RuntimeOrigin::root()).is_ok());
+        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
     })
 }
 
@@ -115,11 +119,97 @@ fn correct_root() {
             assert_element_evt(0, pid);
         }
 
-        assert!(Poe::publish_attestation(RuntimeOrigin::root()).is_ok());
+        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
         let res = H256(hex!(
             "138b734ecc0edcb6a36504258a5907f92734afb254b488156db374cee1d78f54"
         ));
         assert_attestation_evt(0, res);
+    })
+}
+
+#[test]
+fn old_attestations_are_cleared_stepwise() {
+    new_test_ext().execute_with(|| {
+        let max_attestations = crate::mock::MAX_STORAGE_ATTESTATIONS;
+
+        for i in 0..=max_attestations * 2 {
+            // Publish proofs and attestation
+            let pida = H256(HASHES[0]);
+            Poe::on_proof_verified(pida);
+            let pidb = H256(HASHES[1]);
+            Poe::on_proof_verified(pidb);
+
+            assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
+
+            // When at least MAX_STORAGE_ATTESTATIONS have been published
+            if i >= max_attestations - 1 {
+                // Check that the most recent MAX_STORAGE_ATTESTATIONS attestations are still in storage
+                for j in i + 1 - (max_attestations - 1)..=i {
+                    assert!(Poe::values(j, pida).is_some());
+                    assert!(Poe::values(j, pidb).is_some());
+                }
+
+                // Check that, instead, all the previous ones have been eliminated
+                for j in 0..i + 1 - (max_attestations - 1) {
+                    assert!(Poe::values(j, pida).is_none());
+                    assert!(Poe::values(j, pidb).is_none());
+                }
+            }
+        }
+    })
+}
+
+#[test]
+fn old_attestations_are_cleared_batch() {
+    new_test_ext().execute_with(|| {
+        let max_attestations = crate::mock::MAX_STORAGE_ATTESTATIONS;
+
+        // Fill with double max attestations
+        for id in 0..max_attestations * 2 {
+            crate::Values::<Test>::insert(id, H256::default(), ());
+        }
+
+        // Set proper attestation id
+        crate::NextAttestation::<Test>::set(max_attestations * 2 - 1);
+
+        // Publish attestation, should trigger the removal of the oldest
+        // 'max_attestation' attestations
+        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
+
+        // Check removal
+        for id in 0..=max_attestations {
+            assert!(Poe::values(id, H256::default()).is_none());
+        }
+
+        // Check still present
+        for id in max_attestations + 1..max_attestations * 2 {
+            assert!(Poe::values(id, H256::default()).is_some());
+        }
+    })
+}
+
+#[test]
+fn root_publish_empty_attestations_cause_clear() {
+    new_test_ext().execute_with(|| {
+        let max_attestations = crate::mock::MAX_STORAGE_ATTESTATIONS;
+
+        for i in 0..=max_attestations * 2 {
+            // Publish empty attestation
+            assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
+
+            // When at least MAX_STORAGE_ATTESTATIONS have been published
+            if i >= max_attestations - 1 {
+                // Check that the most recent MAX_STORAGE_ATTESTATIONS attestations are still in storage
+                for j in i + 1 - (max_attestations - 1)..=i {
+                    assert!(Poe::values(j, H256::default()).is_some());
+                }
+
+                // Check that, instead, all the previous ones have been eliminated
+                for j in 0..i + 1 - (max_attestations - 1) {
+                    assert!(Poe::values(j, H256::default()).is_none());
+                }
+            }
+        }
     })
 }
 
