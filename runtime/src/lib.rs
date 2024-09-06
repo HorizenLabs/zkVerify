@@ -14,8 +14,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
-#![recursion_limit = "256"]
+// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 512 (for relay chain).
+#![recursion_limit = "512"]
 #![allow(clippy::identity_op)]
 
 // Make the WASM binary available.
@@ -110,27 +110,8 @@ pub mod macros {
 
 pub(crate) use macros::prod_or_fast;
 
-#[cfg(feature = "relay")]
 pub mod parachains;
-
-// XCM configurations.
-#[cfg(feature = "relay")]
 pub mod xcm_config;
-// ----------------------------- [ END PARACHAINS ] ----------------------------
-
-#[cfg(feature = "relay")]
-pub type ParachainMigrations = parachains::Migrations;
-#[cfg(not(feature = "relay"))]
-pub type ParachainMigrations = ();
-
-pub type Migrations = (ParachainMigrations,);
-
-#[cfg(feature = "relay")]
-pub type ParachainMigrations = parachains::Migrations;
-#[cfg(not(feature = "relay"))]
-pub type ParachainMigrations = ();
-
-pub type Migrations = (ParachainMigrations,);
 
 mod bag_thresholds;
 mod migrations;
@@ -624,7 +605,7 @@ impl pallet_session::Config for Runtime {
     type ValidatorIdOf = ValidatorIdOf;
     type ShouldEndSession = Babe;
     type NextSessionRotation = Babe;
-    type SessionManager = Staking;
+    type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, Staking>;
     type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
     type Keys = SessionKeys;
     type WeightInfo = weights::pallet_session::ZKVWeight<Runtime>;
@@ -988,14 +969,14 @@ construct_runtime!(
         ParaSessionInfo: parachains::parachains_session_info = 111,
         ParasDisputes: parachains::disputes = 112,
         ParasSlashing: parachains::slashing = 113,
-        ParachainsAssignmentProvider: parachains::parachains_assigner_parachains = 115,
+        ParachainsAssignmentProvider: parachains::parachains_assigner_parachains = 114,
 
         // Parachain chain (removable) pallets. Start indices at 130.
         ParasSudoWrapper: parachains::paras_sudo_wrapper = 130,
 
         // XCM Pallet: start indices at 140.
         XcmPallet: pallet_xcm = 140,
-        MessageQueue: pallet_message_queue = 114,
+        MessageQueue: pallet_message_queue = 141,
     }
 );
 
@@ -1020,8 +1001,14 @@ pub type SignedExtra = (
 /// All migrations of the runtime, aside from the ones declared in the pallets.
 ///
 /// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
+#[cfg(feature = "relay")]
+pub type ParachainMigrations = parachains::Migrations;
+#[cfg(not(feature = "relay"))]
+pub type ParachainMigrations = ();
+
+pub type Migrations = (ParachainMigrations,);
 #[allow(unused_parens)]
-type Migrations = migrations::Unreleased;
+type Migrations = (migrations::Unreleased, ParachainMigrations);
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
@@ -1115,14 +1102,13 @@ mod benches {
         // parachains
         [crate::parachains::configuration, Configuration]
         [crate::parachains::disputes, ParasDisputes]
-        // FIXME
-        //[crate::parachains::slashing, ParasSlashing]
+        [crate::parachains::slashing, ParasSlashing]
         [crate::parachains::hrmp, Hrmp]
-        // needs message queue
-        //[crate::parachains::inclusion, ParaInclusion]
+        [crate::parachains::inclusion, ParaInclusion]
         [crate::parachains::initializer, Initializer]
         [crate::parachains::paras, Paras]
         [crate::parachains::paras_inherent, ParaInherent]
+        [pallet_message_queue, MessageQueue]
     );
 }
 
@@ -1590,6 +1576,7 @@ impl_runtime_apis! {
 
             impl pallet_session_benchmarking::Config for Runtime {}
 
+            #[cfg(feature = "relay")]
             impl parachains::slashing::benchmarking::Config for Runtime {}
 
             use frame_support::traits::WhitelistedStorageKeys;
