@@ -5128,6 +5128,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-bags-list"
+version = "31.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "664e6da2fe296a6597f2508f8754bfedaf06b5fc7bc657f7327b7d91896f84f7"
+dependencies = [
+ "aquamarine 0.5.0",
+ "docify",
+ "frame-benchmarking",
+ "frame-election-provider-support",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-tracing",
+]
+
+[[package]]
 name = "pallet-balances"
 version = "33.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11574,6 +11597,7 @@ dependencies = [
  "log",
  "pallet-authorship",
  "pallet-babe",
+ "pallet-bags-list",
  "pallet-balances",
  "pallet-bounties",
  "pallet-child-bounties",

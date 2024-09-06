@@ -22,6 +22,7 @@ pallet-authorship = { workspace = true }
 pallet-session = { workspace = true }
 pallet-staking = { workspace = true }
 pallet-babe = { workspace = true }
+pallet-bags-list = { workspace = true }
 pallet-bounties = { workspace = true }
 pallet-child-bounties = { workspace = true }
 pallet-staking-reward-curve = { workspace = true }
@@ -101,6 +102,7 @@ runtime-benchmarks = [
 	"pallet-election-provider-support-benchmarking/runtime-benchmarks",
 	"pallet-im-online/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
+	"pallet-bags-list/runtime-benchmarks",
 	"pallet-bounties/runtime-benchmarks",
 	"pallet-child-bounties/runtime-benchmarks",
 	"pallet-babe/runtime-benchmarks",
@@ -143,6 +145,7 @@ std = [
 	"pallet-im-online/std",
 	"pallet-authorship/std",
 	"pallet-babe/std",
+	"pallet-bags-list/std",
 	"pallet-bounties/std",
 	"pallet-child-bounties/std",
 	"pallet-session/std",
@@ -203,6 +206,7 @@ try-runtime = [
 	"pallet-im-online/try-runtime",
 	"pallet-authorship/try-runtime",
 	"pallet-babe/try-runtime",
+	"pallet-bags-list/try-runtime",
 	"pallet-session/try-runtime",
 	"pallet-staking/try-runtime",
 	"pallet-balances/try-runtime",

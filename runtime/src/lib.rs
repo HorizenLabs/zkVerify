@@ -81,6 +81,7 @@ pub use sp_runtime::{Perbill, Permill};
 pub mod governance;
 use governance::{pallet_custom_origins, Treasurer, TreasurySpender};
 
+mod bag_thresholds;
 #[cfg(test)]
 mod tests;
 mod weights;
@@ -270,6 +271,21 @@ impl pallet_babe::Config for Runtime {
     type KeyOwnerProof = sp_session::MembershipProof;
     type EquivocationReportSystem =
         pallet_babe::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
+}
+
+parameter_types! {
+    pub const BagThresholds: &'static [u64] = &bag_thresholds::THRESHOLDS;
+}
+
+type VoterBagsListInstance = pallet_bags_list::Instance1;
+type VoteWeight = u64;
+
+impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type ScoreProvider = Staking;
+    type WeightInfo = weights::pallet_bags_list::ZKVWeight<Runtime>;
+    type BagThresholds = BagThresholds;
+    type Score = VoteWeight;
 }
 
 impl pallet_grandpa::Config for Runtime {
@@ -748,6 +764,7 @@ impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> f
 construct_runtime!(
     pub struct Runtime {
         System: frame_system,
+        VoterList: pallet_bags_list::<Instance1>,
         Timestamp: pallet_timestamp,
         Balances: pallet_balances,
         Authorship: pallet_authorship,
@@ -830,6 +847,7 @@ mod benches {
         [frame_benchmarking, BaselineBench::<Runtime>]
         [frame_system, SystemBench::<Runtime>]
         [pallet_balances, Balances]
+        [pallet_bags_list, VoterList]
         [pallet_babe, crate::Babe]
         [pallet_grandpa, crate::Grandpa]
         [pallet_timestamp, Timestamp]
