@@ -1,6 +1,8 @@
-Description: Test of a simple transaction from Alice to Bob using a custom js script
+Description: Test update runtime via multisig sudo account
 Network: ./network_defs/single_node.toml
 Creds: config
+
+# SKIP relay
 
 alice: is up
 

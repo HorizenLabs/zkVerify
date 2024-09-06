@@ -21,15 +21,15 @@ COPY . .
 
 RUN echo "SUBSTRATE_CLI_GIT_COMMIT_HASH=`git rev-parse --short=11 HEAD`" >> .docker.env
 RUN . ./.docker.env \
-  && cargo build -p mainchain --profile ${PROFILE} --features "${FEATURES}"
+  && cargo build -p zkv-relay --profile ${PROFILE} --features "${FEATURES}"
 
 FROM ubuntu:22.04 as node
 
 SHELL ["/bin/bash", "-c"]
 
 # That can be a single one or a comma separated list
-ARG BINARY=zkv-node
-ARG DESCRIPTION="zkVerify Core"
+ARG BINARY=zkv-relay
+ARG DESCRIPTION="zkVerify Relay"
 ARG AUTHORS="mainchain-team@horizenlabs.io"
 ARG VENDOR="Horizen Labs"
 ARG PROFILE="release"
@@ -48,7 +48,9 @@ USER root
 WORKDIR /app
 
 COPY docker/scripts/entrypoint.sh .
-COPY --from=builder "/usr/src/node/target/${PROFILE}/zkv-node" "/usr/local/bin/"
+COPY --from=builder "/usr/src/node/target/${PROFILE}/zkv-relay" "/usr/local/bin/"
+COPY --from=builder "/usr/src/node/target/${PROFILE}/zkv-relay-execute-worker" "/usr/local/bin/"
+COPY --from=builder "/usr/src/node/target/${PROFILE}/zkv-relay-prepare-worker" "/usr/local/bin/"
 COPY --from=builder "/usr/src/node/target/${PROFILE}/wbuild/zkv-runtime/zkv_runtime.compact.compressed.wasm" "./zkv_runtime.compact.compressed.wasm"
 RUN chmod -R a+rx "/usr/local/bin"
 
