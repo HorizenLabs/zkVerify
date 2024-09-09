@@ -941,14 +941,14 @@ construct_runtime!(
         ParaSessionInfo: parachains::parachains_session_info = 111,
         ParasDisputes: parachains::disputes = 112,
         ParasSlashing: parachains::slashing = 113,
-        ParachainsAssignmentProvider: parachains::parachains_assigner_parachains = 115,
+        ParachainsAssignmentProvider: parachains::parachains_assigner_parachains = 114,
 
         // Parachain chain (removable) pallets. Start indices at 130.
         ParasSudoWrapper: parachains::paras_sudo_wrapper = 130,
 
         // XCM Pallet: start indices at 140.
         XcmPallet: pallet_xcm = 140,
-        MessageQueue: pallet_message_queue = 114,
+        MessageQueue: pallet_message_queue = 141,
     }
 );
 
