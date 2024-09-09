@@ -34,14 +34,14 @@
 //!    ```
 //!
 //! 2. Write a little program to generate the definitions. This program exists only to hook together
-//! the runtime definitions with the various calculations here. Take a look at
-//! _utils/frame/generate_bags/node-runtime_ for an example.
+//!    the runtime definitions with the various calculations here. Take a look at
+//!    _utils/frame/generate_bags/node-runtime_ for an example.
 //!
 //! 3. Run that program:
 //!
 //!    ```sh,notrust
 //!    $ cargo run -p node-runtime-generate-bags -- --total-issuance 1234 --minimum-balance 1
-//! output.rs    ```
+//!    output.rs    ```
 //!
 //! 4. Update the runtime definition.
 //!
