@@ -110,13 +110,8 @@ pub mod macros {
 
 pub(crate) use macros::prod_or_fast;
 
-#[cfg(feature = "relay")]
 pub mod parachains;
-
-// XCM configurations.
-#[cfg(feature = "relay")]
 pub mod xcm_config;
-// ----------------------------- [ END PARACHAINS ] ----------------------------
 
 #[cfg(feature = "relay")]
 pub type ParachainMigrations = parachains::Migrations;
