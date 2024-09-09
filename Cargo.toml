@@ -22,6 +22,7 @@ members = [
     "verifiers/risc0",
     "verifiers/ultraplonk",
     "utils/native-cache",
+    "utils/generate-bags/node-runtime",
 ]
 
 [workspace.dependencies]
