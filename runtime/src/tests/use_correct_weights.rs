@@ -252,6 +252,17 @@ fn pallet_bags_list() {
     );
 }
 
+#[test]
+fn pallet_message_queue() {
+    use pallet_message_queue::WeightInfo;
+
+    assert_eq!(
+            <<Runtime as pallet_message_queue::Config>::WeightInfo as pallet_message_queue::WeightInfo>::ready_ring_knit(),
+            crate::weights::pallet_message_queue::ZKVWeight::<Runtime>::ready_ring_knit()
+        )
+}
+
+
 mod parachains {
     #![cfg(feature = "relay")]
 
@@ -316,6 +327,26 @@ mod parachains {
         assert_eq!(
             <<Runtime as paras::Config>::WeightInfo as paras::WeightInfo>::force_set_most_recent_context(),
             crate::weights::parachains::paras::ZKVWeight::<Runtime>::force_set_most_recent_context()
+        )
+    }
+
+    #[test]
+    fn inclusion() {
+        use inclusion::WeightInfo;
+
+        assert_eq!(
+            <<Runtime as inclusion::Config>::WeightInfo as inclusion::WeightInfo>::receive_upward_messages(42),
+            crate::weights::parachains::inclusion::ZKVWeight::<Runtime>::receive_upward_messages(42)
+        )
+    }
+
+    #[test]
+    fn slashing() {
+        use slashing::WeightInfo;
+
+        assert_eq!(
+            <<Runtime as slashing::Config>::WeightInfo as slashing::WeightInfo>::report_dispute_lost(12),
+            crate::weights::parachains::slashing::ZKVWeight::<Runtime>::report_dispute_lost(12)
         )
     }
 }

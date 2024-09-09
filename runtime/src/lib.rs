@@ -121,7 +121,6 @@ pub type ParachainMigrations = ();
 pub type Migrations = (ParachainMigrations,);
 
 mod bag_thresholds;
-#[cfg(test)]
 mod tests;
 mod weights;
 
@@ -1053,7 +1052,7 @@ mod benches {
         [crate::parachains::initializer, Initializer]
         [crate::parachains::paras, Paras]
         [crate::parachains::paras_inherent, ParaInherent]
-        [crate::parachains::pallet_message_queue, MessageQueue]
+        [pallet_message_queue, MessageQueue]
     );
 }
 
