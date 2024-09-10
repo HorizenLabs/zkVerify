@@ -633,8 +633,7 @@ impl pallet_staking::Config for Runtime {
     type OffendingValidatorsThreshold = OffendingValidatorsThreshold; // Exceeding this threshold would force a new era
     type ElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
     type GenesisElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
-    // TODO: consider switching to bags-list
-    type VoterList = pallet_staking::UseNominatorsAndValidatorsMap<Self>;
+    type VoterList = VoterList;
     type NominationsQuota = pallet_staking::FixedNominationsQuota<10>;
     // TODO: consider switching to bags-list
     type TargetList = pallet_staking::UseValidatorsMap<Self>;

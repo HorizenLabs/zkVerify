@@ -30,6 +30,14 @@ struct Opt {
     /// Where to write the output.
     output: PathBuf,
 
+    /// The total issuance of the native currency.
+    #[arg(short, long)]
+    total_issuance: Option<u128>,
+
+    /// The minimum account balance (i.e. existential deposit) for the native currency.
+    #[arg(short, long)]
+    minimum_balance: Option<u128>,
+
     /// The WebSocket URL of the zk-verify node.
     #[arg(long, default_value = "ws://127.0.0.1:9944")]
     node_url: String,
@@ -44,23 +52,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let Opt {
         n_bags,
         output,
+        total_issuance,
+        minimum_balance,
         node_url,
     } = Opt::parse();
 
     let api = OnlineClient::<SubstrateConfig>::from_url(node_url).await?;
-    let total_issuance = api
-        .storage()
-        .at_latest()
-        .await?
-        .fetch(&zk_verify::storage().balances().total_issuance())
-        .await?
-        .unwrap_or_default();
+
+    let total_issuance_ = match total_issuance {
+        Some(issuance) => issuance,
+        None => {
+            let total_issuance = api
+                .storage()
+                .at_latest()
+                .await?
+                .fetch(&zk_verify::storage().balances().total_issuance())
+                .await?
+                .unwrap_or_default();
+            total_issuance
+        }
+    };
+
+    let minimum_balance_ = match minimum_balance {
+        Some(balance) => balance,
+        None => zkv_runtime::EXISTENTIAL_DEPOSIT
+    };
 
     generate_thresholds::<zkv_runtime::Runtime>(
         n_bags,
         &output,
-        total_issuance,
-        zkv_runtime::EXISTENTIAL_DEPOSIT,
+        total_issuance_,
+        minimum_balance_,
     )?;
 
     Ok(())

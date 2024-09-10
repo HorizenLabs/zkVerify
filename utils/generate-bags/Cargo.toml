@@ -9,11 +9,11 @@ repository.workspace = true
 description = "Bag threshold generation script for pallet-bag-list"
 
 [dependencies]
-frame-support = { default-features = false, version = "32.0.0" }
-frame-election-provider-support = { default-features = false, version = "32.0.0" }
-frame-system = { default-features = false, version = "32.0.0" }
-pallet-staking = { default-features = false, version = "32.0.0" }
-sp-staking = { default-features = false, version = "30.0.0" }
+frame-support = { workspace = true }
+frame-election-provider-support = { workspace = true }
+frame-system = { workspace = true }
+pallet-staking = { workspace = true }
+sp-staking = { workspace = true }
 
 # third party
 chrono = { version = "0.4.31" }

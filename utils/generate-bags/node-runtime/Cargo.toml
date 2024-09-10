@@ -10,8 +10,8 @@ description = "Bag threshold generation script for pallet-bag-list and zkv-runti
 publish = false
 
 [dependencies]
-zkv-runtime = { version = "0.5.1", path = "../../../runtime" }
-generate-bags = { version = "32.0.0", path = ".." }
+zkv-runtime = { path = "../../../runtime" }
+generate-bags = { path = ".." }
 tokio = { version = "1.22.0", features = ["full"] }
 subxt = "0.37.0"
 
