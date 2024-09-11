@@ -154,6 +154,7 @@ serde_json = { version = "1.0.108", default-features = false, features = [
 ] }
 sp-weights = { default-features = false, version = "31.0.0" }
 sp-genesis-builder = { default-features = false, version = "0.11.0" }
+sp-npos-elections = { default-features = false, version = "30.0.0" }
 hp-poe = { default-features = false, path = "primitives/hp-proof-of-existence" }
 proof-of-existence-rpc = { default-features = false, path = "rpc/proof_of_existence" }
 proof-of-existence-rpc-runtime-api = { default-features = false, path = "rpc/proof_of_existence/runtime-api" }

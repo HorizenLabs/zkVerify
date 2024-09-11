@@ -278,14 +278,12 @@ parameter_types! {
 }
 
 type VoterBagsListInstance = pallet_bags_list::Instance1;
-type VoteWeight = u64;
-
 impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type ScoreProvider = Staking;
     type WeightInfo = weights::pallet_bags_list::ZKVWeight<Runtime>;
     type BagThresholds = BagThresholds;
-    type Score = VoteWeight;
+    type Score = sp_npos_elections::VoteWeight;
 }
 
 impl pallet_grandpa::Config for Runtime {
