@@ -11559,7 +11559,7 @@ dependencies = [
 
 [[package]]
 name = "zkv-runtime"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "finality-grandpa",
  "frame-benchmarking",
