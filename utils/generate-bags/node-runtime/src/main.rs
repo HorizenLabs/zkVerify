@@ -61,24 +61,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let total_issuance_ = match total_issuance {
         Some(issuance) => issuance,
-        None => {
-            let total_issuance = api
-                .storage()
-                .at_latest()
-                .await?
-                .fetch(&zk_verify::storage().balances().total_issuance())
-                .await?
-                .unwrap_or_default();
-            total_issuance
-        }
+        None => api
+            .storage()
+            .at_latest()
+            .await?
+            .fetch(&zk_verify::storage().balances().total_issuance())
+            .await?
+            .unwrap_or_default(),
     };
 
     let minimum_balance_ = match minimum_balance {
         Some(balance) => balance,
         None => {
-            let existential_deposit_query = &zk_verify::constants().balances().existential_deposit();
-            let existential_deposit = api.constants().at(existential_deposit_query)?;
-            existential_deposit
+            let existential_deposit_query =
+                &zk_verify::constants().balances().existential_deposit();
+            api.constants().at(existential_deposit_query)?
         }
     };
 
