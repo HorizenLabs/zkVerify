@@ -84,7 +84,7 @@ while IFS='=' read -r -d '' var_name var_value; do
   fi
 done < <(env -0)
 
-if [ -n "${ZKV_CONF_BASE_PATH}" ]; then
+if [ -n "${ZKV_CONF_BASE_PATH:-}" ]; then
   BASE_CHAINS="${ZKV_CONF_BASE_PATH}/chains"
 
   for chain in local testnet ; do
