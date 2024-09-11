@@ -39,6 +39,11 @@ jobs:
             deps/
           key: common-cache
     
+      - name: Set docker env vars
+        run: |
+          echo "USER_ID=$(id -u)" >> $GITHUB_ENV
+          echo "GRP_ID=$(id -g)" >> $GITHUB_ENV
+      
       - name: Generate Rust documentation
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo doc --no-deps --release
 
