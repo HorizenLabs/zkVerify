@@ -75,7 +75,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let minimum_balance_ = match minimum_balance {
         Some(balance) => balance,
-        None => zkv_runtime::EXISTENTIAL_DEPOSIT
+        None => {
+            let existential_deposit_query = &zk_verify::constants().balances().existential_deposit();
+            let existential_deposit = api.constants().at(existential_deposit_query)?;
+            existential_deposit
+        }
     };
 
     generate_thresholds::<zkv_runtime::Runtime>(
