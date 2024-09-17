@@ -66,6 +66,9 @@ echo "ZKV_SECRET_PHRASE_PATH=${ZKV_SECRET_PHRASE_PATH}"
 ZKV_NODE_KEY_FILE=${ZKV_NODE_KEY_FILE:-"/data/config/node_key.dat"}
 echo "ZKV_NODE_KEY_FILE=${ZKV_NODE_KEY_FILE}"
 
+ZKV_CONF_BASE_PATH=${ZKV_CONF_BASE_PATH:-}
+ZKV_CONF_CHAIN=${ZKV_CONF_CHAIN:-}
+
 # Node configurations (env->arg)
 prefix="ZKV_CONF_"
 conf_args=()
@@ -84,7 +87,7 @@ while IFS='=' read -r -d '' var_name var_value; do
   fi
 done < <(env -0)
 
-if [ -n "${ZKV_CONF_BASE_PATH:-}" ]; then
+if [ -n "${ZKV_CONF_BASE_PATH}" ]; then
   BASE_CHAINS="${ZKV_CONF_BASE_PATH}/chains"
 
   for chain in local testnet ; do
@@ -99,11 +102,11 @@ fi
 # Keys handling
 if [ -f "${ZKV_SECRET_PHRASE_PATH}" ]; then
   injection_args=()
-  if [ -n "${ZKV_CONF_BASE_PATH:-}" ]; then
+  if [ -n "${ZKV_CONF_BASE_PATH}" ]; then
     injection_args+=("$(get_arg_name_from_env_name ZKV_CONF_BASE_PATH ${prefix})")
     injection_args+=("$(get_arg_value_from_env_value "${ZKV_CONF_BASE_PATH}")")
   fi
-  if [ -n "${ZKV_CONF_CHAIN:-}" ]; then
+  if [ -n "${ZKV_CONF_CHAIN}" ]; then
     injection_args+=("$(get_arg_name_from_env_name ZKV_CONF_CHAIN ${prefix})")
     injection_args+=("$(get_arg_value_from_env_value "${ZKV_CONF_CHAIN}")")
   fi
@@ -126,7 +129,7 @@ if [ -f "${ZKV_SECRET_PHRASE_PATH}" ]; then
 fi
 
 # Node-key handling
-if [[ (-n "${ZKV_CONF_BASE_PATH:-}") && (-n "${ZKV_CONF_CHAIN:-}") && (-f "${ZKV_NODE_KEY_FILE}") ]]; then
+if [[ (-n "${ZKV_CONF_BASE_PATH}") && (-n "${ZKV_CONF_CHAIN}") && (-f "${ZKV_NODE_KEY_FILE}") ]]; then
   base_path=("$(get_arg_value_from_env_value "${ZKV_CONF_BASE_PATH}")")
   chain=("$(get_arg_value_from_env_value "${ZKV_CONF_CHAIN}")")
   chain_id=$("${ZKV_NODE}" build-spec --chain "${chain}" 2> /dev/null | grep \"id\": | awk -F'"' '{print $4}')
