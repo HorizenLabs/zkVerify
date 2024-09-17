@@ -55,10 +55,15 @@ fi
 declare -a TEST_LIST=()
 
 # Check if we requested a run over a debug build
-BUILDSUBPATH="release"
+PROFILE="release"
+NODES=("solo" "relay")
 for ARG in "$@"; do
     if [[ "${ARG}" == "--debug" ]]; then
-        BUILDSUBPATH="debug"
+        PROFILE="debug"
+    elif [[ "${ARG}" == "--solo" ]]; then
+        NODES=("solo")
+    elif [[ "${ARG}" == "--relay" ]]; then
+        NODES=("relay")
     else
         TEST_LIST+=("${ARG}")    
     fi
@@ -69,53 +74,57 @@ if [ ${#TEST_LIST[@]} -eq 0 ]; then
     IFS=$'\n' TEST_LIST=($(find . -name "*.zndsl" | sort))
 fi
 
-echo -e "${TXT_BIGRN}INFO: ${TXT_BIBLK}Running tests with a ${BUILDSUBPATH} build${TXT_NORML}"
+echo -e "${TXT_BIGRN}INFO: ${TXT_BIBLK}Running tests with a ${PROFILE} build${TXT_NORML}"
 
-# Check if zkv-node executable exists according to the requested mode and print error/info messages otherwise
-if [[ ${BUILDSUBPATH} == "debug" ]]; then
-    if [ ! -f ../target/debug/zkv-node ]; then
-        if [ -f ../target/release/zkv-node ]; then
-            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}debug binary not found; however, a release binary is present. Compile zkv-node in debug mode${TXT_NORML}"
-            echo -e "${TXT_BIRED}       ${TXT_BIBLK}or relaunch the test runner without the '--debug' switch${TXT_NORML}"
-            exit 2
-        else
-            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}zkv-node binary not found. Compile zkv-node in debug mode and re-launch this script${TXT_NORML}"
-            exit 3
-        fi
-    fi
+HAS_BINARIES="true"
+if [[ ${NODES[*]} =~ "solo" && ! -f "../target/${PROFILE}/zkv-node" ]]; then
+    echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}zkv-node binary not found. Compile zkv-node in ${PROFILE} mode and re-launch this script${TXT_NORML}"
+    HAS_BINARIES="false"
+fi
+if [[ ${NODES[*]} =~ "relay" && ! -f "../target/${PROFILE}/zkv-relay" ]]; then
+    echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}zkv-relay binary not found. Compile zkv-relay in ${PROFILE} mode and re-launch this script${TXT_NORML}"
+    HAS_BINARIES="false"
 fi
 
-if [[ ${BUILDSUBPATH} == "release" ]]; then
-    if [ ! -f ../target/release/zkv-node ]; then
-        if [ -f ../target/debug/zkv-node ]; then
-            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}release binary not found; however, a debug binary is present. Compile zkv-node in release mode${TXT_NORML}"
-            echo -e "${TXT_BIRED}       ${TXT_BIBLK}or relaunch the test runner with the '--debug' switch${TXT_NORML}"
-            exit 2
-        else
-            echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}zkv-node binary not found. Compile zkv-node in release mode and re-launch this script${TXT_NORML}"
-            exit 3
-        fi
-    fi
+if [[ ${HAS_BINARIES} == "false" ]]; then
+    exit 2
 fi
 
 # If all checks passed, set the full build path
-FULLBUILDPATH="../target/${BUILDSUBPATH}"
+FULLBUILDPATH="../target/${PROFILE}"
+
+NETWORK_DEFS_FOLDER="network_defs"
 
 # GO! GO! GO!
-for TESTNAME in "${TEST_LIST[@]}"; do
-    echo -e "\n\n"
+for NODE in "${NODES[@]}"; do
     echo -e "============================================================"
-    echo -e "${TXT_BIBLK} Running test:  ${TXT_NORML} ${TESTNAME}"
+    echo -e "${TXT_BIBLK} TEST NODE impl:  ${TXT_NORML} ${NODE}"
     echo -e "============================================================"
-    ( PATH=${PATH}:${FULLBUILDPATH}; bin/$ZOMBIENET_BINARY -p native test ./"${TESTNAME}" )
-    current_exit_code=$?
-    TOT_EXEC_TESTS=$((TOT_EXEC_TESTS+1))
-    if [ ${current_exit_code} -ne 0 ]; then
-        FAILED_TESTS+=("$TESTNAME")
-        TOT_FAIL_TESTS=$((TOT_FAIL_TESTS+1))
-        EXIT_STATUS=1
-    fi
+    rm -f "${NETWORK_DEFS_FOLDER}";
+    ln -s "${NETWORK_DEFS_FOLDER}_${NODE}" "${NETWORK_DEFS_FOLDER}";
+    for TESTNAME in "${TEST_LIST[@]}"; do
+        if grep -q -P "^#\s*SKIP.*\s${NODE}.*$" "${TESTNAME}" ; then  
+            echo -e "\n\n"
+            echo -e "============================================================"
+            echo -e "${TXT_BIYLW}SKIP test:${TXT_BIBLK}  ${TXT_NORML} ${TESTNAME} on ${NODE} chain"
+            echo -e "============================================================"
+            continue
+        fi
+        echo -e "\n\n"
+        echo -e "============================================================"
+        echo -e "${TXT_BIBLK} Running test:  ${TXT_NORML} ${TESTNAME} on ${NODE} chain"
+        echo -e "============================================================"
+        ( PATH=${PATH}:${FULLBUILDPATH}; bin/$ZOMBIENET_BINARY -p native test ./"${TESTNAME}" )
+        current_exit_code=$?
+        TOT_EXEC_TESTS=$((TOT_EXEC_TESTS+1))
+        if [ ${current_exit_code} -ne 0 ]; then
+            FAILED_TESTS+=("${NODE}:${TESTNAME}")
+            TOT_FAIL_TESTS=$((TOT_FAIL_TESTS+1))
+            EXIT_STATUS=1
+        fi
+    done
 done
+rm -f "${NETWORK_DEFS_FOLDER}";
 
 # Print a fancy table summarizing the test suit run
 echo -e "\n\n\n"
