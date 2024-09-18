@@ -1,0 +1,38 @@
+name: System Tests and Publish Docker Image
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  execute-system-tests:
+    name: Execute system tests
+    runs-on: ubuntu-latest
+
+    env:
+        GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+
+    steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v4
+          
+
+        - name: Call e2e test from zkverify-qa
+          uses: HorizenLabs/zkVerify-qa/.github/workflows/CI-e2e-tests.yml@main
+          with: # TODO: add inputs
+            some_input:
+          secrets:
+            GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+
+        - name: Get Commit Hash
+          id: get_commit_hash
+          run: |
+            echo "commit_hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        
