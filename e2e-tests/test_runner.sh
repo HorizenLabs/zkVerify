@@ -29,7 +29,7 @@ EXIT_STATUS=0
 
 # Check operating system and set variables for binary name
 OS="$(uname)"
-BASE_URL="https://github.com/paritytech/zombienet/releases/download/v1.3.94"
+BASE_URL="https://github.com/paritytech/zombienet/releases/download/v1.3.109"
 if [ "$OS" == "Linux" ]; then
     ZOMBIENET_BINARY="zombienet-linux-x64"
 elif [ "$OS" == "Darwin" ]; then
@@ -81,8 +81,9 @@ if [[ ${NODES[*]} =~ "solo" && ! -f "../target/${PROFILE}/zkv-node" ]]; then
     echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}zkv-node binary not found. Compile zkv-node in ${PROFILE} mode and re-launch this script${TXT_NORML}"
     HAS_BINARIES="false"
 fi
-if [[ ${NODES[*]} =~ "relay" && ! -f "../target/${PROFILE}/zkv-relay" ]]; then
+if [[ ${NODES[*]} =~ "relay" &&  ! ( -f "../target/${PROFILE}/zkv-relay" && -f "../target/${PROFILE}/paratest-node" ) ]]; then
     echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}zkv-relay binary not found. Compile zkv-relay in ${PROFILE} mode and re-launch this script${TXT_NORML}"
+    echo -e "       ${TXT_BIBLK}cargo build -p zkv-relay -p paratest-node --${PROFILE} --features fast-runtime${TXT_NORML}"
     HAS_BINARIES="false"
 fi
 

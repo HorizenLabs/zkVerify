@@ -56,8 +56,8 @@ jobs:
       - name: Cargo build mainchain
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build -p mainchain --release
 
-      - name: Cargo build relaychain
-        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build -p zkv-relay --release
+      - name: Cargo build relaychain and paratest
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build -p zkv-relay -p paratest-node --release --features fast-runtime
 
       - name: Yarn install and test
         shell: bash
