@@ -1,12 +1,12 @@
-name: System Tests and Publish Docker Image
+name: System Tests and Publish Docker Image # Correctly placed at the top
 
 on:
   push:
     branches:
       - main
     tags:
-      - '*'
-  workflow_dispatch:
+      - "*" # Triggers on pushes to main or any tag
+  workflow_dispatch: # Enables manual triggering
 
 permissions:
   contents: read
@@ -16,8 +16,29 @@ jobs:
   execute-system-tests:
     uses: HorizenLabs/zkVerify-qa/.github/workflows/CI-e2e-tests.yml@main
     with:
-      # Provide necessary inputs for the reusable workflow
-      some_input: value
+      some_input: value # Replace with actual inputs
     secrets:
-      # Pass any required secrets to the reusable workflow
       GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+
+  get-commit-hash:
+    runs-on: ubuntu-latest
+    needs: execute-system-tests
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Get Commit Hash
+        id: get_commit_hash
+        run: |
+          echo "commit_hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+  publish-docker:
+    runs-on: ubuntu-latest
+    needs: [execute-system-tests, get-commit-hash]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Publish Docker Image
+        run: |
+          # Your Docker publish commands here
