@@ -1,12 +1,13 @@
 name: System Tests and Publish Docker Image # Correctly placed at the top
 
 on:
+  workflow_dispatch: # Enables manual triggering
   push:
     branches:
       - main
+      - feat/web3-943-post-merge-pipeline
     tags:
       - "*" # Triggers on pushes to main or any tag
-  workflow_dispatch: # Enables manual triggering
 
 permissions:
   contents: read
