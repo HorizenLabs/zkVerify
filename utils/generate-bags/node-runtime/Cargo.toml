@@ -1,0 +1,19 @@
+[package]
+name = "node-runtime-generate-bags"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license = "Apache-2.0"
+homepage = "https://substrate.io"
+repository.workspace = true
+description = "Bag threshold generation script for pallet-bag-list and zkv-runtime."
+publish = false
+
+[dependencies]
+zkv-runtime = { path = "../../../runtime" }
+generate-bags = { path = ".." }
+tokio = { version = "1.22.0", features = ["full"] }
+subxt = "0.37.0"
+
+# third-party
+clap = { version = "4.5.3", features = ["derive"] }

@@ -1,0 +1,20 @@
+[package]
+name = "generate-bags"
+version = "32.0.0"
+authors.workspace = true
+edition.workspace = true
+license = "Apache-2.0"
+homepage = "https://substrate.io"
+repository.workspace = true
+description = "Bag threshold generation script for pallet-bag-list"
+
+[dependencies]
+frame-support = { workspace = true }
+frame-election-provider-support = { workspace = true }
+frame-system = { workspace = true }
+pallet-staking = { workspace = true }
+sp-staking = { workspace = true }
+
+# third party
+chrono = { version = "0.4.31" }
+num-format = "0.4.3"

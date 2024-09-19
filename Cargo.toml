@@ -22,6 +22,7 @@ members = [
     "verifiers/risc0",
     "verifiers/ultraplonk",
     "utils/native-cache",
+    "utils/generate-bags/node-runtime",
 ]
 
 [workspace.dependencies]
@@ -99,6 +100,7 @@ scale-info = { version = "2.10.0", default-features = false, features = [
 pallet-offences = { default-features = false, version = "31.0.0" }
 pallet-im-online = { default-features = false, version = "31.0.0" }
 pallet-authorship = { default-features = false, version = "32.0.0" }
+pallet-bags-list = { default-features = false, version = "31.0.0" }
 pallet-session = { default-features = false, version = "32.0.0" }
 pallet-staking = { default-features = false, version = "32.0.0" }
 pallet-staking-reward-curve = { default-features = false, version = "11.0.0" }
@@ -152,6 +154,7 @@ serde_json = { version = "1.0.108", default-features = false, features = [
 ] }
 sp-weights = { default-features = false, version = "31.0.0" }
 sp-genesis-builder = { default-features = false, version = "0.11.0" }
+sp-npos-elections = { default-features = false, version = "30.0.0" }
 hp-poe = { default-features = false, path = "primitives/hp-proof-of-existence" }
 proof-of-existence-rpc = { default-features = false, path = "rpc/proof_of_existence" }
 proof-of-existence-rpc-runtime-api = { default-features = false, path = "rpc/proof_of_existence/runtime-api" }

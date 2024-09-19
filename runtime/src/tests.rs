@@ -242,6 +242,13 @@ fn pallet_vesting_availability() {
 }
 
 #[test]
+fn pallet_bags_list_availability() {
+    new_test_ext().execute_with(|| {
+        assert!(VoterList::list_bags_get(12).is_none());
+    });
+}
+
+#[test]
 fn pallet_preimage_availability() {
     new_test_ext().execute_with(|| {
         assert_ok!(Preimage::note_preimage(
@@ -523,6 +530,16 @@ mod use_correct_weights {
         assert_eq!(
             <Runtime as pallet_multisig::Config>::WeightInfo::as_multi_approve(3, 100),
             crate::weights::pallet_multisig::ZKVWeight::<Runtime>::as_multi_approve(3, 100)
+        );
+    }
+
+    #[test]
+    fn pallet_bags_list() {
+        use pallet_bags_list::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_bags_list::Config<pallet_bags_list::Instance1>>::WeightInfo::put_in_front_of(),
+            crate::weights::pallet_bags_list::ZKVWeight::<Runtime>::put_in_front_of()
         );
     }
 
