@@ -1,25 +1,26 @@
-name: System Tests and Publish Docker Image # Correctly placed at the top
+name: System Tests and Publish Docker Image
 
 on:
-  workflow_dispatch: # Enables manual triggering
+  workflow_dispatch:
   push:
     branches:
       - main
       - feat/web3-943-post-merge-pipeline
     tags:
-      - "*" # Triggers on pushes to main or any tag
+      - "*"
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   execute-system-tests:
     uses: HorizenLabs/zkVerify-qa/.github/workflows/CI-e2e-tests.yml@main
     with:
-      some_input: value # Replace with actual inputs
-    secrets:
-      GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+      zkverify_tag: ${{ github.event.inputs.zkverify_tag || 'latest' }}
+      zkverify_branch: ${{ github.event.inputs.zkverify_branch || 'main' }}
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME || 'test' }}
+      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN || 'test' }}
+      QA_SLACK_WEBHOOK_URL: ${{ secrets.QA_SLACK_WEBHOOK_URL || 'test' }}
 
   get-commit-hash:
     runs-on: ubuntu-latest
@@ -33,13 +34,13 @@ jobs:
         run: |
           echo "commit_hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-  publish-docker:
-    runs-on: ubuntu-latest
-    needs: [execute-system-tests, get-commit-hash]
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+  # publish-docker:
+  #   runs-on: ubuntu-latest
+  #   needs: [execute-system-tests, get-commit-hash]
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v4
 
-      - name: Publish Docker Image
-        run: |
-          # Your Docker publish commands here
+  #     - name: Publish Docker Image
+  #       run: |
+  #         # Your Docker publish commands here
