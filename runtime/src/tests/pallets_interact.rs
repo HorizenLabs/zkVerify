@@ -148,7 +148,7 @@ mod offences {
     use frame_system::{EventRecord, Phase};
     use sp_consensus_babe::digests::CompatibleDigestItem;
     use sp_staking::offence::ReportOffence;
-    use sp_staking::{offence, Exposure};
+    use sp_staking::{offence, Exposure, SessionIndex};
 
     type OffencesOpaqueTimeSlot = Vec<u8>;
 
