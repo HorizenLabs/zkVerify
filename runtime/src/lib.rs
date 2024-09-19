@@ -82,6 +82,7 @@ pub mod governance;
 use governance::{pallet_custom_origins, Treasurer, TreasurySpender};
 
 mod bag_thresholds;
+mod payout;
 #[cfg(test)]
 mod tests;
 mod weights;
@@ -596,8 +597,6 @@ impl pallet_staking::BenchmarkingConfig for ElectionProviderBenchmarkConfig {
     type MaxNominators = ConstU32<MAX_VOTERS>;
     type MaxValidators = ConstU32<MAX_TARGETS>;
 }
-
-mod payout;
 
 impl pallet_staking::Config for Runtime {
     type Currency = Balances;
