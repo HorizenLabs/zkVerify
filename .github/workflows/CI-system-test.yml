@@ -18,9 +18,9 @@ jobs:
     with:
       zkverify_tag: ${{ github.event.inputs.zkverify_tag || 'latest' }}
       zkverify_branch: ${{ github.event.inputs.zkverify_branch || 'main' }}
-      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME || 'test' }}
-      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN || 'test' }}
-      QA_SLACK_WEBHOOK_URL: ${{ secrets.QA_SLACK_WEBHOOK_URL || 'test' }}
+      DOCKER_HUB_USERNAME: test
+      DOCKER_HUB_TOKEN: test
+      QA_SLACK_WEBHOOK_URL: test
 
   get-commit-hash:
     runs-on: ubuntu-latest
