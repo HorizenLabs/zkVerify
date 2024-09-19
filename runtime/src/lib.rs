@@ -775,6 +775,22 @@ impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> f
     >;
 }
 
+parameter_types! {
+    pub const ProofOfSqlLargestMaxNu: u32 = 20;
+}
+
+impl pallet_proofofsql_verifier::Config for Runtime {
+    type LargestMaxNu = ProofOfSqlLargestMaxNu;
+}
+
+impl pallet_verifiers::Config<pallet_proofofsql_verifier::ProofOfSql<Runtime>> for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type OnProofVerified = Poe;
+    type WeightInfo = pallet_proofofsql_verifier::ProofOfSqlWeight<
+        weights::pallet_proofofsql_verifier::ZKVWeight<Runtime>,
+    >;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub struct Runtime {
@@ -804,6 +820,7 @@ construct_runtime!(
         SettlementGroth16Pallet: pallet_groth16_verifier,
         SettlementRisc0Pallet: pallet_risc0_verifier,
         SettlementUltraplonkPallet: pallet_ultraplonk_verifier,
+        SettlementProofOfSqlPallet: pallet_proofofsql_verifier,
         Treasury: pallet_treasury,
         Bounties: pallet_bounties,
         ChildBounties: pallet_child_bounties,

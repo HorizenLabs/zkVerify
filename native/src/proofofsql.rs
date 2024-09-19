@@ -16,8 +16,6 @@
 use crate::VerifyError;
 use sp_runtime_interface::runtime_interface;
 
-pub const VK_SIZE: usize = 15508;
-
 #[cfg(feature = "std")]
 impl From<proof_of_sql_verifier::VerifyError> for VerifyError {
     fn from(value: proof_of_sql_verifier::VerifyError) -> Self {
@@ -34,19 +32,19 @@ impl From<proof_of_sql_verifier::VerifyError> for VerifyError {
 
 #[runtime_interface]
 pub trait ProofofsqlVerify {
-    fn verify(
-        raw_vk: &[u8; VK_SIZE],
-        proof: &[u8],
-        pubs: &[u8],
-    ) -> Result<(), VerifyError> {
-        proof_of_sql_verifier::verify(raw_vk, proof, pubs).map_err(Into::into)
+    fn verify(raw_vk: &[u8], proof: &[u8], pubs: &[u8]) -> Result<(), VerifyError> {
+        proof_of_sql_verifier::verify(proof, pubs, raw_vk).map_err(Into::into)
     }
 
-    fn validate_vk(raw_vk: &[u8; VK_SIZE]) -> Result<(), VerifyError> {
-        let _vk = proof_of_sql_verifier::VerificationKey::try_from(&raw_vk[..]).map_err(|e| {
+    fn validate_vk(raw_vk: &[u8]) -> Result<(), VerifyError> {
+        let _vk = proof_of_sql_verifier::VerificationKey::try_from(raw_vk).map_err(|e| {
             log::debug!("Cannot parse verification key: {:?}", e);
             VerifyError::InvalidVerificationKey
         })?;
         Ok(())
+    }
+
+    fn verifier_key_size(max_nu: u32) -> u32 {
+        proof_of_sql_verifier::VerificationKey::serialized_size(max_nu as usize) as u32
     }
 }

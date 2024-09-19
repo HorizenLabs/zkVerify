@@ -6118,6 +6118,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-proofofsql-verifier"
+version = "0.1.0"
+dependencies = [
+ "derivative",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "hp-verifiers",
+ "log",
+ "native",
+ "pallet-verifiers",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-proxy"
 version = "32.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7170,9 +7189,9 @@ dependencies = [
 
 [[package]]
 name = "proof-of-sql"
-version = "0.16.1"
+version = "0.22.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76cc894ddcd3fb1954c8ce9e91346f0b0a0ad5f7a53935633dfa7151e3a32cfe"
+checksum = "68821fcf93a6a834ff260f48c8eb32f075444e828dae2f82825115690329bcd1"
 dependencies = [
  "ark-bls12-381",
  "ark-curve25519",
@@ -7202,15 +7221,16 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
+ "tiny-keccak 2.0.2",
  "tracing",
  "zerocopy 0.7.35",
 ]
 
 [[package]]
 name = "proof-of-sql-parser"
-version = "0.16.1"
+version = "0.22.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d7db45cc365872f34adf018bf887533fd74cb46ade8b5a19f76568cad0fb3ef"
+checksum = "eb02cb67a22a9dc509dbef1ec37b3630499be78064c7944c17a851e26de2bfe1"
 dependencies = [
  "arrayvec 0.7.4",
  "bigdecimal",
@@ -7224,29 +7244,15 @@ dependencies = [
 [[package]]
 name = "proof-of-sql-verifier"
 version = "0.1.0"
-source = "git+https://github.com/HorizenLabs/proof-of-sql-verifier.git?rev=9caa1711bbd6c0f33ed754192a8144b444bb1fac#9caa1711bbd6c0f33ed754192a8144b444bb1fac"
+source = "git+https://github.com/HorizenLabs/proof-of-sql-verifier.git?rev=b5639acfe666f7999ab10332887b30a539898cc6#b5639acfe666f7999ab10332887b30a539898cc6"
 dependencies = [
+ "ark-bls12-381",
+ "ark-ec",
  "ark-serialize",
  "bincode",
  "indexmap 2.3.0",
  "proof-of-sql",
  "proof-of-sql-parser",
-]
-
-[[package]]
-name = "proofofsql"
-version = "0.1.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hex-literal",
- "hp-verifiers",
- "log",
- "native",
- "pallet-verifiers",
- "sp-core",
- "sp-std",
 ]
 
 [[package]]
@@ -13022,6 +13028,7 @@ dependencies = [
  "pallet-offences",
  "pallet-poe",
  "pallet-preimage",
+ "pallet-proofofsql-verifier",
  "pallet-proxy",
  "pallet-referenda",
  "pallet-risc0-verifier",

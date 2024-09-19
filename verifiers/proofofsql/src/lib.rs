@@ -15,22 +15,67 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{ensure, weights::Weight};
+use codec::{Decode, Encode, MaxEncodedLen};
+use derivative::Derivative;
+use frame_support::weights::Weight;
 use hp_verifiers::{Cow, Verifier, VerifyError};
-use sp_std::{marker::PhantomData, vec::{self, Vec}};
+use scale_info::TypeInfo;
+use sp_core::Get;
+use sp_std::{marker::PhantomData, vec::Vec};
 
-pub use native::PROOFOFSQL_VK_SIZE as VK_SIZE;
-pub type Vk = [u8; VK_SIZE];
+pub mod benchmarking;
+mod verifier_should;
+mod weight;
+pub use weight::WeightInfo;
+
+#[derive(Derivative, Encode, Decode, TypeInfo)]
+#[derivative(Clone, Debug, PartialEq)]
+#[scale_info(skip_type_params(T))]
+pub struct Vk<T>(Vec<u8>, PhantomData<T>);
+
+impl<T: Config> Vk<T> {
+    pub fn validate_size(&self) -> Result<(), VerifyError> {
+        let max_nu = <T as Config>::largest_max_nu();
+        let max_vk_size = native::proofofsql_verify::verifier_key_size(max_nu) as usize;
+        if self.0.len() > max_vk_size {
+            Err(VerifyError::InvalidVerificationKey)
+        } else {
+            Ok(())
+        }
+    }
+}
+
+impl<T> From<Vec<u8>> for Vk<T> {
+    fn from(value: Vec<u8>) -> Self {
+        Self(value, PhantomData)
+    }
+}
+
+impl<T: Config> MaxEncodedLen for Vk<T> {
+    fn max_encoded_len() -> usize {
+        let max_nu = <T as Config>::largest_max_nu();
+        native::proofofsql_verify::verifier_key_size(max_nu) as usize
+    }
+}
+
+pub trait Config: 'static {
+    /// Maximum value allowed for `max_nu` in the verification key
+    type LargestMaxNu: Get<u32>;
+
+    fn largest_max_nu() -> u32 {
+        Self::LargestMaxNu::get()
+    }
+}
 
 #[pallet_verifiers::verifier]
-pub struct ProofOfSql;
+pub struct ProofOfSql<T>;
 
-impl Verifier for ProofOfSql {
+impl<T: Config> Verifier for ProofOfSql<T> {
     type Proof = Vec<u8>;
 
     type Pubs = Vec<u8>;
 
-    type Vk = Vk;
+    type Vk = Vk<T>;
 
     fn hash_context_data() -> &'static [u8] {
         b"proofofsql"
@@ -42,16 +87,41 @@ impl Verifier for ProofOfSql {
         pubs: &Self::Pubs,
     ) -> Result<(), VerifyError> {
         log::trace!("Verifying (native)");
-
-        native::proofofsql_verify::verify(vk, proof, pubs).map_err(Into::into)
+        vk.validate_size()?;
+        native::proofofsql_verify::verify(vk.0.as_slice(), proof, pubs).map_err(Into::into)
     }
 
     fn validate_vk(vk: &Self::Vk) -> Result<(), VerifyError> {
-        native::proofofsql_verify::validate_vk(vk).map_err(Into::into)
+        vk.validate_size()?;
+        native::proofofsql_verify::validate_vk(vk.0.as_slice()).map_err(Into::into)
     }
 
     fn pubs_bytes(pubs: &Self::Pubs) -> Cow<[u8]> {
-        let data = pubs.iter().copied().collect::<Vec<_>>();
+        let data = pubs.to_vec();
         Cow::Owned(data)
+    }
+}
+
+pub struct ProofOfSqlWeight<W: weight::WeightInfo>(PhantomData<W>);
+
+impl<T: Config, W: weight::WeightInfo> pallet_verifiers::WeightInfo<ProofOfSql<T>>
+    for ProofOfSqlWeight<W>
+{
+    fn submit_proof(
+        _proof: &<ProofOfSql<T> as hp_verifiers::Verifier>::Proof,
+        _pubs: &<ProofOfSql<T> as hp_verifiers::Verifier>::Pubs,
+    ) -> Weight {
+        W::submit_proof()
+    }
+
+    fn submit_proof_with_vk_hash(
+        _proof: &<ProofOfSql<T> as hp_verifiers::Verifier>::Proof,
+        _pubs: &<ProofOfSql<T> as hp_verifiers::Verifier>::Pubs,
+    ) -> Weight {
+        W::submit_proof_with_vk_hash()
+    }
+
+    fn register_vk(_vk: &<ProofOfSql<T> as hp_verifiers::Verifier>::Vk) -> Weight {
+        W::register_vk()
     }
 }

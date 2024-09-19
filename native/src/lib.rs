@@ -72,7 +72,6 @@ mod proofofsql;
 pub use proofofsql::proofofsql_verify;
 #[cfg(feature = "std")]
 pub use proofofsql::proofofsql_verify::HostFunctions as ProofofsqlVerifierHostFunctions;
-pub use proofofsql::VK_SIZE as PROOFOFSQL_VK_SIZE;
 
 #[cfg(feature = "std")]
 pub type HLNativeHostFunctions = (
