@@ -252,6 +252,7 @@ fn pallet_bags_list() {
     );
 }
 
+#[cfg(feature = "relay")]
 #[test]
 fn pallet_message_queue() {
     use pallet_message_queue::WeightInfo;
@@ -261,7 +262,6 @@ fn pallet_message_queue() {
             crate::weights::pallet_message_queue::ZKVWeight::<Runtime>::ready_ring_knit()
         )
 }
-
 
 mod parachains {
     #![cfg(feature = "relay")]
