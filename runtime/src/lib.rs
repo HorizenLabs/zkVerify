@@ -14,8 +14,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
-#![recursion_limit = "256"]
+// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 512 (for relay chain).
+#![recursion_limit = "512"]
 #![allow(clippy::identity_op)]
 
 // Make the WASM binary available.
@@ -112,13 +112,6 @@ pub(crate) use macros::prod_or_fast;
 
 pub mod parachains;
 pub mod xcm_config;
-
-#[cfg(feature = "relay")]
-pub type ParachainMigrations = parachains::Migrations;
-#[cfg(not(feature = "relay"))]
-pub type ParachainMigrations = ();
-
-pub type Migrations = (ParachainMigrations,);
 
 #[cfg(feature = "relay")]
 pub type ParachainMigrations = parachains::Migrations;
@@ -1527,6 +1520,7 @@ impl_runtime_apis! {
 
             impl pallet_session_benchmarking::Config for Runtime {}
 
+            #[cfg(feature = "relay")]
             impl parachains::slashing::benchmarking::Config for Runtime {}
 
             use frame_support::traits::WhitelistedStorageKeys;
