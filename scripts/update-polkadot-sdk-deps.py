@@ -74,6 +74,7 @@ if __name__ == "__main__":
                 else:
                     library_name_plk = library_name_zkv
                 if (library_name_plk in polkadot_libs):
+                    version = None
                     if (type(library_info) is tomlkit.items.InlineTable and
                         "version" in library_info):
                         # e.g.: my_lib = { version = "0.1.0", default-features = false }
