@@ -26,7 +26,7 @@ jobs:
           echo "commit_hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
   execute-system-tests:
-    uses: HorizenLabs/zkVerify-qa/.github/workflows/CI-e2e-tests.yml@main
+    uses: HorizenLabs/zkVerify-qa/.github/workflows/CI-e2e-tests.yml@chore/e2e-test-adapt-to-reuse
     with:
       zkverify_tag: ${{ github.event.inputs.zkverify_tag || 'latest' }}
       zkverify_branch: ${{ github.event.inputs.zkverify_branch || 'main' }}
