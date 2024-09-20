@@ -224,6 +224,7 @@ pub mod pallet {
             vk_or_hash: VkOrHash<I::Vk>,
             proof: Box<I::Proof>,
             pubs: Box<I::Pubs>,
+            attestation_chain_id: Option<u32>,
         ) -> DispatchResultWithPostInfo
         where
             I: Verifier,
@@ -240,7 +241,10 @@ pub mod pallet {
             };
             I::verify_proof(&vk, &proof, &pubs)
                 .map(|_x| {
-                    T::OnProofVerified::on_proof_verified(compute_hash::<I>(&pubs, &vk_or_hash))
+                    T::OnProofVerified::on_proof_verified(
+                        compute_hash::<I>(&pubs, &vk_or_hash),
+                        attestation_chain_id,
+                    )
                 })
                 .map_err(Error::<T, I>::from)?;
             Ok(().into())

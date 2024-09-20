@@ -16,8 +16,11 @@
 use frame_support::{derive_impl, parameter_types};
 use frame_system as system;
 use hp_poe::MaxStorageAttestations;
+use pallet_timestamp::{self as timestamp};
 use sp_core::{ConstU32, ConstU64};
 use sp_runtime::{traits::IdentityLookup, BuildStorage};
+
+use crate::{FirstInsertionTimeV2, NextAttestationV2, OldestAttestationV2};
 
 // Timestamp
 impl pallet_timestamp::Config for Test {
@@ -83,5 +86,11 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
             .unwrap(),
     );
     ext.execute_with(|| System::set_block_number(1));
+    ext.execute_with(|| {
+        OldestAttestationV2::<Test>::insert(0, 0);
+        NextAttestationV2::<Test>::insert(0, 0);
+        FirstInsertionTimeV2::<Test>::insert(0, <timestamp::Pallet<Test>>::get());
+    });
+
     ext
 }

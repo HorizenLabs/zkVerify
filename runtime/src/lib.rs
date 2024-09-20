@@ -1082,9 +1082,10 @@ impl_runtime_apis! {
     impl proof_of_existence_rpc_runtime_api::PoEApi<Block> for Runtime {
         fn get_proof_path(
             attestation_id: u64,
-            proof_hash: sp_core::H256
+            proof_hash: sp_core::H256,
+            attestation_chain_id: Option<u32>,
         ) -> Result<MerkleProof, proof_of_existence_rpc_runtime_api::AttestationPathRequestError> {
-            Poe::get_proof_path_from_pallet(attestation_id, proof_hash).map(|c| c.into())
+            Poe::get_proof_path_from_pallet(attestation_id, proof_hash, attestation_chain_id).map(|c| c.into())
         }
     }
 

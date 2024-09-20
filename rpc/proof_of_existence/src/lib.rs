@@ -35,6 +35,7 @@ pub trait PoEApi<BlockHash, ResponseType> {
         &self,
         attestation_id: u64,
         proof_hash: H256,
+        attestation_chain_id: Option<u32>,
         at: Option<BlockHash>,
     ) -> RpcResult<ResponseType>;
 }
@@ -65,6 +66,8 @@ pub enum Error {
     RuntimeError,
     /// The transaction was not decodable.
     DecodeError,
+    //// Attestation chain not registered
+    UnregisteredAttestationChain,
 }
 
 impl From<Error> for i32 {
@@ -74,6 +77,7 @@ impl From<Error> for i32 {
             Error::AttestationNotPublished => 2,
             Error::RuntimeError => 3,
             Error::DecodeError => 4,
+            Error::UnregisteredAttestationChain => 5,
         }
     }
 }
@@ -88,6 +92,7 @@ where
         &self,
         attestation_id: u64,
         proof_hash: sp_core::H256,
+        attestation_chain_id: Option<u32>,
         at: Option<Block::Hash>,
     ) -> RpcResult<MerkleProof> {
         let api = self.client.runtime_api();
@@ -97,7 +102,7 @@ where
             ErrorObject::owned(Error::RuntimeError.into(), desc, Some(error.to_string()))
         }
 
-        api.get_proof_path(at_hash, attestation_id, proof_hash)
+        api.get_proof_path(at_hash, attestation_id, proof_hash, attestation_chain_id)
             .map_err(|e| map_err(e, "Unable to query dispatch info."))
             .and_then(|r| r.map_err(convert_attestation_error))
             .map_err(Into::into)
@@ -106,17 +111,24 @@ where
 
 fn convert_attestation_error(e: AttestationPathRequestError) -> ErrorObjectOwned {
     match e {
-        AttestationPathRequestError::ProofNotFound(id, h) => ErrorObject::owned(
+        AttestationPathRequestError::ProofNotFound(id, h, aci) => ErrorObject::owned(
             Error::ProofNotFound.into(),
             "Proof not found",
             Some(format!(
-                "Proof {h} not found in Storage for attestation id {id}"
+                "Proof {h} not found in Storage for attestation id {id} and attestation chain id {aci}"
             )),
         ),
-        AttestationPathRequestError::AttestationIdNotPublished(id) => ErrorObject::owned(
+        AttestationPathRequestError::AttestationIdNotPublished(id, aci) => ErrorObject::owned(
             Error::AttestationNotPublished.into(),
             "Attestation not published yet",
-            Some(format!("Attestation {id} not published yet")),
+            Some(format!("Attestation id {id} for attestation chain id {aci} not published yet")),
+        ),
+        AttestationPathRequestError::UnregisteredAttestationChain(aci) => ErrorObject::owned(
+            Error::UnregisteredAttestationChain.into(),
+            "Attestation chain not registered",
+            Some(format!(
+                "Attestation chain id {aci} not found in Storage"
+            )),
         ),
     }
 }

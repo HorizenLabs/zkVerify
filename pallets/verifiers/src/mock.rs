@@ -19,6 +19,8 @@ use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
 use hp_verifiers::{Verifier, VerifyError, WeightInfo};
 
+pub const COMMON_ATTESTATION_CHAIN_ID: u32 = 0u32;
+
 /// A on_proof_verifier fake pallet
 pub mod on_proof_verified {
     pub use pallet::*;
@@ -26,10 +28,10 @@ pub mod on_proof_verified {
     #[frame_support::pallet]
     #[allow(unused_imports)]
     mod pallet {
+        use crate::mock::COMMON_ATTESTATION_CHAIN_ID;
         use frame_support::pallet_prelude::*;
-        use sp_core::H256;
-
         use hp_poe::OnProofVerified;
+        use sp_core::H256;
 
         #[pallet::pallet]
         pub struct Pallet<T>(_);
@@ -43,17 +45,29 @@ pub mod on_proof_verified {
         #[pallet::event]
         #[pallet::generate_deposit(pub(super) fn deposit_event)]
         pub enum Event<T: Config> {
-            NewProof { value: H256 },
+            NewProof {
+                value: H256,
+                attestation_chain_id: u32,
+            },
         }
 
         impl<T: Config> OnProofVerified for Pallet<T> {
-            fn on_proof_verified(value: H256) {
-                Self::deposit_event(Event::NewProof { value });
+            fn on_proof_verified(value: H256, attestation_chain_id: Option<u32>) {
+                let attestation_chain_id =
+                    attestation_chain_id.unwrap_or(COMMON_ATTESTATION_CHAIN_ID);
+                Self::deposit_event(Event::NewProof {
+                    value,
+                    attestation_chain_id,
+                });
             }
         }
 
-        pub fn new_proof_event<T: Config>(h: H256) -> Event<T> {
-            Event::NewProof { value: h }
+        pub fn new_proof_event<T: Config>(h: H256, attestation_chain_id: Option<u32>) -> Event<T> {
+            let attestation_chain_id = attestation_chain_id.unwrap_or(COMMON_ATTESTATION_CHAIN_ID);
+            Event::NewProof {
+                value: h,
+                attestation_chain_id,
+            }
         }
     }
 }

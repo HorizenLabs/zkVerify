@@ -25,7 +25,7 @@ sp_api::decl_runtime_apis! {
     pub trait PoEApi
     {
         // Returns the Merkle path for the given attestation id and proof hash
-        fn get_proof_path(attestation_id: u64, proof_hash: sp_core::H256) -> Result<MerkleProof, AttestationPathRequestError>;
+        fn get_proof_path(attestation_id: u64, proof_hash: sp_core::H256, attestation_chain_id: Option<u32>) -> Result<MerkleProof, AttestationPathRequestError>;
     }
 }
 

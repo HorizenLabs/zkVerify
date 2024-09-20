@@ -17,11 +17,14 @@ use crate::mock;
 use crate::mock::RuntimeEvent as TestEvent;
 use crate::mock::*;
 use crate::AttestationPathRequestError;
-use frame_support::assert_ok;
-use frame_support::dispatch::GetDispatchInfo;
-use frame_support::dispatch::Pays;
+use crate::OldestAttestationV2;
+use crate::COMMON_ATTESTATION_CHAIN_ID;
+use frame_support::dispatch::{GetDispatchInfo, Pays};
 use frame_support::inherent::ProvideInherent;
 use frame_support::pallet_prelude::InherentData;
+use frame_support::traits::OnRuntimeUpgrade;
+use frame_support::IterableStorageMap;
+use frame_support::{assert_noop, assert_ok};
 use frame_system::{EventRecord, Phase};
 use hex_literal::hex;
 use hp_poe::OnProofVerified;
@@ -29,23 +32,25 @@ use hp_poe::INHERENT_IDENTIFIER;
 use sp_core::H256;
 use sp_runtime::traits::Keccak256;
 
-fn assert_attestation_evt(id: u64, value: H256) {
+fn assert_attestation_evt(id: u64, value: H256, attestation_chain_id: u32) {
     assert!(mock::System::events().contains(&EventRecord {
         phase: Phase::Initialization,
         event: TestEvent::Poe(crate::Event::NewAttestation {
             id,
             attestation: value,
+            attestation_chain_id,
         }),
         topics: vec![],
     }))
 }
 
-fn assert_element_evt(id: u64, value: H256) {
+fn assert_element_evt(id: u64, value: H256, attestation_chain_id: u32) {
     assert!(mock::System::events().contains(&EventRecord {
         phase: Phase::Initialization,
         event: TestEvent::Poe(crate::Event::NewElement {
             attestation_id: id,
             value,
+            attestation_chain_id,
         }),
         topics: vec![],
     }))
@@ -66,17 +71,17 @@ pub static DEFAULT_EMPTY_ATT: [u8; 32] =
 fn root_publish_attestation() {
     new_test_ext().execute_with(|| {
         assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
-        assert_attestation_evt(0, H256(DEFAULT_EMPTY_ATT));
+        assert_attestation_evt(0, H256(DEFAULT_EMPTY_ATT), COMMON_ATTESTATION_CHAIN_ID);
     })
 }
 
 #[test]
-fn root_publish_two_attestations() {
+fn root_publish_two_attestations_same_attestion_chain() {
     new_test_ext().execute_with(|| {
         assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
         assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
-        assert_attestation_evt(0, H256(DEFAULT_EMPTY_ATT));
-        assert_attestation_evt(1, H256(DEFAULT_EMPTY_ATT));
+        assert_attestation_evt(0, H256(DEFAULT_EMPTY_ATT), COMMON_ATTESTATION_CHAIN_ID);
+        assert_attestation_evt(1, H256(DEFAULT_EMPTY_ATT), COMMON_ATTESTATION_CHAIN_ID);
     })
 }
 
@@ -94,8 +99,8 @@ fn one_tree_per_block() {
     new_test_ext().execute_with(|| {
         for _ in 0..crate::mock::MIN_PROOFS_FOR_ROOT_PUBLISHING * 2 {
             let pid = H256::random();
-            Poe::on_proof_verified(pid);
-            assert_element_evt(0, pid);
+            Poe::on_proof_verified(pid, Some(COMMON_ATTESTATION_CHAIN_ID));
+            assert_element_evt(0, pid, COMMON_ATTESTATION_CHAIN_ID);
         }
         assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
     })
@@ -105,8 +110,8 @@ fn one_tree_per_block() {
 fn proof_added() {
     new_test_ext().execute_with(|| {
         let pid = H256(HASHES[0]);
-        Poe::on_proof_verified(pid);
-        assert_element_evt(0, pid);
+        Poe::on_proof_verified(pid, Some(COMMON_ATTESTATION_CHAIN_ID));
+        assert_element_evt(0, pid, COMMON_ATTESTATION_CHAIN_ID);
     })
 }
 
@@ -115,15 +120,15 @@ fn correct_root() {
     new_test_ext().execute_with(|| {
         for h in HASHES {
             let pid = H256(h);
-            Poe::on_proof_verified(pid);
-            assert_element_evt(0, pid);
+            Poe::on_proof_verified(pid, Some(COMMON_ATTESTATION_CHAIN_ID));
+            assert_element_evt(0, pid, COMMON_ATTESTATION_CHAIN_ID);
         }
 
         assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
         let res = H256(hex!(
             "138b734ecc0edcb6a36504258a5907f92734afb254b488156db374cee1d78f54"
         ));
-        assert_attestation_evt(0, res);
+        assert_attestation_evt(0, res, COMMON_ATTESTATION_CHAIN_ID);
     })
 }
 
@@ -135,9 +140,9 @@ fn old_attestations_are_cleared_stepwise() {
         for i in 0..=max_attestations * 2 {
             // Publish proofs and attestation
             let pida = H256(HASHES[0]);
-            Poe::on_proof_verified(pida);
+            Poe::on_proof_verified(pida, Some(COMMON_ATTESTATION_CHAIN_ID));
             let pidb = H256(HASHES[1]);
-            Poe::on_proof_verified(pidb);
+            Poe::on_proof_verified(pidb, Some(COMMON_ATTESTATION_CHAIN_ID));
 
             assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
 
@@ -145,14 +150,14 @@ fn old_attestations_are_cleared_stepwise() {
             if i >= max_attestations - 1 {
                 // Check that the most recent MAX_STORAGE_ATTESTATIONS attestations are still in storage
                 for j in i + 1 - (max_attestations - 1)..=i {
-                    assert!(Poe::values(j, pida).is_some());
-                    assert!(Poe::values(j, pidb).is_some());
+                    assert!(Poe::values_v2((j, COMMON_ATTESTATION_CHAIN_ID), pida).is_some());
+                    assert!(Poe::values_v2((j, COMMON_ATTESTATION_CHAIN_ID), pidb).is_some());
                 }
 
                 // Check that, instead, all the previous ones have been eliminated
                 for j in 0..i + 1 - (max_attestations - 1) {
-                    assert!(Poe::values(j, pida).is_none());
-                    assert!(Poe::values(j, pidb).is_none());
+                    assert!(Poe::values_v2((j, COMMON_ATTESTATION_CHAIN_ID), pida).is_none());
+                    assert!(Poe::values_v2((j, COMMON_ATTESTATION_CHAIN_ID), pidb).is_none());
                 }
             }
         }
@@ -166,11 +171,14 @@ fn old_attestations_are_cleared_batch() {
 
         // Fill with double max attestations
         for id in 0..max_attestations * 2 {
-            crate::Values::<Test>::insert(id, H256::default(), ());
+            crate::ValuesV2::<Test>::insert((id, COMMON_ATTESTATION_CHAIN_ID), H256::default(), ());
         }
 
         // Set proper attestation id
-        crate::NextAttestation::<Test>::set(max_attestations * 2 - 1);
+        crate::NextAttestationV2::<Test>::insert(
+            COMMON_ATTESTATION_CHAIN_ID,
+            max_attestations * 2 - 1,
+        );
 
         // Publish attestation, should trigger the removal of the oldest
         // 'max_attestation' attestations
@@ -178,12 +186,12 @@ fn old_attestations_are_cleared_batch() {
 
         // Check removal
         for id in 0..=max_attestations {
-            assert!(Poe::values(id, H256::default()).is_none());
+            assert!(Poe::values_v2((id, COMMON_ATTESTATION_CHAIN_ID), H256::default()).is_none());
         }
 
         // Check still present
         for id in max_attestations + 1..max_attestations * 2 {
-            assert!(Poe::values(id, H256::default()).is_some());
+            assert!(Poe::values_v2((id, COMMON_ATTESTATION_CHAIN_ID), H256::default()).is_some());
         }
     })
 }
@@ -201,12 +209,16 @@ fn root_publish_empty_attestations_cause_clear() {
             if i >= max_attestations - 1 {
                 // Check that the most recent MAX_STORAGE_ATTESTATIONS attestations are still in storage
                 for j in i + 1 - (max_attestations - 1)..=i {
-                    assert!(Poe::values(j, H256::default()).is_some());
+                    assert!(
+                        Poe::values_v2((j, COMMON_ATTESTATION_CHAIN_ID), H256::default()).is_some()
+                    );
                 }
 
                 // Check that, instead, all the previous ones have been eliminated
                 for j in 0..i + 1 - (max_attestations - 1) {
-                    assert!(Poe::values(j, H256::default()).is_none());
+                    assert!(
+                        Poe::values_v2((j, COMMON_ATTESTATION_CHAIN_ID), H256::default()).is_none()
+                    );
                 }
             }
         }
@@ -234,7 +246,7 @@ mod should_inherent_call {
                     .into_iter()
                     .take(MIN_PROOFS_FOR_ROOT_PUBLISHING as usize)
                 {
-                    Poe::on_proof_verified(H256(h));
+                    Poe::on_proof_verified(H256(h), Some(COMMON_ATTESTATION_CHAIN_ID));
                 }
                 assert_eq!(
                     Some(Call::publish_attestation {}),
@@ -246,7 +258,7 @@ mod should_inherent_call {
         #[test]
         fn if_timeout_expired() {
             new_test_ext().execute_with(|| {
-                Poe::on_proof_verified(H256(HASHES[0]));
+                Poe::on_proof_verified(H256(HASHES[0]), Some(COMMON_ATTESTATION_CHAIN_ID));
                 // Move timestamp forward and check that root would be published
                 Timestamp::set_timestamp(Timestamp::now() + MILLISECS_PER_PROOF_ROOT_PUBLISHING);
                 assert_eq!(
@@ -267,7 +279,7 @@ mod should_inherent_call {
                     .into_iter()
                     .take((MIN_PROOFS_FOR_ROOT_PUBLISHING - 1) as usize)
                 {
-                    Poe::on_proof_verified(H256(h));
+                    Poe::on_proof_verified(H256(h), Some(COMMON_ATTESTATION_CHAIN_ID));
                 }
                 // Check that without enough elements nothing would be published
                 assert_eq!(None, Poe::create_inherent(&inherent_data()));
@@ -279,7 +291,7 @@ mod should_inherent_call {
             new_test_ext().execute_with(|| {
                 for _ in 0..(MIN_PROOFS_FOR_ROOT_PUBLISHING) as usize {
                     // Keep inserting the same element
-                    Poe::on_proof_verified(H256(HASHES[0]));
+                    Poe::on_proof_verified(H256(HASHES[0]), Some(COMMON_ATTESTATION_CHAIN_ID));
                 }
                 // Check that without enough unique elements nothing would be published
                 assert_eq!(None, Poe::create_inherent(&inherent_data()));
@@ -306,20 +318,22 @@ fn get_proof_from_pallet_proof_not_found() {
             .into_iter()
             .take(MIN_PROOFS_FOR_ROOT_PUBLISHING as usize)
         {
-            Poe::on_proof_verified(H256(h));
+            Poe::on_proof_verified(H256(h), Some(COMMON_ATTESTATION_CHAIN_ID));
         }
         Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
         let attestation_id = 0;
         let proof_hash = H256(hex!(
             "0badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbad"
         ));
+        let attestation_chain_id = Some(COMMON_ATTESTATION_CHAIN_ID);
 
         // Query for a proof that does not exist
         assert_eq!(
-            Poe::get_proof_path_from_pallet(attestation_id, proof_hash),
+            Poe::get_proof_path_from_pallet(attestation_id, proof_hash, attestation_chain_id),
             Err(AttestationPathRequestError::ProofNotFound(
                 attestation_id,
                 proof_hash,
+                attestation_chain_id.unwrap()
             ))
         );
     })
@@ -332,14 +346,18 @@ fn get_proof_from_pallet_invalid_att_id() {
             .into_iter()
             .take(MIN_PROOFS_FOR_ROOT_PUBLISHING as usize)
         {
-            Poe::on_proof_verified(H256(h));
+            Poe::on_proof_verified(H256(h), Some(COMMON_ATTESTATION_CHAIN_ID));
         }
         Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
         let attestation_id = 10;
         let proof_hash = H256(HASHES[0]);
+        let attestation_chain_id = Some(COMMON_ATTESTATION_CHAIN_ID);
 
         // Query for an existing proof with an invalid attestation id
-        assert!(Poe::get_proof_path_from_pallet(attestation_id, proof_hash).is_err());
+        assert!(
+            Poe::get_proof_path_from_pallet(attestation_id, proof_hash, attestation_chain_id)
+                .is_err()
+        );
     })
 }
 
@@ -350,13 +368,16 @@ fn get_proof_from_pallet_valid_att_id_and_valid_proof() {
             .into_iter()
             .take(MIN_PROOFS_FOR_ROOT_PUBLISHING as usize)
         {
-            Poe::on_proof_verified(H256(h));
+            Poe::on_proof_verified(H256(h), Some(COMMON_ATTESTATION_CHAIN_ID));
         }
         Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
         let attestation_id = 0;
         let proof_hash = H256(HASHES[0]);
+        let attestation_chain_id = Some(COMMON_ATTESTATION_CHAIN_ID);
 
-        let proof = Poe::get_proof_path_from_pallet(attestation_id, proof_hash).unwrap();
+        let proof =
+            Poe::get_proof_path_from_pallet(attestation_id, proof_hash, attestation_chain_id)
+                .unwrap();
 
         assert!(binary_merkle_tree::verify_proof::<Keccak256, _, _>(
             &proof.root,

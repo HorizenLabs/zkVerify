@@ -125,11 +125,14 @@ pub mod submit_proof_should {
                 vk_or_hash,
                 Box::new(42),
                 Box::new(42),
+                Some(COMMON_ATTESTATION_CHAIN_ID),
             ));
 
             assert_eq!(System::events().len(), 1);
 
-            System::assert_last_event(new_proof_event(expected_hash).into());
+            System::assert_last_event(
+                new_proof_event(expected_hash, Some(COMMON_ATTESTATION_CHAIN_ID)).into(),
+            );
         });
     }
 
@@ -147,6 +150,7 @@ pub mod submit_proof_should {
             vk_or_hash,
             proof: Box::new(42),
             pubs: Box::new(24),
+            attestation_chain_id: Some(COMMON_ATTESTATION_CHAIN_ID),
         }
         .get_dispatch_info();
 
@@ -167,6 +171,7 @@ pub mod submit_proof_should {
                         VkOrHash::from_vk(32),
                         Box::new(42),
                         Box::new(24),
+                        Some(COMMON_ATTESTATION_CHAIN_ID),
                     ),
                     RError::VerifyError
                 );
@@ -184,6 +189,7 @@ pub mod submit_proof_should {
                         ))),
                         Box::new(42),
                         Box::new(42),
+                        Some(COMMON_ATTESTATION_CHAIN_ID),
                     ),
                     RError::VerificationKeyNotFound
                 );
@@ -199,6 +205,7 @@ pub mod submit_proof_should {
                         VkOrHash::from_vk(32),
                         FakeVerifier::malformed_proof(),
                         Box::new(42),
+                        Some(COMMON_ATTESTATION_CHAIN_ID),
                     ),
                     RError::InvalidProofData
                 );
@@ -214,6 +221,7 @@ pub mod submit_proof_should {
                         VkOrHash::from_vk(*FakeVerifier::malformed_vk()),
                         Box::new(42),
                         Box::new(42),
+                        Some(COMMON_ATTESTATION_CHAIN_ID),
                     ),
                     RError::InvalidVerificationKey
                 );
@@ -229,6 +237,7 @@ pub mod submit_proof_should {
                         VkOrHash::from_vk(42),
                         Box::new(42),
                         FakeVerifier::malformed_pubs(),
+                        Some(COMMON_ATTESTATION_CHAIN_ID),
                     ),
                     RError::InvalidInput
                 );

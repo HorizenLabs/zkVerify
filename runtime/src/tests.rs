@@ -28,6 +28,7 @@ use frame_support::{
 };
 use frame_system::{EventRecord, Phase};
 use pallet_conviction_voting::{AccountVote, Vote};
+use pallet_timestamp::{self as timestamp};
 use pallet_verifiers::VkOrHash;
 use sp_consensus_babe::{Slot, BABE_ENGINE_ID};
 use sp_core::crypto::VrfSecret;
@@ -184,6 +185,7 @@ fn pallet_fflonk_availability() {
             VkOrHash::from_hash(H256::zero()),
             dummy_proof.into(),
             dummy_pubs.into(),
+            Some(0),
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -372,6 +374,7 @@ fn pallet_zksync_availability() {
             VkOrHash::from_hash(H256::zero()),
             dummy_proof.into(),
             dummy_pubs.into(),
+            Some(0),
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -387,6 +390,7 @@ fn pallet_groth16_availability() {
             VkOrHash::from_hash(H256::zero()),
             pallet_groth16_verifier::Proof::default().into(),
             Box::new(Vec::new()),
+            Some(0),
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -406,7 +410,8 @@ fn pallet_risc0_availability() {
             RuntimeOrigin::signed(dummy_origin),
             VkOrHash::Vk(dummy_vk.into()),
             dummy_proof.into(),
-            dummy_pubs.into()
+            dummy_pubs.into(),
+            Some(0),
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -426,7 +431,8 @@ fn pallet_ultraplonk_availability() {
             RuntimeOrigin::signed(dummy_origin),
             VkOrHash::Vk(dummy_vk.into()),
             dummy_proof.into(),
-            dummy_pubs.into()
+            dummy_pubs.into(),
+            Some(0),
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -437,7 +443,7 @@ fn pallet_ultraplonk_availability() {
 #[test]
 fn pallet_poe_availability() {
     new_test_ext().execute_with(|| {
-        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
+        let _ = Poe::register_attestation_chain(RuntimeOrigin::root(), 0);
         // just checking code builds, hence the pallet is available to the runtime
     });
 }
@@ -1179,6 +1185,7 @@ mod pallets_interact {
                         VkOrHash::from_hash(H256::zero()),
                         [0; pallet_fflonk_verifier::PROOF_SIZE].into(),
                         [0; pallet_fflonk_verifier::PUBS_SIZE].into(),
+                        Some(0),
                     )),
                 );
                 let call_hash = <Runtime as frame_system::Config>::Hashing::hash_of(&call);
