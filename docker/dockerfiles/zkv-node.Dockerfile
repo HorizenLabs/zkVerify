@@ -5,6 +5,7 @@ RUN apt-get update -qq \
   protobuf-compiler \
   cmake \
   clang \
+  lld \
   && rustup target add wasm32-unknown-unknown \
   && rustup component add rust-src \
   && apt-get -y clean \
@@ -20,7 +21,7 @@ COPY . .
 
 RUN echo "SUBSTRATE_CLI_GIT_COMMIT_HASH=`git rev-parse --short=11 HEAD`" >> .docker.env
 RUN . ./.docker.env \
-  && cargo build --profile ${PROFILE} --features "${FEATURES}"
+  && cargo build -p mainchain --profile ${PROFILE} --features "${FEATURES}"
 
 FROM ubuntu:22.04 as node
 

@@ -30,4 +30,5 @@ std = [
     "dep:zksync-era-verifier-deserialize",
     "dep:risc0-verifier",
     "dep:ultraplonk_verifier",
+    "hp-verifiers/std",
 ]

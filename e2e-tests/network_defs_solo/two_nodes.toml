@@ -1,0 +1,13 @@
+[relaychain]
+default_command = "zkv-node"
+default_args = []
+
+chain = "local"
+
+[[relaychain.nodes]]
+name = "alice"
+validator = true
+
+[[relaychain.nodes]]
+name = "bob"
+validator = true

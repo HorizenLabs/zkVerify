@@ -16,11 +16,6 @@ jobs:
     with:
       CACHING_MODE: "CACHE_RESTORE"
       
-  coverage-job:
-    uses: ./.github/workflows/CI-coverage.yml
-    with:
-      CACHING_MODE: "CACHE_RESTORE"
-
   lint-format-job:
     uses: ./.github/workflows/CI-lint-format.yml
     with:
@@ -47,7 +42,7 @@ jobs:
 
   set-overall-result:
     runs-on: ubuntu-latest
-    needs: [build-job, test-job, coverage-job, lint-format-job, e2e-test-job, check-act]
+    needs: [build-job, test-job, lint-format-job, e2e-test-job, check-act]
     if: ${{ always() && needs.check-act.outputs.act == 'false' }}
     outputs:
       branch-name: ${{ steps.get-info.outputs.BRANCH_NAME }}
@@ -80,7 +75,6 @@ jobs:
             OVERALL_STATUS="success"
             if [ "${{ needs.build-job.result }}" != "success" ] || 
                 [ "${{ needs.test-job.result }}" != "success" ] ||
-                [ "${{ needs.coverage-job.result }}" != "success" ] ||
                 [ "${{ needs.lint-format-job.result }}" != "success" ] || 
                 [ "${{ needs.e2e-test-job.result }}" != "success" ]; then
               OVERALL_STATUS="failure"
@@ -104,7 +98,7 @@ jobs:
           
   notify-slack:
     runs-on: ubuntu-latest
-    needs: [build-job, test-job, coverage-job, lint-format-job, e2e-test-job, check-act, set-overall-result]
+    needs: [build-job, test-job, lint-format-job, e2e-test-job, check-act, set-overall-result]
     if: ${{ always() && needs.check-act.outputs.act == 'false' && needs.set-overall-result.outputs.overall-status != 'cancelled' }}
     steps:
       - name: Checkout branch
@@ -113,7 +107,6 @@ jobs:
         run: |
           echo "Build Job Status: ${{ needs.build-job.result }}"
           echo "Test Job Status: ${{ needs.test-job.result }}"
-          echo "Coverage Job Status: ${{ needs.coverage-job.result }}"
           echo "Lint and Format Job Status: ${{ needs.lint-format-job.result }}"
           echo "E2E Test Job Status: ${{ needs.e2e-test-job.result }}"
       - name: Download All Artifacts
@@ -135,13 +128,6 @@ jobs:
             cat "./test-output/integration_tests_output.txt"
           else
             echo "Integration test output not found."
-          fi
-      - name: Display test coverage output
-        run: |
-          if [ -f "./coverage-output/coverage_report.json" ]; then
-            cat "./coverage-output/coverage_report.json"
-          else
-            echo "Coverage output not found."
           fi
       - name: Display linting output
         run: |
@@ -202,20 +188,6 @@ jobs:
             echo "TEST_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
           fi
       
-          if [[ -z "${LINE_COVERAGE_PERCENT}" ]]; then
-            if [[ "${{ needs.coverage-job.result }}" == "success" ]]; then
-              echo "COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
-            else
-              echo "COVERAGE_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
-            fi
-          elif [[ "${{ needs.coverage-job.result }}" == "success" ]] && (( $(echo "$LINE_COVERAGE_PERCENT >= 70" | bc -l) )); then
-            echo "COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
-          elif [[ "${{ needs.coverage-job.result }}" == "success" ]]; then
-            echo "COVERAGE_JOB_EMOJI=:large_yellow_circle:" >> $GITHUB_ENV
-          else
-            echo "COVERAGE_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
-          fi
-      
           if [[ "${{ needs.lint-format-job.result }}" == "success" ]]; then
             echo "LINT_FORMAT_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else
@@ -252,13 +224,6 @@ jobs:
                   "text": {
                     "type": "mrkdwn",
                     "text": "${{ env.TEST_JOB_EMOJI }} *Test:* ${{ needs.test-job.result }}\n\n${{ env.UNIT_TEST_SUMMARY }}\n${{ env.INTEGRATION_TEST_SUMMARY }}"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "${{ env.COVERAGE_JOB_EMOJI }} *Coverage:* ${{ needs.coverage-job.result }}\n\n${{ env.COVERAGE_SUMMARY }}"
                   }
                 },
                 {

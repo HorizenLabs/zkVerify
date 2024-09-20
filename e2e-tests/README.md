@@ -10,14 +10,15 @@
 
 ### Brief instructions for executing the tests
 
-- Compile zkVerify (debug or release mode).
+- Compile zkVerify solo and relay chain (debug or release mode).
 - Run from within the `e2e-tests` directory:
 - - `yarn install`
 - - `yarn test`
 
-This will copy `zkv-node` to the `e2e-tests/bin` directory and will download the zombienet binary in the same directory.
+This will add the profile target folder to the path and will download the zombienet binary in the same directory.
 
-It will then execute all the end-to-end test (all the `.zndsl` file listed in `test_runner.sh`).
+It will then execute all the end-to-end test (all the `.zndsl` file listed in `test_runner.sh`) for both
+solo chain and relay chain.
 
 ---
 
@@ -27,15 +28,21 @@ This folder contains the `zkVerify` end-to-end tests written for the Polkadot zo
 
 Each end-to-end test requires the following files:
 
-- A network configuration specification file, in `.toml` format; these are stored in the `e2e-tests/network_defs`.
-- The test description, written in zombienet DSL and stored in a `.zndsl` file.
-- (optional) One or more Javascript / Typescript file containing complex tests whose logic cannot be expressed in zombienet DSL language; these are stored in the `e2e-tests/js_scripts` directory.
+- A network configuration specification file, in `.toml` format; these are stored in the `e2e-tests/network_defs_<node>`
+  where node is one of `solo` or `relay`.
+- The test description, written in zombienet DSL and stored in a `.zndsl` file. If the test description contains
+  a comment line of the form `# SKIP <node>` placed after the network description, this test will be skipped for 
+  this kind of node.
+- (optional) One or more Javascript / Typescript file containing complex tests whose logic cannot be expressed 
+  in zombienet DSL language; these are stored in the `e2e-tests/js_scripts` directory.
 
 ## Running the test
 
 ### Prerequisites
 
-All tests are executed by running actual `zkVerify` nodes, so an instance of the `zkv-node` executable must be present on the target system. This can be obtained by compiling this repository, as the test runner script looks for the compiled binary in the `target/debug/` or `target/release/` directories. Optionally, it is possible to download the pre-compiled binary from our official `zkVerify` repository, and copy that in the `e2e-tests/bin` directory.
+All tests are executed by running actual `zkVerify` nodes, so an instance of the
+`zkv-node` and `zkv-relay` executables must be present on the target system. 
+This can be obtained by compiling this repository, as the test runner script looks for the compiled binary in the `target/debug/` or `target/release/` directories. Optionally, it is possible to download the pre-compiled binary from our official `zkVerify` repository, and copy that in the `e2e-tests/bin` directory.
 
 The test runner script also automatically downloads the `zombienet` executable from the official GitHub repo: <https://github.com/paritytech/zombienet/releases> and places that in the `e2e-tests/bin` as well.
 
