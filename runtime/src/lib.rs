@@ -82,6 +82,7 @@ pub mod governance;
 use governance::{pallet_custom_origins, Treasurer, TreasurySpender};
 
 mod bag_thresholds;
+mod payout;
 #[cfg(test)]
 mod tests;
 mod weights;
@@ -557,22 +558,8 @@ impl pallet_session::Config for Runtime {
     type WeightInfo = weights::pallet_session::ZKVWeight<Runtime>;
 }
 
-//TODO: Set these parameters appropriately.
-pallet_staking_reward_curve::build! {
-    const REWARD_CURVE: sp_runtime::curve::PiecewiseLinear<'static> = curve!(
-        min_inflation: 0_025_000,
-        max_inflation: 0_100_000,
-        ideal_stake: 0_500_000,
-        falloff: 0_050_000,
-        max_piece_count: 40,
-        test_precision: 0_005_000,
-    );
-}
-
 parameter_types! {
     pub const SessionsPerEra: sp_staking::SessionIndex = 6 * HOURS / EpochDurationInBlocks::get(); // number of sessions in 1 era, 6h
-
-    pub const RewardCurve: &'static sp_runtime::curve::PiecewiseLinear<'static> = &REWARD_CURVE;
 
     pub const BondingDuration: sp_staking::EraIndex = 1; // number of sessions for which staking
                                                          // remains locked
@@ -626,7 +613,7 @@ impl pallet_staking::Config for Runtime {
     /// A super-majority of the council can cancel the slash.
     type AdminOrigin = EnsureRoot<AccountId>;
     type SessionInterface = Self;
-    type EraPayout = pallet_staking::ConvertCurve<RewardCurve>;
+    type EraPayout = payout::ZKVPayout;
     type NextNewSession = Session;
     type OffendingValidatorsThreshold = OffendingValidatorsThreshold; // Exceeding this threshold would force a new era
     type ElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
