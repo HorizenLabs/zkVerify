@@ -6134,6 +6134,7 @@ dependencies = [
  "rstest",
  "scale-info",
  "sp-core",
+ "sp-io",
  "sp-std",
 ]
 
