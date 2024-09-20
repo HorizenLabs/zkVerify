@@ -24,6 +24,9 @@ codec = { workspace = true }
 scale-info = { workspace = true }
 derivative = { version = "2.2.0" }
 
+[dev-dependencies]
+rstest = { workspace = true }
+
 [features]
 default = ["std"]
 std = [

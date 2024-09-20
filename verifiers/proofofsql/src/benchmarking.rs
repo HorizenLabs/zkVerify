@@ -21,9 +21,9 @@ mod benchmarks {
     fn submit_proof() {
         // setup code
         let caller = whitelisted_caller();
-        let vk = include_bytes!("resources_benchmarking/VALID_VK.bin").to_vec();
-        let proof = include_bytes!("resources_benchmarking/VALID_PROOF.bin").to_vec();
-        let pubs = include_bytes!("resources_benchmarking/VALID_PUBS.bin").to_vec();
+        let vk = include_bytes!("resources/VALID_VK.bin").to_vec();
+        let proof = include_bytes!("resources/VALID_PROOF.bin").to_vec();
+        let pubs = include_bytes!("resources/VALID_PUBS.bin").to_vec();
 
         #[extrinsic_call]
         submit_proof(
@@ -39,11 +39,9 @@ mod benchmarks {
         // setup code
         let caller = whitelisted_caller();
         let vk_hash = sp_core::H256::repeat_byte(2);
-        let vk: crate::Vk<T> = include_bytes!("resources_benchmarking/VALID_VK.bin")
-            .to_vec()
-            .into();
-        let proof = include_bytes!("resources_benchmarking/VALID_PROOF.bin").to_vec();
-        let pubs = include_bytes!("resources_benchmarking/VALID_PUBS.bin").to_vec();
+        let vk: crate::Vk<T> = include_bytes!("resources/VALID_VK.bin").to_vec().into();
+        let proof = include_bytes!("resources/VALID_PROOF.bin").to_vec();
+        let pubs = include_bytes!("resources/VALID_PUBS.bin").to_vec();
         Vks::<T, ProofOfSql<T>>::insert(vk_hash, vk);
 
         #[extrinsic_call]
@@ -59,9 +57,7 @@ mod benchmarks {
     fn register_vk() {
         // setup code
         let caller = whitelisted_caller();
-        let vk: crate::Vk<T> = include_bytes!("resources_benchmarking/VALID_VK.bin")
-            .to_vec()
-            .into();
+        let vk: crate::Vk<T> = include_bytes!("resources/VALID_VK.bin").to_vec().into();
 
         #[extrinsic_call]
         register_vk(RawOrigin::Signed(caller), vk.clone().into());
