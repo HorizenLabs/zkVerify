@@ -121,7 +121,6 @@ pub type ParachainMigrations = ();
 pub type Migrations = (ParachainMigrations,);
 
 mod bag_thresholds;
-#[cfg(test)]
 mod tests;
 mod weights;
 
@@ -609,7 +608,7 @@ impl pallet_session::Config for Runtime {
     type ValidatorIdOf = ValidatorIdOf;
     type ShouldEndSession = Babe;
     type NextSessionRotation = Babe;
-    type SessionManager = Staking;
+    type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, Staking>;
     type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
     type Keys = SessionKeys;
     type WeightInfo = weights::pallet_session::ZKVWeight<Runtime>;
@@ -1047,14 +1046,13 @@ mod benches {
         // parachains
         [crate::parachains::configuration, Configuration]
         [crate::parachains::disputes, ParasDisputes]
-        // FIXME
-        //[crate::parachains::slashing, ParasSlashing]
+        [crate::parachains::slashing, ParasSlashing]
         [crate::parachains::hrmp, Hrmp]
-        // needs message queue
-        //[crate::parachains::inclusion, ParaInclusion]
+        [crate::parachains::inclusion, ParaInclusion]
         [crate::parachains::initializer, Initializer]
         [crate::parachains::paras, Paras]
         [crate::parachains::paras_inherent, ParaInherent]
+        [pallet_message_queue, MessageQueue]
     );
 }
 

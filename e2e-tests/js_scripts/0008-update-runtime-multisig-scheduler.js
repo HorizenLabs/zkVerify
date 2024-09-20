@@ -1,4 +1,4 @@
-const util = require('@polkadot/util-crypto');
+const util = zombie.util;
 const { submitExtrinsic, BlockUntil } = require('zkv-lib')
 const ReturnCode = {
     Ok: 1,
@@ -9,11 +9,11 @@ const ReturnCode = {
 const fs = require('fs');
 
 async function run(nodeName, networkInfo, args) {
-    const {wsUri, userDefinedTypes} = networkInfo.nodesByName[nodeName];
+    const { wsUri, userDefinedTypes } = networkInfo.nodesByName[nodeName];
     const api = await zombie.connect(wsUri, userDefinedTypes);
 
     const ALICE = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY';
-    const BOB   = '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty';
+    const BOB = '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty';
     const CHARLIE = '5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y';
 
     // Use the keyring to generate accounts
@@ -118,7 +118,7 @@ async function run(nodeName, networkInfo, args) {
 
     const updatedRuntimeVersion = (await api.rpc.state.getRuntimeVersion()).specVersion.toNumber();
 
-    if(updatedRuntimeVersion === currentRuntimeVersion) {
+    if (updatedRuntimeVersion === currentRuntimeVersion) {
         return ReturnCode.ErrSameRuntimeVersion
     }
 

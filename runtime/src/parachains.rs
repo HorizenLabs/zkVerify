@@ -83,9 +83,8 @@ impl slashing::Config for Runtime {
     )>>::IdentificationTuple;
     type HandleReports =
         slashing::SlashingReportHandler<Self::KeyOwnerIdentification, Offences, ReportLongevity>;
-    //type WeightInfo = weights::parachains::slashing::ZKVWeight<Runtime>;
-    type WeightInfo = slashing::TestWeightInfo;
-    type BenchmarkingConfig = slashing::BenchConfig<200>;
+    type WeightInfo = weights::parachains::slashing::ZKVWeight<Runtime>;
+    type BenchmarkingConfig = slashing::BenchConfig<{ crate::MAX_TARGETS }>;
 }
 
 impl parachains_dmp::Config for Runtime {}
@@ -125,7 +124,7 @@ impl inclusion::Config for Runtime {
     type DisputesHandler = ParasDisputes;
     type RewardValidators = parachains_reward_points::RewardValidatorsWithEraPoints<Runtime>;
     type MessageQueue = MessageQueue;
-    type WeightInfo = (); //weights::parachains::inclusion::ZKVWeight<Runtime>;
+    type WeightInfo = weights::parachains::inclusion::ZKVWeight<Runtime>;
 }
 
 parameter_types! {
@@ -191,7 +190,7 @@ impl pallet_message_queue::Config for Runtime {
         pallet_message_queue::mock_helpers::NoopMessageProcessor<AggregateMessageOrigin>;
     type QueueChangeHandler = ParaInclusion;
     type QueuePausedQuery = ();
-    type WeightInfo = ();
+    type WeightInfo = crate::weights::pallet_message_queue::ZKVWeight<Runtime>;
     type IdleMaxServiceWeight = MessageQueueIdleServiceWeight;
 }
 
