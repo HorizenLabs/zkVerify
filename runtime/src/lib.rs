@@ -624,7 +624,6 @@ impl pallet_staking::Config for Runtime {
     type GenesisElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
     type VoterList = VoterList;
     type NominationsQuota = pallet_staking::FixedNominationsQuota<10>;
-    // TODO: consider switching to bags-list
     type TargetList = pallet_staking::UseValidatorsMap<Self>;
     type MaxUnlockingChunks = ConstU32<32>;
     type HistoryDepth = HistoryDepth; // Number of eras to keep in history
