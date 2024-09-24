@@ -808,7 +808,7 @@ pub type SignedExtra = (
 ///
 /// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
 #[allow(unused_parens)]
-type Migrations = ();
+type Migrations = migrations::Unreleased;
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
@@ -870,6 +870,48 @@ pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
         c: PRIMARY_PROBABILITY,
         allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryVRFSlots,
     };
+
+mod migrations {
+    #[allow(unused_imports)]
+    use super::*;
+
+    pub mod migrate_staking_to_bags_list {
+        use super::*;
+        use frame_election_provider_support::SortedListProvider;
+
+        pub struct MigrateStakingToBagsList;
+
+        impl frame_support::traits::OnRuntimeUpgrade for MigrateStakingToBagsList {
+            /// Migrates validators and nominators to bags list for the staking pallet.
+            fn on_runtime_upgrade() -> Weight {
+                // Migration intended only for the specific runtime update from version 5_002
+                // (which uses pallet_staking::UseNominatorsAndValidatorsMap as VoterList)
+                if crate::System::last_runtime_upgrade_spec_version() == 5_002 {
+                    let migrated =
+                        <Runtime as pallet_staking::Config>::VoterList::unsafe_regenerate(
+                            pallet_staking::Validators::<Runtime>::iter()
+                                .map(|(id, _)| id)
+                                .chain(
+                                    pallet_staking::Nominators::<Runtime>::iter().map(|(id, _)| id),
+                                ),
+                            crate::Staking::weight_of_fn(),
+                        );
+
+                    log::info!(
+                        "👜 completed staking migration to bags list with {} voters migrated",
+                        migrated,
+                    );
+
+                    BlockWeights::get().max_block
+                } else {
+                    <Runtime as frame_system::Config>::DbWeight::get().reads(1)
+                }
+            }
+        }
+    }
+
+    pub type Unreleased = (migrate_staking_to_bags_list::MigrateStakingToBagsList,);
+}
 
 impl_runtime_apis! {
     impl sp_api::Core<Block> for Runtime {
