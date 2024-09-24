@@ -569,13 +569,18 @@ parameter_types! {
     pub HistoryDepth: u32 = 30; // Number of eras to keep in history. Older eras cannot be claimed.
 }
 
-/// Maximum number of election targets (eligible authorities) to account for
-pub const MAX_TARGETS: u32 = 32;
-/// Maximum number of election voters to account for
-pub const MAX_VOTERS: u32 = 32;
+// Maximum number of election targets (eligible authorities) to account for. The staking pallet
+// can never have more validators than this.
+pub const MAX_TARGETS: u32 = 1_000;
+// Maximum number of voters. This also includes targets, which implicitly vote for themselves.
+pub const MAX_VOTERS: u32 = 5_000;
 
 parameter_types! {
-    pub ElectionBoundsOnChain: ElectionBounds = ElectionBoundsBuilder::default().voters_count((MAX_TARGETS + MAX_VOTERS).into()).targets_count(MAX_TARGETS.into()).build();
+    // Maximum number of election voters and targets that can be handled by OnChainSeqPhragmen
+    // in a single block time.
+    pub ElectionBoundsOnChain: ElectionBounds = ElectionBoundsBuilder::default().voters_count((MAX_VOTERS).into()).targets_count(MAX_TARGETS.into()).build();
+    // Maximum number of election winners, and thus of authorities that can be active in a given
+    // era.
     pub const MaxActiveValidators: u32 = MAX_TARGETS;
 }
 
@@ -585,15 +590,14 @@ impl onchain::Config for OnChainSeqPhragmen {
     type Solver = SequentialPhragmen<AccountId, sp_runtime::Perbill>;
     type DataProvider = Staking;
     type WeightInfo = weights::frame_election_provider_support::ZKVWeight<Runtime>;
-    type MaxWinners = MaxActiveValidators;
+    type MaxWinners = MaxActiveValidators; // max that can be handled by OnChainSeqPhragmen
     type Bounds = ElectionBoundsOnChain;
 }
 
-/// The numbers configured here could always be more than the the maximum limits of staking pallet
-/// to ensure election snapshot will not run out of memory. For now, we set them to smaller values
-/// since the staking is bounded and the weight pipeline takes hours for this single pallet.
-pub struct ElectionProviderBenchmarkConfig;
-impl pallet_staking::BenchmarkingConfig for ElectionProviderBenchmarkConfig {
+/// The numbers configured could always be more than the the maximum limits of staking pallet
+/// to ensure election snapshot will not run out of memory.
+pub struct StakingBenchmarkConfig;
+impl pallet_staking::BenchmarkingConfig for StakingBenchmarkConfig {
     type MaxNominators = ConstU32<MAX_VOTERS>;
     type MaxValidators = ConstU32<MAX_TARGETS>;
 }
@@ -625,10 +629,11 @@ impl pallet_staking::Config for Runtime {
     type MaxUnlockingChunks = ConstU32<32>;
     type HistoryDepth = HistoryDepth; // Number of eras to keep in history
     type EventListeners = (); // NominationPools;
-    type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
-    type BenchmarkingConfig = ElectionProviderBenchmarkConfig;
+    type WeightInfo = weights::pallet_staking::ZKVWeight<Runtime>;
+    type BenchmarkingConfig = StakingBenchmarkConfig;
     type MaxExposurePageSize = ConstU32<64>;
-    type MaxControllersInDeprecationBatch = ConstU32<0>; // We do not have any controller accounts
+    type MaxControllersInDeprecationBatch = ConstU32<1>; // We do not have any controller accounts
+                                                         // but we need at least 1 for benchmarks
 }
 
 impl pallet_authorship::Config for Runtime {
