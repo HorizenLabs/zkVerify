@@ -94,19 +94,3 @@ impl sp_inherents::InherentDataProvider for InherentDataProvider {
 pub trait OnProofVerified {
     fn on_proof_verified(pubs_hash: H256);
 }
-
-/// Wrapper around u64 for MaxStorageAttestations
-#[derive(Eq, PartialEq)]
-pub struct MaxStorageAttestations(pub u64);
-
-impl From<MaxStorageAttestations> for u64 {
-    fn from(val: MaxStorageAttestations) -> Self {
-        val.0
-    }
-}
-
-impl Default for MaxStorageAttestations {
-    fn default() -> Self {
-        MaxStorageAttestations(u64::MAX)
-    }
-}

@@ -22,6 +22,7 @@ use frame_support::dispatch::GetDispatchInfo;
 use frame_support::dispatch::Pays;
 use frame_support::inherent::ProvideInherent;
 use frame_support::pallet_prelude::InherentData;
+use frame_support::traits::{Hooks, Len};
 use frame_system::{EventRecord, Phase};
 use hex_literal::hex;
 use hp_poe::OnProofVerified;
@@ -29,7 +30,25 @@ use hp_poe::INHERENT_IDENTIFIER;
 use sp_core::H256;
 use sp_runtime::traits::Keccak256;
 
+fn count_new_attestation_events() -> u32 {
+    mock::System::events()
+        .iter()
+        .filter(|event_record| {
+            matches!(
+                event_record.event,
+                TestEvent::Poe(crate::Event::NewAttestation { .. })
+            )
+        })
+        .count() as u32
+}
+
 fn assert_attestation_evt(id: u64, value: H256) {
+    if let Some(first_event) = System::events().last() {
+        println!("First event phase: {:?}", first_event.phase);
+        println!("First event: {:?}", first_event.event);
+        println!("First event topics: {:?}", first_event.topics);
+    }
+
     assert!(mock::System::events().contains(&EventRecord {
         phase: Phase::Initialization,
         event: TestEvent::Poe(crate::Event::NewAttestation {
@@ -62,10 +81,16 @@ pub static HASHES: [[u8; 32]; 5] = [
 pub static DEFAULT_EMPTY_ATT: [u8; 32] =
     hex!("290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563");
 
+pub static FIRST_TREE_HASH: [u8; 32] =
+    hex!("0dbeb4955732181494864950fb47e5ec70089d1d03065c0eb5101797734b1ace");
+
+pub static SECOND_TREE_HASH: [u8; 32] =
+    hex!("5e9d0e6da80e5a0ea225b926fec6266a8d27320effb8c3b5aa51d900559de1d6");
+
 #[test]
 fn root_publish_attestation() {
     new_test_ext().execute_with(|| {
-        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
+        assert_ok!(Poe::publish_attestations(RuntimeOrigin::root()));
         assert_attestation_evt(0, H256(DEFAULT_EMPTY_ATT));
     })
 }
@@ -73,8 +98,8 @@ fn root_publish_attestation() {
 #[test]
 fn root_publish_two_attestations() {
     new_test_ext().execute_with(|| {
-        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
-        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
+        assert_ok!(Poe::publish_attestations(RuntimeOrigin::root()));
+        assert_ok!(Poe::publish_attestations(RuntimeOrigin::root()));
         assert_attestation_evt(0, H256(DEFAULT_EMPTY_ATT));
         assert_attestation_evt(1, H256(DEFAULT_EMPTY_ATT));
     })
@@ -83,21 +108,7 @@ fn root_publish_two_attestations() {
 #[test]
 fn user_cannot_publish_attestation() {
     new_test_ext().execute_with(|| {
-        assert!(Poe::publish_attestation(RuntimeOrigin::signed(1)).is_err());
-    })
-}
-
-#[test]
-fn one_tree_per_block() {
-    // Test that even if we have more than MIN_PROOFS_FOR_ROOT_PUBLISHING proofs
-    // they still end up in the same single merkle tree
-    new_test_ext().execute_with(|| {
-        for _ in 0..crate::mock::MIN_PROOFS_FOR_ROOT_PUBLISHING * 2 {
-            let pid = H256::random();
-            Poe::on_proof_verified(pid);
-            assert_element_evt(0, pid);
-        }
-        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
+        assert!(Poe::publish_attestations(RuntimeOrigin::signed(1)).is_err());
     })
 }
 
@@ -111,105 +122,71 @@ fn proof_added() {
 }
 
 #[test]
-fn correct_root() {
+fn two_attestations_no_remaining() {
     new_test_ext().execute_with(|| {
-        for h in HASHES {
-            let pid = H256(h);
-            Poe::on_proof_verified(pid);
-            assert_element_evt(0, pid);
-        }
-
-        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
-        let res = H256(hex!(
-            "138b734ecc0edcb6a36504258a5907f92734afb254b488156db374cee1d78f54"
-        ));
-        assert_attestation_evt(0, res);
-    })
-}
-
-#[test]
-fn old_attestations_are_cleared_stepwise() {
-    new_test_ext().execute_with(|| {
-        let max_attestations = crate::mock::MAX_STORAGE_ATTESTATIONS;
-
-        for i in 0..=max_attestations * 2 {
-            // Publish proofs and attestation
-            let pida = H256(HASHES[0]);
-            Poe::on_proof_verified(pida);
-            let pidb = H256(HASHES[1]);
-            Poe::on_proof_verified(pidb);
-
-            assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
-
-            // When at least MAX_STORAGE_ATTESTATIONS have been published
-            if i >= max_attestations - 1 {
-                // Check that the most recent MAX_STORAGE_ATTESTATIONS attestations are still in storage
-                for j in i + 1 - (max_attestations - 1)..=i {
-                    assert!(Poe::values(j, pida).is_some());
-                    assert!(Poe::values(j, pidb).is_some());
-                }
-
-                // Check that, instead, all the previous ones have been eliminated
-                for j in 0..i + 1 - (max_attestations - 1) {
-                    assert!(Poe::values(j, pida).is_none());
-                    assert!(Poe::values(j, pidb).is_none());
-                }
+        for i in 0..4 {
+            let hash = HASHES[i];
+            Poe::on_proof_verified(H256(hash));
+            if i <= 1 {
+                assert_element_evt(0, H256(hash));
+            } else {
+                assert_element_evt(1, H256(hash));
             }
         }
+
+        assert_eq!(Poe::attestations_to_be_cleared().len(), 0);
+        assert_ok!(Poe::publish_attestations(RuntimeOrigin::root()));
+        assert_attestation_evt(0, H256(FIRST_TREE_HASH));
+        assert_attestation_evt(1, H256(SECOND_TREE_HASH));
+
+        assert_eq!(Poe::attestations_to_be_cleared().len(), 2);
+        assert!(Poe::attestations_to_be_cleared().contains(&1));
+        assert!(Poe::attestations_to_be_cleared().contains(&0));
+
+        assert_eq!(Poe::attestations_with_proofs_to_be_published(1).len(), 2);
+        assert!(Poe::attestations_with_proofs_to_be_published(0).contains(&H256(HASHES[0])));
+        assert!(Poe::attestations_with_proofs_to_be_published(0).contains(&H256(HASHES[1])));
+        assert!(Poe::attestations_with_proofs_to_be_published(1).contains(&H256(HASHES[2])));
+        assert!(Poe::attestations_with_proofs_to_be_published(1).contains(&H256(HASHES[3])));
+
+        // Move to the next block
+        System::set_block_number(2);
+        Poe::on_initialize(2);
+
+        assert_eq!(Poe::attestations_to_be_cleared().len(), 0);
+        assert_eq!(Poe::attestations_with_proofs_to_be_published(0).len(), 0);
+        assert_eq!(Poe::attestations_with_proofs_to_be_published(1).len(), 0);
     })
 }
 
 #[test]
-fn old_attestations_are_cleared_batch() {
+fn two_attestations_one_proof_remaining() {
     new_test_ext().execute_with(|| {
-        let max_attestations = crate::mock::MAX_STORAGE_ATTESTATIONS;
-
-        // Fill with double max attestations
-        for id in 0..max_attestations * 2 {
-            crate::Values::<Test>::insert(id, H256::default(), ());
-        }
-
-        // Set proper attestation id
-        crate::NextAttestation::<Test>::set(max_attestations * 2 - 1);
-
-        // Publish attestation, should trigger the removal of the oldest
-        // 'max_attestation' attestations
-        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
-
-        // Check removal
-        for id in 0..=max_attestations {
-            assert!(Poe::values(id, H256::default()).is_none());
-        }
-
-        // Check still present
-        for id in max_attestations + 1..max_attestations * 2 {
-            assert!(Poe::values(id, H256::default()).is_some());
-        }
-    })
-}
-
-#[test]
-fn root_publish_empty_attestations_cause_clear() {
-    new_test_ext().execute_with(|| {
-        let max_attestations = crate::mock::MAX_STORAGE_ATTESTATIONS;
-
-        for i in 0..=max_attestations * 2 {
-            // Publish empty attestation
-            assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
-
-            // When at least MAX_STORAGE_ATTESTATIONS have been published
-            if i >= max_attestations - 1 {
-                // Check that the most recent MAX_STORAGE_ATTESTATIONS attestations are still in storage
-                for j in i + 1 - (max_attestations - 1)..=i {
-                    assert!(Poe::values(j, H256::default()).is_some());
-                }
-
-                // Check that, instead, all the previous ones have been eliminated
-                for j in 0..i + 1 - (max_attestations - 1) {
-                    assert!(Poe::values(j, H256::default()).is_none());
-                }
+        for i in 0..5 {
+            let hash = HASHES[i];
+            Poe::on_proof_verified(H256(hash));
+            if i <= 1 {
+                assert_element_evt(0, H256(hash));
+            } else if i > 1 && i <= 3 {
+                assert_element_evt(1, H256(hash));
+            } else {
+                assert_element_evt(2, H256(hash));
             }
         }
+
+        assert_eq!(Poe::attestations_to_be_cleared().len(), 0);
+        assert_ok!(Poe::publish_attestations(RuntimeOrigin::root()));
+        assert_eq!(count_new_attestation_events(), 2);
+
+        assert_eq!(Poe::attestations_to_be_cleared().len(), 2);
+        assert!(Poe::attestations_to_be_cleared().contains(&1));
+        assert!(Poe::attestations_to_be_cleared().contains(&0));
+
+        assert_eq!(Poe::attestations_with_proofs_to_be_published(1).len(), 2);
+        assert!(Poe::attestations_with_proofs_to_be_published(0).contains(&H256(HASHES[0])));
+        assert!(Poe::attestations_with_proofs_to_be_published(0).contains(&H256(HASHES[1])));
+        assert!(Poe::attestations_with_proofs_to_be_published(1).contains(&H256(HASHES[2])));
+        assert!(Poe::attestations_with_proofs_to_be_published(1).contains(&H256(HASHES[3])));
     })
 }
 
@@ -230,14 +207,11 @@ mod should_inherent_call {
         fn if_enough_leaves() {
             new_test_ext().execute_with(|| {
                 // Add enough elements and check that root would be published
-                for h in HASHES
-                    .into_iter()
-                    .take(MIN_PROOFS_FOR_ROOT_PUBLISHING as usize)
-                {
+                for h in HASHES.into_iter().take(PROOFS_PER_ATTESTATION as usize) {
                     Poe::on_proof_verified(H256(h));
                 }
                 assert_eq!(
-                    Some(Call::publish_attestation {}),
+                    Some(Call::publish_attestations {}),
                     Poe::create_inherent(&inherent_data())
                 );
             })
@@ -250,7 +224,7 @@ mod should_inherent_call {
                 // Move timestamp forward and check that root would be published
                 Timestamp::set_timestamp(Timestamp::now() + MILLISECS_PER_PROOF_ROOT_PUBLISHING);
                 assert_eq!(
-                    Some(Call::publish_attestation {}),
+                    Some(Call::publish_attestations {}),
                     Poe::create_inherent(&inherent_data())
                 );
             })
@@ -265,7 +239,7 @@ mod should_inherent_call {
             new_test_ext().execute_with(|| {
                 for h in HASHES
                     .into_iter()
-                    .take((MIN_PROOFS_FOR_ROOT_PUBLISHING - 1) as usize)
+                    .take((PROOFS_PER_ATTESTATION - 1) as usize)
                 {
                     Poe::on_proof_verified(H256(h));
                 }
@@ -277,7 +251,7 @@ mod should_inherent_call {
         #[test]
         fn if_not_enough_unique_leaves() {
             new_test_ext().execute_with(|| {
-                for _ in 0..(MIN_PROOFS_FOR_ROOT_PUBLISHING) as usize {
+                for _ in 0..(PROOFS_PER_ATTESTATION) as usize {
                     // Keep inserting the same element
                     Poe::on_proof_verified(H256(HASHES[0]));
                 }
@@ -302,13 +276,10 @@ mod should_inherent_call {
 #[test]
 fn get_proof_from_pallet_proof_not_found() {
     new_test_ext().execute_with(|| {
-        for h in HASHES
-            .into_iter()
-            .take(MIN_PROOFS_FOR_ROOT_PUBLISHING as usize)
-        {
+        for h in HASHES.into_iter().take(PROOFS_PER_ATTESTATION as usize) {
             Poe::on_proof_verified(H256(h));
         }
-        Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
+        Poe::publish_attestations(RuntimeOrigin::root()).unwrap();
         let attestation_id = 0;
         let proof_hash = H256(hex!(
             "0badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbad"
@@ -328,13 +299,10 @@ fn get_proof_from_pallet_proof_not_found() {
 #[test]
 fn get_proof_from_pallet_invalid_att_id() {
     new_test_ext().execute_with(|| {
-        for h in HASHES
-            .into_iter()
-            .take(MIN_PROOFS_FOR_ROOT_PUBLISHING as usize)
-        {
+        for h in HASHES.into_iter().take(PROOFS_PER_ATTESTATION as usize) {
             Poe::on_proof_verified(H256(h));
         }
-        Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
+        Poe::publish_attestations(RuntimeOrigin::root()).unwrap();
         let attestation_id = 10;
         let proof_hash = H256(HASHES[0]);
 
@@ -346,13 +314,10 @@ fn get_proof_from_pallet_invalid_att_id() {
 #[test]
 fn get_proof_from_pallet_valid_att_id_and_valid_proof() {
     new_test_ext().execute_with(|| {
-        for h in HASHES
-            .into_iter()
-            .take(MIN_PROOFS_FOR_ROOT_PUBLISHING as usize)
-        {
+        for h in HASHES.into_iter().take(PROOFS_PER_ATTESTATION as usize) {
             Poe::on_proof_verified(H256(h));
         }
-        Poe::publish_attestation(RuntimeOrigin::root()).unwrap();
+        Poe::publish_attestations(RuntimeOrigin::root()).unwrap();
         let attestation_id = 0;
         let proof_hash = H256(HASHES[0]);
 
@@ -371,8 +336,8 @@ fn get_proof_from_pallet_valid_att_id_and_valid_proof() {
 #[test]
 fn should_use_the_configured_weights() {
     use crate::weight::WeightInfo;
-    let info = crate::pallet::Call::<Test>::publish_attestation {}.get_dispatch_info();
+    let info = crate::pallet::Call::<Test>::publish_attestations {}.get_dispatch_info();
 
     assert_eq!(info.pays_fee, Pays::Yes);
-    assert_eq!(info.weight, MockWeightInfo::publish_attestation());
+    assert_eq!(info.weight, MockWeightInfo::publish_attestations());
 }

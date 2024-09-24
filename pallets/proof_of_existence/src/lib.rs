@@ -41,8 +41,9 @@ pub mod pallet {
     use frame_support::sp_runtime::traits::{Keccak256, SaturatedConversion};
     use frame_system::pallet_prelude::*;
 
-    pub use hp_poe::MaxStorageAttestations;
     use hp_poe::{InherentError, InherentType, INHERENT_IDENTIFIER};
+    use sp_std::vec;
+    use sp_std::vec::Vec;
 
     #[derive(Clone, TypeInfo, PartialEq, Eq, Encode, Decode, Debug)]
     pub enum AttestationPathRequestError {
@@ -54,12 +55,12 @@ pub mod pallet {
     pub trait Config: frame_system::Config + timestamp::Config {
         /// Because this pallet emits events, it depends on the runtime's definition of an event.
         type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-        /// Minimum number of leaves in the tree that triggers the attestation publishing
-        type MinProofsForPublishing: Get<u32>;
         /// Maximum time (ms) that an element can wait in a tree before the tree is published
         type MaxElapsedTimeMs: Get<Self::Moment>;
-        /// Maximum number of attestations that are kept in storage (including the current one)
-        type MaxStorageAttestations: Get<MaxStorageAttestations>;
+        /// Number of proofs that a single attestation contain
+        type ProofsPerAttestation: Get<u32>;
+        /// Max number of attestations to be cleared in the next block
+        type MaxAttestationsToClear: Get<u32>;
         /// The weight definition for this pallet
         type WeightInfo: WeightInfo;
     }
@@ -74,10 +75,6 @@ pub mod pallet {
     pub struct Pallet<T>(_);
 
     #[pallet::storage]
-    #[pallet::getter(fn oldest_attestation)]
-    pub type OldestAttestation<T> = StorageValue<_, u64, ValueQuery>;
-
-    #[pallet::storage]
     #[pallet::getter(fn next_attestation)]
     pub type NextAttestation<T> = StorageValue<_, u64, ValueQuery>;
 
@@ -86,14 +83,14 @@ pub mod pallet {
     pub type FirstInsertionTime<T: Config> = StorageValue<_, T::Moment, OptionQuery>;
 
     #[pallet::storage]
-    #[pallet::getter(fn values)]
-    pub type Values<T> = StorageDoubleMap<
-        Hasher1 = Blake2_128Concat,
-        Key1 = u64,
-        Hasher2 = Blake2_128Concat,
-        Key2 = H256,
-        Value = (),
-    >;
+    #[pallet::getter(fn attestations_with_proofs_to_be_published)]
+    pub type AttestationsWithProofsToBePublished<T: Config> =
+        StorageMap<_, Blake2_128Concat, u64, BoundedVec<H256, T::ProofsPerAttestation>, ValueQuery>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn attestations_to_be_cleared)]
+    pub type AttestationsToBeCleared<T: Config> =
+        StorageValue<_, BoundedVec<u64, T::MaxAttestationsToClear>, ValueQuery>;
 
     #[pallet::event]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
@@ -104,64 +101,65 @@ pub mod pallet {
 
     // Errors inform users that something went wrong.
     #[pallet::error]
+    #[derive(Clone, PartialEq, Eq)]
     pub enum Error<T> {
         TooEarlyForASmallTree,
+        AttestationsToBeClearedMaxReached,
     }
 
     #[pallet::call(weight(<T as Config>::WeightInfo))]
     impl<T: Config> Pallet<T> {
-        /// Publish the attestation of Merkle tree and move to the next tree.
+        /// Publish the attestations of Merkle trees and move to the next tree.
         #[pallet::call_index(0)]
-        pub fn publish_attestation(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+        pub fn publish_attestations(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
             ensure_none(origin.clone()).or_else(|_| ensure_root(origin.clone()))?;
-            if ensure_none(origin.clone()).is_ok() && !Self::should_publish(Self::now()) {
+            let mut attestations_ready_to_be_published = Self::attestations_ready_to_be_published();
+            if ensure_none(origin.clone()).is_ok() && attestations_ready_to_be_published.is_empty()
+            {
                 log::trace!("Not publishing tree");
                 return Err(Error::<T>::TooEarlyForASmallTree.into());
             }
 
             let id = Self::next_attestation();
 
-            // In case a publish_attestation() is called by root but not proofs has been inserted yet
+            // In case a publish_attestations() is called by root but not proofs has been inserted yet
             // the corresponding entry is not created in the Values storage variable. To avoid this
             // inconsistency, we manually do this.
             if ensure_root(origin.clone()).is_ok()
-                && Values::<T>::iter_key_prefix(id).next().is_none()
+                && AttestationsWithProofsToBePublished::<T>::get(id).is_empty()
             {
                 log::debug!("Creating empty attestation with id: {}", id);
-                Values::<T>::insert(id, H256::default(), ());
+                let bounded_vec = BoundedVec::truncate_from(vec![H256::default()]);
+                AttestationsWithProofsToBePublished::<T>::insert(id, bounded_vec);
+
+                attestations_ready_to_be_published.push(id);
             }
 
-            let next_attestation_id = id + 1;
-            NextAttestation::<T>::set(next_attestation_id);
-
-            let attestation = binary_merkle_tree::merkle_root::<Keccak256, _>(
-                Values::<T>::iter_key_prefix(id).collect::<BTreeSet<_>>(),
-            );
-
-            Self::deposit_event(Event::NewAttestation { id, attestation });
-
-            // Prune old attestations
-            // Rationale: ids are incremental, no more than one attestation
-            // for each publish_attestation call will need to be removed from storage.
-            let max_attestations: u64 = T::MaxStorageAttestations::get().into();
-            if max_attestations != Into::<u64>::into(MaxStorageAttestations::default())
-                && next_attestation_id >= max_attestations
-            {
-                let oldest_attestation_id = Self::oldest_attestation();
-
-                // Handle situations in which there is more than one attestation to be cleared
-                // from storage. This could only happen, for instance, due to a runtime upgrade
-                // changing the MaxAttestations value.
-                // NOTE: When doing this, make sure that the attestations left to be cleared are
-                // not too many otherwise the transaction weight might explode and the transaction
-                // never executed, thus blocking the chain.
-                // This behaviour will be changed in the future.
-                let limit = next_attestation_id - max_attestations + 1;
-                for id in oldest_attestation_id..limit {
-                    let _ = Values::<T>::clear_prefix(id, u32::MAX, None);
+            let mut published_ids = BoundedVec::<u64, T::MaxAttestationsToClear>::default();
+            for &id in &attestations_ready_to_be_published {
+                let proofs = AttestationsWithProofsToBePublished::<T>::get(id);
+                if !proofs.is_empty() {
+                    let merkle_root =
+                        binary_merkle_tree::merkle_root::<Keccak256, _>(proofs.iter().cloned());
+                    Self::deposit_event(Event::NewAttestation {
+                        id,
+                        attestation: merkle_root,
+                    });
+                    published_ids
+                        .try_push(id)
+                        .map_err(|_| Error::<T>::AttestationsToBeClearedMaxReached)?;
                 }
-                OldestAttestation::<T>::set(limit);
             }
+
+            // Check if the last attestation is being published
+            if let Some(&last_id) = attestations_ready_to_be_published.last() {
+                if last_id == Self::next_attestation() {
+                    let new_attestation = Self::next_attestation() + 1;
+                    NextAttestation::<T>::set(new_attestation);
+                }
+            }
+
+            AttestationsToBeCleared::<T>::put(published_ids);
 
             Ok(().into())
         }
@@ -176,34 +174,72 @@ pub mod pallet {
         fn insert(value: H256) {
             let next_attestation = Self::next_attestation();
 
-            // Start counting for timeout when the first item of the new tree is inserted
-            if Values::<T>::iter_key_prefix(next_attestation)
-                .next()
-                .is_none()
-            {
-                log::info!("Starting new tree with id: {next_attestation}");
-                FirstInsertionTime::<T>::put(Self::now());
-            }
+            AttestationsWithProofsToBePublished::<T>::mutate(next_attestation, |proofs| {
+                if proofs.is_empty() {
+                    log::info!("Starting new tree with id: {next_attestation}");
+                    FirstInsertionTime::<T>::put(Self::now());
+                }
 
-            log::trace!("Inserting element: {value}");
-            Values::<T>::insert(next_attestation, value, ());
+                // Check if the proof already exists, if it does don't do anything
+                if proofs.contains(&value) {
+                    return;
+                }
+
+                match proofs.try_push(value) {
+                    Ok(_) => {} // Successfully inserted proof into current attestation
+                    Err(_) => {
+                        // if we've reached the maximum number of proofs per attestation, create new attestation
+                        log::info!("Starting new tree with id: {next_attestation}");
+                        FirstInsertionTime::<T>::put(Self::now());
+
+                        let new_attestation = next_attestation + 1;
+                        NextAttestation::<T>::set(new_attestation);
+
+                        // Insert into the new attestation
+                        AttestationsWithProofsToBePublished::<T>::insert(
+                            new_attestation,
+                            BoundedVec::truncate_from(vec![value]),
+                        );
+                    }
+                }
+            });
 
             Self::deposit_event(Event::NewElement {
                 value,
-                attestation_id: next_attestation,
+                attestation_id: Self::next_attestation(),
             });
         }
 
-        fn should_publish(now: T::Moment) -> bool {
-            let id = Self::next_attestation();
-            let values = Values::<T>::iter_key_prefix(id)
-                .count()
-                .saturated_into::<u32>();
-            let deadline = Self::last_publish_time()
-                .map(|t| t + T::MaxElapsedTimeMs::get())
-                .map(|d| now >= d);
-            values >= T::MinProofsForPublishing::get()
-                || (values > 0 && deadline.unwrap_or_default())
+        pub fn attestations_ready_to_be_published() -> Vec<u64> {
+            let now = Self::now();
+            let mut ready_attestations = Vec::new();
+            let attestations = AttestationsWithProofsToBePublished::<T>::iter().collect::<Vec<_>>();
+
+            if attestations.len() > 1 {
+                // If there's more than one attestation, all except the last are ready
+                ready_attestations.extend(
+                    attestations
+                        .iter()
+                        .take(attestations.len() - 1)
+                        .map(|(id, _)| *id),
+                );
+            }
+
+            // Check the last (or only) attestation
+            if let Some((id, proofs)) = attestations.last() {
+                let proofs_count = proofs.len().saturated_into::<u32>();
+                let deadline = Self::last_publish_time()
+                    .map(|t| t + T::MaxElapsedTimeMs::get())
+                    .map(|d| now >= d);
+
+                if proofs_count >= T::ProofsPerAttestation::get()
+                    || (proofs_count > 0 && deadline.unwrap_or_default())
+                {
+                    ready_attestations.push(*id);
+                }
+            }
+
+            ready_attestations
         }
 
         fn ensure_inherent(data: &InherentData) {
@@ -226,7 +262,12 @@ pub mod pallet {
             }
 
             // Collect the leaves associated with the attestation_id requested
-            let leaves = Values::<T>::iter_key_prefix(attestation_id).collect::<BTreeSet<_>>();
+            let leaves = AttestationsWithProofsToBePublished::<T>::get(attestation_id);
+            if leaves.is_empty() {
+                return Err(AttestationPathRequestError::AttestationIdNotPublished(
+                    attestation_id,
+                ));
+            }
 
             // Check if the requested proof_hash belongs to this set, i.e. is within the set of leaves
             if !leaves.contains(&proof_hash) {
@@ -245,9 +286,26 @@ pub mod pallet {
 
             // Evaluate the Merkle proof and return a MerkleProof structure to the caller
             Ok(binary_merkle_tree::merkle_proof::<Keccak256, _, _>(
-                leaves,
+                leaves.into_iter().collect::<BTreeSet<_>>(),
                 proof_index,
             ))
+        }
+    }
+
+    #[pallet::hooks]
+    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+        fn on_initialize(_n: BlockNumberFor<T>) -> Weight {
+            let mut weight = T::DbWeight::get().reads(1);
+
+            let ids_to_clear = AttestationsToBeCleared::<T>::take();
+            weight = weight.saturating_add(T::DbWeight::get().writes(1));
+
+            for id in ids_to_clear.iter() {
+                AttestationsWithProofsToBePublished::<T>::remove(id);
+                weight = weight.saturating_add(T::DbWeight::get().writes(1));
+            }
+
+            weight
         }
     }
 
@@ -258,7 +316,8 @@ pub mod pallet {
         const INHERENT_IDENTIFIER: InherentIdentifier = INHERENT_IDENTIFIER;
         fn create_inherent(data: &InherentData) -> Option<Self::Call> {
             Self::ensure_inherent(data);
-            Self::should_publish(Self::now()).then_some(Call::publish_attestation {})
+            (!Self::attestations_ready_to_be_published().is_empty())
+                .then_some(Call::publish_attestations {})
         }
 
         fn check_inherent(
@@ -270,13 +329,13 @@ pub mod pallet {
             };
 
             Self::ensure_inherent(data);
-            Self::should_publish(Self::now())
+            (!Self::attestations_ready_to_be_published().is_empty())
                 .then_some(())
                 .ok_or(InherentError::TooEarlyForASmallTree)
         }
 
         fn is_inherent(call: &Self::Call) -> bool {
-            matches!(call, Call::publish_attestation { .. })
+            matches!(call, Call::publish_attestations { .. })
         }
     }
 }

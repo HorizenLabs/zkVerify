@@ -53,7 +53,7 @@ use core::marker::PhantomData;
 
 /// Weight functions needed for `pallet_poe`.
 pub trait WeightInfo {
-    fn publish_attestation() -> Weight;
+    fn publish_attestations() -> Weight;
 }
 
 // For backwards compatibility and tests.
@@ -64,7 +64,7 @@ impl WeightInfo for () {
     /// Proof: `Poe::Values` (`max_values`: None, `max_size`: Some(72), added: 2547, mode: `MaxEncodedLen`)
     /// Storage: `Poe::OldestAttestation` (r:1 w:1)
     /// Proof: `Poe::OldestAttestation` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    fn publish_attestation() -> Weight {
+    fn publish_attestations() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `7040`
         //  Estimated: `166545`

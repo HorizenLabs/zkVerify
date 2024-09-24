@@ -437,7 +437,7 @@ fn pallet_ultraplonk_availability() {
 #[test]
 fn pallet_poe_availability() {
     new_test_ext().execute_with(|| {
-        assert_ok!(Poe::publish_attestation(RuntimeOrigin::root()));
+        assert_ok!(Poe::publish_attestations(RuntimeOrigin::root()));
         // just checking code builds, hence the pallet is available to the runtime
     });
 }
@@ -737,8 +737,8 @@ mod use_correct_weights {
         use pallet_poe::WeightInfo;
 
         assert_eq!(
-            <Runtime as pallet_poe::Config>::WeightInfo::publish_attestation(),
-            crate::weights::pallet_poe::ZKVWeight::<Runtime>::publish_attestation()
+            <Runtime as pallet_poe::Config>::WeightInfo::publish_attestations(),
+            crate::weights::pallet_poe::ZKVWeight::<Runtime>::publish_attestations()
         );
     }
 }

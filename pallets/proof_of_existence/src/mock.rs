@@ -13,9 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use frame_support::{derive_impl, parameter_types};
+use frame_support::derive_impl;
 use frame_system as system;
-use hp_poe::MaxStorageAttestations;
 use sp_core::{ConstU32, ConstU64};
 use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
@@ -30,13 +29,7 @@ impl pallet_timestamp::Config for Test {
 
 // Poe
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = 6000;
-pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 2;
-pub const MAX_STORAGE_ATTESTATIONS: u64 = 10;
-
-parameter_types! {
-    pub MaxAttestations: MaxStorageAttestations = MaxStorageAttestations(MAX_STORAGE_ATTESTATIONS);
-}
-
+pub const PROOFS_PER_ATTESTATION: u32 = 2;
 pub struct MockWeightInfo;
 
 impl MockWeightInfo {
@@ -45,16 +38,16 @@ impl MockWeightInfo {
 }
 
 impl crate::weight::WeightInfo for MockWeightInfo {
-    fn publish_attestation() -> frame_support::weights::Weight {
+    fn publish_attestations() -> frame_support::weights::Weight {
         frame_support::weights::Weight::from_parts(Self::REF_TIME, Self::PROOF_SIZE)
     }
 }
 
 impl crate::Config for Test {
     type RuntimeEvent = RuntimeEvent;
-    type MinProofsForPublishing = ConstU32<MIN_PROOFS_FOR_ROOT_PUBLISHING>;
+    type ProofsPerAttestation = ConstU32<PROOFS_PER_ATTESTATION>;
     type MaxElapsedTimeMs = ConstU64<MILLISECS_PER_PROOF_ROOT_PUBLISHING>;
-    type MaxStorageAttestations = MaxAttestations;
+    type MaxAttestationsToClear = ConstU32<{ u32::MAX }>;
     type WeightInfo = MockWeightInfo;
 }
 
