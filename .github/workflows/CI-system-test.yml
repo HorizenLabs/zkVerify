@@ -55,7 +55,7 @@ jobs:
           source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
 
           # Overwrite environment variables if building from main branch
-          if [[ "${{ startsWith(github.ref, 'refs/heads/main') }}" == 'true' ]]; then
+          if [[ "${{ startsWith(github.ref, 'refs/heads/feat/web3-943-post-merge-pipeline') }}" == 'true' ]]; then
             export IS_A_RELEASE="false"
             export DEV_RELEASE="true"
             export PROD_RELEASE="false"
