@@ -109,7 +109,7 @@ elif [[ "${is_a_release}" == "false" && "${dev_release}" == "true" && -n "${priv
   if [[ -z "${DOCKER_HUB_TOKEN:-}" || -z "${DOCKER_HUB_USERNAME:-}" ]]; then
     fn_die "ERROR: DOCKER_HUB_USERNAME and DOCKER_HUB_TOKEN must be set for private repository operations."
   fi
-  echo "${DOCKER_HUB_TOKEN}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin "${private_docker_repo}"
+  echo "${DOCKER_HUB_TOKEN}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
 
   # Tag and push to Private Repository
   for publish_tag in "${publish_tags[@]}"; do
