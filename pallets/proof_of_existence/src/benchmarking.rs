@@ -18,9 +18,10 @@
 use super::*;
 
 use frame_benchmarking::v2::*;
+use frame_support::BoundedVec;
 use frame_system::RawOrigin;
 use sp_core::{Get, H256};
-use sp_runtime::SaturatedConversion;
+use sp_std::vec::Vec;
 
 #[benchmarks]
 mod benchmarks {
@@ -28,51 +29,60 @@ mod benchmarks {
 
     #[benchmark]
     fn publish_attestations() {
-        // // Setup code
-        // let max_attestations: u64 = T::MaxStorageAttestations::get().into();
-        //
-        // let mut hash: [u8; 32] = [0; 32];
-        // // Fill completely first attestation that will be pruned
-        // for _ in 0..T::MinProofsForPublishing::get() * 2 {
-        //     hash[0] += 1;
-        //     Values::<T>::insert(0, H256::from_slice(&hash), ());
-        // }
-        //
-        // // Fill the others partially
-        // for id in 1..max_attestations - 1 {
-        //     Values::<T>::insert(id, H256::default(), ());
-        // }
-        //
-        // // Fill the last one completely (as it is the one that will be published)
-        // for _ in 0..T::MinProofsForPublishing::get() * 2 {
-        //     hash[0] += 1;
-        //     Values::<T>::insert(max_attestations - 1, H256::from_slice(&hash), ());
-        // }
-        //
-        // // Check all inserted values are present
-        // assert_eq!(
-        //     Values::<T>::iter_keys().count(),
-        //     ((2 * 2 * T::MinProofsForPublishing::get().saturated_into::<u64>())
-        //         + (max_attestations - 2)) as usize
-        // );
-        //
-        // NextAttestation::<T>::set(max_attestations - 1);
-        //
-        // #[extrinsic_call]
-        // publish_attestation(RawOrigin::Root);
-        //
-        // // Check that indeed oldest attestation has been removed
-        // assert!(Values::<T>::iter_key_prefix(0).next().is_none());
-        //
-        // // Check the others are still present
-        // for id in 1..max_attestations - 1 {
-        //     assert!(Values::<T>::iter_key_prefix(id).next().is_some());
-        // }
-        //
-        // assert_eq!(
-        //     Values::<T>::iter_key_prefix(max_attestations - 1).count(),
-        //     (T::MinProofsForPublishing::get() * 2) as usize
-        // );
+        // Setup code
+        // TODO: Define the right limit for this one
+        let max_storage_attestations: u32 = 1000;
+        let max_proofs_per_attestation: u32 = T::ProofsPerAttestation::get();
+
+        let mut hash: [u8; 32] = [0; 32];
+        for i in 0..max_storage_attestations {
+            let attestation_id = i as u64;
+            let mut proofs = Vec::with_capacity(max_proofs_per_attestation as usize);
+
+            for _ in 0..max_proofs_per_attestation {
+                // Update the hash to create a unique proof
+                for byte in hash.iter_mut() {
+                    *byte = byte.wrapping_add(1);
+                    if *byte != 0 {
+                        break;
+                    }
+                }
+
+                proofs.push(H256::from_slice(&hash));
+            }
+
+            let bounded_proofs: BoundedVec<H256, T::ProofsPerAttestation> =
+                BoundedVec::try_from(proofs).expect("Should not exceed max proofs per attestation");
+            AttestationsWithProofsToBePublished::<T>::insert(attestation_id, bounded_proofs);
+        }
+
+        NextAttestation::<T>::set(max_storage_attestations as u64);
+
+        // Verify setup
+        assert_eq!(
+            AttestationsWithProofsToBePublished::<T>::iter().count(),
+            max_storage_attestations as usize
+        );
+
+        #[extrinsic_call]
+        publish_attestations(RawOrigin::Root);
+
+        // Verification
+        assert_eq!(
+            AttestationsToBeCleared::<T>::get().len() as u32,
+            max_storage_attestations,
+            "All attestations should be marked for clearing"
+        );
+        assert_eq!(
+            AttestationsWithProofsToBePublished::<T>::iter().count(),
+            max_storage_attestations as usize,
+            "Attestations should still be present after publishing"
+        );
+        assert_eq!(
+            NextAttestation::<T>::get(),
+            (max_storage_attestations) as u64,
+            "NextAttestation should be incremented"
+        );
     }
 
     #[cfg(test)]
