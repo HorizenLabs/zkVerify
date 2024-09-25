@@ -22,6 +22,8 @@ mod tests;
 #[cfg(test)]
 pub mod mock;
 
+mod migration;
+
 mod benchmarking;
 
 mod weight;
@@ -44,6 +46,8 @@ pub mod pallet {
     use hp_poe::{InherentError, InherentType, INHERENT_IDENTIFIER};
     use sp_std::vec;
     use sp_std::vec::Vec;
+
+    use crate::migration;
 
     #[derive(Clone, TypeInfo, PartialEq, Eq, Encode, Decode, Debug)]
     pub enum AttestationPathRequestError {
@@ -75,6 +79,10 @@ pub mod pallet {
     pub struct Pallet<T>(_);
 
     #[pallet::storage]
+    #[pallet::getter(fn oldest_attestation)]
+    pub type OldestAttestation<T> = StorageValue<_, u64, ValueQuery>;
+
+    #[pallet::storage]
     #[pallet::getter(fn next_attestation)]
     pub type NextAttestation<T> = StorageValue<_, u64, ValueQuery>;
 
@@ -91,6 +99,16 @@ pub mod pallet {
     #[pallet::getter(fn attestations_to_be_cleared)]
     pub type AttestationsToBeCleared<T: Config> =
         StorageValue<_, BoundedVec<u64, T::MaxAttestationsToClear>, ValueQuery>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn values)]
+    pub type Values<T> = StorageDoubleMap<
+        Hasher1 = Blake2_128Concat,
+        Key1 = u64,
+        Hasher2 = Blake2_128Concat,
+        Key2 = H256,
+        Value = (),
+    >;
 
     #[pallet::event]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
@@ -306,6 +324,10 @@ pub mod pallet {
             }
 
             weight
+        }
+
+        fn on_runtime_upgrade() -> frame_support::weights::Weight {
+            migration::migrate_to_new_storage::<T>()
         }
     }
 
