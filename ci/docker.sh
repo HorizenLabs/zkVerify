@@ -78,10 +78,10 @@ if [[ "${is_a_release}" == "true" ]]; then
   # Publish to Private Repository if specified
   if [[ -n "${private_docker_repo:-}" ]]; then
     log_info "=== Publishing Docker image(s) to Private Repository: ${private_docker_repo} ==="
-    if [[ -z "${PRIVATE_DOCKER_TOKEN:-}" || -z "${PRIVATE_DOCKER_USERNAME:-}" ]]; then
-      fn_die "ERROR: PRIVATE_DOCKER_USERNAME and PRIVATE_DOCKER_TOKEN must be set for private repository operations."
+    if [[ -z "${DOCKER_HUB_TOKEN:-}" || -z "${DOCKER_HUB_USERNAME:-}" ]]; then
+      fn_die "ERROR: DOCKER_HUB_USERNAME and DOCKER_HUB_TOKEN must be set for private repository operations."
     fi
-    echo "${PRIVATE_DOCKER_TOKEN}" | docker login -u "${PRIVATE_DOCKER_USERNAME}" --password-stdin "${private_docker_repo}"
+    echo "${DOCKER_HUB_TOKEN}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin "${private_docker_repo}"
 
     for publish_tag in "${publish_tags[@]}"; do
       log_info "Publishing docker image to Private Repository: ${private_docker_repo}:${publish_tag}"
@@ -106,10 +106,10 @@ elif [[ "${is_a_release}" == "false" && "${dev_release}" == "true" && -n "${priv
 
   # Login to Private Docker Repository
   log_info "=== Publishing Docker image(s) to Private Docker Repository: ${private_docker_repo} ==="
-  if [[ -z "${PRIVATE_DOCKER_TOKEN:-}" || -z "${PRIVATE_DOCKER_USERNAME:-}" ]]; then
-    fn_die "ERROR: PRIVATE_DOCKER_USERNAME and PRIVATE_DOCKER_TOKEN must be set for private repository operations."
+  if [[ -z "${DOCKER_HUB_TOKEN:-}" || -z "${DOCKER_HUB_USERNAME:-}" ]]; then
+    fn_die "ERROR: DOCKER_HUB_USERNAME and DOCKER_HUB_TOKEN must be set for private repository operations."
   fi
-  echo "${PRIVATE_DOCKER_TOKEN}" | docker login -u "${PRIVATE_DOCKER_USERNAME}" --password-stdin "${private_docker_repo}"
+  echo "${DOCKER_HUB_TOKEN}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin "${private_docker_repo}"
 
   # Tag and push to Private Repository
   for publish_tag in "${publish_tags[@]}"; do
