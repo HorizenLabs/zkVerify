@@ -56,7 +56,7 @@ mod benchmarks {
             AttestationsWithProofsToBePublished::<T>::insert(attestation_id, bounded_proofs);
         }
 
-        NextAttestation::<T>::set(max_storage_attestations as u64);
+        NextAttestation::<T>::set((max_storage_attestations - 1) as u64);
 
         // Verify setup
         assert_eq!(
@@ -80,7 +80,7 @@ mod benchmarks {
         );
         assert_eq!(
             NextAttestation::<T>::get(),
-            (max_storage_attestations) as u64,
+            max_storage_attestations as u64,
             "NextAttestation should be incremented"
         );
     }

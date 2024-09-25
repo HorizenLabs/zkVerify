@@ -170,7 +170,7 @@ pub mod pallet {
             }
 
             // Check if the last attestation is being published
-            if let Some(&last_id) = attestations_ready_to_be_published.last() {
+            if let Some(&last_id) = attestations_ready_to_be_published.iter().max() {
                 if last_id == Self::next_attestation() {
                     let new_attestation = Self::next_attestation() + 1;
                     NextAttestation::<T>::set(new_attestation);
