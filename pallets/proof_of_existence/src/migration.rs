@@ -23,7 +23,7 @@ pub fn migrate_to_new_storage<T: Config>() -> Weight {
         for (attestation_id, proof_hash, _) in Values::<T>::iter() {
             attestation_map
                 .entry(attestation_id)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(proof_hash);
             reads += 1;
             total_entries += 1;
