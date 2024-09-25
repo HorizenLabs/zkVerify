@@ -752,7 +752,6 @@ impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> f
 construct_runtime!(
     pub struct Runtime {
         System: frame_system,
-        VoterList: pallet_bags_list::<Instance1>,
         Timestamp: pallet_timestamp,
         Balances: pallet_balances,
         Authorship: pallet_authorship,
@@ -783,6 +782,7 @@ construct_runtime!(
         ChildBounties: pallet_child_bounties,
         Utility: pallet_utility,
         Vesting: pallet_vesting,
+        VoterList: pallet_bags_list::<Instance1>,
     }
 );
 
@@ -882,6 +882,21 @@ mod migrations {
         pub struct MigrateStakingToBagsList;
 
         impl frame_support::traits::OnRuntimeUpgrade for MigrateStakingToBagsList {
+            #[cfg(feature = "try-runtime")]
+            fn pre_upgrade() -> Result<sp_std::vec::Vec<u8>, sp_runtime::TryRuntimeError> {
+                use codec::Encode;
+
+                frame_support::ensure!(
+                    crate::System::last_runtime_upgrade_spec_version() == 5_002,
+                    "must upgrade linearly"
+                );
+
+                let to_migrate = pallet_staking::Validators::<Runtime>::count()
+                    + pallet_staking::Nominators::<Runtime>::count();
+                log::info!("👜 staking bags-list migration passes PRE migrate checks ✅");
+                Ok(to_migrate.encode())
+            }
+
             /// Migrates validators and nominators to bags list for the staking pallet.
             fn on_runtime_upgrade() -> Weight {
                 // Migration intended only for the specific runtime update from version 5_002
@@ -906,6 +921,21 @@ mod migrations {
                 } else {
                     <Runtime as frame_system::Config>::DbWeight::get().reads(1)
                 }
+            }
+
+            #[cfg(feature = "try-runtime")]
+            fn post_upgrade(
+                state: sp_std::vec::Vec<u8>,
+            ) -> Result<(), sp_runtime::TryRuntimeError> {
+                use codec::Decode;
+
+                <Runtime as pallet_staking::Config>::VoterList::try_state()
+                    .map_err(|_| "VoterList is not in a sane state.")?;
+                let old_value = u32::decode(&mut &state[..]).unwrap();
+                let new_value = <Runtime as pallet_staking::Config>::VoterList::count();
+                frame_support::ensure!(old_value == new_value, "The voters count does not match!");
+                log::info!("👜 staking bags-list migration passes POST migrate checks ✅");
+                Ok(())
             }
         }
     }
