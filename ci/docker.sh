@@ -90,7 +90,7 @@ if [[ "${is_a_release}" == "true" ]]; then
     done
   fi
 
-elif [[ "${is_a_release}" == "false" && -n "${private_docker_repo:-}" && "${dev_release}" == "true" ]]; then
+elif [[ "${is_a_release}" == "false" && "${dev_release}" == "true" && -n "${private_docker_repo:-}" ]]; then
   # IS_A_RELEASE is false, but PRIVATE_DOCKER_REPO is set and DEV_RELEASE is true
   if [[ -n "${commit_hash:-}" ]]; then
     docker_tag_full="${commit_hash}"
