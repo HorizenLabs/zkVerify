@@ -157,8 +157,9 @@ pub mod pallet {
             for &id in &attestations_ready_to_be_published {
                 let proofs = AttestationsWithProofsToBePublished::<T>::get(id);
                 if !proofs.is_empty() {
+                    let sorted_proofs: BTreeSet<_> = proofs.iter().cloned().collect();
                     let merkle_root =
-                        binary_merkle_tree::merkle_root::<Keccak256, _>(proofs.iter().cloned());
+                        binary_merkle_tree::merkle_root::<Keccak256, _>(sorted_proofs);
                     Self::deposit_event(Event::NewAttestation {
                         id,
                         attestation: merkle_root,
