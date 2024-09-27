@@ -242,6 +242,13 @@ fn pallet_vesting_availability() {
 }
 
 #[test]
+fn pallet_bags_list_availability() {
+    new_test_ext().execute_with(|| {
+        assert!(VoterList::list_bags_get(12).is_none());
+    });
+}
+
+#[test]
 fn pallet_preimage_availability() {
     new_test_ext().execute_with(|| {
         assert_ok!(Preimage::note_preimage(
@@ -523,6 +530,16 @@ mod use_correct_weights {
         assert_eq!(
             <Runtime as pallet_multisig::Config>::WeightInfo::as_multi_approve(3, 100),
             crate::weights::pallet_multisig::ZKVWeight::<Runtime>::as_multi_approve(3, 100)
+        );
+    }
+
+    #[test]
+    fn pallet_bags_list() {
+        use pallet_bags_list::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_bags_list::Config<pallet_bags_list::Instance1>>::WeightInfo::put_in_front_of(),
+            crate::weights::pallet_bags_list::ZKVWeight::<Runtime>::put_in_front_of()
         );
     }
 
@@ -1177,43 +1194,5 @@ mod pallets_interact {
                 assert!(Preimage::len(&call_hash).is_some());
             });
         }
-    }
-}
-
-/// This module tests the correct computation of rewards for validators.
-mod payout {
-    use pallet_staking::EraPayout;
-
-    use crate::{Balance, Runtime};
-
-    use super::new_test_ext;
-
-    #[test]
-    fn check_era_rewards() {
-        new_test_ext().execute_with(|| {
-            const ERA_DURATION_MILLIS: u64 = 6 * 60 * 60 * 1000;
-            const TOTAL_STAKED: Balance = 900000000;
-            const TOTAL_ISSUANCE: Balance = 1000000000;
-
-            // Check the reward for an empty era.
-            assert_eq!(
-                <Runtime as pallet_staking::Config>::EraPayout::era_payout(
-                    0,
-                    0,
-                    ERA_DURATION_MILLIS
-                ),
-                (0u128, 0)
-            );
-
-            // Check the reward for a normal era
-            assert_eq!(
-                <Runtime as pallet_staking::Config>::EraPayout::era_payout(
-                    TOTAL_STAKED,
-                    TOTAL_ISSUANCE,
-                    ERA_DURATION_MILLIS
-                ),
-                (17313, 51133)
-            );
-        });
     }
 }

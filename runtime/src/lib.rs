@@ -81,6 +81,8 @@ pub use sp_runtime::{Perbill, Permill};
 pub mod governance;
 use governance::{pallet_custom_origins, Treasurer, TreasurySpender};
 
+mod bag_thresholds;
+mod payout;
 #[cfg(test)]
 mod tests;
 mod weights;
@@ -270,6 +272,19 @@ impl pallet_babe::Config for Runtime {
     type KeyOwnerProof = sp_session::MembershipProof;
     type EquivocationReportSystem =
         pallet_babe::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
+}
+
+parameter_types! {
+    pub const BagThresholds: &'static [u64] = &bag_thresholds::THRESHOLDS;
+}
+
+type VoterBagsListInstance = pallet_bags_list::Instance1;
+impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type ScoreProvider = Staking;
+    type WeightInfo = weights::pallet_bags_list::ZKVWeight<Runtime>;
+    type BagThresholds = BagThresholds;
+    type Score = sp_npos_elections::VoteWeight;
 }
 
 impl pallet_grandpa::Config for Runtime {
@@ -543,22 +558,8 @@ impl pallet_session::Config for Runtime {
     type WeightInfo = weights::pallet_session::ZKVWeight<Runtime>;
 }
 
-//TODO: Set these parameters appropriately.
-pallet_staking_reward_curve::build! {
-    const REWARD_CURVE: sp_runtime::curve::PiecewiseLinear<'static> = curve!(
-        min_inflation: 0_025_000,
-        max_inflation: 0_100_000,
-        ideal_stake: 0_500_000,
-        falloff: 0_050_000,
-        max_piece_count: 40,
-        test_precision: 0_005_000,
-    );
-}
-
 parameter_types! {
     pub const SessionsPerEra: sp_staking::SessionIndex = 6 * HOURS / EpochDurationInBlocks::get(); // number of sessions in 1 era, 6h
-
-    pub const RewardCurve: &'static sp_runtime::curve::PiecewiseLinear<'static> = &REWARD_CURVE;
 
     pub const BondingDuration: sp_staking::EraIndex = 1; // number of sessions for which staking
                                                          // remains locked
@@ -612,13 +613,12 @@ impl pallet_staking::Config for Runtime {
     /// A super-majority of the council can cancel the slash.
     type AdminOrigin = EnsureRoot<AccountId>;
     type SessionInterface = Self;
-    type EraPayout = pallet_staking::ConvertCurve<RewardCurve>;
+    type EraPayout = payout::ZKVPayout;
     type NextNewSession = Session;
     type OffendingValidatorsThreshold = OffendingValidatorsThreshold; // Exceeding this threshold would force a new era
     type ElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
     type GenesisElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
-    // TODO: consider switching to bags-list
-    type VoterList = pallet_staking::UseNominatorsAndValidatorsMap<Self>;
+    type VoterList = VoterList;
     type NominationsQuota = pallet_staking::FixedNominationsQuota<10>;
     // TODO: consider switching to bags-list
     type TargetList = pallet_staking::UseValidatorsMap<Self>;
@@ -748,6 +748,7 @@ impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> f
 construct_runtime!(
     pub struct Runtime {
         System: frame_system,
+        VoterList: pallet_bags_list::<Instance1>,
         Timestamp: pallet_timestamp,
         Balances: pallet_balances,
         Authorship: pallet_authorship,
@@ -830,6 +831,7 @@ mod benches {
         [frame_benchmarking, BaselineBench::<Runtime>]
         [frame_system, SystemBench::<Runtime>]
         [pallet_balances, Balances]
+        [pallet_bags_list, VoterList]
         [pallet_babe, crate::Babe]
         [pallet_grandpa, crate::Grandpa]
         [pallet_timestamp, Timestamp]
