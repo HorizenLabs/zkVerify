@@ -3,15 +3,28 @@ name: Tag-orchestrator
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+-[0-9]+.[0-9]+.[0-9]+*'
+      - "[0-9]+.[0-9]+.[0-9]+-[0-9]+.[0-9]+.[0-9]+*"
   workflow_dispatch:
 
 env:
   RUST_BACKTRACE: 1
 
 jobs:
-  docker-job:
+  execute-system-tests:
+    name: Execute System Tests
+    uses: HorizenLabs/zkVerify-qa/.github/workflows/CI-e2e-tests.yml@main
+    with:
+      zkverify_version: ${{ github.ref_name }}
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+      QA_SLACK_WEBHOOK_URL: ${{ secrets.QA_SLACK_WEBHOOK_URL }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  build-and-publish:
+    name: Build and Publish Docker Image
     runs-on: ubuntu-latest
+    needs: execute-system-tests # Wait for e2e tests to finish
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
@@ -36,13 +49,13 @@ jobs:
 
   notify-slack:
     runs-on: ubuntu-latest
-    needs: [ docker-job, rustdoc-job ]
+    needs: [build-and-publish, rustdoc-job]
     if: ${{ always() }}
     steps:
       - name: Check previous job status
         id: job_status
         run: |
-          if [ "${{ needs.docker-job.result }}" == "failure" ] || [ "${{ needs.rustdoc-job.result }}" == "failure" ]; then
+          if [ "${{ needs.build-and-publish.result }}" == "failure" ] || [ "${{ needs.rustdoc-job.result }}" == "failure" ]; then
             echo "JOB_STATUS=failed" >> $GITHUB_ENV
           else
             echo "JOB_STATUS=success" >> $GITHUB_ENV

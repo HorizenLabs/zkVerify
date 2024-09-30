@@ -13,12 +13,10 @@ test_release="${TEST_RELEASE:-false}"
 github_ref_name="${GITHUB_REF_NAME:-}"
 common_file_location="${COMMON_FILE_LOCATION:-not-set}"
 docker_file_path='docker/dockerfiles/zkv-node.Dockerfile'
-
-private_docker_repo="${PRIVATE_DOCKER_REPO:-}"
 commit_hash="${COMMIT_HASH:-}"
 
 # Requirement
-if ! [[ -f "${common_file_location}" ]]; then
+if ! [ -f "${common_file_location}" ]; then
   echo -e "\n\033[1;31mERROR: ${common_file_location} file is missing !!! Exiting ...\033[0m\n"
   exit 1
 else
@@ -32,11 +30,11 @@ fi
 ####
 cd "${workdir}"
 
-if [[ -z "${docker_hub_token:-}" ]]; then
+if [ -z "${docker_hub_token:-}" ]; then
   fn_die "ERROR: DOCKER_HUB_TOKEN variable is not set. Exiting ..."
 fi
 
-if [[ -z "${docker_hub_username:-}" ]]; then
+if [ -z "${docker_hub_username:-}" ]; then
   fn_die "ERROR: DOCKER_HUB_USERNAME variable is not set. Exiting ..."
 fi
 
@@ -75,27 +73,12 @@ if [[ "${is_a_release}" == "true" ]]; then
     docker push "${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
   done
 
-  # Publish to Private Repository if specified
-  if [[ -n "${private_docker_repo:-}" ]]; then
-    log_info "=== Publishing Docker image(s) to Private Repository: ${private_docker_repo} ==="
-    if [[ -z "${DOCKER_HUB_TOKEN:-}" || -z "${DOCKER_HUB_USERNAME:-}" ]]; then
-      fn_die "ERROR: DOCKER_HUB_USERNAME and DOCKER_HUB_TOKEN must be set for private repository operations."
-    fi
-    echo "${DOCKER_HUB_TOKEN}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin "${private_docker_repo}"
-
-    for publish_tag in "${publish_tags[@]}"; do
-      log_info "Publishing docker image to Private Repository: ${private_docker_repo}:${publish_tag}"
-      docker tag "${docker_image_build_name}:${docker_tag_full}" "${private_docker_repo}:${publish_tag}"
-      docker push "${private_docker_repo}:${publish_tag}"
-    done
-  fi
-
-elif [[ "${is_a_release}" == "false" && "${dev_release}" == "true" && -n "${private_docker_repo:-}" ]]; then
-  # IS_A_RELEASE is false, but PRIVATE_DOCKER_REPO is set and DEV_RELEASE is true
+elif [[ "${is_a_release}" == "false" && "${test_release}" == "true" && "${docker_image_build_name}" == "zkverify-dev" ]]; then
+  # IS_A_RELEASE is false, but PRIVATE_DOCKER_REPO is set and TEST_RELEASE is true
   if [[ -n "${commit_hash:-}" ]]; then
     docker_tag_full="${commit_hash}"
   else
-    docker_tag_full="dev"
+    docker_tag_full="test"
   fi
   publish_tags=("${docker_tag_full}")
 
@@ -104,18 +87,15 @@ elif [[ "${is_a_release}" == "false" && "${dev_release}" == "true" && -n "${priv
   log_info "=== Building Docker image: ${docker_image_build_name}:${docker_tag_full} ==="
   docker build --build-arg PROFILE=production -f "${docker_file_path}" -t "${docker_image_build_name}:${docker_tag_full}" .
 
-  # Login to Private Docker Repository
-  log_info "=== Publishing Docker image(s) to Private Docker Repository: ${private_docker_repo} ==="
-  if [[ -z "${DOCKER_HUB_TOKEN:-}" || -z "${DOCKER_HUB_USERNAME:-}" ]]; then
-    fn_die "ERROR: DOCKER_HUB_USERNAME and DOCKER_HUB_TOKEN must be set for private repository operations."
-  fi
-  echo "${DOCKER_HUB_TOKEN}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
+   # Login to DockerHub
+  log_info "=== Publishing Docker image(s) on Docker Hub ==="
+  echo "${docker_hub_token}" | docker login -u "${docker_hub_username}" --password-stdin
 
   # Tag and push to Private Repository
   for publish_tag in "${publish_tags[@]}"; do
-    log_info "Publishing docker image to Private Repository: ${private_docker_repo}:${publish_tag}"
-    docker tag "${docker_image_build_name}:${docker_tag_full}" "${private_docker_repo}:${publish_tag}"
-    docker push "${private_docker_repo}:${publish_tag}"
+    log_info "Publishing docker image to Private Repository: ${docker_image_build_name}:${publish_tag}"
+    docker tag "${docker_image_build_name}:${docker_tag_full}" "${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
+    docker push "${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
   done
 
 else

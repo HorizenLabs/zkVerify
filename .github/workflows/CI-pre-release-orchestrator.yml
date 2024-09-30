@@ -1,13 +1,10 @@
-name: System Tests and Publish Docker Image
+name: Pre Release Orchestrator
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
-      - feat/web3-943-post-merge-pipeline
-    tags:
-      - "[0-9]+.[0-9]+.[0-9]+-[0-9]+.[0-9]+.[0-9]+*"
 
 permissions:
   contents: read
@@ -15,9 +12,9 @@ permissions:
 jobs:
   execute-system-tests:
     name: Execute System Tests
-    uses: HorizenLabs/zkVerify-qa/.github/workflows/CI-e2e-tests.yml@feat/always-build
+    uses: HorizenLabs/zkVerify-qa/.github/workflows/CI-e2e-tests.yml@main
     with:
-      zkverify_version: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || github.ref_name }}
+      zkverify_version: ${{ github.ref_name }}
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
@@ -45,21 +42,16 @@ jobs:
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
-          PRIVATE_DOCKER_REPO: horizenlabs/zkverify-dev
+          DOCKER_IMAGE_BUILD_NAME: zkverify-dev
           GITHUB_REF_NAME: ${{ github.ref_name }}
           COMMIT_HASH: ${{ steps.get_short_commit_hash.outputs.short_commit_hash }}
 
         run: |
-          # Source the setup script to set up environment variables
+          # Source the setup script to set up environment
           source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
 
-          # Overwrite environment variables if building from main branch
-          if [[ "${{ startsWith(github.ref, 'refs/heads/feat/web3-943-post-merge-pipeline') }}" == 'true' ]]; then
-            export IS_A_RELEASE="false"
-            export DEV_RELEASE="true"
-            export PROD_RELEASE="false"
-            export TEST_RELEASE="false"
-          fi
+          # Set TEST_RELEASE to true to build and publish the dev docker image to private repo
+          export TEST_RELEASE="true"
 
           # Run the docker build and publish script
           "${GITHUB_WORKSPACE}/ci/docker.sh"
