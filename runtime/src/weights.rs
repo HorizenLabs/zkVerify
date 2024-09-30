@@ -28,4 +28,5 @@ pub mod pallet_ultraplonk_verifier;
 pub mod pallet_utility;
 pub mod pallet_vesting;
 pub mod pallet_whitelist;
+pub mod pallet_proxy;
 pub mod pallet_zksync_verifier;
