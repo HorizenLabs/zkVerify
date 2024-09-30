@@ -46,7 +46,7 @@ publish_tags=()
 if [[ "${is_a_release}" == "true" ]]; then
   docker_tag_full="${github_ref_name}"
 
-  # Determine tags based on release type
+  # Determine image tags based on release type
   if [[ "${prod_release}" == "true" ]]; then
     docker_tag_node="$(cut -d '-' -f1 <<< "${docker_tag_full}")"
     publish_tags=("${docker_tag_full}" "${docker_tag_node}" "latest")
