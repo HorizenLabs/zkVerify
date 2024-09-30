@@ -741,6 +741,16 @@ mod use_correct_weights {
             crate::weights::pallet_poe::ZKVWeight::<Runtime>::publish_attestation()
         );
     }
+
+    #[test]
+    fn pallet_staking() {
+        use pallet_staking::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_staking::Config>::WeightInfo::bond(),
+            crate::weights::pallet_staking::ZKVWeight::<Runtime>::bond()
+        );
+    }
 }
 
 mod pallets_interact {

@@ -105,12 +105,8 @@ EXCLUDED_PALLETS=(
         "pallet_babe" "pallet_grandpa"
         "pallet_offences"
 
-        # Not applicable now
-        "pallet_staking" # Not applicable if we didn't use pallet_bag_list for VoterList and TargetList
-                         # UseNominatorsAndValidatorsMap and UseValidatorsMap doesn't implement benchmark
-                         # support
         # SLOW
-        # "pallet_im_online" "frame_benchmarking" "frame_system" "pallet_balances"
+        # "pallet_im_online" "frame_benchmarking" "frame_system" "pallet_balances" "pallet_staking"
     )
 
 echo "[+] Benchmarking ${#PALLETS[@]} zkVerify pallets. (IGNORE SET [${#EXCLUDED_PALLETS[@]}])"
