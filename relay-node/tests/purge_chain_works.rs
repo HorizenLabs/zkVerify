@@ -36,7 +36,7 @@ const PARITY: &str = "paritydb/full";
 
 #[tokio::test]
 async fn purge_chain_rocksdb_works() {
-    run_with_timeout(Duration::from_secs(10 * 60), async move {
+    run_with_timeout(Duration::from_secs(5 * 60), async move {
         let tmpdir = tempdir().expect("could not create temp dir");
 
         let mut cmd = Command::new(cargo_bin(common::NODE))
@@ -80,7 +80,7 @@ async fn purge_chain_rocksdb_works() {
 
 #[tokio::test]
 async fn purge_chain_paritydb_works() {
-    run_with_timeout(Duration::from_secs(10 * 60), async move {
+    run_with_timeout(Duration::from_secs(5 * 60), async move {
         let tmpdir = tempdir().expect("could not create temp dir");
 
         let mut cmd = Command::new(cargo_bin(common::NODE))

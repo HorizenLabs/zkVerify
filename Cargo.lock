@@ -8178,6 +8178,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-xcm-benchmarks"
+version = "11.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14af05792aec4a80c211f029ddc370cc3b0d2153f8adbbb0982d637768837bf0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "staging-xcm",
+ "staging-xcm-builder",
+ "staging-xcm-executor",
+]
+
+[[package]]
 name = "pallet-zksync-verifier"
 version = "0.1.0"
 dependencies = [
@@ -16932,6 +16952,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
+ "hex-literal",
  "hp-verifiers",
  "log",
  "pallet-authority-discovery",
@@ -16972,6 +16993,7 @@ dependencies = [
  "pallet-vesting",
  "pallet-whitelist",
  "pallet-xcm",
+ "pallet-xcm-benchmarks",
  "pallet-zksync-verifier",
  "parity-scale-codec",
  "polkadot-primitives",

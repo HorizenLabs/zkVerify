@@ -38,7 +38,6 @@ use crate::{
 use frame_support::{
     parameter_types,
     traits::{Contains, Equals, Everything, Nothing},
-    PalletId,
 };
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
@@ -46,12 +45,6 @@ use polkadot_runtime_common::{
     xcm_sender::{ChildParachainRouter, ExponentialPrice},
     ToAuthor,
 };
-use sp_runtime::traits::AccountIdConversion;
-use xcm::DoubleEncoded;
-//use polkadot_runtime_constants::{
-//	system_parachain::*,
-//};
-pub const FELLOWSHIP_ADMIN_INDEX: u32 = 1; // to be moved to some constants mod
 
 use crate::currency::CENTS;
 use sp_core::ConstU32;
@@ -66,271 +59,11 @@ use xcm_builder::{
     XcmFeeManagerFromComponents, XcmFeeToAccount,
 };
 
-pub struct EmptyXCMWeights;
+use crate::weights::pallet_xcm::ZKVWeight as XcmPalletZKVWeight;
+use crate::weights::xcm::ZKVWeight as XcmZKVWeight;
 
-impl pallet_xcm::WeightInfo for EmptyXCMWeights {
-    fn send() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn teleport_assets() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn reserve_transfer_assets() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn transfer_assets() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn execute() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn force_xcm_version() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn force_default_xcm_version() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn force_subscribe_version_notify() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn force_unsubscribe_version_notify() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn force_suspension() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn migrate_supported_version() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn migrate_version_notifiers() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn already_notified_target() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn notify_current_targets() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn notify_target_migration_fail() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn migrate_version_notify_targets() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn migrate_and_notify_old_targets() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn new_query() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn take_response() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn claim_assets() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn execute_blob() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn send_blob() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-}
-
-impl<RuntimeCall> xcm::v4::XcmWeightInfo<RuntimeCall> for EmptyXCMWeights {
-    fn withdraw_asset(_: &xcm::v4::Assets) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn reserve_asset_deposited(_: &xcm::v4::Assets) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn receive_teleported_asset(_: &xcm::v4::Assets) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn query_response(
-        _: &u64,
-        _: &xcm::v4::Response,
-        _: &sp_weights::Weight,
-        _: &core::option::Option<xcm::v4::Location>,
-    ) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn transfer_asset(_: &xcm::v4::Assets, _: &xcm::v4::Location) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn transfer_reserve_asset(
-        _: &xcm::v4::Assets,
-        _: &xcm::v4::Location,
-        _: &xcm::v4::Xcm<()>,
-    ) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn transact(
-        _: &OriginKind,
-        _: &sp_weights::Weight,
-        _: &DoubleEncoded<RuntimeCall>,
-    ) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn hrmp_new_channel_open_request(_: &u32, _: &u32, _: &u32) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn hrmp_channel_accepted(_: &u32) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn hrmp_channel_closing(_: &u32, _: &u32, _: &u32) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn clear_origin() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn descend_origin(_: &xcm::v4::Junctions) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn report_error(_: &xcm::v4::QueryResponseInfo) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn deposit_asset(_: &xcm::v4::AssetFilter, _: &xcm::v4::Location) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn deposit_reserve_asset(
-        _: &xcm::v4::AssetFilter,
-        _: &xcm::v4::Location,
-        _: &xcm::v4::Xcm<()>,
-    ) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn exchange_asset(
-        _: &xcm::v4::AssetFilter,
-        _: &xcm::v4::Assets,
-        _: &bool,
-    ) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn initiate_reserve_withdraw(
-        _: &xcm::v4::AssetFilter,
-        _: &xcm::v4::Location,
-        _: &xcm::v4::Xcm<()>,
-    ) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn initiate_teleport(
-        _: &xcm::v4::AssetFilter,
-        _: &xcm::v4::Location,
-        _: &xcm::v4::Xcm<()>,
-    ) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn report_holding(
-        _: &xcm::v4::QueryResponseInfo,
-        _: &xcm::v4::AssetFilter,
-    ) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn buy_execution(_: &Asset, _: &xcm::v3::WeightLimit) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn refund_surplus() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn set_error_handler(_: &xcm::v4::Xcm<RuntimeCall>) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn set_appendix(_: &xcm::v4::Xcm<RuntimeCall>) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn clear_error() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn claim_asset(_: &xcm::v4::Assets, _: &xcm::v4::Location) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn trap(_: &u64) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn subscribe_version(_: &u64, _: &sp_weights::Weight) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn unsubscribe_version() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn burn_asset(_: &xcm::v4::Assets) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn expect_asset(_: &xcm::v4::Assets) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn expect_origin(_: &core::option::Option<xcm::v4::Location>) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn expect_error(_: &core::option::Option<(u32, xcm::v3::Error)>) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn expect_transact_status(_: &MaybeErrorCode) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn query_pallet(
-        _: &pallet_referenda::Vec<u8>,
-        _: &xcm::v4::QueryResponseInfo,
-    ) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn expect_pallet(
-        _: &u32,
-        _: &pallet_referenda::Vec<u8>,
-        _: &pallet_referenda::Vec<u8>,
-        _: &u32,
-        _: &u32,
-    ) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn report_transact_status(_: &xcm::v4::QueryResponseInfo) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn clear_transact_status() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn universal_origin(_: &xcm::v4::Junction) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn export_message(
-        _: &xcm::v4::NetworkId,
-        _: &xcm::v4::Junctions,
-        _: &xcm::v4::Xcm<()>,
-    ) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn lock_asset(_: &Asset, _: &xcm::v4::Location) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn unlock_asset(_: &Asset, _: &xcm::v4::Location) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn note_unlockable(_: &Asset, _: &xcm::v4::Location) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn request_unlock(_: &Asset, _: &xcm::v4::Location) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn set_fees_mode(_: &bool) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn set_topic(_: &[u8; 32]) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn clear_topic() -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn alias_origin(_: &xcm::v4::Location) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-    fn unpaid_execution(
-        _: &xcm::v3::WeightLimit,
-        _: &core::option::Option<xcm::v4::Location>,
-    ) -> sp_weights::Weight {
-        Weight::from_parts(0, 0)
-    }
-}
+const ZKV_GENESIS_HASH: [u8; 32] =
+    hex_literal::hex!("e2a4f521dbcba897cd2359adc5e7725f409b17f9ae129737904e5e8939c22a05");
 
 parameter_types! {
     pub const RootLocation: Location = Here.into_location();
@@ -338,8 +71,8 @@ parameter_types! {
     /// chain, we make it synonymous with it and thus it is the `Here` location, which means "equivalent to
     /// the context".
     pub const TokenLocation: Location = Here.into_location();
-    /// The Polkadot network ID. This is named.
-    pub const ThisNetwork: NetworkId = NetworkId::Polkadot;
+    /// The ZKV network ID.
+    pub const ThisNetwork: NetworkId = NetworkId::ByGenesis(ZKV_GENESIS_HASH);
     /// Our location in the universe of consensus systems.
     pub UniversalLocation: InteriorLocation = [GlobalConsensus(ThisNetwork::get())].into();
     /// The Checking Account, which holds any native assets that have been teleported out and not back in (yet).
@@ -347,17 +80,18 @@ parameter_types! {
     /// The Checking Account along with the indication that the local chain is able to mint tokens.
     pub LocalCheckAccount: (AccountId, MintLocation) = (CheckAccount::get(), MintLocation::Local);
     /// Account of the treasury pallet.
-    pub TreasuryAccount: AccountId = PalletId(*b"zk/trsry").into_account_truncating(); //Treasury::account_id();
+    pub TreasuryAccount: AccountId = crate::Treasury::account_id();
 }
 
 /// The canonical means of converting a `Location` into an `AccountId`, used when we want to
 /// determine the sovereign account controlled by a location.
 pub type SovereignAccountOf = (
-    // We can convert a child parachain using the standard `AccountId` conversion.
+    // Child parachain id to its local sovereign `AccountId`.
     ChildParachainConvertsVia<ParaId, AccountId>,
-    // We can directly alias an `AccountId32` into a local account.
+    // `AccountId32` location on the local chain to a local account.
     AccountId32Aliases<ThisNetwork, AccountId>,
-    // Foreign locations alias into accounts according to a hash of their standard description.
+    // Foreign locations alias into accounts according to a hash of their standard description
+    // (e.g. remote origins).
     HashedDescription<AccountId, DescribeFamily<DescribeAllTerminal>>,
 );
 
@@ -417,14 +151,15 @@ pub type XcmRouter = WithUniqueTopic<(
     ChildParachainRouter<Runtime, XcmPallet, PriceForChildParachainDelivery>,
 )>;
 
+pub const TEST_PARA_ID: u32 = 1599;
 parameter_types! {
     pub const Acme: AssetFilter = Wild(AllOf { fun: WildFungible, id: AssetId(TokenLocation::get()) });
-    pub TestParaLocation: Location = Parachain(1599).into_location();
+    pub TestParaLocation: Location = Parachain(TEST_PARA_ID).into_location();
     pub AcmeForTest: (AssetFilter, Location) = (Acme::get(), TestParaLocation::get());
     pub const MaxAssetsIntoHolding: u32 = 64;
 }
 
-/// Polkadot Relay recognizes/respects AssetHub, Collectives, and BridgeHub chains as teleporters.
+/// ZKV Relay recognizes/respects Test parachain as teleporter for ACME.
 pub type TrustedTeleporters = xcm_builder::Case<AcmeForTest>;
 
 pub struct OnlyParachains;
@@ -443,7 +178,8 @@ impl Contains<Location> for LocalPlurality {
 
 /// The barriers one of which must be passed for an XCM message to be executed.
 pub type Barrier = TrailingSetTopicAsId<(
-    // Weight that is paid for may be consumed.
+    // TrailingSetTopicAsId consumes any trailing SetTopic instruction, to set the message id.
+    // Consume expected weight.
     TakeWeightCredit,
     // Expected responses are OK.
     AllowKnownQueryResponses<XcmPallet>,
@@ -453,8 +189,6 @@ pub type Barrier = TrailingSetTopicAsId<(
             AllowTopLevelPaidExecutionFrom<Everything>,
             // Subscriptions for version tracking are OK.
             AllowSubscriptionsFrom<OnlyParachains>,
-            // Collectives and Fellows plurality get free execution.
-            //AllowExplicitUnpaidExecutionFrom<CollectivesOrFellows>,
         ),
         UniversalLocation,
         ConstU32<8>,
@@ -472,12 +206,12 @@ impl xcm_executor::Config for XcmConfig {
     //type XcmRecorder = ();
     type AssetTransactor = LocalAssetTransactor;
     type OriginConverter = LocalOriginConverter;
-    // Polkadot Relay recognises no chains which act as reserves.
+    // ZKV Relay recognises no chains which act as reserves.
     type IsReserve = ();
     type IsTeleporter = TrustedTeleporters;
     type UniversalLocation = UniversalLocation;
     type Barrier = Barrier;
-    type Weigher = WeightInfoBounds<EmptyXCMWeights, RuntimeCall, MaxInstructions>;
+    type Weigher = WeightInfoBounds<XcmZKVWeight<RuntimeCall>, RuntimeCall, MaxInstructions>;
     // The weight trader piggybacks on the existing transaction-fee conversion logic.
     type Trader = UsingComponents<
         crate::IdentityFee<crate::Balance>,
@@ -509,6 +243,8 @@ impl xcm_executor::Config for XcmConfig {
     type HrmpChannelAcceptedHandler = ();
     type HrmpChannelClosingHandler = ();
 }
+
+const FELLOWSHIP_ADMIN_INDEX: u32 = 1; // to be moved to some constants mod
 
 parameter_types! {
     // `GeneralAdmin` pluralistic body.
@@ -552,6 +288,7 @@ pub type LocalPalletOriginToLocation = (
     // StakingAdmin origin to be used in XCM as a corresponding Plurality `Location` value.
     StakingAdminToPlurality,
     // FellowshipAdmin origin to be used in XCM as a corresponding Plurality `Location` value.
+    // We might not need this, but we keep it in sync with the governance part at least.
     FellowshipAdminToPlurality,
     // `Treasurer` origin to be used in XCM as a corresponding Plurality `Location` value.
     TreasurerToPlurality,
@@ -563,13 +300,13 @@ impl pallet_xcm::Config for Runtime {
     // messages.
     type SendXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalPalletOriginToLocation>;
     type XcmRouter = XcmRouter;
-    // Anyone can execute XCM messages locally.
+    // Anyone can execute XCM messages locally (needed for teleporting).
     type ExecuteXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
     type XcmExecuteFilter = Everything;
     type XcmExecutor = xcm_executor::XcmExecutor<XcmConfig>;
     type XcmTeleportFilter = Everything; // == Allow All
     type XcmReserveTransferFilter = Everything; // == Allow All
-    type Weigher = WeightInfoBounds<EmptyXCMWeights, RuntimeCall, MaxInstructions>;
+    type Weigher = WeightInfoBounds<XcmZKVWeight<RuntimeCall>, RuntimeCall, MaxInstructions>;
     type UniversalLocation = UniversalLocation;
     type RuntimeOrigin = RuntimeOrigin;
     type RuntimeCall = RuntimeCall;
@@ -582,6 +319,6 @@ impl pallet_xcm::Config for Runtime {
     type MaxLockers = ConstU32<8>;
     type MaxRemoteLockConsumers = ConstU32<0>;
     type RemoteLockConsumerIdentifier = ();
-    type WeightInfo = EmptyXCMWeights; //crate::weights::pallet_xcm::WeightInfo<Runtime>;
+    type WeightInfo = XcmPalletZKVWeight<Runtime>;
     type AdminOrigin = EnsureRoot<AccountId>;
 }

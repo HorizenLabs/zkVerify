@@ -277,6 +277,7 @@ sc-utils = { version = "17.0.0" }
 sp-application-crypto = { version = "34.0.0", default-features = false }
 pallet-indices = { version = "32.0.0", default-features = false }
 pallet-xcm = { version = "11.0.0", default-features = false }
+pallet-xcm-benchmarks = { version = "11.0.0", default-features = false }
 xcm-builder = { package = "staging-xcm-builder", version = "11.0.0", default-features = false }
 xcm-executor = { package = "staging-xcm-executor", version = "11.0.0", default-features = false }
 xcm = { package = "staging-xcm", version = "11.0.0", default-features = false }
