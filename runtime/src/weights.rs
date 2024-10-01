@@ -48,6 +48,10 @@ pub mod pallet_ultraplonk_verifier;
 pub mod pallet_utility;
 pub mod pallet_vesting;
 pub mod pallet_whitelist;
+#[cfg(feature = "relay")]
+pub mod pallet_xcm;
 pub mod pallet_zksync_verifier;
+#[cfg(feature = "relay")]
+pub mod xcm;
 
 pub mod parachains;

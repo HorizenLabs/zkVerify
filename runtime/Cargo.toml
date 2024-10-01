@@ -102,15 +102,18 @@ polkadot-runtime-common = { workspace = true, optional = true }
 
 pallet-message-queue = { workspace = true }
 pallet-xcm = { workspace = true, optional = true }
+pallet-xcm-benchmarks = { workspace = true, optional = true }
 xcm-builder = { workspace = true, optional = true }
 xcm-executor = { workspace = true, optional = true }
 xcm = { workspace = true, optional = true }
+hex-literal = { workspace = true }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
 
 [features]
 runtime-benchmarks = [
+<<<<<<< HEAD
 	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system-benchmarking/runtime-benchmarks",
@@ -153,6 +156,7 @@ runtime-benchmarks = [
 	"xcm-builder?/runtime-benchmarks",
 	"xcm-executor?/runtime-benchmarks",
 	"pallet-xcm?/runtime-benchmarks",
+	"pallet-xcm-benchmarks?/runtime-benchmarks",
 ]
 fast-runtime = []
 relay = [
@@ -165,10 +169,12 @@ relay = [
   "dep:xcm-builder",
   "dep:xcm-executor",
   "dep:pallet-xcm",
+  "dep:pallet-xcm-benchmarks",
 ]
 add-parachain-upgrade = ["relay"]
 default = ["std"]
 std = [
+<<<<<<< HEAD
 	"codec/std",
 	"finality-grandpa/std",
 	"frame-benchmarking?/std",
@@ -205,6 +211,7 @@ std = [
 	"pallet-transaction-payment/std",
 	"pallet-message-queue/std",
 	"pallet-xcm?/std",
+	"pallet-xcm-benchmarks?/std",
 	"pallet-proxy/std",
 	"pallet-verifiers/std",
 	"pallet-poe/std",
