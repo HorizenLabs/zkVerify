@@ -138,6 +138,7 @@ pub mod currency {
     pub const THOUSANDS: Balance = 1_000 * ACME;
     pub const MILLIONS: Balance = 1_000 * THOUSANDS;
     pub const MILLICENTS: Balance = CENTS / 1_000;
+    pub const EXISTENTIAL_DEPOSIT: Balance = MILLICENTS;
     pub const fn deposit(items: u32, bytes: u32) -> Balance {
         items as Balance * 200 * CENTS + (bytes as Balance) * 100 * MILLICENTS
     }
@@ -366,19 +367,21 @@ impl pallet_timestamp::Config for Runtime {
     type WeightInfo = weights::pallet_timestamp::ZKVWeight<Runtime>;
 }
 
-/// Existential deposit.
-pub const EXISTENTIAL_DEPOSIT: u128 = MILLICENTS;
+parameter_types! {
+    /// Existential deposit.
+    pub const ExistentialDeposit: Balance = EXISTENTIAL_DEPOSIT;
+}
 
 impl pallet_balances::Config for Runtime {
     type MaxLocks = ConstU32<50>;
-    type MaxReserves = ();
+    type MaxReserves = ConstU32<50>;
     type ReserveIdentifier = [u8; 8];
     /// The type for recording an account's balance.
     type Balance = Balance;
     /// The ubiquitous event type.
     type RuntimeEvent = RuntimeEvent;
     type DustRemoval = ();
-    type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;
+    type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
     type WeightInfo = weights::pallet_balances::ZKVWeight<Runtime>;
     type FreezeIdentifier = ();
@@ -1109,6 +1112,10 @@ mod benches {
         [crate::parachains::paras, Paras]
         [crate::parachains::paras_inherent, ParaInherent]
         [pallet_message_queue, MessageQueue]
+        // xcm
+        [pallet_xcm, xcm::XcmPalletBench::<Runtime>]
+        [xcm::pallet_xcm_benchmarks_fungible, xcm::XcmPalletBenchFungible::<Runtime>]
+        [xcm::pallet_xcm_benchmarks_generic, xcm::XcmPalletBenchGeneric::<Runtime>]
     );
 }
 
@@ -1546,6 +1553,13 @@ impl_runtime_apis! {
             use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
             use pallet_proofofsql_verifier::benchmarking::Pallet as ProofOfSqlVerifierBench;
 
+            #[cfg(feature = "relay")]
+            pub mod xcm {
+                pub use pallet_xcm::benchmarking::Pallet as XcmPalletBench;
+                pub use pallet_xcm_benchmarks::fungible::Pallet as XcmPalletBenchFungible;
+                pub use pallet_xcm_benchmarks::generic::Pallet as XcmPalletBenchGeneric;
+            }
+
             let mut list = Vec::<BenchmarkList>::new();
 
             list_benchmarks!(list, extra);
@@ -1569,6 +1583,159 @@ impl_runtime_apis! {
             use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
             use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
             use pallet_proofofsql_verifier::benchmarking::Pallet as ProofOfSqlVerifierBench;
+
+            #[cfg(feature = "relay")]
+            pub mod xcm {
+                use super::*;
+                use xcm::v4::{Asset, AssetId, Assets, Location, InteriorLocation, Junction, Junctions::Here, NetworkId, Response};
+                use frame_benchmarking::BenchmarkError;
+
+                pub use pallet_xcm::benchmarking::Pallet as XcmPalletBench;
+                pub use pallet_xcm_benchmarks::fungible::Pallet as XcmPalletBenchFungible;
+                pub use pallet_xcm_benchmarks::generic::Pallet as XcmPalletBenchGeneric;
+
+                parameter_types! {
+                    pub ExistentialDepositAsset: Option<Asset> = Some((
+                        xcm_config::TokenLocation::get(),
+                        ExistentialDeposit::get()
+                    ).into());
+                    pub const TestParaId: ParaId = ParaId::new(xcm_config::TEST_PARA_ID);
+                    pub const RndParaId: ParaId = ParaId::new(123456);
+                }
+
+                impl pallet_xcm::benchmarking::Config for Runtime {
+                    type DeliveryHelper = (
+                        polkadot_runtime_common::xcm_sender::ToParachainDeliveryHelper<
+                            xcm_config::XcmConfig,
+                            ExistentialDepositAsset,
+                            xcm_config::PriceForChildParachainDelivery,
+                            TestParaId,
+                            ()
+                        >,
+                        polkadot_runtime_common::xcm_sender::ToParachainDeliveryHelper<
+                            xcm_config::XcmConfig,
+                            ExistentialDepositAsset,
+                            xcm_config::PriceForChildParachainDelivery,
+                            RndParaId,
+                            ()
+                        >,
+                    );
+
+                    fn get_asset() -> Asset {
+                        Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                        }
+                    }
+                }
+
+                impl pallet_xcm_benchmarks::Config for Runtime {
+                    type XcmConfig = xcm_config::XcmConfig;
+                    type AccountIdConverter = xcm_config::SovereignAccountOf;
+                    type DeliveryHelper = (
+                        polkadot_runtime_common::xcm_sender::ToParachainDeliveryHelper<
+                            xcm_config::XcmConfig,
+                            ExistentialDepositAsset,
+                            xcm_config::PriceForChildParachainDelivery,
+                            TestParaId,
+                            ()
+                        >,
+                    );
+                    fn valid_destination() -> Result<Location, BenchmarkError> {
+                        Ok(xcm_config::TestParaLocation::get())
+                    }
+                    fn worst_case_holding(_depositable_count: u32) -> Assets {
+                        vec![Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ACME),
+                        }].into()
+                    }
+                }
+
+                parameter_types! {
+                    pub TrustedTeleporter: Option<(Location, Asset)> = Some((
+                        xcm_config::TestParaLocation::get(),
+                        Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                        },
+                    ));
+                    pub const TrustedReserve: Option<(Location, Asset)> = None;
+                }
+
+                impl pallet_xcm_benchmarks::fungible::Config for Runtime {
+                    type TransactAsset = Balances;
+                    type CheckedAccount = xcm_config::LocalCheckAccount;
+                    type TrustedTeleporter = TrustedTeleporter;
+                    type TrustedReserve = TrustedReserve;
+
+                    fn get_asset() -> Asset {
+                        Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                        }
+                    }
+                }
+
+                impl pallet_xcm_benchmarks::generic::Config for Runtime {
+                    type TransactAsset = Balances;
+                    type RuntimeCall = RuntimeCall;
+
+                    fn worst_case_response() -> (u64, Response) {
+                        (0u64, Response::Version(Default::default()))
+                    }
+
+                    fn worst_case_asset_exchange() -> Result<(Assets, Assets), BenchmarkError> {
+                        // ZKV doesn't support asset exchanges
+                        Err(BenchmarkError::Skip)
+                    }
+
+                    fn universal_alias() -> Result<(Location, Junction), BenchmarkError> {
+                        // The XCM executor of ZKV doesn't have a configured `UniversalAliases`
+                        Err(BenchmarkError::Skip)
+                    }
+
+                    fn transact_origin_and_runtime_call() -> Result<(Location, RuntimeCall), BenchmarkError> {
+                        Ok((xcm_config::TestParaLocation::get(), frame_system::Call::remark_with_event { remark: vec![] }.into()))
+                    }
+
+                    fn subscribe_origin() -> Result<Location, BenchmarkError> {
+                        Ok(xcm_config::TestParaLocation::get())
+                    }
+
+                    fn claimable_asset() -> Result<(Location, Location, Assets), BenchmarkError> {
+                        // an asset that can be trapped and claimed
+                        let origin = xcm_config::TestParaLocation::get();
+                        let assets: Assets = (AssetId(xcm_config::TokenLocation::get()), ACME).into();
+                        let ticket = Location { parents: 0, interior: Here };
+                        Ok((origin, ticket, assets))
+                    }
+
+                    fn fee_asset() -> Result<Asset, BenchmarkError> {
+                        Ok(Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                        })
+                    }
+
+                    fn unlockable_asset() -> Result<(Location, Location, Asset), BenchmarkError> {
+                        // ZKV doesn't support asset locking
+                        Err(BenchmarkError::Skip)
+                    }
+
+                    fn export_message_origin_and_destination(
+                    ) -> Result<(Location, NetworkId, InteriorLocation), BenchmarkError> {
+                        // ZKV doesn't support exporting messages
+                        Err(BenchmarkError::Skip)
+                    }
+
+                    fn alias_origin() -> Result<(Location, Location), BenchmarkError> {
+                        // The XCM executor of ZKV doesn't have a configured `Aliasers`
+                        Err(BenchmarkError::Skip)
+                    }
+                }
+            }
+
 
             impl frame_system_benchmarking::Config for Runtime {}
             impl baseline::Config for Runtime {}
