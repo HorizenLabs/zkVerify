@@ -57,6 +57,7 @@ use crate::currency::CENTS;
 use sp_core::ConstU32;
 use xcm::latest::prelude::*;
 use xcm_builder::{
+    AllowUnpaidExecutionFrom,
     AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
     AllowTopLevelPaidExecutionFrom, ChildParachainAsNative, ChildParachainConvertsVia,
     DescribeAllTerminal, DescribeFamily, FrameTransactionalProcessor, FungibleAdapter,
@@ -65,6 +66,8 @@ use xcm_builder::{
     UsingComponents, WeightInfoBounds, WithComputedOrigin, WithUniqueTopic,
     XcmFeeManagerFromComponents, XcmFeeToAccount,
 };
+
+//use xcm::v4::Junctions::X1;
 
 pub struct EmptyXCMWeights;
 
@@ -441,12 +444,22 @@ impl Contains<Location> for LocalPlurality {
     }
 }
 
+//pub struct TestPara;
+//impl Contains<Location> for TestPara {
+//    fn contains(loc: &Location) -> bool {
+//        *loc == Location { parents: 0, interior: X1(TestParaLocation::get()) }
+//    }
+//}
+
+
+
 /// The barriers one of which must be passed for an XCM message to be executed.
 pub type Barrier = TrailingSetTopicAsId<(
     // Weight that is paid for may be consumed.
     TakeWeightCredit,
     // Expected responses are OK.
     AllowKnownQueryResponses<XcmPallet>,
+    AllowUnpaidExecutionFrom<OnlyParachains>,
     WithComputedOrigin<
         (
             // If the message is one that immediately attempts to pay for execution, then allow it.
