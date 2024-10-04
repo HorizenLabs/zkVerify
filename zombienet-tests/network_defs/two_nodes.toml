@@ -1,5 +1,5 @@
 # Network definition: two validator nodes
-# To spawn the network described in this file (from e2e-tests folder)
+# To spawn the network described in this file (from zombienet-tests folder)
 #     bin/zombienet-linux-x64 -p native spawn ./network_defs/two_nodes.toml
 # Additional debug information are printed to the console by setting the env var DEBUG:
 #     DEBUG=zombie* zombienet -p native spawn ./network_defs/two_nodes.toml

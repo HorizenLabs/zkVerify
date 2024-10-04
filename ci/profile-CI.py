@@ -21,7 +21,7 @@ DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 STOP_AFTER_PROCESSED_DEFAULT = 10
 SKIP_DEFAULT = 0
-JOBS_TO_PROFILE_DEFAULT = ['build-job / build', 'test-job / test', 'coverage-job / coverage', 'lint-format-job / lint-and-format', 'e2e-test-job / e2e-test']
+JOBS_TO_PROFILE_DEFAULT = ['build-job / build', 'test-job / test', 'coverage-job / coverage', 'lint-format-job / lint-and-format', 'zombienet-test-job / zombienet-test']
 
 def parse_arguments():
     """
