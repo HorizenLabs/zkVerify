@@ -16,6 +16,7 @@ members = [
     "pallets/verifiers",
     "pallets/verifiers/macros",
     "primitives/hp-verifiers",
+    "primitives/hp-groth16",
     "verifiers/fflonk",
     "verifiers/zksync",
     "verifiers/groth16",
@@ -65,6 +66,7 @@ pallet-poe = { path = "pallets/proof_of_existence", default-features = false }
 pallet-verifiers = { path = "pallets/verifiers", default-features = false }
 pallet-verifiers-macros = { path = "pallets/verifiers/macros" }
 hp-verifiers = { path = "primitives/hp-verifiers", default-features = false }
+hp-groth16 = { path = "primitives/hp-groth16", default-features = false }
 pallet-fflonk-verifier = { path = "verifiers/fflonk", default-features = false }
 pallet-zksync-verifier = { path = "verifiers/zksync", default-features = false }
 pallet-groth16-verifier = { path = "verifiers/groth16", default-features = false }

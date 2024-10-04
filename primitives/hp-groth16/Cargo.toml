@@ -1,0 +1,50 @@
+[package]
+name = "hp-groth16"
+description = "Provide the primitives for groth16 verifier"
+version = "0.1.0"
+license = "Apache-2.0"
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+publish = false
+
+[dependencies]
+codec = { workspace = true, features = ["max-encoded-len"] }
+scale-info = { workspace = true }
+sp-std = { workspace = true }
+sp-runtime-interface = { workspace = true }
+hp-verifiers = { workspace = true }
+
+
+# ARKWORKS
+ark-groth16 = { version = "0.4.0", default-features = false }
+ark-serialize = { version = "0.4.0", default-features = false }
+ark-ec = { version = "0.4.0", default-features = false }
+ark-ff = { version = "0.4.0", default-features = false }
+ark-crypto-primitives = { version = "0.4.0", default-features = false }
+ark-relations = { version = "0.4.0", default-features = false }
+ark-std = { version = "0.4.0", default-features = false }
+ark-bn254 = { version = "0.4.0", default-features = false, features = [
+    "curve",
+] }
+ark-bls12-381 = { version = "0.4.0", default-features = false, features = [
+    "curve",
+] }
+
+[dev-dependencies]
+frame-support = { workspace = true, features = ["std"] }
+rstest = { workspace = true }
+rstest_reuse = { workspace = true }
+hex-literal = { workspace = true }
+
+[features]
+default = ["std"]
+dummy-circuit = []
+std = [
+    "sp-runtime-interface/std",
+    "codec/std",
+    "scale-info/std",
+    "sp-std/std",
+    "hp-verifiers/std",
+]

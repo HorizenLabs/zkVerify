@@ -13,7 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg(any(test, feature = "runtime-benchmarks"))]
+#![cfg(any(test, feature = "dummy-circuit"))]
+
+//! This module contains a dummy circuit for Groth16 verification.
 
 use ark_crypto_primitives::snark::SNARK;
 use ark_ec::pairing::Pairing;
@@ -22,10 +24,12 @@ use ark_relations::r1cs::{ConstraintSynthesizer, ConstraintSystemRef, SynthesisE
 use ark_std::{rand::rngs::StdRng, rand::SeedableRng, UniformRand};
 use sp_std::vec::Vec;
 
-use crate::groth16_generic::{Groth16Generic, Proof, Scalar, VerificationKey};
+use crate::{Proof, Scalar, VerificationKey};
 
+/// A dummy circuit.
 #[derive(Clone, Debug)]
 pub struct DummyCircuit<F: PrimeField> {
+    /// Public inputs
     pub inputs: Vec<F>,
 }
 
@@ -38,30 +42,28 @@ impl<F: PrimeField> ConstraintSynthesizer<F> for DummyCircuit<F> {
     }
 }
 
-impl<E: Pairing> Groth16Generic<E> {
-    pub fn get_instance(
-        num_inputs: usize,
-        rng_seed: Option<u64>,
-    ) -> (Proof, VerificationKey, Vec<Scalar>) {
-        let rng = &mut StdRng::seed_from_u64(rng_seed.unwrap_or(0));
+/// Get an instance of a dummy circuit with the given number of inputs and random seed.
+pub fn get_instance<E: Pairing>(
+    num_inputs: usize,
+    rng_seed: Option<u64>,
+) -> (Proof, VerificationKey, Vec<Scalar>) {
+    let rng = &mut StdRng::seed_from_u64(rng_seed.unwrap_or(0));
 
-        let circuit = crate::dummy_circuit::DummyCircuit {
-            inputs: (0..num_inputs).map(|_| E::ScalarField::rand(rng)).collect(),
-        };
+    let circuit = crate::dummy_circuit::DummyCircuit {
+        inputs: (0..num_inputs).map(|_| E::ScalarField::rand(rng)).collect(),
+    };
 
-        let (pk, vk) =
-            ark_groth16::Groth16::<E>::circuit_specific_setup(circuit.clone(), rng).unwrap();
-        let proof = ark_groth16::Groth16::<E>::prove(&pk, circuit.clone(), rng).unwrap();
+    let (pk, vk) = ark_groth16::Groth16::<E>::circuit_specific_setup(circuit.clone(), rng).unwrap();
+    let proof = ark_groth16::Groth16::<E>::prove(&pk, circuit.clone(), rng).unwrap();
 
-        let proof: Proof = proof.try_into().unwrap();
-        let vk: VerificationKey = vk.try_into().unwrap();
-        let inputs: Vec<Scalar> = circuit
-            .inputs
-            .into_iter()
-            .map(Scalar::try_from_scalar)
-            .collect::<Result<Vec<_>, _>>()
-            .unwrap();
+    let proof: Proof = proof.try_into().unwrap();
+    let vk: VerificationKey = vk.try_into().unwrap();
+    let inputs: Vec<Scalar> = circuit
+        .inputs
+        .into_iter()
+        .map(Scalar::try_from_scalar)
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
 
-        (proof, vk, inputs)
-    }
+    (proof, vk, inputs)
 }

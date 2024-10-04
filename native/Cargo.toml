@@ -1,7 +1,8 @@
 [package]
 name = "native"
 description = "Provide a native implementation bridge for wasm executor"
-version = "0.2.0"
+version = "0.3.0"
+license = "Apache-2.0"
 edition.workspace = true
 authors.workspace = true
 repository.workspace = true
@@ -16,6 +17,7 @@ sp-runtime-interface = { workspace = true }
 codec = { workspace = true }
 log = "0.4.11"
 hp-verifiers = { workspace = true }
+hp-groth16 = { workspace = true }
 
 [build-dependencies]
 native-cache = { workspace = true, features = ["ultraplonk"] }
@@ -26,6 +28,7 @@ std = [
     "sp-runtime-interface/std",
     "codec/std",
     "hp-verifiers/std",
+    "hp-groth16/std",
     "dep:zksync-era-verifier",
     "dep:zksync-era-verifier-deserialize",
     "dep:risc0-verifier",

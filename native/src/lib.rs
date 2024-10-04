@@ -18,7 +18,9 @@
 use codec::{Decode, Encode};
 use sp_runtime_interface::pass_by::PassByCodec;
 
+mod groth16;
 mod risc0;
+mod ultraplonk;
 mod zksync;
 
 #[derive(PassByCodec, Encode, Decode)]
@@ -42,7 +44,6 @@ impl From<VerifyError> for hp_verifiers::VerifyError {
     }
 }
 
-mod ultraplonk;
 pub use zksync::zksync_verify;
 pub use zksync::PROOF_SIZE as ZKSYNC_PROOF_SIZE;
 pub use zksync::PUBS_SIZE as ZKSYNC_PUBS_SIZE;
@@ -60,9 +61,18 @@ pub use ultraplonk::PROOF_SIZE as ULTRAPLONK_PROOF_SIZE;
 pub use ultraplonk::PUBS_SIZE as ULTRAPLONK_PUBS_SIZE;
 pub use ultraplonk::VK_SIZE as ULTRAPLONK_VK_SIZE;
 
+pub use groth16::groth_16_bls_12_381_verify;
+#[cfg(feature = "std")]
+pub use groth16::groth_16_bls_12_381_verify::HostFunctions as Groth16Bls12VerifierHostFunctions;
+pub use groth16::groth_16_bn_254_verify;
+#[cfg(feature = "std")]
+pub use groth16::groth_16_bn_254_verify::HostFunctions as Groth16Bn254VerifierHostFunctions;
+
 #[cfg(feature = "std")]
 pub type HLNativeHostFunctions = (
     ZksyncVerifierHostFunctions,
     Risc0VerifierHostFunctions,
     UltraplonkVerifierHostFunctions,
+    Groth16Bn254VerifierHostFunctions,
+    Groth16Bls12VerifierHostFunctions,
 );

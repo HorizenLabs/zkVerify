@@ -15,20 +15,6 @@ targets = ["x86_64-unknown-linux-gnu"]
 hp-verifiers = { workspace = true }
 pallet-verifiers = { workspace = true }
 
-ark-groth16 = { version = "0.4.0", default-features = false }
-ark-bn254 = { version = "0.4.0", default-features = false, features = [
-    "curve",
-] }
-ark-bls12-381 = { version = "0.4.0", default-features = false, features = [
-    "curve",
-] }
-ark-serialize = { version = "0.4.0", default-features = false }
-ark-ec = { version = "0.4.0", default-features = false }
-ark-ff = { version = "0.4.0", default-features = false }
-ark-crypto-primitives = { version = "0.4.0", default-features = false }
-ark-relations = { version = "0.4.0", default-features = false }
-ark-std = { version = "0.4.0", default-features = false }
-
 codec = { workspace = true }
 scale-info = { workspace = true }
 
@@ -39,11 +25,14 @@ frame-system = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 sp-runtime = { workspace = true, optional = true }
 sp-io = { workspace = true, optional = true }
+native = { workspace = true }
+hp-groth16 = { workspace = true }
 
 [dev-dependencies]
 rstest = { workspace = true }
 rstest_reuse = { workspace = true }
 hex-literal = { workspace = true }
+hp-groth16 = { workspace = true, features = ["dummy-circuit"] }
 
 [features]
 std = [
@@ -54,6 +43,8 @@ std = [
     "sp-core/std",
     "sp-std/std",
     "frame-support/std",
+    "native/std",
+    "hp-groth16/std",
 ]
 default = ["std"]
 runtime-benchmarks = [
@@ -62,4 +53,5 @@ runtime-benchmarks = [
     "dep:sp-runtime",
     "pallet-verifiers/runtime-benchmarks",
     "frame-support/runtime-benchmarks",
+    "hp-groth16/dummy-circuit",
 ]
