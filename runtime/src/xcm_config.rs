@@ -17,6 +17,11 @@
 
 //! XCM configuration for Zkv.
 
+use xcm::opaque::v2::MultiLocation;
+use xcm_executor::traits::ConvertOrigin;
+use core::marker::PhantomData;
+use frame_support::traits::OriginTrait;
+
 use super::{
     AccountId,
     AllPalletsWithSystem,
@@ -381,6 +386,35 @@ pub type LocalAssetTransactor = FungibleAdapter<
     LocalCheckAccount,
 >;
 
+pub struct ParaSignedAccountId32AsNative<Origin>(PhantomData<Origin>);
+impl<Origin: OriginTrait> ConvertOrigin<Origin>
+    for ParaSignedAccountId32AsNative<Origin>
+where
+    Origin::AccountId: From<[u8; 32]>,
+{
+    fn convert_origin(
+        origin: impl Into<Location>,
+        kind: OriginKind,
+    ) -> Result<Origin, Location> {
+        let origin = origin.into();
+        log::trace!(
+            target: "xcm::origin_conversion",
+            "FOOOOOOOOOOOOOO origin: {:?}, kind: {:?}",
+            origin, kind,
+        );
+        match (kind, origin.unpack()) {
+            (
+                OriginKind::Native,
+                (0, [Parachain(1599), Junction::AccountId32{ id, .. }])
+                //Location { parents: 0, interior: [Parachain(1599)].into() },
+            ) =>
+                Ok(Origin::signed((*id).into())),
+            _ => Err(origin),
+        }
+    }
+}
+
+
 /// The means that we convert an XCM origin `Location` into the runtime's `Origin` type for
 /// local dispatch. This is a conversion function from an `OriginKind` type along with the
 /// `Location` value and returns an `Origin` value or an error.
@@ -394,6 +428,7 @@ type LocalOriginConverter = (
     // If the origin kind is `Native` and the XCM origin is the `AccountId32` location, then it can
     // be expressed using the `Signed` origin variant.
     SignedAccountId32AsNative<ThisNetwork, RuntimeOrigin>,
+    ParaSignedAccountId32AsNative<RuntimeOrigin>,
     // Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
     XcmPassthrough<RuntimeOrigin>,
 );
@@ -459,7 +494,7 @@ pub type Barrier = TrailingSetTopicAsId<(
     TakeWeightCredit,
     // Expected responses are OK.
     AllowKnownQueryResponses<XcmPallet>,
-    AllowUnpaidExecutionFrom<OnlyParachains>,
+    //AllowUnpaidExecutionFrom<OnlyParachains>,
     WithComputedOrigin<
         (
             // If the message is one that immediately attempts to pay for execution, then allow it.

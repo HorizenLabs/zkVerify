@@ -22,12 +22,14 @@ use parachains_common::xcm_config::ConcreteAssetFromSystem;
 use polkadot_runtime_common::impls::ToAuthor;
 use xcm::latest::prelude::*;
 use xcm_builder::{
+    ChildParachainConvertsVia,
     AccountId32Aliases, AllowUnpaidExecutionFrom, EnsureXcmOrigin, FixedWeightBounds,
     FrameTransactionalProcessor, FungibleAdapter, IsConcrete, MintLocation, NativeAsset,
     ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SignedAccountId32AsNative,
     SignedToAccountId32, SovereignSignedViaLocation, UsingComponents, WithUniqueTopic,
 };
 use xcm_executor::XcmExecutor;
+use crate::ParaId;
 
 parameter_types! {
     pub const RelayLocation: Location = Location::parent();
@@ -48,6 +50,7 @@ pub type LocationToAccountId = (
     //SiblingParachainConvertsVia<Sibling, AccountId>,
     //// Straight up local `AccountId32` origins just alias directly to `AccountId`.
     AccountId32Aliases<RelayNetwork, AccountId>,
+    ChildParachainConvertsVia<ParaId, AccountId>, 
 );
 
 /// Means for transacting assets on this chain.
