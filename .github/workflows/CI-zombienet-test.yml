@@ -1,6 +1,6 @@
-name: End-to-end-test
+name: Zombienet-test
 
-run-name: "Workflow CI/CD Steps: end-to-end test on zombienet"
+run-name: "Workflow CI/CD Steps: test on zombienet"
 
 on:
   workflow_call:

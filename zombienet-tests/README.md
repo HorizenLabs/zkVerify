@@ -1,4 +1,4 @@
-# zkVerify end-to-end tests
+# zkVerify zombienet tests
 
 ## TLDR
 
@@ -12,20 +12,20 @@
 
 - Compile zkVerify (debug or release mode).
 - Run from within the `zombienet-tests` directory:
-- - `yarn install`
-- - `yarn test`
+  - `yarn install`
+  - `yarn test`
 
 This will copy `zkv-node` to the `zombienet-tests/bin` directory and will download the zombienet binary in the same directory.
 
-It will then execute all the end-to-end test (all the `.zndsl` file listed in `test_runner.sh`).
+It will then execute all the zombienet test (all the `.zndsl` file listed in `test_runner.sh`).
 
 ---
 
 ## Description
 
-This folder contains the `zkVerify` end-to-end tests written for the Polkadot zombienet testing framework.
+This folder contains the `zkVerify` tests written for the Polkadot zombienet testing framework.
 
-Each end-to-end test requires the following files:
+Each zombienet test requires the following files:
 
 - A network configuration specification file, in `.toml` format; these are stored in the `zombienet-tests/network_defs`.
 - The test description, written in zombienet DSL and stored in a `.zndsl` file.
