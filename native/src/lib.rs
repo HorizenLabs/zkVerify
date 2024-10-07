@@ -68,11 +68,6 @@ pub use groth16::groth_16_bn_254_verify;
 #[cfg(feature = "std")]
 pub use groth16::groth_16_bn_254_verify::HostFunctions as Groth16Bn254VerifierHostFunctions;
 
-mod proofofsql;
-pub use proofofsql::proofofsql_verify;
-#[cfg(feature = "std")]
-pub use proofofsql::proofofsql_verify::HostFunctions as ProofofsqlVerifierHostFunctions;
-
 #[cfg(feature = "std")]
 pub type HLNativeHostFunctions = (
     ZksyncVerifierHostFunctions,
@@ -80,5 +75,4 @@ pub type HLNativeHostFunctions = (
     UltraplonkVerifierHostFunctions,
     Groth16Bn254VerifierHostFunctions,
     Groth16Bls12VerifierHostFunctions,
-    ProofofsqlVerifierHostFunctions,
 );

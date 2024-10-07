@@ -17,13 +17,16 @@
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use derivative::Derivative;
+use errors::ErrorWrapper;
 use frame_support::weights::Weight;
 use hp_verifiers::{Cow, Verifier, VerifyError};
+use proof_of_sql_verifier::VerificationKey;
 use scale_info::TypeInfo;
 use sp_core::Get;
 use sp_std::{marker::PhantomData, vec::Vec};
 
 pub mod benchmarking;
+mod errors;
 mod verifier_should;
 mod weight;
 pub use weight::WeightInfo;
@@ -36,7 +39,7 @@ pub struct Vk<T>(Vec<u8>, PhantomData<T>);
 impl<T: Config> Vk<T> {
     pub fn validate_size(&self) -> Result<(), VerifyError> {
         let max_nu = <T as Config>::largest_max_nu();
-        let max_vk_size = native::proofofsql_verify::verifier_key_size(max_nu) as usize;
+        let max_vk_size = VerificationKey::serialized_size(max_nu as usize);
         if self.0.len() > max_vk_size {
             Err(VerifyError::InvalidVerificationKey)
         } else {
@@ -54,7 +57,8 @@ impl<T> From<Vec<u8>> for Vk<T> {
 impl<T: Config> MaxEncodedLen for Vk<T> {
     fn max_encoded_len() -> usize {
         let max_nu = <T as Config>::largest_max_nu();
-        native::proofofsql_verify::verifier_key_size(max_nu) as usize
+        let len = VerificationKey::serialized_size(max_nu as usize);
+        codec::Compact(len as u32).encoded_size() + len
     }
 }
 
@@ -78,7 +82,7 @@ impl<T: Config> Verifier for ProofOfSql<T> {
     type Vk = Vk<T>;
 
     fn hash_context_data() -> &'static [u8] {
-        b"proofofsql"
+        b"proofofsql-v0.28"
     }
 
     fn verify_proof(
@@ -86,14 +90,25 @@ impl<T: Config> Verifier for ProofOfSql<T> {
         proof: &Self::Proof,
         pubs: &Self::Pubs,
     ) -> Result<(), VerifyError> {
-        log::trace!("Verifying (native)");
         vk.validate_size()?;
-        native::proofofsql_verify::verify(vk.0.as_slice(), proof, pubs).map_err(Into::into)
+        let proof = proof_of_sql_verifier::Proof::try_from(&proof[..])
+            .map_err(Into::<ErrorWrapper>::into)?;
+        let pubs = proof_of_sql_verifier::PublicInput::try_from(&pubs[..])
+            .map_err(Into::<ErrorWrapper>::into)?;
+        let vk = proof_of_sql_verifier::VerificationKey::try_from(&vk.0[..])
+            .map_err(Into::<ErrorWrapper>::into)?;
+        proof_of_sql_verifier::verify_proof(&proof, &pubs, &vk)
+            .map_err(Into::<ErrorWrapper>::into)?;
+        Ok(())
     }
 
     fn validate_vk(vk: &Self::Vk) -> Result<(), VerifyError> {
-        vk.validate_size()?;
-        native::proofofsql_verify::validate_vk(vk.0.as_slice()).map_err(Into::into)
+        vk.validate_size()
+            .inspect_err(|_| log::debug!("Verification key is too big"))?;
+        VerificationKey::try_from(vk.0.as_slice())
+            .inspect_err(|e| log::debug!("Cannot parse verification key: {:?}", e))
+            .map_err(|_| VerifyError::InvalidVerificationKey)?;
+        Ok(())
     }
 
     fn pubs_bytes(pubs: &Self::Pubs) -> Cow<[u8]> {
@@ -123,5 +138,69 @@ impl<T: Config, W: weight::WeightInfo> pallet_verifiers::WeightInfo<ProofOfSql<T
 
     fn register_vk(_vk: &<ProofOfSql<T> as hp_verifiers::Verifier>::Vk) -> Weight {
         W::register_vk()
+    }
+}
+
+#[cfg(test)]
+mod vk {
+    use super::*;
+
+    use frame_support::{assert_err, assert_ok};
+    use sp_core::ConstU32;
+
+    pub struct ConfigWithMaxNuEqualTo5;
+
+    impl Config for ConfigWithMaxNuEqualTo5 {
+        type LargestMaxNu = ConstU32<5>;
+    }
+
+    pub struct ConfigWithMaxNuEqualTo4;
+
+    impl Config for ConfigWithMaxNuEqualTo4 {
+        type LargestMaxNu = ConstU32<4>;
+    }
+
+    pub struct ConfigWithMaxNuEqualTo3;
+
+    impl Config for ConfigWithMaxNuEqualTo3 {
+        type LargestMaxNu = ConstU32<3>;
+    }
+
+    #[test]
+    fn length_should_match_max_encoded_len() {
+        let vk_with_nu_equal_to_4: <ProofOfSql<ConfigWithMaxNuEqualTo4> as Verifier>::Vk =
+            include_bytes!("resources/VALID_VK.bin").to_vec().into();
+        let encoded_len = vk_with_nu_equal_to_4.encode().len();
+        let expected_encoded_len =
+            <ProofOfSql<ConfigWithMaxNuEqualTo4> as Verifier>::Vk::max_encoded_len();
+        assert_eq!(encoded_len, expected_encoded_len);
+    }
+
+    mod max_encoded_len {
+        use super::*;
+
+        #[test]
+        fn should_reject_too_big_vk() {
+            let vk_with_nu_equal_to_4: <ProofOfSql<ConfigWithMaxNuEqualTo3> as Verifier>::Vk =
+                include_bytes!("resources/VALID_VK.bin").to_vec().into();
+            assert_err!(
+                vk_with_nu_equal_to_4.validate_size(),
+                VerifyError::InvalidVerificationKey
+            );
+        }
+
+        #[test]
+        fn should_accept_maximum_size_vk() {
+            let vk_with_nu_equal_to_4: <ProofOfSql<ConfigWithMaxNuEqualTo4> as Verifier>::Vk =
+                include_bytes!("resources/VALID_VK.bin").to_vec().into();
+            assert_ok!(vk_with_nu_equal_to_4.validate_size());
+        }
+
+        #[test]
+        fn should_accept_small_vk() {
+            let vk_with_nu_equal_to_4: <ProofOfSql<ConfigWithMaxNuEqualTo5> as Verifier>::Vk =
+                include_bytes!("resources/VALID_VK.bin").to_vec().into();
+            assert_ok!(vk_with_nu_equal_to_4.validate_size());
+        }
     }
 }
