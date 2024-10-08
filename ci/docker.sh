@@ -13,17 +13,28 @@ test_release="${TEST_RELEASE:-false}"
 github_ref_name="${GITHUB_REF_NAME:-}"
 common_file_location="${COMMON_FILE_LOCATION:-not-set}"
 docker_file_path='docker/dockerfiles/zkv-node.Dockerfile'
-commit_hash="${COMMIT_HASH:-}"
+image_artifact=""
 
 # Requirement
 if ! [ -f "${common_file_location}" ]; then
-  echo -e "\n\033[1;31mERROR: ${common_file_location} file is missing !!! Exiting ...\033[0m\n"
+  echo -e "\n\033[1;31mERROR: ${common_file_location} file is missing !!!  Exiting ...\033[0m\n"
   exit 1
 else
   # shellcheck disable=SC1090
   source "${common_file_location}"
 fi
 
+# Check for command-line options
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --image-artifact)
+      echo "Option --image-artifact was triggered with value: $2"
+      image_artifact="$2"
+      shift ;;
+    *) shift ;;
+  esac
+  shift
+done
 
 ####
 # Main
@@ -39,68 +50,45 @@ if [ -z "${docker_hub_username:-}" ]; then
 fi
 
 docker_tag_full=""
-publish_tags=()
-
-if [[ "${is_a_release}" == "true" ]]; then
+if [ "${is_a_release}" = "true" ]; then
   docker_tag_full="${github_ref_name}"
+fi
 
-  # Determine image tags based on release type
-  if [[ "${prod_release}" == "true" ]]; then
+# Building and publishing docker image
+if [ -n "${docker_tag_full:-}" ]; then
+  if [ -n "${image_artifact:-}" ]; then
+    log_info "=== Using Docker image artifact ==="
+    image_name=$(docker load -i /tmp/zkverify-image.tar | awk '/Loaded image:/ { print $3 }')
+    log_info "=== Loaded image $image_name ==="
+    log_info "=== Renaming image ==="
+    docker tag $image_name ${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}
+  else 
+    log_info "=== Building Docker image: ${docker_hub_org}/${docker_image_build_name}:${docker_tag_full} ==="
+    docker build --build-arg PROFILE=production -f "${docker_file_path}" -t "${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}" .
+  fi
+
+  # Publishing to DockerHub
+  log_info "=== Publishing Docker image(s) on Docker Hub ==="
+  echo "${docker_hub_token}" | docker login -u "${docker_hub_username}" --password-stdin
+
+  # Docker image(s) tags for PROD vs DEV release
+  if [ "${prod_release}" = "true" ]; then
     docker_tag_node="$(cut -d '-' -f1 <<< "${docker_tag_full}")"
     publish_tags=("${docker_tag_full}" "${docker_tag_node}" "latest")
-  elif [[ "${dev_release}" == "true" ]]; then
+  elif [ "${dev_release}" = "true" ]; then
     docker_tag_node="$(cut -d '-' -f1 <<< "${docker_tag_full}")-$(cut -d '-' -f3- <<< "${docker_tag_full}")"
     publish_tags=("${docker_tag_full}" "${docker_tag_node}")
-  elif [[ "${test_release}" == "true" ]]; then
+  elif [ "${test_release}" = "true" ]; then
     publish_tags=("${docker_tag_full}")
-  else
-    fn_die "ERROR: No valid release type specified for IS_A_RELEASE=true."
   fi
 
-  # Build and publish images to DockerHub (and private repo if set)
-  # Build the Docker image
-  log_info "=== Building Docker image: ${docker_image_build_name}:${docker_tag_full} ==="
-  docker build --build-arg PROFILE=production -f "${docker_file_path}" -t "${docker_image_build_name}:${docker_tag_full}" .
-
-  # Login to DockerHub
-  log_info "=== Publishing Docker image(s) on Docker Hub ==="
-  echo "${docker_hub_token}" | docker login -u "${docker_hub_username}" --password-stdin
-
-  # Tag and push to DockerHub
   for publish_tag in "${publish_tags[@]}"; do
-    log_info "Publishing docker image to Docker Hub: ${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
-    docker tag "${docker_image_build_name}:${docker_tag_full}" "${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
-    docker push "${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
+    log_info "Publishing docker image: ${docker_image_build_name}:${publish_tag}"
+    # docker tag "${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}" "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
+    # docker push "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
   done
-
-elif [[ "${is_a_release}" == "false" && "${test_release}" == "true" && "${docker_image_build_name}" == "zkverify-dev" ]]; then
-  # IS_A_RELEASE is false, but PRIVATE_DOCKER_REPO is set and TEST_RELEASE is true
-  if [[ -n "${commit_hash:-}" ]]; then
-    docker_tag_full="${commit_hash}"
-  else
-    docker_tag_full="test"
-  fi
-  publish_tags=("${docker_tag_full}")
-
-  # Build and publish images to PRIVATE_DOCKER_REPO only
-  # Build the Docker image
-  log_info "=== Building Docker image: ${docker_image_build_name}:${docker_tag_full} ==="
-  docker build --build-arg PROFILE=production -f "${docker_file_path}" -t "${docker_image_build_name}:${docker_tag_full}" .
-
-   # Login to DockerHub
-  log_info "=== Publishing Docker image(s) on Docker Hub ==="
-  echo "${docker_hub_token}" | docker login -u "${docker_hub_username}" --password-stdin
-
-  # Tag and push to Private Repository
-  for publish_tag in "${publish_tags[@]}"; do
-    log_info "Publishing docker image to Private Repository: ${docker_image_build_name}:${publish_tag}"
-    docker tag "${docker_image_build_name}:${docker_tag_full}" "${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
-    docker push "${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
-  done
-
 else
-  # Do not build images
-  log_warn "Build does not meet the criteria for image building. No Docker images were built or published."
+  fn_die "ERROR: the build did NOT satisfy RELEASE build requirements. Docker image(s) was(were) NOT build and/or published."
 fi
 
 exit 0
