@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+-[0-9]+.[0-9]+.[0-9]+*"
+    branches:
+      - feat/web3-943-post-merge-pipeline
   workflow_dispatch:
 
 env:
@@ -12,7 +14,7 @@ env:
 jobs:
   execute-system-tests:
     name: Execute System Tests
-    uses: HorizenLabs/zkVerify-qa/.github/workflows/CI-e2e-tests.yml@yuriko/WEB3-927-test
+    uses: HorizenLabs/zkVerify-qa/.github/workflows/CI-e2e-tests.yml@yuriko/WEB3-927
     with:
       zkverify_version: ${{ github.ref_name }}
     secrets:

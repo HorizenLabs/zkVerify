@@ -58,10 +58,10 @@ fi
 if [ -n "${docker_tag_full:-}" ]; then
   if [ -n "${image_artifact:-}" ]; then
     log_info "=== Using Docker image artifact ==="
-    image_name=$(docker load -i /tmp/zkverify-image.tar | awk '/Loaded image:/ { print $3 }')
-    log_info "=== Loaded image $image_name ==="
+    image_name=$(docker load -i /tmp/${image_artifact}.tar | awk '/Loaded image:/ { print $3 }')
+    log_info "=== Loaded image ${image_name} ==="
     log_info "=== Renaming image ==="
-    docker tag $image_name ${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}
+    docker tag "${image_name}" "${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}"
   else 
     log_info "=== Building Docker image: ${docker_hub_org}/${docker_image_build_name}:${docker_tag_full} ==="
     docker build --build-arg PROFILE=production -f "${docker_file_path}" -t "${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}" .
