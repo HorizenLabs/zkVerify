@@ -46,5 +46,9 @@ pub mod pallet_utility;
 pub mod pallet_vesting;
 pub mod pallet_whitelist;
 pub mod pallet_zksync_verifier;
+#[cfg(feature = "relay")]
+pub mod pallet_xcm;
+#[cfg(feature = "relay")]
+pub mod xcm;
 
 pub mod parachains;

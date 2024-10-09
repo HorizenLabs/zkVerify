@@ -100,6 +100,7 @@ polkadot-runtime-common = { workspace = true, optional = true }
 
 pallet-message-queue = { workspace = true }
 pallet-xcm = { workspace = true, optional = true }
+pallet-xcm-benchmarks = { workspace = true, optional = true }
 xcm-builder = { workspace = true, optional = true }
 xcm-executor = { workspace = true, optional = true }
 xcm = { workspace = true, optional = true }
@@ -185,6 +186,7 @@ runtime-benchmarks = [
   "xcm-builder?/runtime-benchmarks",
   "xcm-executor?/runtime-benchmarks",
   "pallet-xcm?/runtime-benchmarks",
+  "pallet-xcm-benchmarks?/runtime-benchmarks",
 ]
 fast-runtime = []
 relay = [
@@ -197,6 +199,7 @@ relay = [
   "dep:xcm-builder",
   "dep:xcm-executor",
   "dep:pallet-xcm",
+  "dep:pallet-xcm-benchmarks",
 ]
 add-parachain-upgrade = ["relay"]
 default = ["std"]
@@ -237,6 +240,7 @@ std = [
   "pallet-transaction-payment/std",
   "pallet-message-queue/std",
   "pallet-xcm?/std",
+  "pallet-xcm-benchmarks?/std",
   "pallet-verifiers/std",
   "pallet-poe/std",
   "proof-of-existence-rpc-runtime-api/std",
