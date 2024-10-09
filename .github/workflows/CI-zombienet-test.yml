@@ -1,6 +1,6 @@
-name: End-to-end-test
+name: Zombienet-test
 
-run-name: "Workflow CI/CD Steps: end-to-end test on zombienet"
+run-name: "Workflow CI/CD Steps: test on zombienet"
 
 on:
   workflow_call:
@@ -18,7 +18,7 @@ env:
   CMAKE_INSTALL: true
 
 jobs:
-  e2e-test:
+  zombienet-test:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
@@ -39,7 +39,7 @@ jobs:
             deps/
           key: common-cache
     
-      - name: Restore e2e-test cache
+      - name: Restore zombienet-test cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
         uses: actions/cache/restore@v3
         with:
@@ -62,17 +62,17 @@ jobs:
         run: |
           ${{ env.DOCKER_COMPOSE_CMD }} /bin/bash -c '
             set -o pipefail \
-            && cd ${{ env.DOCKER_BUILD_DIR }}/e2e-tests \
+            && cd ${{ env.DOCKER_BUILD_DIR }}/zombienet-tests \
             && yarn install \
-            && yarn test 2>&1 | tee ${{ env.DOCKER_BUILD_DIR }}/e2e_test_output.txt
+            && yarn test 2>&1 | tee ${{ env.DOCKER_BUILD_DIR }}/zombienet_test_output.txt
           '
           
       - name: Upload output(s)
         if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-test-output
-          path: e2e_test_output.txt
+          name: zombienet-test-output
+          path: zombienet_test_output.txt
           if-no-files-found: warn
           retention-days: 1
           compression-level: 0

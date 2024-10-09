@@ -5,7 +5,7 @@ set -eEuo pipefail
 unit_test_file="./test-output/unit_tests_output.txt"
 integration_test_file="./test-output/integration_tests_output.txt"
 coverage_report_file="./coverage-output/coverage_report.json"
-e2e_test_file="./e2e-test-output/e2e_test_output.txt"
+zombienet_test_file="./zombienet-test-output/zombienet_test_output.txt"
 
 # Initialize counters for unit tests
 unit_total_passed=0
@@ -19,10 +19,10 @@ integration_total_failed=0
 integration_total_ignored=0
 integration_total_runtime=0.0
 
-# Initialize counters for e2e tests
-e2e_total_passed=0
-e2e_total_failed=0
-e2e_total_runtime=0.0
+# Initialize counters for zombienet tests
+zombienet_total_passed=0
+zombienet_total_failed=0
+zombienet_total_runtime=0.0
 
 process_test_file() {
   local file_type="$1" # "unit" or "integration"
@@ -98,21 +98,21 @@ else
     echo "COVERAGE_SUMMARY=Coverage data not found." >> $GITHUB_ENV
 fi
 
-# Process e2e test file
-if [ -f "${e2e_test_file}" ]; then
+# Process zombienet test file
+if [ -f "${zombienet_test_file}" ]; then
   while IFS= read -r line; do
     if [[ "{$line}" == *"Passed tests:"* ]]; then
-      e2e_total_passed=$(echo "${line}" | grep -o -E '[[:space:]]+[0-9]+[[:space:]]+' | grep -o -E '[0-9]+') # colors handling
+      zombienet_total_passed=$(echo "${line}" | grep -o -E '[[:space:]]+[0-9]+[[:space:]]+' | grep -o -E '[0-9]+') # colors handling
     elif [[ "{$line}" == *"Failed tests:"* ]]; then
-      e2e_total_failed=$(echo "${line}" | grep -o -E '[[:space:]]+[0-9]+[[:space:]]+' | grep -o -E '[0-9]+') # colors handling
+      zombienet_total_failed=$(echo "${line}" | grep -o -E '[[:space:]]+[0-9]+[[:space:]]+' | grep -o -E '[0-9]+') # colors handling
     elif [[ "{$line}" == *"Done in"* ]]; then
-      e2e_total_runtime=$(echo "${line}" | sed 's/..$//' | grep -o -E '[0-9.]+')
+      zombienet_total_runtime=$(echo "${line}" | sed 's/..$//' | grep -o -E '[0-9.]+')
     fi
-  done < "$e2e_test_file"
+  done < "$zombienet_test_file"
 else
-  echo "E2E_TEST_SUMMARY=e2e test output not found." >> $GITHUB_ENV
+  echo "ZOMBIENET_TEST_SUMMARY=zombienet test output not found." >> $GITHUB_ENV
 fi
-passed_formatted="*Passed*: ${e2e_total_passed}"
-failed_formatted="*Failed*: ${e2e_total_failed}"
-runtime_formatted="*Runtime*: ${e2e_total_runtime}s"
-echo "E2E_TEST_SUMMARY=*E2E Tests |* ${passed_formatted}, ${failed_formatted}, ${runtime_formatted}" >> $GITHUB_ENV
+passed_formatted="*Passed*: ${zombienet_total_passed}"
+failed_formatted="*Failed*: ${zombienet_total_failed}"
+runtime_formatted="*Runtime*: ${zombienet_total_runtime}s"
+echo "ZOMBIENET_TEST_SUMMARY=*ZOMBIENET Tests |* ${passed_formatted}, ${failed_formatted}, ${runtime_formatted}" >> $GITHUB_ENV
