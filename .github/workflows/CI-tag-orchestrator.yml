@@ -16,7 +16,8 @@ jobs:
     name: Execute System Tests
     uses: HorizenLabs/zkVerify-qa/.github/workflows/CI-e2e-tests.yml@yuriko/yuriko/WEB3-927-test
     with:
-      zkverify_version: ${{ github.ref_name }}
+      # zkverify_version: ${{ github.ref_name }}
+      zkverify_docker_tag: latest
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
