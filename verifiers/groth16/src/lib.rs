@@ -16,18 +16,14 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod benchmarking;
-mod data_structures;
-mod dummy_circuit;
 mod groth16;
-mod groth16_generic;
 mod verifier_should;
 mod weight;
 
 use core::marker::PhantomData;
-
-use data_structures::Scalar;
-use groth16::{Curve, Groth16Error};
+use groth16::Curve;
 pub use groth16::{ProofWithCurve as Proof, VerificationKeyWithCurve as Vk};
+use hp_groth16::Scalar;
 use hp_verifiers::Verifier;
 use sp_std::vec::Vec;
 
@@ -86,26 +82,10 @@ impl<T: Config> Verifier for Groth16<T> {
         let curve = vk.curve;
         let vk = vk.clone().vk();
         match curve {
-            Curve::Bn254 => ark_groth16::VerifyingKey::<ark_bn254::Bn254>::try_from(vk)
-                .map(|_| ())
-                .map_err(|_| hp_verifiers::VerifyError::InvalidVerificationKey),
-            Curve::Bls12_381 => ark_groth16::VerifyingKey::<ark_bls12_381::Bls12_381>::try_from(vk)
-                .map(|_| ())
-                .map_err(|_| hp_verifiers::VerifyError::InvalidVerificationKey),
+            Curve::Bn254 => native::groth_16_bn_254_verify::validate_key(vk),
+            Curve::Bls12_381 => native::groth_16_bls_12_381_verify::validate_key(vk),
         }
-    }
-}
-
-impl From<Groth16Error> for hp_verifiers::VerifyError {
-    fn from(error: Groth16Error) -> Self {
-        match error {
-            Groth16Error::InvalidProof => hp_verifiers::VerifyError::InvalidProofData,
-            Groth16Error::InvalidVerificationKey => {
-                hp_verifiers::VerifyError::InvalidVerificationKey
-            }
-            Groth16Error::InvalidInput => hp_verifiers::VerifyError::InvalidInput,
-            Groth16Error::VerifyError => hp_verifiers::VerifyError::VerifyError,
-        }
+        .map_err(Into::into)
     }
 }
 
