@@ -10,7 +10,7 @@ is_a_release="${IS_A_RELEASE:-false}"
 prod_release="${PROD_RELEASE:-false}"
 dev_release="${DEV_RELEASE:-false}"
 test_release="${TEST_RELEASE:-false}"
-github_ref_name="${GITHUB_REF_NAME:-}"
+github_ref_name="${GITHUB_REF_NAME:-test}"
 common_file_location="${COMMON_FILE_LOCATION:-not-set}"
 docker_file_path='docker/dockerfiles/zkv-node.Dockerfile'
 image_artifact=""
@@ -50,9 +50,9 @@ if [ -z "${docker_hub_username:-}" ]; then
 fi
 
 docker_tag_full=""
-if [ "${is_a_release}" = "true" ]; then
+# if [ "${is_a_release}" = "true" ]; then
   docker_tag_full="${github_ref_name}"
-fi
+# fi
 
 # Building and publishing docker image
 if [ -n "${docker_tag_full:-}" ]; then
