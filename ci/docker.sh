@@ -58,7 +58,8 @@ docker_tag_full=""
 if [ -n "${docker_tag_full:-}" ]; then
   if [ -n "${image_artifact:-}" ]; then
     log_info "=== Using Docker image artifact ==="
-    image_name=$(docker load -i ${image_artifact}.tar | awk '/Loaded image:/ { print $3 }')
+    log_info "Using GITHUB_WORKSPACE: ${GITHUB_WORKSPACE}"
+    image_name=$(docker load -i ${GITHUB_WORKSPACE}/${image_artifact}.tar | awk '/Loaded image:/ { print $3 }')
     log_info "=== Loaded image ${image_name} ==="
     log_info "=== Renaming image ==="
     docker tag "${image_name}" "${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}"
