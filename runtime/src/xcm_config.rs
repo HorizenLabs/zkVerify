@@ -17,10 +17,9 @@
 
 //! XCM configuration for Zkv.
 
-use xcm::opaque::v2::MultiLocation;
-use xcm_executor::traits::ConvertOrigin;
 use core::marker::PhantomData;
 use frame_support::traits::OriginTrait;
+use xcm_executor::traits::ConvertOrigin;
 
 use super::{
     AccountId,
@@ -43,7 +42,6 @@ use crate::{
 use frame_support::{
     parameter_types,
     traits::{Contains, Equals, Everything, Nothing},
-    PalletId,
 };
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
@@ -51,18 +49,11 @@ use polkadot_runtime_common::{
     xcm_sender::{ChildParachainRouter, ExponentialPrice},
     ToAuthor,
 };
-use sp_runtime::traits::AccountIdConversion;
-use xcm::DoubleEncoded;
-//use polkadot_runtime_constants::{
-//	system_parachain::*,
-//};
-pub const FELLOWSHIP_ADMIN_INDEX: u32 = 1; // to be moved to some constants mod
 
 use crate::currency::CENTS;
 use sp_core::ConstU32;
 use xcm::latest::prelude::*;
 use xcm_builder::{
-    AllowUnpaidExecutionFrom,
     AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
     AllowTopLevelPaidExecutionFrom, ChildParachainAsNative, ChildParachainConvertsVia,
     DescribeAllTerminal, DescribeFamily, FrameTransactionalProcessor, FungibleAdapter,
@@ -74,7 +65,9 @@ use xcm_builder::{
 
 use crate::weights::pallet_xcm::ZKVWeight as XcmPalletZKVWeight;
 use crate::weights::xcm::ZKVWeight as XcmZKVWeight;
-//use xcm::v4::Junctions::X1;
+
+const ZKV_GENESIS_HASH: [u8; 32] =
+    hex_literal::hex!("e2a4f521dbcba897cd2359adc5e7725f409b17f9ae129737904e5e8939c22a05");
 
 parameter_types! {
     pub const RootLocation: Location = Here.into_location();
@@ -82,8 +75,8 @@ parameter_types! {
     /// chain, we make it synonymous with it and thus it is the `Here` location, which means "equivalent to
     /// the context".
     pub const TokenLocation: Location = Here.into_location();
-    /// The Polkadot network ID. This is named.
-    pub const ThisNetwork: NetworkId = NetworkId::Polkadot;
+    /// The ZKV network ID.
+    pub const ThisNetwork: NetworkId = NetworkId::ByGenesis(ZKV_GENESIS_HASH);
     /// Our location in the universe of consensus systems.
     pub UniversalLocation: InteriorLocation = [GlobalConsensus(ThisNetwork::get())].into();
     /// The Checking Account, which holds any native assets that have been teleported out and not back in (yet).
@@ -91,17 +84,18 @@ parameter_types! {
     /// The Checking Account along with the indication that the local chain is able to mint tokens.
     pub LocalCheckAccount: (AccountId, MintLocation) = (CheckAccount::get(), MintLocation::Local);
     /// Account of the treasury pallet.
-    pub TreasuryAccount: AccountId = PalletId(*b"zk/trsry").into_account_truncating(); //Treasury::account_id();
+    pub TreasuryAccount: AccountId = crate::Treasury::account_id();
 }
 
 /// The canonical means of converting a `Location` into an `AccountId`, used when we want to
 /// determine the sovereign account controlled by a location.
 pub type SovereignAccountOf = (
-    // We can convert a child parachain using the standard `AccountId` conversion.
+    // Child parachain id to its local sovereign `AccountId`.
     ChildParachainConvertsVia<ParaId, AccountId>,
-    // We can directly alias an `AccountId32` into a local account.
+    // `AccountId32` location on the local chain to a local account.
     AccountId32Aliases<ThisNetwork, AccountId>,
-    // Foreign locations alias into accounts according to a hash of their standard description.
+    // Foreign locations alias into accounts according to a hash of their standard description
+    // (e.g. remote origins).
     HashedDescription<AccountId, DescribeFamily<DescribeAllTerminal>>,
 );
 
@@ -122,35 +116,6 @@ pub type LocalAssetTransactor = FungibleAdapter<
     LocalCheckAccount,
 >;
 
-pub struct ParaSignedAccountId32AsNative<Origin>(PhantomData<Origin>);
-impl<Origin: OriginTrait> ConvertOrigin<Origin>
-    for ParaSignedAccountId32AsNative<Origin>
-where
-    Origin::AccountId: From<[u8; 32]>,
-{
-    fn convert_origin(
-        origin: impl Into<Location>,
-        kind: OriginKind,
-    ) -> Result<Origin, Location> {
-        let origin = origin.into();
-        log::trace!(
-            target: "xcm::origin_conversion",
-            "FOOOOOOOOOOOOOO origin: {:?}, kind: {:?}",
-            origin, kind,
-        );
-        match (kind, origin.unpack()) {
-            (
-                OriginKind::Native,
-                (0, [Parachain(1599), Junction::AccountId32{ id, .. }])
-                //Location { parents: 0, interior: [Parachain(1599)].into() },
-            ) =>
-                Ok(Origin::signed((*id).into())),
-            _ => Err(origin),
-        }
-    }
-}
-
-
 /// The means that we convert an XCM origin `Location` into the runtime's `Origin` type for
 /// local dispatch. This is a conversion function from an `OriginKind` type along with the
 /// `Location` value and returns an `Origin` value or an error.
@@ -164,7 +129,6 @@ type LocalOriginConverter = (
     // If the origin kind is `Native` and the XCM origin is the `AccountId32` location, then it can
     // be expressed using the `Signed` origin variant.
     SignedAccountId32AsNative<ThisNetwork, RuntimeOrigin>,
-    ParaSignedAccountId32AsNative<RuntimeOrigin>,
     // Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
     XcmPassthrough<RuntimeOrigin>,
 );
@@ -192,13 +156,13 @@ pub type XcmRouter = WithUniqueTopic<(
 )>;
 
 parameter_types! {
-    pub const Acme: AssetFilter = Wild(AllOf { fun: WildFungible, id: AssetId(TokenLocation::get()) });
+    pub const Acme: AssetFilter = Definite(AllOf { fun: WildFungible, id: AssetId(TokenLocation::get()) });
     pub TestParaLocation: Location = Parachain(1599).into_location();
     pub AcmeForTest: (AssetFilter, Location) = (Acme::get(), TestParaLocation::get());
     pub const MaxAssetsIntoHolding: u32 = 64;
 }
 
-/// Polkadot Relay recognizes/respects AssetHub, Collectives, and BridgeHub chains as teleporters.
+/// ZKV Relay recognizes/respects Test parachain as teleporter for ACME.
 pub type TrustedTeleporters = xcm_builder::Case<AcmeForTest>;
 
 pub struct OnlyParachains;
@@ -215,18 +179,10 @@ impl Contains<Location> for LocalPlurality {
     }
 }
 
-//pub struct TestPara;
-//impl Contains<Location> for TestPara {
-//    fn contains(loc: &Location) -> bool {
-//        *loc == Location { parents: 0, interior: X1(TestParaLocation::get()) }
-//    }
-//}
-
-
-
 /// The barriers one of which must be passed for an XCM message to be executed.
 pub type Barrier = TrailingSetTopicAsId<(
-    // Weight that is paid for may be consumed.
+    // TrailingSetTopicAsId consumes any trailing SetTopic instruction, to set the message id.
+    // Consume expected weight.
     TakeWeightCredit,
     // Expected responses are OK.
     AllowKnownQueryResponses<XcmPallet>,
@@ -238,7 +194,7 @@ pub type Barrier = TrailingSetTopicAsId<(
             // Subscriptions for version tracking are OK.
             AllowSubscriptionsFrom<OnlyParachains>,
             // Collectives and Fellows plurality get free execution.
-            //AllowExplicitUnpaidExecutionFrom<CollectivesOrFellows>,
+            AllowExplicitUnpaidExecutionFrom<CollectivesOrFellows>,
         ),
         UniversalLocation,
         ConstU32<8>,
@@ -256,7 +212,7 @@ impl xcm_executor::Config for XcmConfig {
     //type XcmRecorder = ();
     type AssetTransactor = LocalAssetTransactor;
     type OriginConverter = LocalOriginConverter;
-    // Polkadot Relay recognises no chains which act as reserves.
+    // ZKV Relay recognises no chains which act as reserves.
     type IsReserve = ();
     type IsTeleporter = TrustedTeleporters;
     type UniversalLocation = UniversalLocation;
@@ -293,6 +249,8 @@ impl xcm_executor::Config for XcmConfig {
     type HrmpChannelAcceptedHandler = ();
     type HrmpChannelClosingHandler = ();
 }
+
+const FELLOWSHIP_ADMIN_INDEX: u32 = 1; // to be moved to some constants mod
 
 parameter_types! {
     // `GeneralAdmin` pluralistic body.
@@ -336,6 +294,7 @@ pub type LocalPalletOriginToLocation = (
     // StakingAdmin origin to be used in XCM as a corresponding Plurality `Location` value.
     StakingAdminToPlurality,
     // FellowshipAdmin origin to be used in XCM as a corresponding Plurality `Location` value.
+    // We might not need this, but we keep it in sync with the governance part at least.
     FellowshipAdminToPlurality,
     // `Treasurer` origin to be used in XCM as a corresponding Plurality `Location` value.
     TreasurerToPlurality,
@@ -347,7 +306,7 @@ impl pallet_xcm::Config for Runtime {
     // messages.
     type SendXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalPalletOriginToLocation>;
     type XcmRouter = XcmRouter;
-    // Anyone can execute XCM messages locally.
+    // Anyone can execute XCM messages locally (needed for teleporting).
     type ExecuteXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
     type XcmExecuteFilter = Everything;
     type XcmExecutor = xcm_executor::XcmExecutor<XcmConfig>;
@@ -366,6 +325,6 @@ impl pallet_xcm::Config for Runtime {
     type MaxLockers = ConstU32<8>;
     type MaxRemoteLockConsumers = ConstU32<0>;
     type RemoteLockConsumerIdentifier = ();
-    type WeightInfo = XcmPalletZKVWeight<Runtime>; //crate::weights::pallet_xcm::WeightInfo<Runtime>;
+    type WeightInfo = XcmPalletZKVWeight<Runtime>;
     type AdminOrigin = EnsureRoot<AccountId>;
 }

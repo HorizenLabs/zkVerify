@@ -370,8 +370,8 @@ impl pallet_timestamp::Config for Runtime {
     type WeightInfo = weights::pallet_timestamp::ZKVWeight<Runtime>;
 }
 
-/// Existential deposit.
 parameter_types! {
+    /// Existential deposit.
     pub const ExistentialDeposit: Balance = EXISTENTIAL_DEPOSIT;
 }
 
@@ -1526,7 +1526,7 @@ impl_runtime_apis! {
 
             parameter_types! {
                 pub ExistentialDepositAsset: Option<Asset> = Some((
-                    xcm_config::TokenLocation::get(), 
+                    xcm_config::TokenLocation::get(),
                     ExistentialDeposit::get()
                 ).into());
                 pub const TestParaId: ParaId = ParaId::new(1599);
@@ -1643,19 +1643,19 @@ impl_runtime_apis! {
                 }
 
                 fn unlockable_asset() -> Result<(Location, Location, Asset), BenchmarkError> {
-                	// ZKV doesn't support asset locking
-                	Err(BenchmarkError::Skip)
+                    // ZKV doesn't support asset locking
+                    Err(BenchmarkError::Skip)
                 }
 
                 fn export_message_origin_and_destination(
                 ) -> Result<(Location, NetworkId, InteriorLocation), BenchmarkError> {
-                	// ZKV doesn't support exporting messages
-                	Err(BenchmarkError::Skip)
+                    // ZKV doesn't support exporting messages
+                    Err(BenchmarkError::Skip)
                 }
 
                 fn alias_origin() -> Result<(Location, Location), BenchmarkError> {
-                	// The XCM executor of ZKV doesn't have a configured `Aliasers`
-                	Err(BenchmarkError::Skip)
+                    // The XCM executor of ZKV doesn't have a configured `Aliasers`
+                    Err(BenchmarkError::Skip)
                 }
             }
 

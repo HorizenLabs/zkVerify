@@ -14,18 +14,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod pallet_xcm_benchmarks_generic;
 pub mod pallet_xcm_benchmarks_fungible;
-//
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+pub mod pallet_xcm_benchmarks_generic;
 
-use crate::{Runtime, RuntimeCall};
-use sp_std::prelude::*;
-use xcm::{latest::prelude::*, DoubleEncoded, v4::Error};
+use frame_support::weights::Weight;
+
+use crate::Runtime;
 use core::marker::PhantomData;
+use xcm::{latest::prelude::*, lts::Error, DoubleEncoded};
 
-use pallet_xcm_benchmarks_generic::WeightInfo as XcmGenericWeight;
 use pallet_xcm_benchmarks_fungible::WeightInfo as XcmBalancesWeight;
+use pallet_xcm_benchmarks_generic::WeightInfo as XcmGenericWeight;
 
 /// Types of asset supported by the ZKV runtime.
 pub enum AssetTypes {
@@ -38,7 +37,14 @@ pub enum AssetTypes {
 impl From<&Asset> for AssetTypes {
     fn from(asset: &Asset) -> Self {
         match asset {
-            Asset { id: AssetId(Location { parents: 0, interior: Here }), .. } => AssetTypes::Balances,
+            Asset {
+                id:
+                    AssetId(Location {
+                        parents: 0,
+                        interior: Here,
+                    }),
+                ..
+            } => AssetTypes::Balances,
             _ => AssetTypes::Unknown,
         }
     }
@@ -61,12 +67,14 @@ impl WeighAssets for AssetFilter {
                 .map(|t| match t {
                     AssetTypes::Balances => balances_weight,
                     AssetTypes::Unknown => Weight::MAX,
-            }).fold(Weight::zero(), |acc, x| acc.saturating_add(x)),
+                })
+                .fold(Weight::zero(), |acc, x| acc.saturating_add(x)),
             // We don't support any NFTs on ZKV, so these two variants will always match
             // only 1 kind of fungible asset.
             Self::Wild(AllOf { .. } | AllOfCounted { .. }) => balances_weight,
-            Self::Wild(AllCounted(count)) =>
-                balances_weight.saturating_mul(MAX_ASSETS.min(*count as u64)),
+            Self::Wild(AllCounted(count)) => {
+                balances_weight.saturating_mul(MAX_ASSETS.min(*count as u64))
+            }
             Self::Wild(All) => balances_weight.saturating_mul(MAX_ASSETS),
         }
     }
@@ -75,16 +83,15 @@ impl WeighAssets for AssetFilter {
 impl WeighAssets for Assets {
     fn weigh_multi_assets(&self, balances_weight: Weight) -> Weight {
         self.inner()
-        .iter()
-        .map(<AssetTypes as From<&Asset>>::from)
-        .map(|t| match t {
-            AssetTypes::Balances => balances_weight,
-            AssetTypes::Unknown => Weight::MAX,
-        })
-        .fold(Weight::zero(), |acc, x| acc.saturating_add(x))
+            .iter()
+            .map(<AssetTypes as From<&Asset>>::from)
+            .map(|t| match t {
+                AssetTypes::Balances => balances_weight,
+                AssetTypes::Unknown => Weight::MAX,
+            })
+            .fold(Weight::zero(), |acc, x| acc.saturating_add(x))
     }
 }
-
 
 /// Weights for `pallet_xcm` using the zkVerify node and recommended hardware.
 pub struct ZKVWeight<T>(PhantomData<T>);
@@ -155,11 +162,7 @@ impl<T> xcm::v4::XcmWeightInfo<T> for ZKVWeight<T> {
     ) -> sp_weights::Weight {
         assets.weigh_multi_assets(XcmBalancesWeight::<Runtime>::deposit_reserve_asset())
     }
-    fn exchange_asset(
-        _: &AssetFilter,
-        _: &Assets,
-        _: &bool,
-    ) -> sp_weights::Weight {
+    fn exchange_asset(_: &AssetFilter, _: &Assets, _: &bool) -> sp_weights::Weight {
         // ZKV does not currently support exchange asset operations
         Weight::MAX
     }
@@ -177,10 +180,7 @@ impl<T> xcm::v4::XcmWeightInfo<T> for ZKVWeight<T> {
     ) -> sp_weights::Weight {
         assets.weigh_multi_assets(XcmBalancesWeight::<Runtime>::initiate_teleport())
     }
-    fn report_holding(
-        _: &QueryResponseInfo,
-        _: &AssetFilter,
-    ) -> sp_weights::Weight {
+    fn report_holding(_: &QueryResponseInfo, _: &AssetFilter) -> sp_weights::Weight {
         XcmGenericWeight::<Runtime>::report_holding()
     }
     fn buy_execution(_: &Asset, _: &WeightLimit) -> sp_weights::Weight {
@@ -225,10 +225,7 @@ impl<T> xcm::v4::XcmWeightInfo<T> for ZKVWeight<T> {
     fn expect_transact_status(_: &MaybeErrorCode) -> sp_weights::Weight {
         XcmGenericWeight::<Runtime>::expect_transact_status()
     }
-    fn query_pallet(
-        _: &pallet_referenda::Vec<u8>,
-        _: &QueryResponseInfo,
-    ) -> sp_weights::Weight {
+    fn query_pallet(_: &pallet_referenda::Vec<u8>, _: &QueryResponseInfo) -> sp_weights::Weight {
         XcmGenericWeight::<Runtime>::query_pallet()
     }
     fn expect_pallet(
@@ -250,11 +247,7 @@ impl<T> xcm::v4::XcmWeightInfo<T> for ZKVWeight<T> {
         // ZKV does not currently support universal origin operations
         Weight::MAX
     }
-    fn export_message(
-        _: &NetworkId,
-        _: &Junctions,
-        _: &Xcm<()>,
-    ) -> sp_weights::Weight {
+    fn export_message(_: &NetworkId, _: &Junctions, _: &Xcm<()>) -> sp_weights::Weight {
         // ZKV does not currently support asset locking operations
         Weight::MAX
     }
@@ -287,12 +280,7 @@ impl<T> xcm::v4::XcmWeightInfo<T> for ZKVWeight<T> {
         // XCM Executor does not currently support alias origin operations
         Weight::MAX
     }
-    fn unpaid_execution(
-        _: &WeightLimit,
-        _: &core::option::Option<Location>,
-    ) -> sp_weights::Weight {
+    fn unpaid_execution(_: &WeightLimit, _: &core::option::Option<Location>) -> sp_weights::Weight {
         XcmGenericWeight::<Runtime>::unpaid_execution()
     }
 }
-
-
