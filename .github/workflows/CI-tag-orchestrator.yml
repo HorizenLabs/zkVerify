@@ -48,8 +48,7 @@ jobs:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
         run: |
-          source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
-          "${GITHUB_WORKSPACE}/ci/docker.sh"
+          ./ci/setup_env.sh && ./ci/docker.sh --image-artifact zkverify-image
 
   # rustdoc-job:
   #   uses: ./.github/workflows/CI-rustdoc.yml
