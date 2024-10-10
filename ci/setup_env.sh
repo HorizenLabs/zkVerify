@@ -104,6 +104,6 @@ elif [ "${IS_A_RELEASE}" = "false" ]; then
 fi
 
 echo "GITHUB_WORKSPACE: ${GITHUB_WORKSPACE}"
-echo "${GITHUB_WORKSPACE}/ci/*"
+echo ${GITHUB_WORKSPACE}/ci/*
 
 set +eo pipefail
