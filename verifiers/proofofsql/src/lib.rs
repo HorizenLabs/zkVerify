@@ -31,6 +31,8 @@ mod verifier_should;
 mod weight;
 pub use weight::WeightInfo;
 
+// Here derivative is used for Clone, Debug, and PartialEq to work around
+// a long-standing compiler bug https://github.com/rust-lang/rust/issues/26925
 #[derive(Derivative, Encode, Decode, TypeInfo)]
 #[derivative(Clone, Debug, PartialEq)]
 #[scale_info(skip_type_params(T))]
