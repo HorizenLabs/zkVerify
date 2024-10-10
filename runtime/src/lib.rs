@@ -808,9 +808,9 @@ construct_runtime!(
         Bounties: pallet_bounties,
         ChildBounties: pallet_child_bounties,
         Utility: pallet_utility,
-        Proxy: pallet_proxy,
         Vesting: pallet_vesting,
         VoterList: pallet_bags_list::<Instance1>,
+        Proxy: pallet_proxy,
     }
 );
 

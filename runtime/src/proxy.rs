@@ -19,6 +19,9 @@ use sp_runtime::RuntimeDebug;
 )]
 pub enum ProxyType {
     Any = 0,
+    // Don't add any new proxy types here. Anyway don't add a new type that isn't a
+    // a `NonTransfer` subset without reconsider carefully the `is_superset()`
+    // implementation
     NonTransfer = 1,
     Governance = 2,
     Staking = 3,
@@ -58,20 +61,6 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 				RuntimeCall::Proxy(..) |
 				RuntimeCall::Multisig(..) |
 				RuntimeCall::VoterList(..) |
-                 // RuntimeCall::Indices(pallet_indices::Call::claim{..}) |
-                                                            // RuntimeCall::Indices(pallet_indices::Call::free{..}) |
-                                                            // RuntimeCall::Indices(pallet_indices::Call::freeze{..}) |
-                                                            // RuntimeCall::Registrar(paras_registrar::Call::register {..}) |
-                                                            // RuntimeCall::Registrar(paras_registrar::Call::deregister {..}) |
-                                                            // // Specifically omitting Registrar `swap`
-                                                            // RuntimeCall::Registrar(paras_registrar::Call::reserve {..}) |
-                                                            // RuntimeCall::Crowdloan(..) |
-                                                            // RuntimeCall::Slots(..) |
-                                                            // RuntimeCall::Auctions(..) | // Specifically omitting the entire XCM Pallet
-                                                            // RuntimeCall::NominationPools(..) |
-                                                            // RuntimeCall::FastUnstake(..) |
-                                                            // RuntimeCall::Claims(..)
-
                 // zkVerify specifics
                 RuntimeCall::Poe(..) |
                 RuntimeCall::SettlementFFlonkPallet(..) |
@@ -96,8 +85,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
                     RuntimeCall::Staking(..)
                         | RuntimeCall::Session(..)
                         | RuntimeCall::Utility(..)
-                        | RuntimeCall::VoterList(..) // RuntimeCall::FastUnstake(..) |
-                                                     // RuntimeCall::NominationPools(..)
+                        | RuntimeCall::VoterList(..)
                 )
             }
             ProxyType::CancelProxy => {
