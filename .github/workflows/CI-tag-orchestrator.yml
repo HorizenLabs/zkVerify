@@ -32,10 +32,9 @@ jobs:
     steps:
       - name: Print output
         run: |
-          echo "${{ needs.execute-system-tests.outputs }}"
+          echo '${{ toJSON(needs.execute-system-tests.outputs) }}'
           echo "${{ needs.execute-system-tests.outputs.test_status }}"
           echo "${{ needs.execute-system-tests.outputs.test_status == 'success' }}"
-          echo "${{ needs.execute-system-tests.outputs.test_status }}" == 'success' 
 
       - name: Git checkout
         uses: actions/checkout@v4
