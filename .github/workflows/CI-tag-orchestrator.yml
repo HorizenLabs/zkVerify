@@ -39,7 +39,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: zkverify-image
-          path: /tmp
+          path: ./
       
       - name: Build/Publish Docker image
         env:
