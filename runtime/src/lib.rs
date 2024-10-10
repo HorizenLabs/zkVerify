@@ -1058,8 +1058,8 @@ mod benches {
         [pallet_message_queue, MessageQueue]
         // xcm
         [pallet_xcm, XcmPalletBench::<Runtime>]
-        [pallet_xcm_benchmarks::fungible, pallet_xcm_benchmarks::fungible::Pallet::<Runtime>]
-        [pallet_xcm_benchmarks::generic, pallet_xcm_benchmarks::generic::Pallet::<Runtime>]
+        [xcm::pallet_xcm_benchmarks_fungible, pallet_xcm_benchmarks::fungible::Pallet::<Runtime>]
+        [xcm::pallet_xcm_benchmarks_generic, pallet_xcm_benchmarks::generic::Pallet::<Runtime>]
     );
 }
 

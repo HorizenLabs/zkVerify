@@ -24,8 +24,8 @@ use sp_std::prelude::*;
 use xcm::{latest::prelude::*, DoubleEncoded, v4::Error};
 use core::marker::PhantomData;
 
-use pallet_xcm_benchmarks_generic::ZKVWeight as XcmGenericWeight;
-use pallet_xcm_benchmarks_fungible::ZKVWeight as XcmBalancesWeight;
+use pallet_xcm_benchmarks_generic::WeightInfo as XcmGenericWeight;
+use pallet_xcm_benchmarks_fungible::WeightInfo as XcmBalancesWeight;
 
 /// Types of asset supported by the ZKV runtime.
 pub enum AssetTypes {
