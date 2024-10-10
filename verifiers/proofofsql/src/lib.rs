@@ -38,7 +38,7 @@ pub struct Vk<T>(Vec<u8>, PhantomData<T>);
 
 impl<T: Config> Vk<T> {
     pub fn validate_size(&self) -> Result<(), VerifyError> {
-        let max_nu = <T as Config>::largest_max_nu();
+        let max_nu = T::largest_max_nu();
         let max_vk_size = VerificationKey::serialized_size(max_nu as usize);
         if self.0.len() > max_vk_size {
             Err(VerifyError::InvalidVerificationKey)
@@ -56,7 +56,7 @@ impl<T> From<Vec<u8>> for Vk<T> {
 
 impl<T: Config> MaxEncodedLen for Vk<T> {
     fn max_encoded_len() -> usize {
-        let max_nu = <T as Config>::largest_max_nu();
+        let max_nu = T::largest_max_nu();
         let len = VerificationKey::serialized_size(max_nu as usize);
         codec::Compact(len as u32).encoded_size() + len
     }
@@ -65,9 +65,15 @@ impl<T: Config> MaxEncodedLen for Vk<T> {
 pub trait Config: 'static {
     /// Maximum value allowed for `max_nu` in the verification key
     type LargestMaxNu: Get<u32>;
+}
 
+trait LargestMaxNu {
+    fn largest_max_nu() -> u32;
+}
+
+impl<T: Config> LargestMaxNu for T {
     fn largest_max_nu() -> u32 {
-        Self::LargestMaxNu::get()
+        <Self as Config>::LargestMaxNu::get()
     }
 }
 
