@@ -28,6 +28,7 @@ jobs:
     name: Build and Publish Docker Image
     runs-on: ubuntu-latest
     needs: execute-system-tests # Wait for e2e tests to finish
+    if: ${{ env.OVERALL_STATUS == 'success' }}
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
