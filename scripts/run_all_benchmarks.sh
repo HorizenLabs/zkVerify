@@ -47,11 +47,11 @@ if [ "${USE_DOCKER}" = "false" ]; then
   cargo build \
     --locked \
     --features=runtime-benchmarks \
-    --profile=release \
+    --profile=production \
     --bin zkv-relay
 
   # The executable to use.
-  ZKV_NODE="${PROJECT_ROOT}/target/release/zkv-relay"
+  ZKV_NODE="${PROJECT_ROOT}/target/production/zkv-relay"
   SKIP_LINES=2
 else
   IMAGE="zkverify"
@@ -80,8 +80,11 @@ else
 fi
 
 DEFAULT_DEPLOY_WEIGHT_TEMPLATE="${PROJECT_ROOT}/node/zkv-deploy-weight-template.hbs"
+DEFAULT_DEPLOY_WEIGHT_TEMPLATE_XCM="${PROJECT_ROOT}/node/zkv-deploy-weight-template-xcm.hbs"
 
 WEIGTH_TEMPLATE="${WEIGTH_TEMPLATE:-${DEFAULT_DEPLOY_WEIGHT_TEMPLATE}}"
+WEIGTH_TEMPLATE_XCM="${WEIGTH_TEMPLATE_XCM:-${DEFAULT_DEPLOY_WEIGHT_TEMPLATE_XCM}}"
+
 WEIGHTS_FOLDER="${WEIGHTS_FOLDER:-${PROJECT_ROOT}/runtime/src/weights}"
 
 CODE_HEADER="${PROJECT_ROOT}/HEADER-APACHE2"
@@ -145,12 +148,18 @@ for PALLET in "${PALLETS[@]}"; do
   mkdir -p "${MODULE_NAME}"
   echo "[+] Benchmarking $PALLET with weight file $WEIGHT_FILE"
 
+  TEMPLATE="${WEIGTH_TEMPLATE}"
+  # XCM pallet-xcm-benchmarks benchmarks need a different template
+  if [[ "${PALLET}" == xcm::pallet_xcm_benchmarks_* ]] ; then
+    TEMPLATE="${WEIGTH_TEMPLATE_XCM}"
+  fi
+
   OUTPUT="$( \
     SOURCE_ROOT="${SOURCE_ROOT}" \
     WEIGTH_OUT_PATH="${WEIGHT_FILE}" \
     SKIP_BUILD="true" \
     ZKV_NODE_EXE="${ZKV_NODE}" \
-    WEIGTH_TEMPLATE="${WEIGTH_TEMPLATE}" \
+    WEIGTH_TEMPLATE="${TEMPLATE}" \
     CODE_HEADER="${CODE_HEADER}" \
     BM_STEPS="${BM_STEPS}" \
     BM_REPEAT="${BM_REPEAT}" \
