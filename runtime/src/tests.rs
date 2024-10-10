@@ -117,7 +117,7 @@ fn new_test_ext() -> sp_io::TestExternalities {
         minimum_validator_count: NUM_VALIDATORS,
         validator_count: NUM_VALIDATORS,
         canceled_payout: 0,
-        force_era: pallet_staking::Forcing::ForceNone,
+        force_era: pallet_staking::Forcing::NotForcing,
         invulnerables: [].to_vec(),
         max_nominator_count: None,
         max_validator_count: None,
@@ -754,6 +754,7 @@ mod use_correct_weights {
 }
 
 mod pallets_interact {
+    use pallet_babe::CurrentSlot;
     use super::*;
 
     // Any random values for these constants should do
@@ -761,6 +762,7 @@ mod pallets_interact {
     const SLOT_ID: u64 = 87;
     const BABE_AUTHOR_ID: u32 = 1;
 
+    const INIT_TIMESTAMP: u64 = SLOT_ID * MILLISECS_PER_BLOCK;
     // Initialize block #BLOCK_NUMBER, authored at slot SLOT_ID by BABE_AUTHOR_ID using Babe
     fn initialize() {
         let slot = Slot::from(SLOT_ID);
@@ -782,7 +784,24 @@ mod pallets_interact {
         };
         System::reset_events();
         System::initialize(&BLOCK_NUMBER, &Default::default(), &pre_digest);
+        set_timestamp(INIT_TIMESTAMP);
+
         Babe::on_initialize(BLOCK_NUMBER);
+        System::set_block_number(BLOCK_NUMBER);
+        Session::on_initialize(BLOCK_NUMBER);
+        Staking::on_initialize(BLOCK_NUMBER);
+    }
+
+    fn slot_duration() -> u64 {
+        // pallet_babe::Pallet::<TestStorage>::slot_duration()
+        Babe::slot_duration()
+        // <pallet_babe::Pallet<Runtime> as Hooks<BlockNumber>>::slot_duration()
+    }
+
+    pub fn set_timestamp(n: u64) {
+        CurrentSlot::<Runtime>::set(Slot::from(n / slot_duration()));
+        // pallet_babe::CurrentSlot::<TestStorage>::set(Slot::from(n / slot_duration()));
+        Timestamp::set_timestamp(n);
     }
 
     fn new_test_ext() -> sp_io::TestExternalities {
@@ -872,6 +891,7 @@ mod pallets_interact {
         use sp_consensus_babe::digests::CompatibleDigestItem;
         use sp_runtime::generic::Header;
         use sp_runtime::traits::Header as _;
+        use crate::tests::pallets_interact::offences::helper_functions::start_active_era;
 
         type OffencesOpaqueTimeSlot = Vec<u8>;
 
@@ -941,6 +961,9 @@ mod pallets_interact {
                 // Make sure that no slash events for offender_account is published
                 assert!(!System::events().contains(&expected_slashing_event));
 
+                // Record initial balance of the offender
+                let initial_balance = Balances::free_balance(&offender_account);
+
                 // Make pallet_offences report an offence
                 let offence = TestOffence {
                     offender_account: offender_account.clone(),
@@ -950,7 +973,89 @@ mod pallets_interact {
                 // Check that pallet_staking generates the related event (i.e. it has been notified of
                 // the offence)
                 assert!(System::events().contains(&expected_slashing_event));
+
+                // Force a new era to ensure staking rewards and slashes are processed
+                start_active_era(1);
+
+                println!("Current era: {:?}", Staking::active_era().map(|era| era.index).unwrap_or(0));
+
+                // Check the offender's balance after slashing
+                // let post_slash_offender_balance = Balances::free_balance(&offender_account);
+                // println!("Post-slash offender balance: {:?}", post_slash_offender_balance);
+
+                // assert!(post_slash_offender_balance < initial_balance, "Offender's balance should decrease after slashing");
             });
+        }
+
+        mod helper_functions {
+            use super::*;
+            use frame_support::traits::{Get};
+            use sp_staking::EraIndex;
+
+            /// Progress to the given block, triggering session and era changes as we progress.
+            ///
+            /// This will finalize the previous block, initialize up to the given block, essentially simulating
+            /// a block import/propose process where we first initialize the block, then execute some stuff (not
+            /// in the function), and then finalize the block.
+            pub fn run_to_block(n: BlockNumber) {
+                <pallet_staking::Pallet<Runtime> as frame_support::traits::OnFinalize<BlockNumber>>::on_finalize(System::block_number());
+                for b in System::block_number() + 1..=n+175 {
+
+                    System::set_block_number(b);
+                    Babe::on_initialize(b);
+                    Session::on_initialize(b);
+                    Staking::on_initialize(b);
+                    set_timestamp( (System::block_number() as u64) * MILLISECS_PER_BLOCK + INIT_TIMESTAMP);
+
+                    if b != n {
+                        <pallet_staking::Pallet<Runtime> as frame_support::traits::OnFinalize<BlockNumber>>::on_finalize(System::block_number());
+                    }
+                }
+            }
+
+            /// Progresses from the current block number (whatever that may be) to the `P * session_index + 1`.
+            pub fn start_session(session_index: SessionIndex) {
+                // Period: number of blocks that a session lasts
+                println!("session_index: {:?}", session_index);
+                println!("EpochDurationInBlocks::get(): {:?}", EpochDurationInBlocks::get());
+
+                let end: u64 = (session_index * EpochDurationInBlocks::get()) as u64;
+
+                run_to_block(end as BlockNumber);
+                // session must have progressed properly.
+
+                println!("Session::current_index after run_to_block : {:?}", Session::current_index());
+                println!("session_index after run_to_block : {:?}", session_index);
+
+                assert_eq!(
+                    Session::current_index(),
+                    session_index,
+                    "current session index = {}, expected = {}",
+                    Session::current_index(),
+                    session_index,
+                );
+            }
+
+            /// Progress until the given era.
+            pub fn start_active_era(era_index: EraIndex) {
+                println!("Session::current_index(): {:?}", Session::current_index());
+                println!("era_index: {:?}", era_index);
+                println!("SessionsPerEra: {:?}", <SessionsPerEra as Get<u32>>::get());
+
+                start_session((era_index * <SessionsPerEra as Get<u32>>::get()).into());
+                assert_eq!(active_era(), era_index);
+                // One way or another, current_era must have changed before the active era, so they must match
+                // at this point.
+                assert_eq!(current_era(), active_era());
+            }
+
+            pub fn active_era() -> EraIndex {
+                Staking::active_era().unwrap().index
+            }
+
+            pub fn current_era() -> EraIndex {
+                Staking::current_era().unwrap()
+            }
         }
 
         #[test]
