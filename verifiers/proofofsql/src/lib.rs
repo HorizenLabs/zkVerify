@@ -90,7 +90,7 @@ impl<T: Config> Verifier for ProofOfSql<T> {
     type Vk = Vk<T>;
 
     fn hash_context_data() -> &'static [u8] {
-        b"proofofsql-v0.28"
+        b"proofofsql"
     }
 
     fn verify_proof(
