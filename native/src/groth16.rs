@@ -32,7 +32,7 @@ impl From<Groth16Error> for VerifyError {
 #[runtime_interface]
 pub trait Groth16Bn254Verify {
     fn verify(vk: VerificationKey, proof: Proof, pubs: &[Scalar]) -> Result<bool, VerifyError> {
-        hp_groth16::verify_proof::<hp_groth16::Bn254>(proof, vk, pubs).map_err(Into::into)
+        hp_groth16::verify_proof::<hp_groth16::Bn254>(vk, proof, pubs).map_err(Into::into)
     }
     fn validate_key(vk: VerificationKey) -> Result<(), VerifyError> {
         hp_groth16::validate_key::<hp_groth16::Bn254>(vk).map_err(Into::into)
@@ -42,7 +42,7 @@ pub trait Groth16Bn254Verify {
 #[runtime_interface]
 pub trait Groth16Bls12_381Verify {
     fn verify(vk: VerificationKey, proof: Proof, pubs: &[Scalar]) -> Result<bool, VerifyError> {
-        hp_groth16::verify_proof::<hp_groth16::Bls12_381>(proof, vk, pubs).map_err(Into::into)
+        hp_groth16::verify_proof::<hp_groth16::Bls12_381>(vk, proof, pubs).map_err(Into::into)
     }
     fn validate_key(vk: VerificationKey) -> Result<(), VerifyError> {
         hp_groth16::validate_key::<hp_groth16::Bls12_381>(vk).map_err(Into::into)

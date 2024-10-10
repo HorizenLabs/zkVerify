@@ -25,6 +25,7 @@ native-cache = { workspace = true, features = ["ultraplonk"] }
 [features]
 default = ["std"]
 std = [
+    "hp-groth16/implementation",
     "sp-runtime-interface/std",
     "codec/std",
     "hp-verifiers/std",
