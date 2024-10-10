@@ -349,6 +349,17 @@ fn pallet_treasury_availability() {
 }
 
 #[test]
+fn pallet_proxy_availability() {
+    new_test_ext().execute_with(|| {
+        let sender = testsfixtures::SAMPLE_USERS[0].raw_account.into();
+        let origin = RuntimeOrigin::signed(sender);
+        let proxy_type = crate::proxy::ProxyType::Any;
+
+        assert_ok!(Proxy::create_pure(origin, proxy_type, 0, 0));
+    });
+}
+
+#[test]
 fn pallet_bounties_availability() {
     new_test_ext().execute_with(|| {
         let proposer = testsfixtures::SAMPLE_USERS[2].raw_account.into();
@@ -650,6 +661,16 @@ mod use_correct_weights {
         assert_eq!(
             <Runtime as pallet_im_online::Config>::WeightInfo::validate_unsigned_and_then_heartbeat(42),
             crate::weights::pallet_im_online::ZKVWeight::<Runtime>::validate_unsigned_and_then_heartbeat(42)
+        );
+    }
+
+    #[test]
+    fn pallet_proxy() {
+        use pallet_proxy::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_proxy::Config>::WeightInfo::create_pure(1),
+            crate::weights::pallet_proxy::ZKVWeight::<Runtime>::create_pure(1)
         );
     }
 

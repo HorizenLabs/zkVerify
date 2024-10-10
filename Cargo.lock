@@ -5915,6 +5915,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-proxy"
+version = "32.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "936d02c265142821c0144336d6724ec1fc56ddf333837f5ab502798fab5a447e"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-referenda"
 version = "32.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -12660,6 +12676,7 @@ dependencies = [
  "pallet-offences",
  "pallet-poe",
  "pallet-preimage",
+ "pallet-proxy",
  "pallet-referenda",
  "pallet-risc0-verifier",
  "pallet-scheduler",

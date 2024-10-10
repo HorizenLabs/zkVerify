@@ -83,6 +83,7 @@ use governance::{pallet_custom_origins, Treasurer, TreasurySpender};
 
 mod bag_thresholds;
 mod payout;
+mod proxy;
 #[cfg(test)]
 mod tests;
 mod weights;
@@ -676,6 +677,32 @@ impl pallet_offences::Config for Runtime {
     type OnOffenceHandler = Staking;
 }
 
+parameter_types! {
+    // One storage item; key size 32, value size 8; .
+    pub const ProxyDepositBase: Balance = deposit(1, 8);
+    // Additional storage item size of 33 bytes.
+    pub const ProxyDepositFactor: Balance = deposit(0, 33);
+    pub const MaxProxies: u16 = 32;
+    pub const AnnouncementDepositBase: Balance = deposit(1, 8);
+    pub const AnnouncementDepositFactor: Balance = deposit(0, 66);
+    pub const MaxPending: u16 = 32;
+}
+
+impl pallet_proxy::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeCall = RuntimeCall;
+    type Currency = Balances;
+    type ProxyType = proxy::ProxyType;
+    type ProxyDepositBase = ProxyDepositBase;
+    type ProxyDepositFactor = ProxyDepositFactor;
+    type MaxProxies = MaxProxies;
+    type WeightInfo = weights::pallet_proxy::ZKVWeight<Runtime>;
+    type MaxPending = MaxPending;
+    type CallHasher = BlakeTwo256;
+    type AnnouncementDepositBase = AnnouncementDepositBase;
+    type AnnouncementDepositFactor = AnnouncementDepositFactor;
+}
+
 impl pallet_verifiers::Config<pallet_fflonk_verifier::Fflonk> for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
@@ -783,6 +810,7 @@ construct_runtime!(
         Utility: pallet_utility,
         Vesting: pallet_vesting,
         VoterList: pallet_bags_list::<Instance1>,
+        Proxy: pallet_proxy,
     }
 );
 
@@ -856,6 +884,7 @@ mod benches {
         [pallet_utility, Utility]
         [pallet_vesting, Vesting]
         [pallet_whitelist, Whitelist]
+        [pallet_proxy, Proxy]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
