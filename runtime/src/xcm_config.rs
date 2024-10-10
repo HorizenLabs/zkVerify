@@ -17,10 +17,9 @@
 
 //! XCM configuration for Zkv.
 
-use xcm::opaque::v2::MultiLocation;
-use xcm_executor::traits::ConvertOrigin;
 use core::marker::PhantomData;
 use frame_support::traits::OriginTrait;
+use xcm_executor::traits::ConvertOrigin;
 
 use super::{
     AccountId,
@@ -52,17 +51,12 @@ use polkadot_runtime_common::{
     ToAuthor,
 };
 use sp_runtime::traits::AccountIdConversion;
-use xcm::DoubleEncoded;
-//use polkadot_runtime_constants::{
-//	system_parachain::*,
-//};
 pub const FELLOWSHIP_ADMIN_INDEX: u32 = 1; // to be moved to some constants mod
 
 use crate::currency::CENTS;
 use sp_core::ConstU32;
 use xcm::latest::prelude::*;
 use xcm_builder::{
-    AllowUnpaidExecutionFrom,
     AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
     AllowTopLevelPaidExecutionFrom, ChildParachainAsNative, ChildParachainConvertsVia,
     DescribeAllTerminal, DescribeFamily, FrameTransactionalProcessor, FungibleAdapter,
@@ -74,7 +68,6 @@ use xcm_builder::{
 
 use crate::weights::pallet_xcm::ZKVWeight as XcmPalletZKVWeight;
 use crate::weights::xcm::ZKVWeight as XcmZKVWeight;
-//use xcm::v4::Junctions::X1;
 
 parameter_types! {
     pub const RootLocation: Location = Here.into_location();
@@ -123,15 +116,11 @@ pub type LocalAssetTransactor = FungibleAdapter<
 >;
 
 pub struct ParaSignedAccountId32AsNative<Origin>(PhantomData<Origin>);
-impl<Origin: OriginTrait> ConvertOrigin<Origin>
-    for ParaSignedAccountId32AsNative<Origin>
+impl<Origin: OriginTrait> ConvertOrigin<Origin> for ParaSignedAccountId32AsNative<Origin>
 where
     Origin::AccountId: From<[u8; 32]>,
 {
-    fn convert_origin(
-        origin: impl Into<Location>,
-        kind: OriginKind,
-    ) -> Result<Origin, Location> {
+    fn convert_origin(origin: impl Into<Location>, kind: OriginKind) -> Result<Origin, Location> {
         let origin = origin.into();
         log::trace!(
             target: "xcm::origin_conversion",
@@ -141,15 +130,12 @@ where
         match (kind, origin.unpack()) {
             (
                 OriginKind::Native,
-                (0, [Parachain(1599), Junction::AccountId32{ id, .. }])
-                //Location { parents: 0, interior: [Parachain(1599)].into() },
-            ) =>
-                Ok(Origin::signed((*id).into())),
+                (0, [Parachain(1599), Junction::AccountId32 { id, .. }]), //Location { parents: 0, interior: [Parachain(1599)].into() },
+            ) => Ok(Origin::signed((*id).into())),
             _ => Err(origin),
         }
     }
 }
-
 
 /// The means that we convert an XCM origin `Location` into the runtime's `Origin` type for
 /// local dispatch. This is a conversion function from an `OriginKind` type along with the
@@ -221,8 +207,6 @@ impl Contains<Location> for LocalPlurality {
 //        *loc == Location { parents: 0, interior: X1(TestParaLocation::get()) }
 //    }
 //}
-
-
 
 /// The barriers one of which must be passed for an XCM message to be executed.
 pub type Barrier = TrailingSetTopicAsId<(
