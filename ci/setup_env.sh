@@ -103,4 +103,6 @@ elif [ "${IS_A_RELEASE}" = "false" ]; then
   echo "" && log_warn "WARNING: This is NOT a RELEASE build" && echo ""
 fi
 
+echo "GITHUB_WORKSPACE: ${GITHUB_WORKSPACE}"
+
 set +eo pipefail
