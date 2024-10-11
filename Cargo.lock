@@ -3476,6 +3476,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "hp-groth16"
+version = "0.1.0"
+dependencies = [
+ "ark-bls12-381",
+ "ark-bn254",
+ "ark-crypto-primitives",
+ "ark-ec",
+ "ark-ff",
+ "ark-groth16",
+ "ark-relations",
+ "ark-serialize",
+ "ark-std",
+ "frame-support",
+ "hex-literal",
+ "hp-verifiers",
+ "parity-scale-codec",
+ "rstest",
+ "rstest_reuse",
+ "scale-info",
+ "sp-runtime-interface",
+ "sp-std",
+]
+
+[[package]]
 name = "hp-poe"
 version = "0.1.0"
 dependencies = [
@@ -4888,7 +4912,7 @@ dependencies = [
 
 [[package]]
 name = "mainchain"
-version = "0.5.1"
+version = "0.6.0"
 dependencies = [
  "clap",
  "frame-benchmarking",
@@ -5256,8 +5280,9 @@ dependencies = [
 
 [[package]]
 name = "native"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
+ "hp-groth16",
  "hp-verifiers",
  "log",
  "native-cache",
@@ -5777,20 +5802,13 @@ dependencies = [
 name = "pallet-groth16-verifier"
 version = "0.1.0"
 dependencies = [
- "ark-bls12-381",
- "ark-bn254",
- "ark-crypto-primitives",
- "ark-ec",
- "ark-ff",
- "ark-groth16",
- "ark-relations",
- "ark-serialize",
- "ark-std",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "hex-literal",
+ "hp-groth16",
  "hp-verifiers",
+ "native",
  "pallet-verifiers",
  "parity-scale-codec",
  "rstest",
@@ -5891,6 +5909,22 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-proxy"
+version = "32.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "936d02c265142821c0144336d6724ec1fc56ddf333837f5ab502798fab5a447e"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
  "sp-io",
  "sp-runtime",
  "sp-std",
@@ -12642,6 +12676,7 @@ dependencies = [
  "pallet-offences",
  "pallet-poe",
  "pallet-preimage",
+ "pallet-proxy",
  "pallet-referenda",
  "pallet-risc0-verifier",
  "pallet-scheduler",

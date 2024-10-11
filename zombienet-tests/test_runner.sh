@@ -1,11 +1,11 @@
 #!/bin/bash
-# This script is used to run the e2e tests locally or in the CI pipeline.
+# This script is used to run the zombienet tests locally or in the CI pipeline.
 # If run locally, be sure that the following applications are present on
 # the target system:
 # - node
 # - npm
 # - yarn
-# The script automatically downloads zombienet binary and saves it into the e2e-tests/bin folder.
+# The script automatically downloads zombienet binary and saves it into the zombienet-tests/bin folder.
 # It also looks for a compiled zkv-node binary in the folder target/release, hence make sure to 
 # have a freshly compiled version of zkv-node in this folder.
 # Optionally, this script can be launched with the '--debug' switch, which makes it look for
@@ -43,6 +43,7 @@ ZOMBIENET_URL="${BASE_URL}/${ZOMBIENET_BINARY}"
 
 # Check if Zombienet executable exists, otherwise download it
 if [ ! -f "bin/$ZOMBIENET_BINARY" ]; then
+    mkdir -p bin
     echo -e "${TXT_BIYLW}WARNING: ${TXT_BIBLK}Zombienet executable not found${TXT_NORML}"
     curl -s -L $ZOMBIENET_URL -o "bin/$ZOMBIENET_BINARY"
     if [ $? -ne 0 ]; then

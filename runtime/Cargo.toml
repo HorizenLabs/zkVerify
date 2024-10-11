@@ -39,6 +39,7 @@ pallet-vesting = { workspace = true }
 pallet-whitelist = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-treasury = { workspace = true }
+pallet-proxy = { workspace = true }
 frame-system = { workspace = true }
 frame-try-runtime = { workspace = true, optional = true }
 pallet-timestamp = { workspace = true }
@@ -122,6 +123,7 @@ runtime-benchmarks = [
 	"pallet-vesting/runtime-benchmarks",
 	"pallet-poe/runtime-benchmarks",
 	"pallet-staking/runtime-benchmarks",
+	"pallet-proxy/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"pallet-verifiers/runtime-benchmarks",
 	"pallet-fflonk-verifier/runtime-benchmarks",
@@ -166,6 +168,7 @@ std = [
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
+	"pallet-proxy/std",
 	"pallet-verifiers/std",
 	"pallet-poe/std",
 	"proof-of-existence-rpc-runtime-api/std",
@@ -227,6 +230,7 @@ try-runtime = [
 	"pallet-child-bounties/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
+	"pallet-proxy/try-runtime",
 	"pallet-verifiers/try-runtime",
 	"pallet-poe/try-runtime",
 	"sp-runtime/try-runtime",

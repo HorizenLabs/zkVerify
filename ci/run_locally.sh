@@ -51,7 +51,7 @@ fi
 ####
 # Running workflow(s)
 ####
-workflows_orchestrator="CI-build CI-test CI-coverage CI-lint-format CI-e2e-test"
+workflows_orchestrator="CI-build CI-test CI-coverage CI-lint-format CI-zombienet-test"
 workflows_extra="CI-rustdoc"
 if [ "${interactive_mode}" == 'true' ];then
   workflows="${workflows_orchestrator} ${workflows_extra}"

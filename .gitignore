@@ -6,9 +6,9 @@ target/
 docker/resources/deploy
 docker/resources/envs/.env
 node_modules
-e2e-tests/node_modules
-e2e-tests/yarn.lock
-e2e-tests/bin
+zombienet-tests/node_modules
+zombienet-tests/yarn.lock
+zombienet-tests/bin
 lcov.info
 benchmarking_errors.txt
 

@@ -19,17 +19,22 @@ use ark_serialize::SerializationError;
 use codec::{Decode, Encode, MaxEncodedLen};
 use core::fmt::Debug;
 use scale_info::TypeInfo;
+use sp_runtime_interface::pass_by::{PassByCodec, PassByInner};
 use sp_std::vec;
 use sp_std::vec::Vec;
 
+/// Maximum sizes for G1 in bytes
 pub const G1_MAX_SIZE: u32 = 96;
+/// Maximum sizes for G2 in bytes
 pub const G2_MAX_SIZE: u32 = G1_MAX_SIZE * 2;
 
+/// Len of encoded vec with a give element size
 pub fn vec_max_encoded_len(element_size: usize, len: u32) -> usize {
     codec::Compact(len).encoded_size() + element_size * len as usize
 }
 
-#[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
+/// A elliptic point curve
+#[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo, PassByInner)]
 pub struct G1(pub Vec<u8>);
 
 impl MaxEncodedLen for G1 {
@@ -38,7 +43,8 @@ impl MaxEncodedLen for G1 {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
+/// A paired elliptic point curve
+#[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo, PassByInner)]
 pub struct G2(pub Vec<u8>);
 
 impl MaxEncodedLen for G2 {
@@ -47,30 +53,43 @@ impl MaxEncodedLen for G2 {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
+/// A generic scalar field element.
+#[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo, PassByInner)]
 pub struct Scalar(pub Vec<u8>);
 
-#[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
+/// A generic Proof.
+#[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo, PassByCodec)]
 pub struct Proof {
+    /// `a` point
     pub a: G1,
+    /// `b` point
     pub b: G2,
+    /// `c` point
     pub c: G1,
 }
 
-#[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo)]
+/// A generic Verification Key.
+#[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo, PassByCodec)]
 pub struct VerificationKey {
+    /// `alpha_g1` point
     pub alpha_g1: G1,
+    /// `beta_g2` point
     pub beta_g2: G2,
+    /// `gamma_g2` point
     pub gamma_g2: G2,
+    /// `delta_g2` point
     pub delta_g2: G2,
+    /// `gamma_abc_g1` points
     pub gamma_abc_g1: Vec<G1>,
 }
 
 impl G1 {
+    /// Try to convert the G1 point to an affine representation.
     pub fn try_into_affine<R: AffineRepr>(self) -> Result<R, SerializationError> {
         R::deserialize_uncompressed(self.0.as_ref())
     }
 
+    /// Try to convert the affine representation to a G1 point.
     pub fn try_from_affine<R: AffineRepr>(value: R) -> Result<Self, SerializationError> {
         let mut result = Self(vec![0; value.uncompressed_size()]);
         value.serialize_uncompressed(result.0.as_mut_slice())?;
@@ -79,10 +98,12 @@ impl G1 {
 }
 
 impl G2 {
+    /// Try to convert the G2 point to an affine representation.
     pub fn try_into_affine<R: AffineRepr>(self) -> Result<R, SerializationError> {
         R::deserialize_uncompressed(self.0.as_ref())
     }
 
+    /// Try to convert the affine representation to a G2 point.
     pub fn try_from_affine<R: AffineRepr>(value: R) -> Result<Self, SerializationError> {
         let mut result = Self(vec![0; value.uncompressed_size()]);
         value.serialize_uncompressed(result.0.as_mut_slice())?;
@@ -91,10 +112,12 @@ impl G2 {
 }
 
 impl Scalar {
+    /// Try to convert the scalar to a prime field element.
     pub fn try_into_scalar<P: PrimeField>(self) -> Result<P, SerializationError> {
         P::deserialize_uncompressed(self.0.as_ref())
     }
 
+    /// Try to convert the prime field element to a scalar.
     pub fn try_from_scalar<P: PrimeField>(value: P) -> Result<Self, SerializationError> {
         let mut result = Self(vec![0; value.uncompressed_size()]);
         value.serialize_uncompressed(result.0.as_mut_slice())?;
@@ -103,6 +126,7 @@ impl Scalar {
 }
 
 impl VerificationKey {
+    /// Number of inputs to the verification key.
     pub fn num_inputs(&self) -> usize {
         self.gamma_abc_g1.len() - 1
     }

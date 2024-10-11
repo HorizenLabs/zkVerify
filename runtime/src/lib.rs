@@ -83,6 +83,7 @@ use governance::{pallet_custom_origins, Treasurer, TreasurySpender};
 
 mod bag_thresholds;
 mod payout;
+mod proxy;
 #[cfg(test)]
 mod tests;
 mod weights;
@@ -144,7 +145,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     // The version of the runtime specification. A full node will not attempt to use its native
     //   runtime in substitute for the on-chain Wasm runtime unless all of `spec_name`,
     //   `spec_version`, and `authoring_version` are the same between Wasm and native.
-    spec_version: 5_002,
+    spec_version: 6_000,
     impl_version: 1,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -676,6 +677,32 @@ impl pallet_offences::Config for Runtime {
     type OnOffenceHandler = Staking;
 }
 
+parameter_types! {
+    // One storage item; key size 32, value size 8; .
+    pub const ProxyDepositBase: Balance = deposit(1, 8);
+    // Additional storage item size of 33 bytes.
+    pub const ProxyDepositFactor: Balance = deposit(0, 33);
+    pub const MaxProxies: u16 = 32;
+    pub const AnnouncementDepositBase: Balance = deposit(1, 8);
+    pub const AnnouncementDepositFactor: Balance = deposit(0, 66);
+    pub const MaxPending: u16 = 32;
+}
+
+impl pallet_proxy::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeCall = RuntimeCall;
+    type Currency = Balances;
+    type ProxyType = proxy::ProxyType;
+    type ProxyDepositBase = ProxyDepositBase;
+    type ProxyDepositFactor = ProxyDepositFactor;
+    type MaxProxies = MaxProxies;
+    type WeightInfo = weights::pallet_proxy::ZKVWeight<Runtime>;
+    type MaxPending = MaxPending;
+    type CallHasher = BlakeTwo256;
+    type AnnouncementDepositBase = AnnouncementDepositBase;
+    type AnnouncementDepositFactor = AnnouncementDepositFactor;
+}
+
 impl pallet_verifiers::Config<pallet_fflonk_verifier::Fflonk> for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
@@ -752,7 +779,6 @@ impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> f
 construct_runtime!(
     pub struct Runtime {
         System: frame_system,
-        VoterList: pallet_bags_list::<Instance1>,
         Timestamp: pallet_timestamp,
         Balances: pallet_balances,
         Authorship: pallet_authorship,
@@ -783,6 +809,8 @@ construct_runtime!(
         ChildBounties: pallet_child_bounties,
         Utility: pallet_utility,
         Vesting: pallet_vesting,
+        VoterList: pallet_bags_list::<Instance1>,
+        Proxy: pallet_proxy,
     }
 );
 
@@ -808,7 +836,7 @@ pub type SignedExtra = (
 ///
 /// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
 #[allow(unused_parens)]
-type Migrations = ();
+type Migrations = migrations::Unreleased;
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
@@ -856,6 +884,7 @@ mod benches {
         [pallet_utility, Utility]
         [pallet_vesting, Vesting]
         [pallet_whitelist, Whitelist]
+        [pallet_proxy, Proxy]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
@@ -870,6 +899,78 @@ pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
         c: PRIMARY_PROBABILITY,
         allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryVRFSlots,
     };
+
+mod migrations {
+    #[allow(unused_imports)]
+    use super::*;
+
+    pub mod migrate_staking_to_bags_list {
+        use super::*;
+        use frame_election_provider_support::SortedListProvider;
+
+        pub struct MigrateStakingToBagsList;
+
+        impl frame_support::traits::OnRuntimeUpgrade for MigrateStakingToBagsList {
+            #[cfg(feature = "try-runtime")]
+            fn pre_upgrade() -> Result<sp_std::vec::Vec<u8>, sp_runtime::TryRuntimeError> {
+                use codec::Encode;
+
+                frame_support::ensure!(
+                    crate::System::last_runtime_upgrade_spec_version() == 5_002,
+                    "must upgrade linearly"
+                );
+
+                let to_migrate = pallet_staking::Validators::<Runtime>::count()
+                    + pallet_staking::Nominators::<Runtime>::count();
+                log::info!("👜 staking bags-list migration passes PRE migrate checks ✅");
+                Ok(to_migrate.encode())
+            }
+
+            /// Migrates validators and nominators to bags list for the staking pallet.
+            fn on_runtime_upgrade() -> Weight {
+                // Migration intended only for the specific runtime update from version 5_002
+                // (which uses pallet_staking::UseNominatorsAndValidatorsMap as VoterList)
+                if crate::System::last_runtime_upgrade_spec_version() == 5_002 {
+                    let migrated =
+                        <Runtime as pallet_staking::Config>::VoterList::unsafe_regenerate(
+                            pallet_staking::Validators::<Runtime>::iter()
+                                .map(|(id, _)| id)
+                                .chain(
+                                    pallet_staking::Nominators::<Runtime>::iter().map(|(id, _)| id),
+                                ),
+                            crate::Staking::weight_of_fn(),
+                        );
+
+                    log::info!(
+                        "👜 completed staking migration to bags list with {} voters migrated",
+                        migrated,
+                    );
+
+                    BlockWeights::get().max_block
+                } else {
+                    <Runtime as frame_system::Config>::DbWeight::get().reads(1)
+                }
+            }
+
+            #[cfg(feature = "try-runtime")]
+            fn post_upgrade(
+                state: sp_std::vec::Vec<u8>,
+            ) -> Result<(), sp_runtime::TryRuntimeError> {
+                use codec::Decode;
+
+                <Runtime as pallet_staking::Config>::VoterList::try_state()
+                    .map_err(|_| "VoterList is not in a sane state.")?;
+                let old_value = u32::decode(&mut &state[..]).unwrap();
+                let new_value = <Runtime as pallet_staking::Config>::VoterList::count();
+                frame_support::ensure!(old_value == new_value, "The voters count does not match!");
+                log::info!("👜 staking bags-list migration passes POST migrate checks ✅");
+                Ok(())
+            }
+        }
+    }
+
+    pub type Unreleased = (migrate_staking_to_bags_list::MigrateStakingToBagsList,);
+}
 
 impl_runtime_apis! {
     impl sp_api::Core<Block> for Runtime {

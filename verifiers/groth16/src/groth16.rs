@@ -13,17 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use ark_bls12_381::Bls12_381;
-use ark_bn254::Bn254;
 use codec::{Decode, Encode, MaxEncodedLen};
 use core::fmt::Debug;
+use hp_verifiers::VerifyError;
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 
-use crate::data_structures::vec_max_encoded_len;
-pub use crate::data_structures::{Proof, Scalar, G1, G2};
-pub use crate::groth16_generic::Groth16Error;
-use crate::groth16_generic::{Groth16Generic, VerificationKey};
+pub use hp_groth16::{vec_max_encoded_len, Proof, Scalar, VerificationKey, G1, G2};
 
 #[derive(Copy, Clone, Debug, PartialEq, Encode, Decode, MaxEncodedLen, TypeInfo)]
 pub enum Curve {
@@ -111,12 +107,16 @@ impl Groth16 {
         proof: Proof,
         vk: VerificationKeyWithCurve,
         inputs: &[Scalar],
-    ) -> Result<bool, Groth16Error> {
+    ) -> Result<bool, VerifyError> {
         let curve = vk.curve;
         let vk = vk.vk();
         match curve {
-            Curve::Bn254 => Groth16Generic::<Bn254>::verify_proof(proof, vk, inputs),
-            Curve::Bls12_381 => Groth16Generic::<Bls12_381>::verify_proof(proof, vk, inputs),
+            Curve::Bn254 => {
+                native::groth_16_bn_254_verify::verify(vk, proof, inputs).map_err(Into::into)
+            }
+            Curve::Bls12_381 => {
+                native::groth_16_bls_12_381_verify::verify(vk, proof, inputs).map_err(Into::into)
+            }
         }
     }
 
@@ -127,40 +127,18 @@ impl Groth16 {
         curve: Curve,
     ) -> (ProofWithCurve, VerificationKeyWithCurve, Vec<Scalar>) {
         let (proof, vk, inputs) = match curve {
-            Curve::Bn254 => Groth16Generic::<Bn254>::get_instance(num_inputs, rng_seed),
-            Curve::Bls12_381 => Groth16Generic::<Bls12_381>::get_instance(num_inputs, rng_seed),
+            Curve::Bn254 => {
+                hp_groth16::dummy_circuit::get_instance::<hp_groth16::Bn254>(num_inputs, rng_seed)
+            }
+            Curve::Bls12_381 => hp_groth16::dummy_circuit::get_instance::<hp_groth16::Bls12_381>(
+                num_inputs, rng_seed,
+            ),
         };
 
         (
             ProofWithCurve::new(curve, proof),
             VerificationKeyWithCurve::from_curve_and_vk(curve, vk),
             inputs,
-        )
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::data_structures::{G1_MAX_SIZE, G2_MAX_SIZE};
-
-    use super::*;
-
-    #[test]
-    fn check_max_encoded_vk_len() {
-        let g1_zero = G1(vec![0; G1_MAX_SIZE as usize]);
-        let g2_zero = G2(vec![0; G2_MAX_SIZE as usize]);
-        let vk = VerificationKeyWithCurve {
-            curve: Curve::Bls12_381,
-            alpha_g1: g1_zero.clone(),
-            beta_g2: g2_zero.clone(),
-            gamma_g2: g2_zero.clone(),
-            delta_g2: g2_zero.clone(),
-            gamma_abc_g1: vec![g1_zero.clone(); crate::MAX_NUM_INPUTS as usize + 1],
-        };
-
-        assert_eq!(
-            VerificationKeyWithCurve::max_encoded_len(),
-            vk.encoded_size(),
         )
     }
 }
