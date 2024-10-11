@@ -15,6 +15,7 @@
 
 #![cfg(test)]
 
+use frame_support::assert_ok;
 use rstest::*;
 use sp_core::ConstU32;
 
@@ -49,15 +50,15 @@ fn valid_test_data() -> TestData {
 
 #[rstest]
 fn verify_valid_proof(valid_test_data: TestData) {
-    assert!(ProofOfSql::<ConfigWithMaxNuEqualTo5>::verify_proof(
+    assert_ok!(ProofOfSql::<ConfigWithMaxNuEqualTo5>::verify_proof(
         &valid_test_data.vk.into(),
         &valid_test_data.proof,
         &valid_test_data.pubs
-    )
-    .is_ok());
+    ));
 }
 
 mod reject {
+    use frame_support::assert_err;
     use hp_verifiers::VerifyError;
 
     use super::*;
@@ -68,13 +69,13 @@ mod reject {
         let pubs_len = invalid_pubs.len();
         invalid_pubs[pubs_len - 1] = invalid_pubs[pubs_len - 1].wrapping_add(1);
 
-        assert_eq!(
+        assert_err!(
             ProofOfSql::<ConfigWithMaxNuEqualTo5>::verify_proof(
                 &valid_test_data.vk.into(),
                 &valid_test_data.proof,
                 &invalid_pubs,
             ),
-            Err(VerifyError::VerifyError)
+            VerifyError::VerifyError
         )
     }
 
@@ -83,13 +84,13 @@ mod reject {
         let mut malformed_proof = valid_test_data.proof.clone();
         malformed_proof[0] = malformed_proof[0].wrapping_add(1);
 
-        assert_eq!(
+        assert_err!(
             ProofOfSql::<ConfigWithMaxNuEqualTo5>::verify_proof(
                 &valid_test_data.vk.into(),
                 &malformed_proof,
                 &valid_test_data.pubs,
             ),
-            Err(VerifyError::InvalidProofData)
+            VerifyError::InvalidProofData
         )
     }
 
@@ -98,13 +99,13 @@ mod reject {
         let mut malformed_pubs = valid_test_data.pubs.clone();
         malformed_pubs[0] = malformed_pubs[0].wrapping_add(1);
 
-        assert_eq!(
+        assert_err!(
             ProofOfSql::<ConfigWithMaxNuEqualTo5>::verify_proof(
                 &valid_test_data.vk.into(),
                 &valid_test_data.proof,
                 &malformed_pubs,
             ),
-            Err(VerifyError::InvalidInput)
+            VerifyError::InvalidInput
         )
     }
 
@@ -113,25 +114,25 @@ mod reject {
         let mut malformed_vk = valid_test_data.vk.clone();
         malformed_vk[0] = malformed_vk[0].wrapping_add(1);
 
-        assert_eq!(
+        assert_err!(
             ProofOfSql::<ConfigWithMaxNuEqualTo5>::verify_proof(
                 &malformed_vk.into(),
                 &valid_test_data.proof,
                 &valid_test_data.pubs,
             ),
-            Err(VerifyError::InvalidVerificationKey)
+            VerifyError::InvalidVerificationKey
         )
     }
 
     #[rstest]
     fn too_big_vk(valid_test_data: TestData) {
-        assert_eq!(
+        assert_err!(
             ProofOfSql::<ConfigWithMaxNuEqualTo3>::verify_proof(
                 &valid_test_data.vk.into(),
                 &valid_test_data.proof,
                 &valid_test_data.pubs
             ),
-            Err(VerifyError::InvalidVerificationKey)
+            VerifyError::InvalidVerificationKey
         )
     }
 }
