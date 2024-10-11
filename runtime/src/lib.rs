@@ -820,7 +820,6 @@ construct_runtime!(
         SettlementGroth16Pallet: pallet_groth16_verifier,
         SettlementRisc0Pallet: pallet_risc0_verifier,
         SettlementUltraplonkPallet: pallet_ultraplonk_verifier,
-        SettlementProofOfSqlPallet: pallet_proofofsql_verifier,
         Treasury: pallet_treasury,
         Bounties: pallet_bounties,
         ChildBounties: pallet_child_bounties,
@@ -828,6 +827,7 @@ construct_runtime!(
         Vesting: pallet_vesting,
         VoterList: pallet_bags_list::<Instance1>,
         Proxy: pallet_proxy,
+        SettlementProofOfSqlPallet: pallet_proofofsql_verifier,
     }
 );
 
@@ -907,6 +907,7 @@ mod benches {
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
         [pallet_risc0_verifier, Risc0VerifierBench::<Runtime>]
         [pallet_ultraplonk_verifier, UltraplonkVerifierBench::<Runtime>]
+        [pallet_proofofsql_verifier, ProofOfSqlVerifierBench::<Runtime>]
     );
 }
 
@@ -1227,6 +1228,7 @@ impl_runtime_apis! {
             use pallet_groth16_verifier::benchmarking::Pallet as Groth16VerifierBench;
             use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
             use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
+            use pallet_proofofsql_verifier::benchmarking::Pallet as ProofOfSqlVerifierBench;
 
             let mut list = Vec::<BenchmarkList>::new();
 
@@ -1250,6 +1252,7 @@ impl_runtime_apis! {
             use pallet_groth16_verifier::benchmarking::Pallet as Groth16VerifierBench;
             use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
             use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
+            use pallet_proofofsql_verifier::benchmarking::Pallet as ProofOfSqlVerifierBench;
 
             impl frame_system_benchmarking::Config for Runtime {}
             impl baseline::Config for Runtime {}
