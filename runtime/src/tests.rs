@@ -444,6 +444,26 @@ fn pallet_ultraplonk_availability() {
     });
 }
 
+#[test]
+fn pallet_proofofsql_availability() {
+    new_test_ext().execute_with(|| {
+        let dummy_origin = AccountId32::new([0; 32]);
+
+        let dummy_vk = Vec::new();
+        let dummy_proof = Vec::new();
+        let dummy_pubs = Vec::new();
+
+        assert!(SettlementProofOfSqlPallet::submit_proof(
+            RuntimeOrigin::signed(dummy_origin),
+            VkOrHash::Vk(Box::new(dummy_vk.into())),
+            dummy_proof.into(),
+            dummy_pubs.into()
+        )
+        .is_err());
+        // just checking code builds, hence the pallet is available to the runtime
+    });
+}
+
 // Test definition and execution. Test body must be written in the execute_with closure.
 #[test]
 fn pallet_poe_availability() {
@@ -750,6 +770,21 @@ mod use_correct_weights {
                 &Vec::new()
             ),
             crate::weights::pallet_ultraplonk_verifier::ZKVWeight::<Runtime>::submit_proof_32()
+        );
+    }
+
+    #[test]
+    fn pallet_settlement_proofofsql() {
+        use pallet_proofofsql_verifier::{ProofOfSql, WeightInfo};
+
+        assert_eq!(
+            <<Runtime as pallet_verifiers::Config<ProofOfSql<Runtime>>>::WeightInfo as
+                pallet_verifiers::WeightInfo<ProofOfSql<Runtime>>>
+                ::submit_proof(
+                &Vec::new(),
+                &Vec::new()
+            ),
+            crate::weights::pallet_proofofsql_verifier::ZKVWeight::<Runtime>::submit_proof()
         );
     }
 
