@@ -17,7 +17,7 @@
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use educe::Educe;
-use errors::ErrorWrapper;
+use errors::LibraryError;
 use frame_support::weights::Weight;
 use hp_verifiers::{Cow, Verifier, VerifyError};
 use proof_of_sql_verifier::VerificationKey;
@@ -100,13 +100,13 @@ impl<T: Config> Verifier for ProofOfSql<T> {
     ) -> Result<(), VerifyError> {
         vk.validate_size()?;
         let proof = proof_of_sql_verifier::Proof::try_from(&proof[..])
-            .map_err(Into::<ErrorWrapper>::into)?;
+            .map_err(Into::<LibraryError>::into)?;
         let pubs = proof_of_sql_verifier::PublicInput::try_from(&pubs[..])
-            .map_err(Into::<ErrorWrapper>::into)?;
+            .map_err(Into::<LibraryError>::into)?;
         let vk = proof_of_sql_verifier::VerificationKey::try_from(&vk.0[..])
-            .map_err(Into::<ErrorWrapper>::into)?;
+            .map_err(Into::<LibraryError>::into)?;
         proof_of_sql_verifier::verify_proof(&proof, &pubs, &vk)
-            .map_err(Into::<ErrorWrapper>::into)?;
+            .map_err(Into::<LibraryError>::into)?;
         Ok(())
     }
 
