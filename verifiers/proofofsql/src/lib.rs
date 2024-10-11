@@ -154,61 +154,52 @@ mod vk {
     use super::*;
 
     use frame_support::{assert_err, assert_ok};
+    use rstest::{fixture, rstest};
     use sp_core::ConstU32;
 
-    pub struct ConfigWithMaxNuEqualTo5;
+    pub struct ConfigWithMaxNu<const N: u32>;
 
-    impl Config for ConfigWithMaxNuEqualTo5 {
-        type LargestMaxNu = ConstU32<5>;
+    impl<const N: u32> Config for ConfigWithMaxNu<N> {
+        type LargestMaxNu = ConstU32<N>;
     }
 
-    pub struct ConfigWithMaxNuEqualTo4;
+    type VkWithMaxNu<const N: u32> = <ProofOfSql<ConfigWithMaxNu<N>> as Verifier>::Vk;
 
-    impl Config for ConfigWithMaxNuEqualTo4 {
-        type LargestMaxNu = ConstU32<4>;
+    #[fixture]
+    fn bytes_of_vk_with_nu_4() -> Vec<u8> {
+        include_bytes!("resources/VALID_VK.bin").to_vec()
     }
 
-    pub struct ConfigWithMaxNuEqualTo3;
-
-    impl Config for ConfigWithMaxNuEqualTo3 {
-        type LargestMaxNu = ConstU32<3>;
-    }
-
-    #[test]
-    fn length_should_match_max_encoded_len() {
-        let vk_with_nu_equal_to_4: <ProofOfSql<ConfigWithMaxNuEqualTo4> as Verifier>::Vk =
-            include_bytes!("resources/VALID_VK.bin").to_vec().into();
-        let encoded_len = vk_with_nu_equal_to_4.encode().len();
-        let expected_encoded_len =
-            <ProofOfSql<ConfigWithMaxNuEqualTo4> as Verifier>::Vk::max_encoded_len();
+    #[rstest]
+    fn length_should_match_max_encoded_len(bytes_of_vk_with_nu_4: Vec<u8>) {
+        let vk_with_max_nu_4 = VkWithMaxNu::<4>::from(bytes_of_vk_with_nu_4);
+        let encoded_len = vk_with_max_nu_4.encode().len();
+        let expected_encoded_len = VkWithMaxNu::<4>::max_encoded_len();
         assert_eq!(encoded_len, expected_encoded_len);
     }
 
-    mod max_encoded_len {
+    mod validate_size {
         use super::*;
 
-        #[test]
-        fn should_reject_too_big_vk() {
-            let vk_with_nu_equal_to_4: <ProofOfSql<ConfigWithMaxNuEqualTo3> as Verifier>::Vk =
-                include_bytes!("resources/VALID_VK.bin").to_vec().into();
+        #[rstest]
+        fn should_reject_too_big_vk(bytes_of_vk_with_nu_4: Vec<u8>) {
+            let vk_with_max_nu_3 = VkWithMaxNu::<3>::from(bytes_of_vk_with_nu_4);
             assert_err!(
-                vk_with_nu_equal_to_4.validate_size(),
+                vk_with_max_nu_3.validate_size(),
                 VerifyError::InvalidVerificationKey
             );
         }
 
-        #[test]
-        fn should_accept_maximum_size_vk() {
-            let vk_with_nu_equal_to_4: <ProofOfSql<ConfigWithMaxNuEqualTo4> as Verifier>::Vk =
-                include_bytes!("resources/VALID_VK.bin").to_vec().into();
-            assert_ok!(vk_with_nu_equal_to_4.validate_size());
+        #[rstest]
+        fn should_accept_maximum_size_vk(bytes_of_vk_with_nu_4: Vec<u8>) {
+            let vk_with_max_nu_4 = VkWithMaxNu::<4>::from(bytes_of_vk_with_nu_4);
+            assert_ok!(vk_with_max_nu_4.validate_size());
         }
 
-        #[test]
-        fn should_accept_small_vk() {
-            let vk_with_nu_equal_to_4: <ProofOfSql<ConfigWithMaxNuEqualTo5> as Verifier>::Vk =
-                include_bytes!("resources/VALID_VK.bin").to_vec().into();
-            assert_ok!(vk_with_nu_equal_to_4.validate_size());
+        #[rstest]
+        fn should_accept_small_vk(bytes_of_vk_with_nu_4: Vec<u8>) {
+            let vk_with_max_nu_5 = VkWithMaxNu::<5>::from(bytes_of_vk_with_nu_4);
+            assert_ok!(vk_with_max_nu_5.validate_size());
         }
     }
 }
