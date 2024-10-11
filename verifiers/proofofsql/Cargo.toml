@@ -15,7 +15,11 @@ log = "0.4.21"
 hex-literal = { workspace = true, optional = true }
 codec = { workspace = true }
 scale-info = { workspace = true }
-derivative = { version = "2.2.0" }
+educe = { version = "0.6.0", default-features = false, features = [
+    "Clone",
+    "Debug",
+    "PartialEq",
+] }
 
 hp-verifiers = { workspace = true }
 pallet-verifiers = { workspace = true }

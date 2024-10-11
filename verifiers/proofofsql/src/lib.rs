@@ -16,7 +16,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::{Decode, Encode, MaxEncodedLen};
-use derivative::Derivative;
+use educe::Educe;
 use errors::ErrorWrapper;
 use frame_support::weights::Weight;
 use hp_verifiers::{Cow, Verifier, VerifyError};
@@ -31,10 +31,10 @@ mod verifier_should;
 mod weight;
 pub use weight::WeightInfo;
 
-// Here derivative is used for Clone, Debug, and PartialEq to work around
+// Here educe is used for Clone, Debug, and PartialEq to work around
 // a long-standing compiler bug https://github.com/rust-lang/rust/issues/26925
-#[derive(Derivative, Encode, Decode, TypeInfo)]
-#[derivative(Clone, Debug, PartialEq)]
+#[derive(Educe, Encode, Decode, TypeInfo)]
+#[educe(Clone, Debug, PartialEq)]
 #[scale_info(skip_type_params(T))]
 pub struct Vk<T>(Vec<u8>, PhantomData<T>);
 
