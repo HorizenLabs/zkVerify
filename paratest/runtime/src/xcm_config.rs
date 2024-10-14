@@ -11,7 +11,6 @@ use super::{
     WeightToFee, //, XcmpQueue,
     XcmPallet,
 };
-use crate::ParaId;
 use frame_support::{
     match_types, parameter_types,
     traits::{ConstU32, Everything, Nothing},
@@ -45,8 +44,6 @@ parameter_types! {
 pub type LocationToAccountId = (
     // The parent (Relay-chain) origin converts to the parent `AccountId`.
     ParentIsPreset<AccountId>,
-    // Sibling parachain origins convert to AccountId via the `ParaId::into`.
-    //SiblingParachainConvertsVia<Sibling, AccountId>,
     //// Straight up local `AccountId32` origins just alias directly to `AccountId`.
     AccountId32Aliases<RelayNetwork, AccountId>,
 );
