@@ -17,10 +17,6 @@
 
 //! XCM configuration for Zkv.
 
-use core::marker::PhantomData;
-use frame_support::traits::OriginTrait;
-use xcm_executor::traits::ConvertOrigin;
-
 use super::{
     AccountId,
     AllPalletsWithSystem,
@@ -155,9 +151,10 @@ pub type XcmRouter = WithUniqueTopic<(
     ChildParachainRouter<Runtime, XcmPallet, PriceForChildParachainDelivery>,
 )>;
 
+pub const TEST_PARA_ID: u32 = 1599;
 parameter_types! {
-    pub const Acme: AssetFilter = Definite(AllOf { fun: WildFungible, id: AssetId(TokenLocation::get()) });
-    pub TestParaLocation: Location = Parachain(1599).into_location();
+    pub const Acme: AssetFilter = Wild(AllOf { fun: WildFungible, id: AssetId(TokenLocation::get()) });
+    pub TestParaLocation: Location = Parachain(TEST_PARA_ID).into_location();
     pub AcmeForTest: (AssetFilter, Location) = (Acme::get(), TestParaLocation::get());
     pub const MaxAssetsIntoHolding: u32 = 64;
 }
@@ -186,15 +183,12 @@ pub type Barrier = TrailingSetTopicAsId<(
     TakeWeightCredit,
     // Expected responses are OK.
     AllowKnownQueryResponses<XcmPallet>,
-    //AllowUnpaidExecutionFrom<OnlyParachains>,
     WithComputedOrigin<
         (
             // If the message is one that immediately attempts to pay for execution, then allow it.
             AllowTopLevelPaidExecutionFrom<Everything>,
             // Subscriptions for version tracking are OK.
             AllowSubscriptionsFrom<OnlyParachains>,
-            // Collectives and Fellows plurality get free execution.
-            AllowExplicitUnpaidExecutionFrom<CollectivesOrFellows>,
         ),
         UniversalLocation,
         ConstU32<8>,
