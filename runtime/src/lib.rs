@@ -182,7 +182,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     // The version of the runtime specification. A full node will not attempt to use its native
     //   runtime in substitute for the on-chain Wasm runtime unless all of `spec_name`,
     //   `spec_version`, and `authoring_version` are the same between Wasm and native.
-    spec_version: 7_004,
+    spec_version: 5_002,
     impl_version: 1,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -1057,9 +1057,9 @@ mod benches {
         [crate::parachains::paras_inherent, ParaInherent]
         [pallet_message_queue, MessageQueue]
         // xcm
-        [pallet_xcm, XcmPalletBench::<Runtime>]
-        [xcm::pallet_xcm_benchmarks_fungible, pallet_xcm_benchmarks::fungible::Pallet::<Runtime>]
-        [xcm::pallet_xcm_benchmarks_generic, pallet_xcm_benchmarks::generic::Pallet::<Runtime>]
+        [pallet_xcm, xcm::XcmPalletBench::<Runtime>]
+        [xcm::pallet_xcm_benchmarks_fungible, xcm::XcmPalletBenchFungible::<Runtime>]
+        [xcm::pallet_xcm_benchmarks_generic, xcm::XcmPalletBenchGeneric::<Runtime>]
     );
 }
 
@@ -1495,8 +1495,13 @@ impl_runtime_apis! {
             use pallet_groth16_verifier::benchmarking::Pallet as Groth16VerifierBench;
             use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
             use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
+
             #[cfg(feature = "relay")]
-            use pallet_xcm::benchmarking::Pallet as XcmPalletBench;
+            pub mod xcm {
+                pub use pallet_xcm::benchmarking::Pallet as XcmPalletBench;
+                pub use pallet_xcm_benchmarks::fungible::Pallet as XcmPalletBenchFungible;
+                pub use pallet_xcm_benchmarks::generic::Pallet as XcmPalletBenchGeneric;
+            }
 
             let mut list = Vec::<BenchmarkList>::new();
 
@@ -1521,141 +1526,155 @@ impl_runtime_apis! {
             use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
             use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
 
-            use xcm::v4::{Asset, AssetId, Assets, Location, InteriorLocation, Junction, Junctions::Here, NetworkId, Response};
-            use frame_benchmarking::BenchmarkError;
-
-            parameter_types! {
-                pub ExistentialDepositAsset: Option<Asset> = Some((
-                    xcm_config::TokenLocation::get(),
-                    ExistentialDeposit::get()
-                ).into());
-                pub const TestParaId: ParaId = ParaId::new(1599);
-            }
-
             #[cfg(feature = "relay")]
-            use pallet_xcm::benchmarking::Pallet as XcmPalletBench;
-            impl pallet_xcm::benchmarking::Config for Runtime {
-                type DeliveryHelper = (
-                    polkadot_runtime_common::xcm_sender::ToParachainDeliveryHelper<
-                        xcm_config::XcmConfig,
-                        ExistentialDepositAsset,
-                        xcm_config::PriceForChildParachainDelivery,
-                        TestParaId,
-                        ()
-                    >,
-                );
+            pub mod xcm {
+                use super::*;
+                use xcm::v4::{Asset, AssetId, Assets, Location, InteriorLocation, Junction, Junctions::Here, NetworkId, Response};
+                use frame_benchmarking::BenchmarkError;
 
-                fn get_asset() -> Asset {
-                    Asset {
-                        id: xcm_config::FeeAssetId::get(),
-                        fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                pub use pallet_xcm::benchmarking::Pallet as XcmPalletBench;
+                pub use pallet_xcm_benchmarks::fungible::Pallet as XcmPalletBenchFungible;
+                pub use pallet_xcm_benchmarks::generic::Pallet as XcmPalletBenchGeneric;
+
+                parameter_types! {
+                    pub ExistentialDepositAsset: Option<Asset> = Some((
+                        xcm_config::TokenLocation::get(),
+                        ExistentialDeposit::get()
+                    ).into());
+                    pub const TestParaId: ParaId = ParaId::new(xcm_config::TEST_PARA_ID);
+                    pub const RndParaId: ParaId = ParaId::new(123456);
+                }
+
+                impl pallet_xcm::benchmarking::Config for Runtime {
+                    type DeliveryHelper = (
+                        polkadot_runtime_common::xcm_sender::ToParachainDeliveryHelper<
+                            xcm_config::XcmConfig,
+                            ExistentialDepositAsset,
+                            xcm_config::PriceForChildParachainDelivery,
+                            TestParaId,
+                            ()
+                        >,
+                        polkadot_runtime_common::xcm_sender::ToParachainDeliveryHelper<
+                            xcm_config::XcmConfig,
+                            ExistentialDepositAsset,
+                            xcm_config::PriceForChildParachainDelivery,
+                            RndParaId,
+                            ()
+                        >,
+                    );
+
+                    fn get_asset() -> Asset {
+                        Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                        }
                     }
                 }
-            }
 
-            impl pallet_xcm_benchmarks::Config for Runtime {
-                type XcmConfig = xcm_config::XcmConfig;
-                type AccountIdConverter = xcm_config::SovereignAccountOf;
-                type DeliveryHelper = (
-                    polkadot_runtime_common::xcm_sender::ToParachainDeliveryHelper<
-                        xcm_config::XcmConfig,
-                        ExistentialDepositAsset,
-                        xcm_config::PriceForChildParachainDelivery,
-                        TestParaId,
-                        ()
-                    >,
-                );
-                fn valid_destination() -> Result<Location, BenchmarkError> {
-                    Ok(xcm_config::TestParaLocation::get())
-                }
-                fn worst_case_holding(_depositable_count: u32) -> Assets {
-                    vec![Asset {
-                        id: xcm_config::FeeAssetId::get(),
-                        fun: xcm::latest::Fungibility::Fungible(ACME),
-                    }].into()
-                }
-            }
-
-            parameter_types! {
-                pub TrustedTeleporter: Option<(Location, Asset)> = Some((
-                    xcm_config::TestParaLocation::get(),
-                    Asset {
-                        id: xcm_config::FeeAssetId::get(),
-                        fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
-                    },
-                ));
-                pub const TrustedReserve: Option<(Location, Asset)> = None;
-            }
-
-            impl pallet_xcm_benchmarks::fungible::Config for Runtime {
-                type TransactAsset = Balances;
-                type CheckedAccount = xcm_config::LocalCheckAccount;
-                type TrustedTeleporter = TrustedTeleporter;
-                type TrustedReserve = TrustedReserve;
-
-                fn get_asset() -> Asset {
-                    Asset {
-                        id: xcm_config::FeeAssetId::get(),
-                        fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                impl pallet_xcm_benchmarks::Config for Runtime {
+                    type XcmConfig = xcm_config::XcmConfig;
+                    type AccountIdConverter = xcm_config::SovereignAccountOf;
+                    type DeliveryHelper = (
+                        polkadot_runtime_common::xcm_sender::ToParachainDeliveryHelper<
+                            xcm_config::XcmConfig,
+                            ExistentialDepositAsset,
+                            xcm_config::PriceForChildParachainDelivery,
+                            TestParaId,
+                            ()
+                        >,
+                    );
+                    fn valid_destination() -> Result<Location, BenchmarkError> {
+                        Ok(xcm_config::TestParaLocation::get())
+                    }
+                    fn worst_case_holding(_depositable_count: u32) -> Assets {
+                        vec![Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ACME),
+                        }].into()
                     }
                 }
-            }
 
-            impl pallet_xcm_benchmarks::generic::Config for Runtime {
-                type TransactAsset = Balances;
-                type RuntimeCall = RuntimeCall;
-
-                fn worst_case_response() -> (u64, Response) {
-                    (0u64, Response::Version(Default::default()))
+                parameter_types! {
+                    pub TrustedTeleporter: Option<(Location, Asset)> = Some((
+                        xcm_config::TestParaLocation::get(),
+                        Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                        },
+                    ));
+                    pub const TrustedReserve: Option<(Location, Asset)> = None;
                 }
 
-                fn worst_case_asset_exchange() -> Result<(Assets, Assets), BenchmarkError> {
-                    // ZKV doesn't support asset exchanges
-                    Err(BenchmarkError::Skip)
+                impl pallet_xcm_benchmarks::fungible::Config for Runtime {
+                    type TransactAsset = Balances;
+                    type CheckedAccount = xcm_config::LocalCheckAccount;
+                    type TrustedTeleporter = TrustedTeleporter;
+                    type TrustedReserve = TrustedReserve;
+
+                    fn get_asset() -> Asset {
+                        Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                        }
+                    }
                 }
 
-                fn universal_alias() -> Result<(Location, Junction), BenchmarkError> {
-                    // The XCM executor of ZKV doesn't have a configured `UniversalAliases`
-                    Err(BenchmarkError::Skip)
-                }
+                impl pallet_xcm_benchmarks::generic::Config for Runtime {
+                    type TransactAsset = Balances;
+                    type RuntimeCall = RuntimeCall;
 
-                fn transact_origin_and_runtime_call() -> Result<(Location, RuntimeCall), BenchmarkError> {
-                    Ok((xcm_config::TestParaLocation::get(), frame_system::Call::remark_with_event { remark: vec![] }.into()))
-                }
+                    fn worst_case_response() -> (u64, Response) {
+                        (0u64, Response::Version(Default::default()))
+                    }
 
-                fn subscribe_origin() -> Result<Location, BenchmarkError> {
-                    Ok(xcm_config::TestParaLocation::get())
-                }
+                    fn worst_case_asset_exchange() -> Result<(Assets, Assets), BenchmarkError> {
+                        // ZKV doesn't support asset exchanges
+                        Err(BenchmarkError::Skip)
+                    }
 
-                fn claimable_asset() -> Result<(Location, Location, Assets), BenchmarkError> {
-                    // an asset that can be trapped and claimed
-                    let origin = xcm_config::TestParaLocation::get();
-                    let assets: Assets = (AssetId(xcm_config::TokenLocation::get()), ACME).into();
-                    let ticket = Location { parents: 0, interior: Here };
-                    Ok((origin, ticket, assets))
-                }
+                    fn universal_alias() -> Result<(Location, Junction), BenchmarkError> {
+                        // The XCM executor of ZKV doesn't have a configured `UniversalAliases`
+                        Err(BenchmarkError::Skip)
+                    }
 
-                fn fee_asset() -> Result<Asset, BenchmarkError> {
-                    Ok(Asset {
-                        id: xcm_config::FeeAssetId::get(),
-                        fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
-                    })
-                }
+                    fn transact_origin_and_runtime_call() -> Result<(Location, RuntimeCall), BenchmarkError> {
+                        Ok((xcm_config::TestParaLocation::get(), frame_system::Call::remark_with_event { remark: vec![] }.into()))
+                    }
 
-                fn unlockable_asset() -> Result<(Location, Location, Asset), BenchmarkError> {
-                    // ZKV doesn't support asset locking
-                    Err(BenchmarkError::Skip)
-                }
+                    fn subscribe_origin() -> Result<Location, BenchmarkError> {
+                        Ok(xcm_config::TestParaLocation::get())
+                    }
 
-                fn export_message_origin_and_destination(
-                ) -> Result<(Location, NetworkId, InteriorLocation), BenchmarkError> {
-                    // ZKV doesn't support exporting messages
-                    Err(BenchmarkError::Skip)
-                }
+                    fn claimable_asset() -> Result<(Location, Location, Assets), BenchmarkError> {
+                        // an asset that can be trapped and claimed
+                        let origin = xcm_config::TestParaLocation::get();
+                        let assets: Assets = (AssetId(xcm_config::TokenLocation::get()), ACME).into();
+                        let ticket = Location { parents: 0, interior: Here };
+                        Ok((origin, ticket, assets))
+                    }
 
-                fn alias_origin() -> Result<(Location, Location), BenchmarkError> {
-                    // The XCM executor of ZKV doesn't have a configured `Aliasers`
-                    Err(BenchmarkError::Skip)
+                    fn fee_asset() -> Result<Asset, BenchmarkError> {
+                        Ok(Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                        })
+                    }
+
+                    fn unlockable_asset() -> Result<(Location, Location, Asset), BenchmarkError> {
+                        // ZKV doesn't support asset locking
+                        Err(BenchmarkError::Skip)
+                    }
+
+                    fn export_message_origin_and_destination(
+                    ) -> Result<(Location, NetworkId, InteriorLocation), BenchmarkError> {
+                        // ZKV doesn't support exporting messages
+                        Err(BenchmarkError::Skip)
+                    }
+
+                    fn alias_origin() -> Result<(Location, Location), BenchmarkError> {
+                        // The XCM executor of ZKV doesn't have a configured `Aliasers`
+                        Err(BenchmarkError::Skip)
+                    }
                 }
             }
 
