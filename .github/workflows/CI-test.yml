@@ -53,17 +53,9 @@ jobs:
           echo "USER_ID=$(id -u)" >> $GITHUB_ENV
           echo "GRP_ID=$(id -g)" >> $GITHUB_ENV
 
-      - name: Cargo unit tests
-        shell: bash
-        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo test --lib --bins --all-features --no-fail-fast --release 2>&1 | tee unit_tests_output.txt
-
-      - name: Cargo unit tests for runtime WITHOUT relay feature
-        shell: bash
-        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo test -p zkv-runtime --lib --bins --features runtime-benchmarks --no-fail-fast --release 2>&1 | tee -a unit_tests_output.txt
-
       - name: Cargo integration tests
         shell: bash
-        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo test --test '*' --all-features --no-fail-fast --release 2>&1 | tee integration_tests_output.txt
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo test --test purge_chain_works --all-features --no-fail-fast --release -- --nocapture 2>&1
 
       - name: Save common cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}

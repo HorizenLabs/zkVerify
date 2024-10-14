@@ -69,6 +69,7 @@ pub fn find_ws_url_from_output(read: impl Read + Send) -> (String, String) {
         .lines()
         .find_map(|line| {
             let line = line.expect("failed to obtain next line from stdout for port discovery");
+            println!("DBG: {}", line);
 
             data.push_str(&line);
 
