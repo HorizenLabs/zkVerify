@@ -60,10 +60,10 @@ impl From<Groth16Error> for hp_verifiers::VerifyError {
 }
 
 /// Verify a groth16 proof against the `E` elliptic curve using the provided verification key and inputs.
-#[cfg(feature = "std")]
+#[cfg(feature = "implementation")]
 pub fn verify_proof<E: Pairing>(
-    proof: Proof,
     vk: VerificationKey,
+    proof: Proof,
     inputs: &[Scalar],
 ) -> Result<bool, Groth16Error> {
     let proof: ark_groth16::Proof<E> = proof.try_into().map_err(|_| Groth16Error::InvalidProof)?;
@@ -81,7 +81,7 @@ pub fn verify_proof<E: Pairing>(
 }
 
 /// Verify a groth16 verification key against the `E` elliptic curve.
-#[cfg(feature = "std")]
+#[cfg(feature = "implementation")]
 pub fn validate_key<E: Pairing>(vk: VerificationKey) -> Result<(), Groth16Error> {
     ark_groth16::VerifyingKey::<E>::try_from(vk)
         .map(|_| ())
@@ -113,7 +113,7 @@ mod should {
         fn succeed<E: Pairing>(#[case] _p: PhantomData<E>) {
             let (proof, vk, inputs) = dummy_circuit::get_instance::<E>(10, None);
 
-            assert!(verify_proof::<E>(proof, vk, &inputs).unwrap())
+            assert!(verify_proof::<E>(vk, proof, &inputs).unwrap())
         }
 
         #[apply(curves)]
@@ -121,7 +121,7 @@ mod should {
             let (proof, _, inputs) = dummy_circuit::get_instance::<E>(10, Some(0));
             let (_, vk, _) = dummy_circuit::get_instance::<E>(10, Some(42));
 
-            assert!(!verify_proof::<E>(proof, vk, &inputs).unwrap())
+            assert!(!verify_proof::<E>(vk, proof, &inputs).unwrap())
         }
 
         #[apply(curves)]
@@ -129,7 +129,7 @@ mod should {
             let (proof, vk, _) = dummy_circuit::get_instance::<E>(10, Some(0));
             let (_, _, inputs) = dummy_circuit::get_instance::<E>(10, Some(42));
 
-            assert!(!verify_proof::<E>(proof, vk, &inputs).unwrap())
+            assert!(!verify_proof::<E>(vk, proof, &inputs).unwrap())
         }
 
         #[apply(curves)]
@@ -137,7 +137,7 @@ mod should {
             let (_, vk, inputs) = dummy_circuit::get_instance::<E>(10, Some(0));
             let (proof, _, _) = dummy_circuit::get_instance::<E>(10, Some(42));
 
-            assert!(!verify_proof::<E>(proof, vk, &inputs).unwrap())
+            assert!(!verify_proof::<E>(vk, proof, &inputs).unwrap())
         }
 
         #[apply(curves)]
@@ -146,7 +146,7 @@ mod should {
             proof.a.0[0] += 1;
 
             assert_eq!(
-                verify_proof::<E>(proof, vk, &inputs).err().unwrap(),
+                verify_proof::<E>(vk, proof, &inputs).err().unwrap(),
                 Groth16Error::InvalidProof
             )
         }
@@ -157,7 +157,7 @@ mod should {
             vk.alpha_g1.0[0] += 1;
 
             assert_eq!(
-                verify_proof::<E>(proof, vk, &inputs).err().unwrap(),
+                verify_proof::<E>(vk, proof, &inputs).err().unwrap(),
                 Groth16Error::InvalidVerificationKey
             )
         }
@@ -173,7 +173,7 @@ mod should {
             }
 
             assert_eq!(
-                verify_proof::<E>(proof, vk, &inputs).err().unwrap(),
+                verify_proof::<E>(vk, proof, &inputs).err().unwrap(),
                 Groth16Error::InvalidInput
             )
         }
@@ -184,7 +184,7 @@ mod should {
             inputs.push(Scalar::try_from_scalar(E::ScalarField::one()).unwrap());
 
             assert_eq!(
-                verify_proof::<E>(proof, vk, &inputs).err().unwrap(),
+                verify_proof::<E>(vk, proof, &inputs).err().unwrap(),
                 Groth16Error::VerifyError
             )
         }
@@ -195,7 +195,7 @@ mod should {
             inputs.pop();
 
             assert_eq!(
-                verify_proof::<E>(proof, vk, &inputs).err().unwrap(),
+                verify_proof::<E>(vk, proof, &inputs).err().unwrap(),
                 Groth16Error::VerifyError
             )
         }
