@@ -40,10 +40,13 @@ pub async fn wait_n_finalized_blocks(n: usize, url: &str) {
 
     loop {
         let Ok(rpc) = ws_client(url).await else {
+            interval.tick().await;
+            println!("Nok! {}", url);
             continue;
         };
 
         if let Ok(block) = ChainApi::<(), Hash, Header, Block>::finalized_head(&rpc).await {
+            println!("Last! {}", block);
             built_blocks.insert(block);
             if built_blocks.len() > n {
                 break;
@@ -70,6 +73,7 @@ pub fn find_ws_url_from_output(read: impl Read + Send) -> (String, String) {
         .find_map(|line| {
             let line = line.expect("failed to obtain next line from stdout for port discovery");
 
+            println!("DBG: {}", line);
             data.push_str(&line);
 
             // does the line contain our port (we expect this specific output from substrate).

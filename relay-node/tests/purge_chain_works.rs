@@ -27,6 +27,7 @@ use std::{
     time::Duration,
 };
 use tempfile::tempdir;
+use serial_test::serial;
 
 pub mod common;
 
@@ -35,6 +36,7 @@ const ROCKS: &str = "db/full";
 const PARITY: &str = "paritydb/full";
 
 #[tokio::test]
+#[serial]
 async fn purge_chain_rocksdb_works() {
     run_with_timeout(Duration::from_secs(20 * 60), async move {
         let tmpdir = tempdir().expect("could not create temp dir");
@@ -52,13 +54,18 @@ async fn purge_chain_rocksdb_works() {
 
         let (ws_url, _) = common::find_ws_url_from_output(cmd.stderr.take().unwrap());
 
+        println!("Connecting to {}", ws_url);
         // Let it produce 1 block.
         common::wait_n_finalized_blocks(1, &ws_url).await;
 
+        println!("Sending SIGINT");
         // Send SIGINT to node.
         kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
+
+        println!("Waiting on cmd");
         // Wait for the node to handle it and exit.
         assert!(cmd.wait().unwrap().success());
+        println!("Cmd finished");
         assert!(tmpdir.path().join(DB_PATH).exists());
         assert!(tmpdir.path().join(DB_PATH).join(ROCKS).exists());
 
@@ -79,6 +86,7 @@ async fn purge_chain_rocksdb_works() {
 }
 
 #[tokio::test]
+#[serial]
 async fn purge_chain_paritydb_works() {
     run_with_timeout(Duration::from_secs(20 * 60), async move {
         let tmpdir = tempdir().expect("could not create temp dir");
@@ -96,13 +104,18 @@ async fn purge_chain_paritydb_works() {
 
         let (ws_url, _) = common::find_ws_url_from_output(cmd.stderr.take().unwrap());
 
+        println!("PConnecting to {}", ws_url);
         // Let it produce 1 block.
         common::wait_n_finalized_blocks(1, &ws_url).await;
 
+        println!("PSending SIGINT");
         // Send SIGINT to node.
         kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
         // Wait for the node to handle it and exit.
+        println!("PWaiting on cmd");
+        // Wait for the node to handle it and exit.
         assert!(cmd.wait().unwrap().success());
+        println!("PCmd finished");
         assert!(tmpdir.path().join(DB_PATH).exists());
         assert!(tmpdir.path().join(DB_PATH).join(PARITY).exists());
 
