@@ -46,9 +46,7 @@ async fn running_the_node_works_and_can_be_interrupted() {
         let (ws_url, _) = common::find_ws_url_from_output(cmd.stderr.take().unwrap());
 
         // Let it produce three blocks.
-        common::wait_n_finalized_blocks(3, &ws_url, None)
-            .await
-            .unwrap();
+        common::wait_n_finalized_blocks(3, &ws_url).await;
 
         assert!(
             cmd.try_wait().unwrap().is_none(),
