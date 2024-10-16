@@ -18,6 +18,7 @@
 
 use polkadot_core_primitives::{Block, Hash, Header};
 use std::{
+    fmt::Error,
     future::Future,
     io::{BufRead, BufReader, Read},
     time::Duration,
@@ -34,11 +35,19 @@ pub async fn run_with_timeout(timeout: Duration, future: impl Future<Output = ()
 }
 
 /// Wait for at least `n` blocks to be finalized from a specified node.
-pub async fn wait_n_finalized_blocks(n: usize, url: &str) {
+pub async fn wait_n_finalized_blocks(
+    n: usize,
+    url: &str,
+    max_try: Option<usize>,
+) -> Result<usize, ()> {
     let mut built_blocks = std::collections::HashSet::new();
     let mut interval = tokio::time::interval(Duration::from_secs(6));
+    let mut times = 0;
 
-    loop {
+    while times < max_try.unwrap_or(usize::MAX) {
+        times += 1;
+        println!("Try {times}");
+
         let Ok(rpc) = ws_client(url).await else {
             interval.tick().await;
             println!("Nok! {}", url);
@@ -49,12 +58,13 @@ pub async fn wait_n_finalized_blocks(n: usize, url: &str) {
             println!("Last! {}", block);
             built_blocks.insert(block);
             if built_blocks.len() > n {
-                break;
+                return Ok(times);
             }
         };
 
         interval.tick().await;
     }
+    Err(())
 }
 
 /// Read the WS address from the output.

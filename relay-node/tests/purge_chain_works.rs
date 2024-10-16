@@ -22,12 +22,12 @@ use nix::{
     sys::signal::{kill, Signal::SIGINT},
     unistd::Pid,
 };
+use serial_test::serial;
 use std::{
     process::{self, Command},
     time::Duration,
 };
 use tempfile::tempdir;
-use serial_test::serial;
 
 pub mod common;
 
@@ -56,7 +56,19 @@ async fn purge_chain_rocksdb_works() {
 
         println!("Connecting to {}", ws_url);
         // Let it produce 1 block.
-        common::wait_n_finalized_blocks(1, &ws_url).await;
+        let _ = common::wait_n_finalized_blocks(1, &ws_url, Some(10)).await;
+
+        match cmd.try_wait() {
+            Ok(None) => {
+                println!("Node still running");
+            }
+            Ok(Some(status)) => {
+                panic!("Node terminated with status {}", status);
+            }
+            Err(e) => {
+                panic!("Error waiting for node: {}", e);
+            }
+        }
 
         println!("Sending SIGINT");
         // Send SIGINT to node.
@@ -106,7 +118,19 @@ async fn purge_chain_paritydb_works() {
 
         println!("PConnecting to {}", ws_url);
         // Let it produce 1 block.
-        common::wait_n_finalized_blocks(1, &ws_url).await;
+        let _ = common::wait_n_finalized_blocks(1, &ws_url, Some(1)).await;
+
+        match cmd.try_wait() {
+            Ok(None) => {
+                println!("Node still running");
+            }
+            Ok(Some(status)) => {
+                panic!("Node terminated with status {}", status);
+            }
+            Err(e) => {
+                panic!("Error waiting for node: {}", e);
+            }
+        }
 
         println!("PSending SIGINT");
         // Send SIGINT to node.
