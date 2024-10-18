@@ -776,6 +776,27 @@ impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> f
     >;
 }
 
+parameter_types! {
+    pub const ProofOfSqlLargestMaxNu: u32 = 8;
+}
+
+impl pallet_proofofsql_verifier::Config for Runtime {
+    type LargestMaxNu = ProofOfSqlLargestMaxNu;
+}
+
+const_assert!(
+    <Runtime as pallet_proofofsql_verifier::Config>::LargestMaxNu::get()
+        <= pallet_proofofsql_verifier::LARGEST_MAX_NU_LIMIT
+);
+
+impl pallet_verifiers::Config<pallet_proofofsql_verifier::ProofOfSql<Runtime>> for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type OnProofVerified = Poe;
+    type WeightInfo = pallet_proofofsql_verifier::ProofOfSqlWeight<
+        weights::pallet_proofofsql_verifier::ZKVWeight<Runtime>,
+    >;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub struct Runtime {
@@ -812,6 +833,7 @@ construct_runtime!(
         Vesting: pallet_vesting,
         VoterList: pallet_bags_list::<Instance1>,
         Proxy: pallet_proxy,
+        SettlementProofOfSqlPallet: pallet_proofofsql_verifier,
     }
 );
 
@@ -891,6 +913,7 @@ mod benches {
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
         [pallet_risc0_verifier, Risc0VerifierBench::<Runtime>]
         [pallet_ultraplonk_verifier, UltraplonkVerifierBench::<Runtime>]
+        [pallet_proofofsql_verifier, ProofOfSqlVerifierBench::<Runtime>]
     );
 }
 
@@ -1139,6 +1162,7 @@ impl_runtime_apis! {
             use pallet_groth16_verifier::benchmarking::Pallet as Groth16VerifierBench;
             use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
             use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
+            use pallet_proofofsql_verifier::benchmarking::Pallet as ProofOfSqlVerifierBench;
 
             let mut list = Vec::<BenchmarkList>::new();
 
@@ -1162,6 +1186,7 @@ impl_runtime_apis! {
             use pallet_groth16_verifier::benchmarking::Pallet as Groth16VerifierBench;
             use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
             use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
+            use pallet_proofofsql_verifier::benchmarking::Pallet as ProofOfSqlVerifierBench;
 
             impl frame_system_benchmarking::Config for Runtime {}
             impl baseline::Config for Runtime {}
