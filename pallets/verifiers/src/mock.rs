@@ -139,11 +139,23 @@ impl WeightInfo<FakeVerifier> for MockWeightInfo {
     }
 }
 
+pub struct MockCommonWeightInfo;
+impl crate::common::WeightInfo for MockCommonWeightInfo {
+    fn disable_verifier() -> Weight {
+        Weight::from_parts(1001, 1002)
+    }
+
+    fn on_verify_disabled_verifier() -> Weight {
+        Weight::from_parts(1003, 1004)
+    }
+}
+
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
     pub enum Test
     {
         System: frame_system,
+        CommonVerifiersPallet: crate::common,
         FakeVerifierPallet: fake_pallet,
         OnProofVerifiedMock: on_proof_verified,
     }
@@ -160,6 +172,10 @@ impl crate::Config<FakeVerifier> for Test {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = OnProofVerifiedMock;
     type WeightInfo = MockWeightInfo;
+}
+
+impl crate::common::Config for Test {
+    type CommonWeightInfo = MockCommonWeightInfo;
 }
 
 impl on_proof_verified::Config for Test {

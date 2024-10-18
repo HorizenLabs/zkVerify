@@ -772,6 +772,16 @@ mod use_correct_weights {
             crate::weights::pallet_staking::ZKVWeight::<Runtime>::bond()
         );
     }
+
+    #[test]
+    fn pallet_verifiers() {
+        use pallet_verifiers::common::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_verifiers::common::Config>::CommonWeightInfo::on_verify_disabled_verifier(),
+            <Runtime as pallet_verifiers::common::WeightInfo>::on_verify_disabled_verifier()
+        );
+    }
 }
 
 mod pallets_interact {

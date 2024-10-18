@@ -48,6 +48,7 @@ std = [
     "hp-verifiers/std",
     "hp-poe/std",
 ]
+
 try-runtime = ["frame-support/try-runtime", "frame-system/try-runtime"]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",

@@ -67,12 +67,13 @@
 pub use pallet::*;
 
 pub use pallet_verifiers_macros::*;
+
+pub mod common;
 #[allow(missing_docs)]
 pub mod mock;
 mod tests;
 
 pub use hp_verifiers::WeightInfo;
-
 #[frame_support::pallet]
 pub mod pallet {
 
@@ -81,7 +82,11 @@ pub mod pallet {
     #![cfg(not(doc))]
 
     use codec::Encode;
-    use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*, Identity};
+    use frame_support::{
+        dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostInfo, PostDispatchInfo},
+        pallet_prelude::*,
+        Identity,
+    };
     use frame_system::pallet_prelude::*;
     use hp_poe::OnProofVerified;
     use sp_core::{hexdisplay::AsBytesRef, H256};
@@ -123,7 +128,7 @@ pub mod pallet {
 
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
-    pub trait Config<I: 'static = ()>: frame_system::Config
+    pub trait Config<I: 'static = ()>: frame_system::Config + crate::common::Config
     where
         I: Verifier,
     {
@@ -182,6 +187,8 @@ pub mod pallet {
         InvalidVerificationKey,
         /// Provided an unregistered verification key hash.
         VerificationKeyNotFound,
+        /// Current Verifier Pallet is disabled.
+        DisabledVerifier,
     }
 
     impl<T, I> From<VerifyError> for Error<T, I> {
@@ -194,6 +201,13 @@ pub mod pallet {
             }
         }
     }
+
+    #[pallet::storage]
+    #[pallet::getter(fn disabled)]
+    pub type Disabled<T: Config<I>, I: 'static = ()>
+    where
+        I: Verifier,
+    = StorageValue<_, bool>;
 
     #[pallet::storage]
     #[pallet::getter(fn vks)]
@@ -229,6 +243,10 @@ pub mod pallet {
             I: Verifier,
         {
             log::trace!("Submitting proof");
+            ensure!(
+                !Self::disabled().unwrap_or_default(),
+                on_disable_error::<T, I>()
+            );
             let vk = match &vk_or_hash {
                 VkOrHash::Hash(h) => {
                     Vks::<T, I>::get(h).ok_or(Error::<T, I>::VerificationKeyNotFound)?
@@ -252,11 +270,39 @@ pub mod pallet {
         #[pallet::weight(T::WeightInfo::register_vk(vk))]
         pub fn register_vk(_origin: OriginFor<T>, vk: Box<I::Vk>) -> DispatchResultWithPostInfo {
             log::trace!("Register vk");
+            ensure!(
+                !Self::disabled().unwrap_or_default(),
+                on_disable_error::<T, I>()
+            );
             I::validate_vk(&vk).map_err(Error::<T, I>::from)?;
             let hash = I::vk_hash(&vk);
             Vks::<T, I>::insert(hash, vk);
             Self::deposit_event(Event::VkRegistered { hash });
             Ok(().into())
+        }
+
+        /// Disable verifier: both `register_vk` and `submit_proof` will return a
+        /// `DisabledVerifier` Error.
+        #[pallet::call_index(2)]
+        #[pallet::weight(<T::CommonWeightInfo as crate::common::WeightInfo>::disable_verifier())]
+        pub fn disable(origin: OriginFor<T>, disabled: bool) -> DispatchResult {
+            log::trace!("Disable verifier: {disabled}");
+            // Just root can disable/enable the verifier
+            ensure_root(origin)?;
+
+            Disabled::<T, I>::put(disabled);
+            Ok(())
+        }
+    }
+
+    pub(crate) fn on_disable_error<T: Config<I>, I: Verifier>() -> DispatchErrorWithPostInfo {
+        use crate::common::WeightInfo;
+        DispatchErrorWithPostInfo {
+            post_info: PostDispatchInfo {
+                actual_weight: Some(T::CommonWeightInfo::on_verify_disabled_verifier()),
+                pays_fee: Pays::Yes,
+            },
+            error: Error::<T, I>::DisabledVerifier.into(),
         }
     }
 
