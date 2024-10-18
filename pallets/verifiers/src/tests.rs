@@ -22,6 +22,7 @@ use sp_core::H256;
 
 use super::*;
 use crate::mock::*;
+use frame_support::{assert_err, assert_err_ignore_postinfo};
 use rstest::{fixture, rstest};
 
 type Vk = <FakeVerifier as Verifier>::Vk;
@@ -32,6 +33,8 @@ type VkOrHash = super::VkOrHash<Vk>;
 pub fn test_ext() -> sp_io::TestExternalities {
     crate::mock::test_ext()
 }
+
+type DisableStorage = Disabled<Test, FakeVerifier>;
 
 mod register_should {
     use hex_literal::hex;
@@ -158,6 +161,21 @@ pub mod submit_proof_should {
         use super::*;
 
         #[rstest]
+        fn valid_proof_if_disabled(mut test_ext: sp_io::TestExternalities) {
+            test_ext.execute_with(|| {
+                DisableStorage::set(Some(true));
+                // Dispatch a signed valid proof.
+                assert!(FakeVerifierPallet::submit_proof(
+                    RuntimeOrigin::signed(1),
+                    VkOrHash::from_vk(32),
+                    Box::new(42),
+                    Box::new(42),
+                )
+                .is_err());
+            });
+        }
+
+        #[rstest]
         fn invalid_proof(mut test_ext: sp_io::TestExternalities) {
             test_ext.execute_with(|| {
                 // Dispatch a signed extrinsic.
@@ -234,5 +252,101 @@ pub mod submit_proof_should {
                 );
             });
         }
+    }
+}
+
+#[cfg(test)]
+mod disable_should {
+    use common::WeightInfo;
+    // use frame_support::assert_err_with_weight;
+
+    use super::*;
+
+    #[rstest]
+    fn set_the_correct_state(
+        mut test_ext: sp_io::TestExternalities,
+        #[values(true, false)] value: bool,
+    ) {
+        test_ext.execute_with(|| {
+            assert_eq!(FakeVerifierPallet::disabled(), None);
+
+            FakeVerifierPallet::disable(RuntimeOrigin::root(), value).unwrap();
+            assert_eq!(FakeVerifierPallet::disabled(), Some(value));
+        });
+    }
+
+    #[rstest]
+    fn disable_execution(mut test_ext: sp_io::TestExternalities) {
+        test_ext.execute_with(|| {
+            assert_eq!(FakeVerifierPallet::disabled(), None);
+
+            FakeVerifierPallet::disable(RuntimeOrigin::root(), true).unwrap();
+            // Dispatch a signed valid proof.
+            assert_err_ignore_postinfo!(
+                FakeVerifierPallet::submit_proof(
+                    RuntimeOrigin::signed(1),
+                    VkOrHash::from_vk(32),
+                    Box::new(42),
+                    Box::new(42),
+                ),
+                RError::DisabledVerifier
+            );
+        });
+    }
+
+    #[rstest]
+    fn disable_execution_pay_the_correct_weight(mut test_ext: sp_io::TestExternalities) {
+        test_ext.execute_with(|| {
+            assert_eq!(FakeVerifierPallet::disabled(), None);
+
+            FakeVerifierPallet::disable(RuntimeOrigin::root(), true).unwrap();
+
+            // I cannot use `assert_err_with_weight` here because it doesn't work with
+            // try-runtime feature,
+            assert_err!(
+                FakeVerifierPallet::submit_proof(
+                    RuntimeOrigin::signed(1),
+                    VkOrHash::from_vk(32),
+                    Box::new(42),
+                    Box::new(42),
+                ),
+                on_disable_error::<Test, FakeVerifier>(),
+            );
+            assert_eq!(
+                on_disable_error::<Test, FakeVerifier>()
+                    .post_info
+                    .actual_weight,
+                Some(MockCommonWeightInfo::on_verify_disabled_verifier())
+            );
+        });
+    }
+
+    #[rstest]
+    fn enable_a_disabled_execution(mut test_ext: sp_io::TestExternalities) {
+        test_ext.execute_with(|| {
+            DisableStorage::set(Some(true));
+
+            FakeVerifierPallet::disable(RuntimeOrigin::root(), false).unwrap();
+            // Dispatch a signed valid proof.
+            assert_ok!(FakeVerifierPallet::submit_proof(
+                RuntimeOrigin::signed(1),
+                VkOrHash::from_vk(32),
+                Box::new(42),
+                Box::new(42),
+            ),);
+        });
+    }
+
+    #[rstest]
+    fn be_rejected_if_no_root(
+        mut test_ext: sp_io::TestExternalities,
+        #[values(true, false)] value: bool,
+    ) {
+        test_ext.execute_with(|| {
+            assert_noop!(
+                FakeVerifierPallet::disable(RuntimeOrigin::signed(1), value),
+                sp_runtime::traits::BadOrigin
+            );
+        });
     }
 }
