@@ -16344,7 +16344,6 @@ dependencies = [
  "polkadot-node-core-pvf-execute-worker",
  "polkadot-node-core-pvf-prepare-worker",
  "polkadot-overseer",
- "serial_test",
  "substrate-build-script-utils",
  "substrate-rpc-client",
  "tempfile",

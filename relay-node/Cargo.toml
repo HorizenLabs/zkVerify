@@ -45,7 +45,6 @@ tempfile = "3.2.0"
 tokio = "1.24.2"
 substrate-rpc-client = { workspace = true }
 polkadot-core-primitives = { workspace = true }
-serial_test = "3.1.1"
 
 [build-dependencies]
 substrate-build-script-utils = { version = "11.0.0" }

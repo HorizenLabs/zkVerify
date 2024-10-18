@@ -22,7 +22,6 @@ use nix::{
     sys::signal::{kill, Signal::SIGINT},
     unistd::Pid,
 };
-use serial_test::serial;
 use std::{
     process::{self, Command},
     time::Duration,
@@ -36,7 +35,6 @@ const ROCKS: &str = "db/full";
 const PARITY: &str = "paritydb/full";
 
 #[tokio::test]
-#[serial]
 async fn purge_chain_rocksdb_works() {
     run_with_timeout(Duration::from_secs(5 * 60), async move {
         let tmpdir = tempdir().expect("could not create temp dir");
@@ -58,17 +56,7 @@ async fn purge_chain_rocksdb_works() {
         // Let it produce 1 block.
         common::wait_n_finalized_blocks(1, &ws_url).await;
 
-        match cmd.try_wait() {
-            Ok(None) => {
-                println!("Node still running");
-            }
-            Ok(Some(status)) => {
-                panic!("Node terminated with status {}", status);
-            }
-            Err(e) => {
-                panic!("Error waiting for node: {}", e);
-            }
-        }
+        assert_node_is_running(&mut cmd);
 
         println!("Sending SIGINT");
         // Send SIGINT to node.
@@ -98,7 +86,6 @@ async fn purge_chain_rocksdb_works() {
 }
 
 #[tokio::test]
-#[serial]
 async fn purge_chain_paritydb_works() {
     run_with_timeout(Duration::from_secs(5 * 60), async move {
         let tmpdir = tempdir().expect("could not create temp dir");
@@ -120,17 +107,7 @@ async fn purge_chain_paritydb_works() {
         // Let it produce 1 block.
         common::wait_n_finalized_blocks(1, &ws_url).await;
 
-        match cmd.try_wait() {
-            Ok(None) => {
-                println!("Node still running");
-            }
-            Ok(Some(status)) => {
-                panic!("Node terminated with status {}", status);
-            }
-            Err(e) => {
-                panic!("Error waiting for node: {}", e);
-            }
-        }
+        assert_node_is_running(&mut cmd);
 
         println!("PSending SIGINT");
         // Send SIGINT to node.
@@ -159,4 +136,18 @@ async fn purge_chain_paritydb_works() {
         assert!(!tmpdir.path().join(DB_PATH).join(PARITY).exists());
     })
     .await;
+}
+
+fn assert_node_is_running(cmd: &mut process::Child) {
+    match cmd.try_wait() {
+        Ok(None) => {
+            println!("Node still running");
+        }
+        Ok(Some(status)) => {
+            panic!("Node terminated with status {}", status);
+        }
+        Err(e) => {
+            panic!("Error waiting for node: {}", e);
+        }
+    }
 }
