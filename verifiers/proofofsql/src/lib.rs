@@ -123,9 +123,6 @@ impl<T: Config> Verifier for ProofOfSql<T> {
     fn validate_vk(vk: &Self::Vk) -> Result<(), VerifyError> {
         vk.validate_size()
             .inspect_err(|_| log::debug!("Verification key is too big"))?;
-        VerificationKey::try_from(vk.0.as_slice())
-            .inspect_err(|e| log::debug!("Cannot parse verification key: {:?}", e))
-            .map_err(|_| VerifyError::InvalidVerificationKey)?;
         Ok(())
     }
 
