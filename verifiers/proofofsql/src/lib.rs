@@ -31,6 +31,10 @@ mod verifier_should;
 mod weight;
 pub use weight::WeightInfo;
 
+pub const LARGEST_MAX_NU_LIMIT: u32 = 8;
+pub const MAX_PROOF_SIZE: u32 = 80_000;
+pub const MAX_PUBS_SIZE: u32 = 12_000;
+
 // Here educe is used for Clone, Debug, and PartialEq to work around
 // a long-standing compiler bug https://github.com/rust-lang/rust/issues/26925
 #[derive(Educe, Encode, Decode, TypeInfo)]
@@ -99,6 +103,12 @@ impl<T: Config> Verifier for ProofOfSql<T> {
         pubs: &Self::Pubs,
     ) -> Result<(), VerifyError> {
         vk.validate_size()?;
+        if proof.len() > MAX_PROOF_SIZE as usize {
+            return Err(VerifyError::InvalidProofData);
+        }
+        if pubs.len() > MAX_PUBS_SIZE as usize {
+            return Err(VerifyError::InvalidInput);
+        }
         let proof = proof_of_sql_verifier::Proof::try_from(&proof[..])
             .map_err(Into::<LibraryError>::into)?;
         let pubs = proof_of_sql_verifier::PublicInput::try_from(&pubs[..])
@@ -167,7 +177,7 @@ mod vk {
 
     #[fixture]
     fn bytes_of_vk_with_nu_4() -> Vec<u8> {
-        include_bytes!("resources/VALID_VK.bin").to_vec()
+        include_bytes!("resources/VALID_VK_MAX_NU_4.bin").to_vec()
     }
 
     #[rstest]

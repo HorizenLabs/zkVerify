@@ -42,9 +42,9 @@ struct TestData {
 #[fixture]
 fn valid_test_data() -> TestData {
     TestData {
-        vk: include_bytes!("resources/VALID_VK.bin").to_vec(),
-        proof: include_bytes!("resources/VALID_PROOF.bin").to_vec(),
-        pubs: include_bytes!("resources/VALID_PUBS.bin").to_vec(),
+        vk: include_bytes!("resources/VALID_VK_MAX_NU_4.bin").to_vec(),
+        proof: include_bytes!("resources/VALID_PROOF_MAX_NU_4.bin").to_vec(),
+        pubs: include_bytes!("resources/VALID_PUBS_MAX_NU_4.bin").to_vec(),
     }
 }
 
@@ -133,6 +133,32 @@ mod reject {
                 &valid_test_data.pubs
             ),
             VerifyError::InvalidVerificationKey
+        )
+    }
+
+    #[rstest]
+    fn too_big_proof(valid_test_data: TestData) {
+        let proof = vec![1u8; crate::MAX_PROOF_SIZE as usize + 1];
+        assert_err!(
+            ProofOfSql::<ConfigWithMaxNuEqualTo5>::verify_proof(
+                &valid_test_data.vk.into(),
+                &proof.into(),
+                &valid_test_data.pubs
+            ),
+            VerifyError::InvalidProofData
+        )
+    }
+
+    #[rstest]
+    fn too_big_pubs(valid_test_data: TestData) {
+        let pubs = vec![1u8; crate::MAX_PUBS_SIZE as usize + 1];
+        assert_err!(
+            ProofOfSql::<ConfigWithMaxNuEqualTo5>::verify_proof(
+                &valid_test_data.vk.into(),
+                &valid_test_data.proof,
+                &pubs.into()
+            ),
+            VerifyError::InvalidInput
         )
     }
 }

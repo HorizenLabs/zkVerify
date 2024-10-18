@@ -776,12 +776,17 @@ impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> f
 }
 
 parameter_types! {
-    pub const ProofOfSqlLargestMaxNu: u32 = 20;
+    pub const ProofOfSqlLargestMaxNu: u32 = 8;
 }
 
 impl pallet_proofofsql_verifier::Config for Runtime {
     type LargestMaxNu = ProofOfSqlLargestMaxNu;
 }
+
+const_assert!(
+    <Runtime as pallet_proofofsql_verifier::Config>::LargestMaxNu::get()
+        <= pallet_proofofsql_verifier::LARGEST_MAX_NU_LIMIT
+);
 
 impl pallet_verifiers::Config<pallet_proofofsql_verifier::ProofOfSql<Runtime>> for Runtime {
     type RuntimeEvent = RuntimeEvent;
