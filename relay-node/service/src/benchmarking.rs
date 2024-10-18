@@ -155,7 +155,7 @@ impl frame_benchmarking_cli::ExtrinsicBuilder for TransferKeepAliveBuilder {
             {
                 runtime::RuntimeCall::Balances(runtime::BalancesCall::transfer_keep_alive {
                     dest: _dest.into(),
-                    value: runtime::EXISTENTIAL_DEPOSIT,
+                    value: runtime::currency::EXISTENTIAL_DEPOSIT,
                 })
             },
         }
