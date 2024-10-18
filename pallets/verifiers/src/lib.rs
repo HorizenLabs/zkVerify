@@ -270,6 +270,10 @@ pub mod pallet {
         #[pallet::weight(T::WeightInfo::register_vk(vk))]
         pub fn register_vk(_origin: OriginFor<T>, vk: Box<I::Vk>) -> DispatchResultWithPostInfo {
             log::trace!("Register vk");
+            ensure!(
+                !Self::disabled().unwrap_or_default(),
+                on_disable_error::<T, I>()
+            );
             I::validate_vk(&vk).map_err(Error::<T, I>::from)?;
             let hash = I::vk_hash(&vk);
             Vks::<T, I>::insert(hash, vk);
@@ -277,7 +281,8 @@ pub mod pallet {
             Ok(().into())
         }
 
-        /// Disable verifier.
+        /// Disable verifier: both `register_vk` and `submit_proof` will return a
+        /// `DisabledVerifier` Error.
         #[pallet::call_index(2)]
         #[pallet::weight(<T::CommonWeightInfo as crate::common::WeightInfo>::disable_verifier())]
         pub fn disable(origin: OriginFor<T>, disabled: bool) -> DispatchResult {

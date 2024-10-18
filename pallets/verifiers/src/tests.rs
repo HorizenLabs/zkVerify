@@ -78,6 +78,16 @@ mod register_should {
         });
     }
 
+    #[rstest]
+    fn reject_valid_vk_if_disabled(mut test_ext: sp_io::TestExternalities) {
+        test_ext.execute_with(|| {
+            DisableStorage::set(Some(true));
+            assert!(
+                FakeVerifierPallet::register_vk(RuntimeOrigin::signed(1), Box::new(42),).is_err(),
+            );
+        });
+    }
+
     #[test]
     fn use_the_configured_weights() {
         let info = Call::<Test, FakeVerifier>::register_vk { vk: Box::new(42) }.get_dispatch_info();
@@ -295,6 +305,20 @@ mod disable_should {
     }
 
     #[rstest]
+    fn disable_register_vk(mut test_ext: sp_io::TestExternalities) {
+        test_ext.execute_with(|| {
+            assert_eq!(FakeVerifierPallet::disabled(), None);
+
+            FakeVerifierPallet::disable(RuntimeOrigin::root(), true).unwrap();
+
+            assert_err_ignore_postinfo!(
+                FakeVerifierPallet::register_vk(RuntimeOrigin::signed(1), 42.into(),),
+                RError::DisabledVerifier
+            );
+        });
+    }
+
+    #[rstest]
     fn disable_execution_pay_the_correct_weight(mut test_ext: sp_io::TestExternalities) {
         test_ext.execute_with(|| {
             assert_eq!(FakeVerifierPallet::disabled(), None);
@@ -310,6 +334,10 @@ mod disable_should {
                     Box::new(42),
                     Box::new(42),
                 ),
+                on_disable_error::<Test, FakeVerifier>(),
+            );
+            assert_err!(
+                FakeVerifierPallet::register_vk(RuntimeOrigin::signed(1), 42.into(),),
                 on_disable_error::<Test, FakeVerifier>(),
             );
             assert_eq!(
@@ -333,7 +361,11 @@ mod disable_should {
                 VkOrHash::from_vk(32),
                 Box::new(42),
                 Box::new(42),
-            ),);
+            ));
+            assert_ok!(FakeVerifierPallet::register_vk(
+                RuntimeOrigin::signed(1),
+                42.into(),
+            ));
         });
     }
 
