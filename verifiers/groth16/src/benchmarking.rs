@@ -146,6 +146,10 @@ mod mock {
         type WeightInfo = crate::Groth16Weight<()>;
     }
 
+    impl pallet_verifiers::common::Config for Test {
+        type CommonWeightInfo = Test;
+    }
+
     impl crate::Config for Test {
         const MAX_NUM_INPUTS: u32 = crate::MAX_NUM_INPUTS - 1;
     }

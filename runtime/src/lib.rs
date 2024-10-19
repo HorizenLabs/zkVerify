@@ -704,6 +704,10 @@ impl pallet_proxy::Config for Runtime {
     type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+impl pallet_verifiers::common::Config for Runtime {
+    type CommonWeightInfo = Runtime;
+}
+
 impl pallet_verifiers::Config<pallet_fflonk_verifier::Fflonk> for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = Poe;
@@ -812,6 +816,7 @@ construct_runtime!(
         Vesting: pallet_vesting,
         VoterList: pallet_bags_list::<Instance1>,
         Proxy: pallet_proxy,
+        CommonVerifiers: pallet_verifiers::common,
     }
 );
 
