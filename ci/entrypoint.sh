@@ -81,6 +81,8 @@ if [ -n "${LLD_INSTALL}" ]; then
   echo -e "lld was successfully installed.\n"
 fi
 
+apt --no-install-recommends install -y lsof
+
 # System info
 rustup show
 num_cpus=$(lscpu | grep '^CPU(s):' | awk '{print $2}')

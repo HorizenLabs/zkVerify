@@ -20,6 +20,7 @@ use polkadot_core_primitives::{Block, Hash, Header};
 use std::{
     future::Future,
     io::{BufRead, BufReader, Read},
+    process::{self, Command},
     time::Duration,
 };
 use substrate_rpc_client::{ws_client, ChainApi};
@@ -38,15 +39,29 @@ pub async fn wait_n_finalized_blocks(n: usize, url: &str) {
     let mut built_blocks = std::collections::HashSet::new();
     let mut interval = tokio::time::interval(Duration::from_secs(6));
 
+    let mut rpc = ws_client(url).await;
     loop {
-        let Ok(rpc) = ws_client(url).await else {
-            interval.tick().await;
-            println!("Nok! {}", url);
-            continue;
-        };
+        if rpc.is_ok() {
+            break;
+        }
+        println!("Nok! {} - {}", url, rpc.err().unwrap());
+        let _cmd = Command::new("/usr/bin/lsof")
+            .arg("-a")
+            .arg("-i")
+            .arg("-P")
+            .arg("-p")
+            .arg(process::id().to_string())
+            .spawn()
+            .unwrap();
 
-        if let Ok(block) = ChainApi::<(), Hash, Header, Block>::finalized_head(&rpc).await {
-            println!("Last! {}", block);
+        interval.tick().await;
+        rpc = ws_client(url).await;
+    }
+    loop {
+        if let Ok(block) =
+            ChainApi::<(), Hash, Header, Block>::finalized_head(rpc.as_ref().unwrap()).await
+        {
+            println!("Last! {} {}", block, url);
             built_blocks.insert(block);
             if built_blocks.len() > n {
                 break;
