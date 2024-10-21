@@ -25,8 +25,7 @@ frame-system = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 sp-runtime = { workspace = true, optional = true }
 sp-io = { workspace = true, optional = true }
-native = { workspace = true }
-hp-groth16 = { workspace = true }
+hp-groth16 = { workspace = true, features = ["implementation"] }
 
 [dev-dependencies]
 rstest = { workspace = true }
@@ -43,7 +42,6 @@ std = [
     "sp-core/std",
     "sp-std/std",
     "frame-support/std",
-    "native/std",
     "hp-groth16/std",
 ]
 default = ["std"]

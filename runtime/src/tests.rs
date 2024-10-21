@@ -807,6 +807,16 @@ mod use_correct_weights {
             crate::weights::pallet_staking::ZKVWeight::<Runtime>::bond()
         );
     }
+
+    #[test]
+    fn pallet_verifiers() {
+        use pallet_verifiers::common::WeightInfo;
+
+        assert_eq!(
+            <Runtime as pallet_verifiers::common::Config>::CommonWeightInfo::on_verify_disabled_verifier(),
+            <Runtime as pallet_verifiers::common::WeightInfo>::on_verify_disabled_verifier()
+        );
+    }
 }
 
 mod pallets_interact {
@@ -1165,6 +1175,46 @@ mod pallets_interact {
                     &offender_account,
                     EQUIVOCATION_KIND
                 ));
+            });
+        }
+    }
+
+    mod staking {
+        use super::*;
+        use sp_staking::offence::{DisableStrategy, OffenceDetails};
+
+        #[test]
+        fn slashes_go_to_treasury() {
+            use sp_staking::offence::OnOffenceHandler;
+            new_test_ext().execute_with(|| {
+                let offender_account = &sp_runtime::AccountId32::new(
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].raw_account,
+                );
+                let offender_balance =
+                    testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].starting_balance;
+
+                let pre_balance = Balances::free_balance(&Treasury::account_id());
+
+                // Let Staking slash offender's balance
+                Staking::on_offence(
+                    &[OffenceDetails {
+                        offender: (
+                            offender_account.clone(),
+                            Exposure {
+                                total: offender_balance,
+                                own: offender_balance,
+                                others: vec![],
+                            },
+                        ),
+                        reporters: vec![],
+                    }],
+                    &[Perbill::from_percent(100)],
+                    0,
+                    DisableStrategy::WhenSlashed,
+                );
+
+                // Check that treasury balance increased
+                assert!(pre_balance < Balances::free_balance(&Treasury::account_id()))
             });
         }
     }

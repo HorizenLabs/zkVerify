@@ -122,6 +122,10 @@ mod mock {
         type WeightInfo = crate::ProofOfSqlWeight<()>;
     }
 
+    impl pallet_verifiers::common::Config for Test {
+        type CommonWeightInfo = Test;
+    }
+
     /// Build genesis storage according to the mock runtime.
     pub fn test_ext() -> sp_io::TestExternalities {
         let mut ext = sp_io::TestExternalities::from(

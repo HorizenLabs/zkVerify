@@ -6052,7 +6052,6 @@ dependencies = [
  "hex-literal",
  "hp-groth16",
  "hp-verifiers",
- "native",
  "pallet-verifiers",
  "parity-scale-codec",
  "rstest",
