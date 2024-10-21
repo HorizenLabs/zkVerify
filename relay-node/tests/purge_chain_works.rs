@@ -36,7 +36,7 @@ const PARITY: &str = "paritydb/full";
 
 #[tokio::test]
 async fn purge_chain_rocksdb_works() {
-    run_with_timeout(Duration::from_secs(10 * 60), async move {
+    run_with_timeout(Duration::from_secs(5 * 60), async move {
         let tmpdir = tempdir().expect("could not create temp dir");
 
         let mut cmd = Command::new(cargo_bin(common::NODE))
@@ -52,13 +52,20 @@ async fn purge_chain_rocksdb_works() {
 
         let (ws_url, _) = common::find_ws_url_from_output(cmd.stderr.take().unwrap());
 
+        println!("Connecting to {}", ws_url);
         // Let it produce 1 block.
         common::wait_n_finalized_blocks(1, &ws_url).await;
 
+        assert_node_is_running(&mut cmd);
+
+        println!("Sending SIGINT");
         // Send SIGINT to node.
         kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
+
+        println!("Waiting on cmd");
         // Wait for the node to handle it and exit.
         assert!(cmd.wait().unwrap().success());
+        println!("Cmd finished");
         assert!(tmpdir.path().join(DB_PATH).exists());
         assert!(tmpdir.path().join(DB_PATH).join(ROCKS).exists());
 
@@ -80,7 +87,7 @@ async fn purge_chain_rocksdb_works() {
 
 #[tokio::test]
 async fn purge_chain_paritydb_works() {
-    run_with_timeout(Duration::from_secs(10 * 60), async move {
+    run_with_timeout(Duration::from_secs(5 * 60), async move {
         let tmpdir = tempdir().expect("could not create temp dir");
 
         let mut cmd = Command::new(cargo_bin(common::NODE))
@@ -96,13 +103,20 @@ async fn purge_chain_paritydb_works() {
 
         let (ws_url, _) = common::find_ws_url_from_output(cmd.stderr.take().unwrap());
 
+        println!("PConnecting to {}", ws_url);
         // Let it produce 1 block.
         common::wait_n_finalized_blocks(1, &ws_url).await;
 
+        assert_node_is_running(&mut cmd);
+
+        println!("PSending SIGINT");
         // Send SIGINT to node.
         kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
         // Wait for the node to handle it and exit.
+        println!("PWaiting on cmd");
+        // Wait for the node to handle it and exit.
         assert!(cmd.wait().unwrap().success());
+        println!("PCmd finished");
         assert!(tmpdir.path().join(DB_PATH).exists());
         assert!(tmpdir.path().join(DB_PATH).join(PARITY).exists());
 
@@ -122,4 +136,18 @@ async fn purge_chain_paritydb_works() {
         assert!(!tmpdir.path().join(DB_PATH).join(PARITY).exists());
     })
     .await;
+}
+
+fn assert_node_is_running(cmd: &mut process::Child) {
+    match cmd.try_wait() {
+        Ok(None) => {
+            println!("Node still running");
+        }
+        Ok(Some(status)) => {
+            panic!("Node terminated with status {}", status);
+        }
+        Err(e) => {
+            panic!("Error waiting for node: {}", e);
+        }
+    }
 }
