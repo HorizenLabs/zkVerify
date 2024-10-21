@@ -13,6 +13,7 @@ test_release="${TEST_RELEASE:-false}"
 github_ref_name="${GITHUB_REF_NAME:-}"
 common_file_location="${COMMON_FILE_LOCATION:-not-set}"
 docker_file_path='docker/dockerfiles/zkv-node.Dockerfile'
+image_artifact=""
 
 # Requirement
 if ! [ -f "${common_file_location}" ]; then
@@ -23,6 +24,17 @@ else
   source "${common_file_location}"
 fi
 
+# Check for command-line options
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --image-artifact)
+      echo "Option --image-artifact was triggered with value: $2"
+      image_artifact="$2"
+      shift ;;
+    *) shift ;;
+  esac
+  shift
+done
 
 ####
 # Main
@@ -44,8 +56,17 @@ fi
 
 # Building and publishing docker image
 if [ -n "${docker_tag_full:-}" ]; then
-  log_info "=== Building Docker image: ${docker_hub_org}/${docker_image_build_name}:${docker_tag_full} ==="
-  docker build --build-arg PROFILE=production -f "${docker_file_path}" -t "${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}" .
+  if [ -n "${image_artifact:-}" ]; then
+    log_info "=== Using Docker image artifact from upstream 'zkVerify-qa' job ==="
+    log_info "Using GITHUB_WORKSPACE: ${GITHUB_WORKSPACE}"
+    image_name="$(docker load -i "${GITHUB_WORKSPACE}/${image_artifact}.tar" | awk '/Loaded image:/ { print $3 }')"
+    log_info "=== Loaded image ${image_name} ==="
+    log_info "=== Renaming image ==="
+    docker tag "${image_name}" "${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}"
+  else 
+    log_info "=== Building Docker image: ${docker_hub_org}/${docker_image_build_name}:${docker_tag_full} ==="
+    docker build --build-arg PROFILE=production -f "${docker_file_path}" -t "${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}" .
+  fi
 
   # Publishing to DockerHub
   log_info "=== Publishing Docker image(s) on Docker Hub ==="
