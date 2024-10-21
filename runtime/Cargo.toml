@@ -90,6 +90,7 @@ pallet-zksync-verifier = { workspace = true }
 pallet-groth16-verifier = { workspace = true }
 pallet-risc0-verifier = { workspace = true }
 pallet-ultraplonk-verifier = { workspace = true }
+pallet-proofofsql-verifier = { workspace = true }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -131,6 +132,7 @@ runtime-benchmarks = [
 	"pallet-groth16-verifier/runtime-benchmarks",
 	"pallet-risc0-verifier/runtime-benchmarks",
 	"pallet-ultraplonk-verifier/runtime-benchmarks",
+	"pallet-proofofsql-verifier/runtime-benchmarks",
 ]
 default = ["std"]
 std = [
@@ -198,6 +200,7 @@ std = [
 	"pallet-groth16-verifier/std",
 	"pallet-risc0-verifier/std",
 	"pallet-ultraplonk-verifier/std",
+	"pallet-proofofsql-verifier/std",
 	"hp-verifiers/std",
 	"substrate-wasm-builder",
 ]
