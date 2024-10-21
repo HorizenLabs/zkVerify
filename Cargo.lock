@@ -7284,7 +7284,7 @@ dependencies = [
 [[package]]
 name = "proof-of-sql-verifier"
 version = "0.1.0"
-source = "git+https://github.com/HorizenLabs/proof-of-sql-verifier.git?rev=876c02295df5ad7529419193aaaab5eb05b4dac6#876c02295df5ad7529419193aaaab5eb05b4dac6"
+source = "git+https://github.com/HorizenLabs/proof-of-sql-verifier.git?tag=v0.2.0#d499c6d64915954c033d14dbd2ec937434b8b564"
 dependencies = [
  "ahash 0.8.11",
  "ark-bls12-381",

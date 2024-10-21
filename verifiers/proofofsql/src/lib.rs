@@ -113,7 +113,7 @@ impl<T: Config> Verifier for ProofOfSql<T> {
             .map_err(Into::<LibraryError>::into)?;
         let pubs = proof_of_sql_verifier::PublicInput::try_from(&pubs[..])
             .map_err(Into::<LibraryError>::into)?;
-        let vk = proof_of_sql_verifier::VerificationKey::try_from(&vk.0[..])
+        let vk = proof_of_sql_verifier::VerificationKey::try_from_bytes_unchecked(&vk.0[..])
             .map_err(Into::<LibraryError>::into)?;
         proof_of_sql_verifier::verify_proof(&proof, &pubs, &vk)
             .map_err(Into::<LibraryError>::into)?;
