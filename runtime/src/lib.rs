@@ -48,7 +48,7 @@ use frame_election_provider_support::{
     onchain::OnChainExecution,
     SequentialPhragmen,
 };
-use frame_support::genesis_builder_helper::{build_config, create_default_config};
+use frame_support::genesis_builder_helper::{build_state, get_preset};
 
 // A few exports that help ease life for downstream crates.
 use frame_support::traits::EqualPrivilegeOnly;
@@ -522,13 +522,8 @@ parameter_types! {
 impl pallet_treasury::Config for Runtime {
     type PalletId = TreasuryPalletId;
     type Currency = Balances;
-    type ApproveOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
     type RejectOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
     type RuntimeEvent = RuntimeEvent;
-    type OnSlash = Treasury;
-    type ProposalBond = ProposalBond;
-    type ProposalBondMinimum = ProposalBondMinimum;
-    type ProposalBondMaximum = ProposalBondMaximum;
     type SpendPeriod = SpendPeriod;
     type Burn = Burn;
     type BurnDestination = ();
@@ -570,6 +565,7 @@ impl pallet_bounties::Config for Runtime {
     type DataDepositPerByte = DataDepositPerByte;
     type MaximumReasonLength = MaximumReasonLength;
     type WeightInfo = weights::pallet_bounties::ZKVWeight<Runtime>;
+    type OnSlash = ();
 }
 
 parameter_types! {
@@ -633,7 +629,6 @@ parameter_types! {
                                                          // remains locked
     pub const SlashDeferDuration: sp_staking::EraIndex = 0; // eras to wait before slashing is
                                                             // applied
-    pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(17);
     pub HistoryDepth: u32 = 30; // Number of eras to keep in history. Older eras cannot be claimed.
 }
 
@@ -687,7 +682,6 @@ impl pallet_staking::Config for Runtime {
     type SessionInterface = Self;
     type EraPayout = payout::ZKVPayout;
     type NextNewSession = Session;
-    type OffendingValidatorsThreshold = OffendingValidatorsThreshold; // Exceeding this threshold would force a new era
     type ElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
     type GenesisElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
     type VoterList = VoterList;
@@ -701,6 +695,7 @@ impl pallet_staking::Config for Runtime {
     type MaxExposurePageSize = ConstU32<64>;
     type MaxControllersInDeprecationBatch = ConstU32<1>; // We do not have any controller accounts
                                                          // but we need at least 1 for benchmarks
+    type DisablingStrategy = pallet_staking::UpToLimitDisablingStrategy;
 }
 
 impl pallet_authorship::Config for Runtime {
@@ -1796,13 +1791,17 @@ impl_runtime_apis! {
     }
 
     impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-        fn create_default_config() -> Vec<u8> {
-            create_default_config::<RuntimeGenesisConfig>()
-        }
+        fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+			build_state::<RuntimeGenesisConfig>(config)
+		}
 
-        fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
-            build_config::<RuntimeGenesisConfig>(config)
-        }
+		fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+			get_preset::<RuntimeGenesisConfig>(id, |_| None)
+		}
+
+		fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+			vec![]
+		}
     }
 
     // Used only in runtime tests
