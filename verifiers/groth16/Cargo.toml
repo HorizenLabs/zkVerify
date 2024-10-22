@@ -1,6 +1,6 @@
 [package]
 name = "pallet-groth16-verifier"
-version = "0.1.0"
+version = "0.2.0"
 description = "A groth16 verifier pallet"
 homepage.workspace = true
 edition.workspace = true
