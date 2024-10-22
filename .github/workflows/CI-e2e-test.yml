@@ -25,6 +25,10 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v4
 
+      - name: Free up disk space
+        if: ${{ !env.ACT }}
+        run: ${GITHUB_WORKSPACE}/.github/scripts/clean_ci.sh
+
       - name: Set up deps cache
         run: mkdir deps
 
