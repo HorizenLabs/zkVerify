@@ -113,7 +113,6 @@ substrate-wasm-builder = { workspace = true, optional = true }
 
 [features]
 runtime-benchmarks = [
-<<<<<<< HEAD
 	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system-benchmarking/runtime-benchmarks",
@@ -174,7 +173,6 @@ relay = [
 add-parachain-upgrade = ["relay"]
 default = ["std"]
 std = [
-<<<<<<< HEAD
 	"codec/std",
 	"finality-grandpa/std",
 	"frame-benchmarking?/std",
