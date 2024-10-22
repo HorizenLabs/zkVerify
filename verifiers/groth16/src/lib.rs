@@ -82,8 +82,8 @@ impl<T: Config> Verifier for Groth16<T> {
         let curve = vk.curve;
         let vk = vk.clone().vk();
         match curve {
-            Curve::Bn254 => hp_groth16::validate_key::<hp_groth16::Bn254>(vk),
-            Curve::Bls12_381 => hp_groth16::validate_key::<hp_groth16::Bls12_381>(vk),
+            Curve::Bn254 => native::groth_16_bn_254_verify::validate_key(vk),
+            Curve::Bls12_381 => native::groth_16_bls_12_381_verify::validate_key(vk),
         }
         .map_err(Into::into)
     }
