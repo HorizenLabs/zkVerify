@@ -386,12 +386,14 @@ mod offences {
 
 mod staking {
     use super::*;
-    use sp_staking::offence::{DisableStrategy, OffenceDetails};
+    use sp_staking::{
+        offence::{DisableStrategy, OffenceDetails, OnOffenceHandler},
+        Exposure,
+    };
 
     #[test]
     fn slashes_go_to_treasury() {
-        use sp_staking::offence::OnOffenceHandler;
-        new_test_ext().execute_with(|| {
+        test().execute_with(|| {
             let offender_account = &sp_runtime::AccountId32::new(
                 testsfixtures::SAMPLE_USERS[BABE_AUTHOR_ID as usize].raw_account,
             );

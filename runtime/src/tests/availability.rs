@@ -196,7 +196,7 @@ fn pallet_treasury() {
 
 #[test]
 fn pallet_proxy() {
-    new_test_ext().execute_with(|| {
+    test().execute_with(|| {
         let sender = testsfixtures::SAMPLE_USERS[0].raw_account.into();
         let origin = RuntimeOrigin::signed(sender);
         let proxy_type = crate::proxy::ProxyType::Any;
@@ -292,7 +292,7 @@ fn pallet_ultraplonk() {
 
 #[test]
 fn pallet_proofofsql_availability() {
-    new_test_ext().execute_with(|| {
+    test().execute_with(|| {
         let dummy_origin = AccountId32::new([0; 32]);
 
         let dummy_vk = Vec::new();
