@@ -16,6 +16,7 @@ env:
   DOCKER_BUILD_DIR: /build
   DOCKER_CARGO_HOME: /tmp/.cargo
   CMAKE_INSTALL: true
+  LLD_INSTALL: true
 
 jobs:
   lint-and-format:

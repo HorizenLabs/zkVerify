@@ -16,6 +16,7 @@ env:
   DOCKER_BUILD_DIR: /build
   DOCKER_CARGO_HOME: /tmp/.cargo
   CMAKE_INSTALL: true
+  LLD_INSTALL: true
 
 jobs:
   test:
@@ -23,6 +24,10 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
+
+      - name: Free up disk space
+        if: ${{ !env.ACT }}
+        run: ${GITHUB_WORKSPACE}/.github/scripts/clean_ci.sh
 
       - name: Set up deps cache
         run: mkdir deps
@@ -55,6 +60,10 @@ jobs:
       - name: Cargo unit tests
         shell: bash
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo test --lib --bins --all-features --no-fail-fast --release 2>&1 | tee unit_tests_output.txt
+
+      - name: Cargo unit tests for runtime WITHOUT relay feature
+        shell: bash
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo test -p zkv-runtime --lib --bins --features runtime-benchmarks --no-fail-fast --release 2>&1 | tee -a unit_tests_output.txt
 
       - name: Cargo integration tests
         shell: bash
