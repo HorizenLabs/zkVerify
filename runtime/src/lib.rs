@@ -565,7 +565,7 @@ impl pallet_bounties::Config for Runtime {
     type DataDepositPerByte = DataDepositPerByte;
     type MaximumReasonLength = MaximumReasonLength;
     type WeightInfo = weights::pallet_bounties::ZKVWeight<Runtime>;
-    type OnSlash = ();
+    type OnSlash = Treasury;
 }
 
 parameter_types! {
