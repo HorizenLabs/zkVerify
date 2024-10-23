@@ -21,8 +21,8 @@ use super::*;
 pub use testsfixtures::test;
 
 mod availability;
+mod misc;
 mod pallets_interact;
 mod payout;
 mod testsfixtures;
 mod use_correct_weights;
-mod misc;
