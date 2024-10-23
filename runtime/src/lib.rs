@@ -939,6 +939,7 @@ construct_runtime!(
         // Utility modules.
         Utility: pallet_utility = 30,
         Multisig: pallet_multisig = 31,
+        Proxy: pallet_proxy = 32,
 
 
         // Pallets that we know are to remove in a future. Start indices at 50 to leave room.
@@ -950,13 +951,15 @@ construct_runtime!(
         // Our stuff
         Poe: pallet_poe = 80,
 
-        // Verifiers. Start indices at 160 to leave room and till the end (255). Don't add
-        // any kind of other palets after this value.
-        SettlementFFlonkPallet: pallet_fflonk_verifier = 160,
-        SettlementZksyncPallet: pallet_zksync_verifier = 161,
-        SettlementGroth16Pallet: pallet_groth16_verifier = 162,
-        SettlementRisc0Pallet: pallet_risc0_verifier = 163,
-        SettlementUltraplonkPallet: pallet_ultraplonk_verifier = 164,
+        // Verifiers. Start indices at 160 to leave room and to the end (255). Don't add
+        // any kind of other pallets after this value.
+        CommonVerifiers: pallet_verifiers::common = 160,
+        SettlementFFlonkPallet: pallet_fflonk_verifier = 161,
+        SettlementZksyncPallet: pallet_zksync_verifier = 162,
+        SettlementGroth16Pallet: pallet_groth16_verifier = 163,
+        SettlementRisc0Pallet: pallet_risc0_verifier = 164,
+        SettlementUltraplonkPallet: pallet_ultraplonk_verifier = 165,
+        SettlementProofOfSqlPallet: pallet_proofofsql_verifier = 166,
 
         // Parachain pallets. Start indices at 100 to leave room.
         ParachainsOrigin: parachains::parachains_origin = 101,
@@ -1009,7 +1012,6 @@ pub type ParachainMigrations = parachains::Migrations;
 #[cfg(not(feature = "relay"))]
 pub type ParachainMigrations = ();
 
-pub type Migrations = (ParachainMigrations,);
 #[allow(unused_parens)]
 type Migrations = (migrations::Unreleased, ParachainMigrations);
 
