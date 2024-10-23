@@ -77,7 +77,7 @@ use static_assertions::const_assert;
 use weights::block_weights::BlockExecutionWeight;
 use weights::extrinsic_weights::ExtrinsicBaseWeight;
 
-use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier};
+use pallet_transaction_payment::{ConstFeeMultiplier, FungibleAdapter, Multiplier};
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
@@ -435,7 +435,7 @@ pub type SessionKeys = SessionKeysBase;
 
 impl pallet_transaction_payment::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
+    type OnChargeTransaction = FungibleAdapter<Balances, ()>;
     type OperationalFeeMultiplier = ConstU8<5>;
     type WeightToFee = IdentityFee<Balance>;
     type LengthToFee = IdentityFee<Balance>;
