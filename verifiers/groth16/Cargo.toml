@@ -1,6 +1,6 @@
 [package]
 name = "pallet-groth16-verifier"
-version = "0.1.0"
+version = "0.2.0"
 description = "A groth16 verifier pallet"
 homepage.workspace = true
 edition.workspace = true
@@ -25,7 +25,8 @@ frame-system = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 sp-runtime = { workspace = true, optional = true }
 sp-io = { workspace = true, optional = true }
-hp-groth16 = { workspace = true, features = ["implementation"] }
+hp-groth16 = { workspace = true }
+native = { workspace = true }
 
 [dev-dependencies]
 rstest = { workspace = true }
@@ -43,6 +44,7 @@ std = [
     "sp-std/std",
     "frame-support/std",
     "hp-groth16/std",
+    "native/std",
 ]
 default = ["std"]
 runtime-benchmarks = [

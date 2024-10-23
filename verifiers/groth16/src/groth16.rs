@@ -112,11 +112,10 @@ impl Groth16 {
         let vk = vk.vk();
         match curve {
             Curve::Bn254 => {
-                hp_groth16::verify_proof::<hp_groth16::Bn254>(vk, proof, inputs).map_err(Into::into)
+                native::groth_16_bn_254_verify::verify(vk, proof, inputs).map_err(Into::into)
             }
             Curve::Bls12_381 => {
-                hp_groth16::verify_proof::<hp_groth16::Bls12_381>(vk, proof, inputs)
-                    .map_err(Into::into)
+                native::groth_16_bls_12_381_verify::verify(vk, proof, inputs).map_err(Into::into)
             }
         }
     }
