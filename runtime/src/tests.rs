@@ -1181,7 +1181,7 @@ mod pallets_interact {
 
     mod staking {
         use super::*;
-        use sp_staking::offence::{DisableStrategy, OffenceDetails};
+        use sp_staking::offence::OffenceDetails;
 
         #[test]
         fn slashes_go_to_treasury() {
@@ -1210,7 +1210,6 @@ mod pallets_interact {
                     }],
                     &[Perbill::from_percent(100)],
                     0,
-                    DisableStrategy::WhenSlashed,
                 );
 
                 // Check that treasury balance increased
