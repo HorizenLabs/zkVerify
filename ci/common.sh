@@ -103,7 +103,7 @@ selection() {
 verify_required_commands() {
   command -v act &>/dev/null || fn_die "${FUNCNAME[0]} ERROR: 'act' is required to run this script, see installation instructions at 'https://nektosact.com/installation/index.html'"
   command -v docker &>/dev/null || fn_die "${FUNCNAME[0]} ERROR: 'docker' is required to run this script, see installation instructions at 'https://docs.docker.com/engine/install/'"
-  (docker compose version 2>&1 | grep -q v2) || fn_die "${FUNCNAME[0]} ERROR: 'docker compose' is required to run this script, see installation instructions at 'https://docs.docker.com/compose/install/'"
+  (docker compose version 2>&1 | grep -q "v2\|version 2") || fn_die "${FUNCNAME[0]} ERROR: 'docker compose' is required to run this script, see installation instructions at 'https://docs.docker.com/compose/install/'"
 }
 
 check_requirements() {
