@@ -29,6 +29,12 @@ jobs:
           source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
           "${GITHUB_WORKSPACE}/ci/docker.sh"
 
+      - name: Upload runtime artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zkv_runtime.compact.compressed.wasm
+          path: ./zkv_runtime.compact.compressed.wasm
+
   rustdoc-job:
     uses: ./.github/workflows/CI-rustdoc.yml
     with:

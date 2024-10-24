@@ -67,6 +67,12 @@ if [ -n "${docker_tag_full:-}" ]; then
     docker tag "${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}" "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
     docker push "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
   done
+
+  # Extract runtime artifact
+  container_id = $(docker create "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}")
+  docker cp ${container_id}:/app/zkv_runtime.compact.compressed.wasm ./zkv_runtime.compact.compressed.wasm
+  docker rm ${container_id}  # Clean up the container
+
 else
   fn_die "ERROR: the build did NOT satisfy RELEASE build requirements. Docker image(s) was(were) NOT build and/or published."
 fi
