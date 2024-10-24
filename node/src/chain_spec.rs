@@ -21,10 +21,7 @@ use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use zkv_runtime::currency::{Balance, ACME};
-use zkv_runtime::{
-    currency, AccountId, RuntimeGenesisConfig, SessionKeysBase as SessionKeys, Signature,
-    WASM_BINARY,
-};
+use zkv_runtime::{currency, AccountId, SessionKeys, Signature, WASM_BINARY};
 
 // The connection strings for bootnodes
 const BOOTNODE_1_DNS: &str = "bootnode-tn-1.zkverify.io";
@@ -36,7 +33,8 @@ const BOOTNODE_2_PEER_ID: &str = "12D3KooWEjVadU1YWyfDGvyRXPbCq2rXhzJtXaG4RxJZBk
 const STAGING_TELEMETRY_URL: &str = "wss://testnet-telemetry.zkverify.io/submit/";
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig>;
+type Extensions = Option<()>;
+pub type ChainSpec = sc_service::GenericChainSpec<Extensions>;
 
 const ENDOWMENT: Balance = 1_000_000 * ACME;
 const STASH_BOND: Balance = ENDOWMENT / 100;
@@ -120,7 +118,7 @@ pub fn authority_ids_from_ss58(
 pub fn development_config() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
-        None,
+        Default::default(),
     )
     .with_name("Development")
     .with_id("dev")
@@ -155,7 +153,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 pub fn local_config() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
-        None,
+        Default::default(),
     )
     .with_name("ZKV Local")
     .with_id("zkv_local")
@@ -196,7 +194,7 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
 pub fn testnet_config_build() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
-        None,
+        Default::default(),
     )
     .with_name("ZKV Testnet")
     .with_id("zkv_testnet")
