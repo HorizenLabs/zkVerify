@@ -25,13 +25,17 @@ echo "==========================================================================
 echo "********************************* START SIZE *********************************"
 df -h
 
-PACKAGES_TO_REMOVE_COUNT=10
+PACKAGES_TO_REMOVE_COUNT=20
 echo "Listing ${PACKAGES_TO_REMOVE_COUNT} largest packages"
-dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n ${PACKAGES_TO_REMOVE_COUNT}
-PACKAGES_TO_REMOVE_LIST=$(dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n ${PACKAGES_TO_REMOVE_COUNT} | awk '{printf "%s ", $2}')
+dpkg-query -Wf '${Package}\t${Installed-Size}\n' | grep -v "^docker" | grep -v "^containerd"  | grep -v "^linux" | sort -n -k 2 | tail -n ${PACKAGES_TO_REMOVE_COUNT}
+PACKAGES_TO_REMOVE_LIST=$(dpkg-query -Wf '${Package}\t${Installed-Size}\n' | grep -v "^docker" | grep -v "^containerd"  | grep -v "^linux" | sort -n -k 2 | tail -n ${PACKAGES_TO_REMOVE_COUNT} | awk '{printf "%s ", $1}')
 echo "Removing large packages"
 sudo apt-get remove -y ${PACKAGES_TO_REMOVE_LIST} --fix-missing
+echo "Removing GUI"
+sudo apt-get remove -y libgtk-3-common # remove *all* GUI components and apps
 sudo apt-get autoremove -y
+sudo apt-get install -y docker-ce
+sudo systemctl start docker
 sudo apt-get clean
 
 echo "************************* AFTER PACKAGES CLEAN SIZE *************************"
