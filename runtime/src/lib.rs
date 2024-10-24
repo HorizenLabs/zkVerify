@@ -426,7 +426,7 @@ impl pallet_transaction_payment::Config for Runtime {
     type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
     type OperationalFeeMultiplier = ConstU8<5>;
     type WeightToFee = IdentityFee<Balance>;
-    type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
+    type LengthToFee = IdentityFee<Balance>;
     type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
 }
 
@@ -951,16 +951,6 @@ construct_runtime!(
         // Our stuff
         Poe: pallet_poe = 80,
 
-        // Verifiers. Start indices at 160 to leave room and to the end (255). Don't add
-        // any kind of other pallets after this value.
-        CommonVerifiers: pallet_verifiers::common = 160,
-        SettlementFFlonkPallet: pallet_fflonk_verifier = 161,
-        SettlementZksyncPallet: pallet_zksync_verifier = 162,
-        SettlementGroth16Pallet: pallet_groth16_verifier = 163,
-        SettlementRisc0Pallet: pallet_risc0_verifier = 164,
-        SettlementUltraplonkPallet: pallet_ultraplonk_verifier = 165,
-        SettlementProofOfSqlPallet: pallet_proofofsql_verifier = 166,
-
         // Parachain pallets. Start indices at 100 to leave room.
         ParachainsOrigin: parachains::parachains_origin = 101,
         Configuration: parachains::configuration = 102,
@@ -983,6 +973,16 @@ construct_runtime!(
         // XCM Pallet: start indices at 140.
         XcmPallet: pallet_xcm = 140,
         MessageQueue: pallet_message_queue = 141,
+
+        // Verifiers. Start indices at 160 to leave room and to the end (255). Don't add
+        // any kind of other pallets after this value.
+        CommonVerifiers: pallet_verifiers::common = 160,
+        SettlementFFlonkPallet: pallet_fflonk_verifier = 161,
+        SettlementZksyncPallet: pallet_zksync_verifier = 162,
+        SettlementGroth16Pallet: pallet_groth16_verifier = 163,
+        SettlementRisc0Pallet: pallet_risc0_verifier = 164,
+        SettlementUltraplonkPallet: pallet_ultraplonk_verifier = 165,
+        SettlementProofOfSqlPallet: pallet_proofofsql_verifier = 166,
     }
 );
 
