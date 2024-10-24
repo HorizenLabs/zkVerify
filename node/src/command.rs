@@ -185,8 +185,8 @@ pub fn run() -> sc_cli::Result<()> {
                             );
                         }
 
-                        cmd.run::<sp_runtime::traits::HashingFor<Block>, HLNativeHostFunctions>(
-                            config,
+                        cmd.run_with_spec::<sp_runtime::traits::HashingFor<Block>, HLNativeHostFunctions>(
+                            Some(config.chain_spec),
                         )
                     }
                     BenchmarkCmd::Block(cmd) => {
@@ -257,7 +257,8 @@ pub fn run() -> sc_cli::Result<()> {
             ));
 
             runner.run_node_until_exit(|config| async move {
-                service::new_full(config).map_err(sc_cli::Error::Service)
+                service::new_full::<sc_network::NetworkWorker<_, _>>(config)
+                    .map_err(sc_cli::Error::Service)
             })
         }
     }
