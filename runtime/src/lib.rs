@@ -1723,6 +1723,7 @@ impl_runtime_apis! {
                 use super::*;
                 use xcm::v4::{Asset, AssetId, Assets, Location, InteriorLocation, Junction, Junctions::Here, NetworkId, Response};
                 use frame_benchmarking::BenchmarkError;
+                use xcm::latest::Fungibility::Fungible;
 
                 pub use pallet_xcm::benchmarking::Pallet as XcmPalletBench;
                 pub use pallet_xcm_benchmarks::fungible::Pallet as XcmPalletBenchFungible;
@@ -1757,9 +1758,21 @@ impl_runtime_apis! {
 
                     fn get_asset() -> Asset {
                         Asset {
-                            id: xcm_config::FeeAssetId::get(),
-                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                            id: AssetId(xcm_config::TokenLocation::get()),
+                            fun: Fungible(ExistentialDeposit::get()),
                         }
+                    }
+
+                    fn reachable_dest() -> Option<Location> {
+                        Some(xcm_config::TestParaLocation::get())
+                    }
+
+                    fn teleportable_asset_and_dest() -> Option<(Asset, Location)> {
+                        // Relay/native token can be teleported to/from TestPara.
+                        Some((
+                            Asset { fun: Fungible(ExistentialDeposit::get()), id: AssetId(xcm_config::TokenLocation::get()) },
+                            xcm_config::TestParaLocation::get(),
+                        ))
                     }
                 }
 
@@ -1780,8 +1793,8 @@ impl_runtime_apis! {
                     }
                     fn worst_case_holding(_depositable_count: u32) -> Assets {
                         vec![Asset {
-                            id: xcm_config::FeeAssetId::get(),
-                            fun: xcm::latest::Fungibility::Fungible(ACME),
+                            id: AssetId(xcm_config::TokenLocation::get()),
+                            fun: Fungible(ACME),
                         }].into()
                     }
                 }
@@ -1790,8 +1803,8 @@ impl_runtime_apis! {
                     pub TrustedTeleporter: Option<(Location, Asset)> = Some((
                         xcm_config::TestParaLocation::get(),
                         Asset {
-                            id: xcm_config::FeeAssetId::get(),
-                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                            id: AssetId(xcm_config::TokenLocation::get()),
+                            fun: Fungible(ExistentialDeposit::get()),
                         },
                     ));
                     pub const TrustedReserve: Option<(Location, Asset)> = None;
@@ -1805,8 +1818,8 @@ impl_runtime_apis! {
 
                     fn get_asset() -> Asset {
                         Asset {
-                            id: xcm_config::FeeAssetId::get(),
-                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                            id: AssetId(xcm_config::TokenLocation::get()),
+                            fun: Fungible(ExistentialDeposit::get()),
                         }
                     }
                 }
@@ -1848,7 +1861,7 @@ impl_runtime_apis! {
                     fn fee_asset() -> Result<Asset, BenchmarkError> {
                         Ok(Asset {
                             id: xcm_config::FeeAssetId::get(),
-                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                            fun: Fungible(ExistentialDeposit::get()),
                         })
                     }
 
