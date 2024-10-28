@@ -19,27 +19,22 @@
 # cached docker images.
 #
 echo "=============================================================================="
-echo "Freeing up disk space on CI system"
+echo "Mounting a loopback device on /mnt on CI system"
 echo "=============================================================================="
 
-echo "********************************* START SIZE *********************************"
+echo "********************************* PRE MOUNTS *********************************"
 df -h
 
-PACKAGES_TO_REMOVE_COUNT=10
-echo "Listing ${PACKAGES_TO_REMOVE_COUNT} largest packages"
-dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n ${PACKAGES_TO_REMOVE_COUNT}
-PACKAGES_TO_REMOVE_LIST=$(dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n ${PACKAGES_TO_REMOVE_COUNT} | awk '{printf "%s ", $2}')
-echo "Removing large packages"
-sudo apt-get remove -y ${PACKAGES_TO_REMOVE_LIST} --fix-missing
-sudo apt-get autoremove -y
-sudo apt-get clean
+DISK_SIZE=60000000000 # 60GB
+LO_FILE="/mnt/lodisk"
 
-echo "************************* AFTER PACKAGES CLEAN SIZE *************************"
-df -h
+sudo touch "${LO_FILE}"
+sudo fallocate -z -l ${DISK_SIZE} "${LO_FILE}"
+ROOT_LOOP_DEV=$(sudo losetup --find --show "${LO_FILE}")
+sudo mkfs.ext4 "${ROOT_LOOP_DEV}"
+sudo mount "${ROOT_LOOP_DEV}" "${GITHUB_WORKSPACE}"
+sudo chown -R runner:runner "${GITHUB_WORKSPACE}"
 
-echo "Removing docker images"
-docker image prune -a -f
-
-echo "********************************* END  SIZE *********************************"
+echo "************************* POST MOUNTS *************************"
 df -h
 date
