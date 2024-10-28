@@ -24,10 +24,6 @@ members = [
     "verifiers/ultraplonk",
     "verifiers/proofofsql",
     "utils/native-cache",
-]
-
-exclude = [
-    "utils/generate-bags/node-runtime",
     "relay-node",
     "relay-node/cli",
     "relay-node/service",
@@ -40,6 +36,10 @@ exclude = [
     "paratest/runtime",
     "paratest/node",
     "paratest/pallets/template",
+]
+
+exclude = [
+    "utils/generate-bags/node-runtime",
 ]
 # default-members = ["node"]
 
@@ -281,13 +281,6 @@ pallet-xcm-benchmarks = { version = "11.0.0", default-features = false }
 xcm-builder = { package = "staging-xcm-builder", version = "11.0.0", default-features = false }
 xcm-executor = { package = "staging-xcm-executor", version = "11.0.0", default-features = false }
 xcm = { package = "staging-xcm", version = "11.0.0", default-features = false }
-
-# PARATEST
-# Polkadot
-# pallet-xcm = { default-features = false, version = "6.0.0" }
-# xcm = { package = "staging-xcm", default-features = false, version = "6.0.0" }
-# xcm-builder = { package = "staging-xcm-builder", default-features = false, version = "6.0.2" }
-# xcm-executor = { package = "staging-xcm-executor", default-features = false, version = "6.0.2" }
 
 pallet-aura = { default-features = false, version = "31.0.0" }
 sp-consensus-aura = { default-features = false, version = "0.36.0" }
