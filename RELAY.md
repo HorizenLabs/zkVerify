@@ -1,6 +1,6 @@
 # Relay Chain
 
-In order to start a relaychain network you need to do some steps before:
+In order to start a relay chain network you need to do some steps before:
 
 - Compile `zkv-relay` and `paratest` nodes
 - Generate relay chain spec file
@@ -68,22 +68,22 @@ This compose starts 3 relaychain nodes and 3 parachain nodes:
 
 ## Start Parachain
 
-### By Initialize it
+### By Initialization
 
 Now the complete network is up, and we can initialize the parachain:
 
-- Point polkadot.js to local chain at `ws://127.0.0.1:9944`
+- Point polkadot.js to the local chain at `ws://127.0.0.1:9944`
 - Initialize parachain: _Developer_->_Sudo_->`parasSudoWrapper` pallet->`sudoScheduleParaInitialize` and set following data:
   - `id`: `1599`.
   - `genesisHead`: Click file upload and upload the genesis state file in `staging/para-genesis-state`.
   - `validationCode`: Click file upload and upload the WebAssembly runtime file in `staging/para-wasm`.
   - `paraKind`: Select `Yes`.
 
-Now just wait (since 2 epochs/minutes) and the parchain should start to forge the blocks regularly every 12 seconds.
+Now just wait (up to 2 epochs/minutes) and the parchain should start to forge the blocks regularly every 12 seconds.
 
-You can access to the parachain interface to point polkadot.js to `ws://localhost:8844`.
+You can access the parachain interface through polkadot.js at `ws://localhost:8844`.
 
-### By Upgrade Runtime
+### By Runtime Upgrade
 
 - Increase the runtime `spec_version` in `runtime/src/lib.rs` wit a number greater than `1_000_000`
 - Convert parachain genesis state and wasm to binary format:

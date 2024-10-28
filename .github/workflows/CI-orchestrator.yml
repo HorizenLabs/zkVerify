@@ -136,6 +136,13 @@ jobs:
           else
             echo "Integration test output not found."
           fi
+      - name: Display test coverage output
+        run: |
+          if [ -f "./coverage-output/coverage_report.json" ]; then
+            cat "./coverage-output/coverage_report.json"
+          else
+            echo "Coverage output not found."
+          fi
       - name: Display linting output
         run: |
           if [ -f "./lint-and-format-output/linting_output.txt" ]; then
