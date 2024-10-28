@@ -21,9 +21,12 @@ members = [
     "verifiers/zksync",
     "verifiers/groth16",
     "verifiers/risc0",
-    "verifiers/ultraplonk", 
+    "verifiers/ultraplonk",
     "verifiers/proofofsql",
     "utils/native-cache",
+]
+
+exclude = [
     "utils/generate-bags/node-runtime",
 ]
 
