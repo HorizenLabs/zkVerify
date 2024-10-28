@@ -118,7 +118,7 @@ pub fn authority_ids_from_ss58(
 pub fn development_config() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
-        Default::default(),
+        None,
     )
     .with_name("Development")
     .with_id("dev")
@@ -153,7 +153,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 pub fn local_config() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
-        Default::default(),
+        None,
     )
     .with_name("ZKV Local")
     .with_id("zkv_local")
@@ -194,7 +194,7 @@ pub fn testnet_config() -> Result<ChainSpec, String> {
 pub fn testnet_config_build() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
-        Default::default(),
+        None,
     )
     .with_name("ZKV Testnet")
     .with_id("zkv_testnet")
