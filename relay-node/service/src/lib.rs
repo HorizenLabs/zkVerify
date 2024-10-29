@@ -1,20 +1,20 @@
+// Copyright 2024, Horizen Labs, Inc.
 // Copyright (C) Parity Technologies (UK) Ltd.
-// This file is part of Polkadot.
 
-// Polkadot is free software: you can redistribute it and/or modify
+// This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Polkadot is distributed in the hope that it will be useful,
+// This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Polkadot.  If not, see <http://www.gnu.org/licenses/>.
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Polkadot service. Specialized wrapper over substrate service.
+//! zkVerify service. Specialized wrapper over substrate service.
 
 #![deny(unused_results)]
 #![allow(clippy::type_complexity)]
@@ -752,7 +752,7 @@ pub fn new_full<OverseerGenerator: OverseerGen>(
         .flatten()
         .expect("Genesis block exists; qed");
 
-    // Note: GrandPa is pushed before the Polkadot-specific protocols. This doesn't change
+    // Note: GrandPa is pushed before the zkVerify-specific protocols. This doesn't change
     // anything in terms of behaviour, but makes the logs more consistent with the other
     // Substrate nodes.
     let grandpa_protocol_name = grandpa::protocol_standard_name(&genesis_hash, &config.chain_spec);

@@ -1,5 +1,4 @@
-// This file is part of Substrate.
-
+// Copyright 2024, Horizen Labs, Inc.
 // Copyright (C) Parity Technologies (UK) Ltd.
 // SPDX-License-Identifier: Apache-2.0
 

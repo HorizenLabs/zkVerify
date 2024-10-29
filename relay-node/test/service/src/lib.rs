@@ -1,20 +1,20 @@
+// Copyright 2024, Horizen Labs, Inc.
 // Copyright (C) Parity Technologies (UK) Ltd.
-// This file is part of Polkadot.
 
-// Polkadot is free software: you can redistribute it and/or modify
+// This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Polkadot is distributed in the hope that it will be useful,
+// This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Polkadot.  If not, see <http://www.gnu.org/licenses/>.
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Polkadot test service only.
+//! zkVerify test service only.
 
 #![warn(missing_docs)]
 
@@ -118,7 +118,7 @@ pub fn test_prometheus_config(port: u16) -> PrometheusConfig {
     )
 }
 
-/// Create a Polkadot `Configuration`.
+/// Create a zkVerify `Configuration`.
 ///
 /// By default an in-memory socket will be used, therefore you need to provide boot
 /// nodes if you want the future node to be connected to other nodes.
@@ -231,7 +231,7 @@ pub fn run_validator_node(
         overseer_handle,
         ..
     } = new_full(config, IsParachainNode::No, worker_program_path)
-        .expect("could not create Polkadot test service");
+        .expect("could not create zkVerify test service");
 
     let overseer_handle = overseer_handle.expect("test node must have an overseer handle");
     let peer_id = network.local_peer_id();
@@ -279,7 +279,7 @@ pub fn run_collator_node(
         IsParachainNode::Collator(Box::new(collator_pair)),
         None,
     )
-    .expect("could not create Polkadot test service");
+    .expect("could not create zkVerify test service");
 
     let overseer_handle = overseer_handle.expect("test node must have an overseer handle");
     let peer_id = network.local_peer_id();
@@ -294,7 +294,7 @@ pub fn run_collator_node(
     }
 }
 
-/// A Polkadot test node instance used for testing.
+/// A zkVerify test node instance used for testing.
 pub struct PolkadotTestNode {
     /// `TaskManager`'s instance.
     pub task_manager: TaskManager,

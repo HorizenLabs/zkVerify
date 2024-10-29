@@ -1,18 +1,18 @@
+// Copyright 2024, Horizen Labs, Inc.
 // Copyright (C) Parity Technologies (UK) Ltd.
-// This file is part of Polkadot.
 
-// Polkadot is free software: you can redistribute it and/or modify
+// This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Polkadot is distributed in the hope that it will be useful,
+// This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Polkadot.  If not, see <http://www.gnu.org/licenses/>.
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::cli::{Cli, Subcommand, NODE_VERSION};
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
@@ -377,7 +377,7 @@ pub fn run() -> Result<()> {
                     cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())
                         .map_err(Error::SubstrateCli)
                 }),
-                // NOTE: this allows the Polkadot client to leniently implement
+                // NOTE: this allows the zkVerify client to leniently implement
                 // new benchmark commands.
                 #[allow(unreachable_patterns)]
                 _ => Err(Error::CommandNotImplemented),
