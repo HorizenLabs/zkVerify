@@ -74,6 +74,7 @@ pub fn test() -> sp_io::TestExternalities {
                     SessionKeys {
                         babe: get_from_seed::<BabeId>(user.session_key_seed).public(),
                         grandpa: get_from_seed::<GrandpaId>(user.session_key_seed).public(),
+                        #[cfg(not(feature = "relay"))]
                         im_online: get_from_seed::<ImOnlineId>(user.session_key_seed).public(),
                         #[cfg(feature = "relay")]
                         para_validator: get_from_seed::<ValidatorId>(user.session_key_seed)

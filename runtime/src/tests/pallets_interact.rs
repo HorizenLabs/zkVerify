@@ -112,6 +112,7 @@ mod authorship {
 
     // Check that Authorship calls back on ImOnline
     #[test]
+    #[cfg(not(feature = "relay"))]
     fn notifies_imonline() {
         test().execute_with(|| {
             assert!(!ImOnline::is_online(BABE_AUTHOR_ID));
@@ -229,6 +230,7 @@ mod offences {
     }
 
     #[test]
+    #[cfg(not(feature = "relay"))]
     fn notified_by_imonline() {
         test().execute_with(|| {
             let session = Session::current_index();

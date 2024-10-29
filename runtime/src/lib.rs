@@ -395,6 +395,7 @@ parameter_types! {
     pub TransactionByteFee: Balance = 10 * MILLICENTS;
 }
 
+#[cfg(not(feature = "relay"))]
 impl_opaque_keys! {
     pub struct SessionKeysBase {
         pub babe: Babe,
@@ -403,12 +404,21 @@ impl_opaque_keys! {
     }
 }
 
+// This is a temporary hack to make relay and non-relay runtimes coexist.
+#[cfg(feature = "relay")]
+impl_opaque_keys! {
+    pub struct SessionKeysBase {
+        pub babe: Babe,
+        pub grandpa: Grandpa,
+        pub im_online: ImOnlineId,
+    }
+}
+
 #[cfg(feature = "relay")]
 impl_opaque_keys! {
     pub struct SessionKeysRelay {
         pub babe: Babe,
         pub grandpa: Grandpa,
-        pub im_online: ImOnline,
         pub para_validator: Initializer,
         pub para_assignment: ParaSessionInfo,
         pub authority_discovery: AuthorityDiscovery,
@@ -693,7 +703,10 @@ impl pallet_staking::Config for Runtime {
 
 impl pallet_authorship::Config for Runtime {
     type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Babe>;
+    #[cfg(not(feature = "relay"))]
     type EventHandler = (Staking, ImOnline);
+    #[cfg(feature = "relay")]
+    type EventHandler = Staking;
 }
 
 impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
@@ -714,6 +727,7 @@ parameter_types! {
     pub const MaxPeerInHeartbeats: u32 = 10_000;
 }
 
+#[cfg(not(feature = "relay"))]
 impl pallet_im_online::Config for Runtime {
     type AuthorityId = ImOnlineId;
     type RuntimeEvent = RuntimeEvent;
@@ -944,9 +958,8 @@ construct_runtime!(
 
         // Pallets that we know are to remove in a future. Start indices at 50 to leave room.
         Sudo: pallet_sudo = 50,
-        ImOnline: pallet_im_online = 51,
         // Vesting. Usable initially, but removed once all vesting is finished.
-        Vesting: pallet_vesting = 52,
+        Vesting: pallet_vesting = 51,
 
         // Our stuff
         Poe: pallet_poe = 80,
@@ -1086,7 +1099,6 @@ mod benches {
         [pallet_preimage, Preimage]
         [pallet_session, SessionBench::<Runtime>]
         [pallet_staking, Staking]
-        [pallet_im_online, ImOnline]
         [frame_election_provider_support, ElectionProviderBench::<Runtime>]
         [pallet_poe, Poe]
         [pallet_conviction_voting, ConvictionVoting]

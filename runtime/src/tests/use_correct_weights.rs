@@ -218,6 +218,7 @@ fn pallet_timestamp() {
 }
 
 #[test]
+#[cfg(not(feature = "relay"))]
 fn pallet_im_online() {
     use pallet_im_online::WeightInfo;
 

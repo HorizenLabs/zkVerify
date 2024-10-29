@@ -16,7 +16,6 @@
 
 #![allow(clippy::type_complexity)]
 
-use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use polkadot_primitives::vstaging::SchedulerParams;
 use polkadot_primitives::{AssignmentId, AsyncBackingParams, ValidatorId};
 use sc_chain_spec::ChainSpecExtension;
@@ -84,7 +83,6 @@ fn from_ss58check<T: sp_core::crypto::Ss58Codec>(
 fn session_keys(
     babe: BabeId,
     grandpa: GrandpaId,
-    im_online: ImOnlineId,
     para_validator: ValidatorId,
     para_assignment: AssignmentId,
     authority_discovery: AuthorityDiscoveryId,
@@ -92,7 +90,6 @@ fn session_keys(
     SessionKeys {
         babe,
         grandpa,
-        im_online,
         para_validator,
         para_assignment,
         authority_discovery,
@@ -106,7 +103,6 @@ pub fn authority_keys_from_seed(
     AccountId,
     BabeId,
     GrandpaId,
-    ImOnlineId,
     ValidatorId,
     AssignmentId,
     AuthorityDiscoveryId,
@@ -115,7 +111,6 @@ pub fn authority_keys_from_seed(
         get_account_id_from_seed::<sr25519::Public>(s),
         get_from_seed::<BabeId>(s),
         get_from_seed::<GrandpaId>(s),
-        get_from_seed::<ImOnlineId>(s),
         get_from_seed::<ValidatorId>(s),
         get_from_seed::<AssignmentId>(s),
         get_from_seed::<AuthorityDiscoveryId>(s),
@@ -131,7 +126,6 @@ pub fn authority_ids_from_ss58(
         AccountId,
         BabeId,
         GrandpaId,
-        ImOnlineId,
         ValidatorId,
         AssignmentId,
         AuthorityDiscoveryId,
@@ -154,12 +148,6 @@ pub fn authority_ids_from_ss58(
         from_ss58check(ed25519_key).map_err(|error| {
             format!(
                 "An error occurred while converting SS58 to GrandpaId: {}",
-                error
-            )
-        })?,
-        from_ss58check(sr25519_key).map_err(|error| {
-            format!(
-                "An error occurred while converting SS58 to ImOnlineId: {}",
                 error
             )
         })?,
@@ -394,7 +382,6 @@ fn genesis(
             AccountId,
             BabeId,
             GrandpaId,
-            ImOnlineId,
             ValidatorId,
             AssignmentId,
             AuthorityDiscoveryId,
@@ -416,7 +403,7 @@ fn genesis(
         "session": {
             "keys": initial_authorities.iter()
                 .cloned()
-                .map(|((account, babe, grandpa, imonline, para, assign, auth), _staking)| { (account.clone(), account, session_keys(babe, grandpa, imonline, para, assign, auth)) })
+                .map(|((account, babe, grandpa, para, assign, auth), _staking)| { (account.clone(), account, session_keys(babe, grandpa, para, assign, auth)) })
                 .collect::<Vec<_>>(),
         },
         "staking": {
