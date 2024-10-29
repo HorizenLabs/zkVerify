@@ -8,8 +8,6 @@ In order to start a relay chain network you need to do some steps before:
 - Create the docker images for relay chain and parachain nodes
 - Start compose file
 - Start Parachain
-  - By Initialization
-  - By Runtime Upgrade
 
 ## Compile `zkv-relay` and `paratest` nodes
 
@@ -68,8 +66,6 @@ This compose starts 3 relaychain nodes and 3 parachain nodes:
 
 ## Start Parachain
 
-### By Initialization
-
 Now the complete network is up, and we can initialize the parachain:
 
 - Point polkadot.js to the local chain at `ws://127.0.0.1:9944`
@@ -82,24 +78,6 @@ Now the complete network is up, and we can initialize the parachain:
 Now just wait (up to 2 epochs/minutes) and the parchain should start to forge the blocks regularly every 12 seconds.
 
 You can access the parachain interface through polkadot.js at `ws://localhost:8844`.
-
-### By Runtime Upgrade
-
-- Increase the runtime `spec_version` in `runtime/src/lib.rs` with a number greater than `1_000_000`
-- Convert parachain genesis state and wasm to binary format:
-  
-  ```sh
-  cat staging/paratest-genesis | scripts/convert_hex_to_bytes.py > staging/paratest-genesis-bytes
-  cat staging/paratest-wasm | scripts/convert_hex_to_bytes.py > staging/paratest-wasm-bytes
-  ```
-
-- Compile the code with `add-parachain-upgrade` feature enable:
-  
-  ```sh
-  cargo build --release -p zkv-runtime --features "fast-runtime,add-parachain-upgrade"
-  ```
-
-- Upgrade runtime
 
 ## Extra
 

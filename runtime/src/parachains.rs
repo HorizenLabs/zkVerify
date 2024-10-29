@@ -262,47 +262,6 @@ pub mod migrations {
     #[allow(unused_imports)]
     use super::*;
 
-    #[cfg(feature = "add-parachain-upgrade")]
-    pub mod add_parachain_upgrade {
-        use super::*;
-        pub struct AddParachainUpgrade;
-        const ADD_PARACHAIN_VERSION: u32 = 1_000_000;
-        const PARACHAIN_PARATEST_ID: u32 = 1_599;
-
-        impl frame_support::traits::OnRuntimeUpgrade for AddParachainUpgrade {
-            fn on_runtime_upgrade() -> Weight {
-                if crate::System::last_runtime_upgrade_spec_version() > ADD_PARACHAIN_VERSION {
-                    log::info!("Skipping add paratest parachain upgrade: already applied");
-                    return <Runtime as frame_system::Config>::DbWeight::get().reads(1);
-                }
-                log::info!("Inject paratest parachain");
-                let genesis = include_bytes!("../../staging/paratest-genesis-bytes").to_vec();
-                let wasm = include_bytes!("../../staging/paratest-wasm-bytes").to_vec();
-
-                let genesis = paras::GenesisConfig::<Runtime> {
-                    _config: core::marker::PhantomData,
-                    paras: sp_std::vec![(
-                        PARACHAIN_PARATEST_ID.into(),
-                        paras::ParaGenesisArgs {
-                            genesis_head: genesis.into(),
-                            validation_code: wasm.into(),
-                            para_kind: paras::ParaKind::Parachain,
-                        }
-                    )],
-                };
-                use frame_support::traits::BuildGenesisConfig;
-                genesis.build();
-                sp_runtime::Perbill::from_percent(50) * crate::BlockWeights::get().max_block
-            }
-        }
-    }
-
-    #[cfg(feature = "add-parachain-upgrade")]
-    pub type AddParachainUpgrade = add_parachain_upgrade::AddParachainUpgrade;
-
-    #[cfg(not(feature = "add-parachain-upgrade"))]
-    pub type AddParachainUpgrade = ();
-
     /// Unreleased migrations. Add new ones here:
-    pub type Unreleased = (AddParachainUpgrade,);
+    pub type Unreleased = ();
 }

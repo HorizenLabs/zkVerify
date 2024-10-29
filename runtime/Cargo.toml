@@ -170,7 +170,6 @@ relay = [
   "dep:pallet-xcm",
   "dep:pallet-xcm-benchmarks",
 ]
-add-parachain-upgrade = ["relay"]
 default = ["std"]
 std = [
 	"codec/std",
