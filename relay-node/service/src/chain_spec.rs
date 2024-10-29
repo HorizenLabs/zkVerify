@@ -239,19 +239,14 @@ pub fn local_config() -> Result<ChainSpec, String> {
     .build())
 }
 
-pub fn testnet_config() -> Result<ChainSpec, String> {
-    ChainSpec::from_json_bytes(&include_bytes!("../chain-specs/zkverify_testnet.json")[..])
-}
-
 /// To be used when building new testnet chain-spec
-#[allow(dead_code)]
-pub fn testnet_config_build() -> Result<ChainSpec, String> {
+pub fn testnet_config() -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
         Default::default(),
     )
-    .with_name("NH Testnet")
-    .with_id("nh_testnet")
+    .with_name("ZKV Testnet")
+    .with_id("zkv_testnet")
     .with_protocol_id("tacme")
     .with_chain_type(ChainType::Live)
     .with_boot_nodes(vec![
