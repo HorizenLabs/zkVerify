@@ -11,6 +11,7 @@ zombienet-tests/yarn.lock
 zombienet-tests/bin
 lcov.info
 benchmarking_errors.txt
+staging/
 
 # Ignore coverage reports
 coverage_report.json

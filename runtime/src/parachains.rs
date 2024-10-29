@@ -276,8 +276,8 @@ pub mod migrations {
                     return <Runtime as frame_system::Config>::DbWeight::get().reads(1);
                 }
                 log::info!("Inject paratest parachain");
-                let genesis = include_bytes!("paratest_genesis").to_vec();
-                let wasm = include_bytes!("paratest_wasm").to_vec();
+                let genesis = include_bytes!("../../staging/paratest-genesis-bytes").to_vec();
+                let wasm = include_bytes!("../../staging/paratest-wasm-bytes").to_vec();
 
                 let genesis = paras::GenesisConfig::<Runtime> {
                     _config: core::marker::PhantomData,

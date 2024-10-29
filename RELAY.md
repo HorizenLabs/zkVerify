@@ -8,8 +8,8 @@ In order to start a relay chain network you need to do some steps before:
 - Create the docker images for relay chain and parachain nodes
 - Start compose file
 - Start Parachain
-  - By Initialize it
-  - By Upgrade Runtime
+  - By Initialization
+  - By Runtime Upgrade
 
 ## Compile `zkv-relay` and `paratest` nodes
 
@@ -40,10 +40,10 @@ cargo build --release -p paratest-node
         --disable-default-bootnode --raw > staging/raw-parachain-chainspec.json && \
     ./target/release/paratest-node export-genesis-state \
         --chain staging/raw-parachain-chainspec.json \
-        staging/para-genesis-state && \
+        staging/paratest-genesis && \
     ./target/release/paratest-node export-genesis-wasm \
         --chain staging/raw-parachain-chainspec.json \
-        staging/para-wasm
+        staging/paratest-wasm
 ```
 
 ## Create the docker images for relay chain and parachain nodes
@@ -75,8 +75,8 @@ Now the complete network is up, and we can initialize the parachain:
 - Point polkadot.js to the local chain at `ws://127.0.0.1:9944`
 - Initialize parachain: _Developer_->_Sudo_->`parasSudoWrapper` pallet->`sudoScheduleParaInitialize` and set following data:
   - `id`: `1599`.
-  - `genesisHead`: Click file upload and upload the genesis state file in `staging/para-genesis-state`.
-  - `validationCode`: Click file upload and upload the WebAssembly runtime file in `staging/para-wasm`.
+  - `genesisHead`: Click file upload and upload the genesis state file in `staging/paratest-genesis`.
+  - `validationCode`: Click file upload and upload the WebAssembly runtime file in `staging/paratest-wasm`.
   - `paraKind`: Select `Yes`.
 
 Now just wait (up to 2 epochs/minutes) and the parchain should start to forge the blocks regularly every 12 seconds.
@@ -85,12 +85,12 @@ You can access the parachain interface through polkadot.js at `ws://localhost:88
 
 ### By Runtime Upgrade
 
-- Increase the runtime `spec_version` in `runtime/src/lib.rs` wit a number greater than `1_000_000`
+- Increase the runtime `spec_version` in `runtime/src/lib.rs` with a number greater than `1_000_000`
 - Convert parachain genesis state and wasm to binary format:
   
   ```sh
-  cat staging/para-genesis-state | scripts/convert_hex_to_bytes.py > runtime/src/paratest_genesis
-  cat staging/para-wasm | scripts/convert_hex_to_bytes.py > runtime/src/paratest_wasm 
+  cat staging/paratest-genesis | scripts/convert_hex_to_bytes.py > staging/paratest-genesis-bytes
+  cat staging/paratest-wasm | scripts/convert_hex_to_bytes.py > staging/paratest-wasm-bytes
   ```
 
 - Compile the code with `add-parachain-upgrade` feature enable:

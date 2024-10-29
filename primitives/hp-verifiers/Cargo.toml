@@ -24,5 +24,4 @@ std = [
     "sp-core/std",
     "sp-std/std",
     "sp-io/std",
-    "sp-io/default",
 ]

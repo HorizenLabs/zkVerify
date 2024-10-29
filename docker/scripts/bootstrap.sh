@@ -9,7 +9,6 @@ BUILD_PROFILE="${BUILD_PROFILE:---release}"
 
 # Features
 FAST_RUNTIME="${FAST_RUNTIME:-true}"                    # for dev, limit an epoch to 1min. Useful for testing with parachains
-ADD_PARACHAIN_UPGRADE="${ADD_PARACHAIN_UPGRADE:-false}" # for dev, automatically register the test parachain on runtime upgrade
 
 # Build rbuilder
 echo "----------------------------------------------------------"
@@ -20,13 +19,6 @@ RELAY_FEATURES=""
 
 if [ "$FAST_RUNTIME" = "true" ]; then
   RELAY_FEATURES="fast-runtime"
-fi
-
-if [ "$ADD_PARACHAIN_UPGRADE" = "true" ]; then
-  if [ "$RELAY_FEATURES" ]; then
-    RELAY_FEATURES="${RELAY_FEATURES},"
-  fi
-  RELAY_FEATURES="${RELAY_FEATURES}add-parachain-upgrade"
 fi
 
 if [ "$RELAY_FEATURES" ]; then
