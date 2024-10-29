@@ -69,7 +69,7 @@ if [ -n "${docker_tag_full:-}" ]; then
   done
 
   # Extract runtime artifact
-  container_id = $(docker create "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}")
+  container_id="$(docker create "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}")"
   docker cp ${container_id}:/app/zkv_runtime.compact.compressed.wasm ./zkv_runtime.compact.compressed.wasm
   docker rm ${container_id}  # Clean up the container
 
