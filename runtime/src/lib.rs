@@ -368,11 +368,6 @@ impl pallet_timestamp::Config for Runtime {
 }
 
 parameter_types! {
-    /// Existential deposit.
-    pub const ExistentialDeposit: Balance = EXISTENTIAL_DEPOSIT;
-}
-
-parameter_types! {
     pub const ExistentialDeposit: Balance = EXISTENTIAL_DEPOSIT;
     pub const MaxLocks: u32 = 50;
     pub const MaxReserves: u32 = 50;
