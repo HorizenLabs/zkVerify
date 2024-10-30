@@ -16,10 +16,11 @@ env:
   DOCKER_BUILD_DIR: /build
   DOCKER_CARGO_HOME: /tmp/.cargo
   CMAKE_INSTALL: true
+  LLD_INSTALL: true
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: zkVerify_larger
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
@@ -55,6 +56,10 @@ jobs:
       - name: Cargo unit tests
         shell: bash
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo test --lib --bins --all-features --no-fail-fast --release 2>&1 | tee unit_tests_output.txt
+
+      - name: Cargo unit tests for runtime WITHOUT relay feature
+        shell: bash
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo test -p zkv-runtime --lib --bins --features runtime-benchmarks --no-fail-fast --release 2>&1 | tee -a unit_tests_output.txt
 
       - name: Cargo integration tests
         shell: bash

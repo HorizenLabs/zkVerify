@@ -1,6 +1,6 @@
 [package]
 name = "zkv-runtime"
-version = "0.5.2"
+version = "0.8.0"
 description = "zkVerify Mainchain Runtime."
 authors.workspace = true
 homepage = "https://github.com/HorizenLabs/zkVerify"
@@ -90,6 +90,23 @@ pallet-zksync-verifier = { workspace = true }
 pallet-groth16-verifier = { workspace = true }
 pallet-risc0-verifier = { workspace = true }
 pallet-ultraplonk-verifier = { workspace = true }
+pallet-proofofsql-verifier = { workspace = true }
+
+authority-discovery-primitives = { workspace = true, optional = true }
+
+polkadot-primitives = { workspace = true, optional = true }
+polkadot-runtime-parachains = { workspace = true, optional = true }
+pallet-authority-discovery = { workspace = true, optional = true }
+
+polkadot-runtime-common = { workspace = true, optional = true }
+
+pallet-message-queue = { workspace = true }
+pallet-xcm = { workspace = true, optional = true }
+pallet-xcm-benchmarks = { workspace = true, optional = true }
+xcm-builder = { workspace = true, optional = true }
+xcm-executor = { workspace = true, optional = true }
+xcm = { workspace = true, optional = true }
+hex-literal = { workspace = true }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -131,6 +148,27 @@ runtime-benchmarks = [
 	"pallet-groth16-verifier/runtime-benchmarks",
 	"pallet-risc0-verifier/runtime-benchmarks",
 	"pallet-ultraplonk-verifier/runtime-benchmarks",
+	"pallet-proofofsql-verifier/runtime-benchmarks",
+	"polkadot-primitives?/runtime-benchmarks",
+	"polkadot-runtime-parachains?/runtime-benchmarks",
+	"polkadot-runtime-common?/runtime-benchmarks",
+	"xcm-builder?/runtime-benchmarks",
+	"xcm-executor?/runtime-benchmarks",
+	"pallet-xcm?/runtime-benchmarks",
+	"pallet-xcm-benchmarks?/runtime-benchmarks",
+]
+fast-runtime = []
+relay = [
+  "dep:polkadot-primitives",
+  "dep:polkadot-runtime-parachains",
+  "dep:pallet-authority-discovery",
+  "dep:authority-discovery-primitives",
+  "dep:polkadot-runtime-common",
+  "dep:xcm",
+  "dep:xcm-builder",
+  "dep:xcm-executor",
+  "dep:pallet-xcm",
+  "dep:pallet-xcm-benchmarks",
 ]
 default = ["std"]
 std = [
@@ -168,6 +206,9 @@ std = [
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
+	"pallet-message-queue/std",
+	"pallet-xcm?/std",
+	"pallet-xcm-benchmarks?/std",
 	"pallet-proxy/std",
 	"pallet-verifiers/std",
 	"pallet-poe/std",
@@ -198,8 +239,14 @@ std = [
 	"pallet-groth16-verifier/std",
 	"pallet-risc0-verifier/std",
 	"pallet-ultraplonk-verifier/std",
+	"pallet-proofofsql-verifier/std",
 	"hp-verifiers/std",
 	"substrate-wasm-builder",
+	"polkadot-primitives?/std",
+	"polkadot-runtime-parachains?/std",
+	"pallet-authority-discovery?/std",
+	"authority-discovery-primitives?/std",
+	"polkadot-runtime-common?/std",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",
@@ -235,4 +282,8 @@ try-runtime = [
 	"pallet-poe/try-runtime",
 	"sp-runtime/try-runtime",
 	"pallet-verifiers/try-runtime",
+	"polkadot-runtime-parachains?/try-runtime",
+	"pallet-authority-discovery?/try-runtime",
+	"polkadot-runtime-common?/try-runtime",
+	"pallet-xcm?/try-runtime",
 ]

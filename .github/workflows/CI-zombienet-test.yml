@@ -16,6 +16,7 @@ env:
   DOCKER_BUILD_DIR: /build
   DOCKER_CARGO_HOME: /tmp/.cargo
   CMAKE_INSTALL: true
+  LLD_INSTALL: true
 
 jobs:
   zombienet-test:
@@ -52,8 +53,11 @@ jobs:
           echo "USER_ID=$(id -u)" >> $GITHUB_ENV
           echo "GRP_ID=$(id -g)" >> $GITHUB_ENV
 
-      - name: Cargo build
-        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build --release
+      - name: Cargo build mainchain
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build -p mainchain --release
+
+      - name: Cargo build relaychain and paratest
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build -p zkv-relay -p paratest-node --release --features fast-runtime
 
       - name: Yarn install and test
         shell: bash

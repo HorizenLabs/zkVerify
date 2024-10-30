@@ -1,0 +1,44 @@
+version: '3'
+services:
+  local_node:
+    image: horizenlabs/zkv-relay:latest
+    volumes:
+      - ../../staging/raw-chainspec.json:/data/chain_spec.json
+    env_file:
+      - ../resources/envs/relay/.env.local
+    ports:
+      - 9944:9944
+      - 30333:30333
+  node_alice:
+    image: horizenlabs/zkv-relay:latest
+    volumes:
+      - ../../staging/raw-chainspec.json:/data/chain_spec.json
+    env_file:
+      - ../resources/envs/relay/.env.alice
+  node_bob:
+    image: horizenlabs/zkv-relay:latest
+    volumes:
+      - ../../staging/raw-chainspec.json:/data/chain_spec.json
+    env_file:
+      - ../resources/envs/relay/.env.bob
+  local_paranode:
+    image: paratest:latest
+    volumes:
+      - ../../staging/raw-chainspec.json:/data/chain_spec.json
+    env_file:
+      - ../resources/envs/para/.env.local
+    ports:
+      - 8844:9944
+      - 20333:30333
+  collator_alice:
+    image: paratest:latest
+    volumes:
+      - ../../staging/raw-chainspec.json:/data/chain_spec.json
+    env_file:
+      - ../resources/envs/para/.env.alice
+  collator_bob:
+    image: paratest:latest
+    volumes:
+      - ../../staging/raw-chainspec.json:/data/chain_spec.json
+    env_file:
+      - ../resources/envs/para/.env.bob

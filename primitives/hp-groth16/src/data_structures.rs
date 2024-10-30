@@ -86,7 +86,7 @@ pub struct VerificationKey {
 impl G1 {
     /// Try to convert the G1 point to an affine representation.
     pub fn try_into_affine<R: AffineRepr>(self) -> Result<R, SerializationError> {
-        R::deserialize_uncompressed(self.0.as_ref())
+        R::deserialize_uncompressed(self.0.as_slice())
     }
 
     /// Try to convert the affine representation to a G1 point.
@@ -100,7 +100,7 @@ impl G1 {
 impl G2 {
     /// Try to convert the G2 point to an affine representation.
     pub fn try_into_affine<R: AffineRepr>(self) -> Result<R, SerializationError> {
-        R::deserialize_uncompressed(self.0.as_ref())
+        R::deserialize_uncompressed(self.0.as_slice())
     }
 
     /// Try to convert the affine representation to a G2 point.
@@ -114,7 +114,7 @@ impl G2 {
 impl Scalar {
     /// Try to convert the scalar to a prime field element.
     pub fn try_into_scalar<P: PrimeField>(self) -> Result<P, SerializationError> {
-        P::deserialize_uncompressed(self.0.as_ref())
+        P::deserialize_uncompressed(self.0.as_slice())
     }
 
     /// Try to convert the prime field element to a scalar.

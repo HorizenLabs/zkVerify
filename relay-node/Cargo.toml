@@ -1,0 +1,64 @@
+[[bin]]
+name = "zkv-relay"
+path = "src/main.rs"
+
+[[bin]]
+name = "zkv-relay-execute-worker"
+path = "src/bin/execute-worker.rs"
+
+[[bin]]
+name = "zkv-relay-prepare-worker"
+path = "src/bin/prepare-worker.rs"
+
+[package]
+name = "zkv-relay"
+description = "Implementation of a ZkVerify relay node in Rust based on the Substrate framework."
+license = "GPL-3.0"
+rust-version = "1.77.0"
+authors.workspace = true
+edition.workspace = true
+version = "11.0.0"
+default-run = "zkv-relay"
+
+[dependencies]
+color-eyre = { version = "0.6.1", default-features = false }
+tikv-jemallocator = { version = "0.5.0", optional = true, features = [
+	"unprefixed_malloc_on_supported_platforms",
+] }
+
+zkv-cli = { workspace = true }
+polkadot-node-core-pvf = { workspace = true }
+polkadot-node-core-pvf-prepare-worker = { workspace = true }
+polkadot-overseer = { workspace = true }
+polkadot-node-core-pvf-common = { workspace = true }
+polkadot-node-core-pvf-execute-worker = { workspace = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+tikv-jemallocator = { version = "0.5.0", features = [
+	"unprefixed_malloc_on_supported_platforms",
+] }
+
+[dev-dependencies]
+assert_cmd = "2.0.4"
+nix = { version = "0.27.1", features = ["signal"] }
+tempfile = "3.2.0"
+tokio = "1.24.2"
+substrate-rpc-client = { workspace = true }
+polkadot-core-primitives = { workspace = true }
+
+[build-dependencies]
+substrate-build-script-utils = { version = "11.0.0" }
+native-cache = { workspace = true, features = ["rocksdb"] }
+
+[features]
+runtime-benchmarks = ["zkv-cli/runtime-benchmarks"]
+try-runtime = ["zkv-cli/try-runtime"]
+fast-runtime = ["zkv-cli/fast-runtime"]
+runtime-metrics = ["zkv-cli/runtime-metrics"]
+pyroscope = ["zkv-cli/pyroscope"]
+jemalloc-allocator = [
+	"dep:tikv-jemallocator",
+	"polkadot-node-core-pvf-prepare-worker/jemalloc-allocator",
+	"polkadot-node-core-pvf/jemalloc-allocator",
+	"polkadot-overseer/jemalloc-allocator",
+]

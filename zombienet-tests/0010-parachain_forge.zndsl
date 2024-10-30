@@ -1,0 +1,14 @@
+Description: Run relay chain and paratest parachain. The parachain should forge some blocks
+Network: ./network_defs/paratest.toml
+Creds: config
+
+# SKIP solo
+
+alice: is up
+bob: is up
+
+alice: reports node_roles is 4
+bob: reports node_roles is 4
+
+alice: parachain 1599 is registered within 50 seconds
+alice: parachain 1599 block height is at least 3 within 100 seconds

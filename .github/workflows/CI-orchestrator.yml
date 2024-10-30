@@ -15,7 +15,7 @@ jobs:
     uses: ./.github/workflows/CI-test.yml
     with:
       CACHING_MODE: "CACHE_RESTORE"
-      
+
   coverage-job:
     uses: ./.github/workflows/CI-coverage.yml
     with:
@@ -201,7 +201,7 @@ jobs:
           else
             echo "TEST_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
           fi
-      
+
           if [[ -z "${LINE_COVERAGE_PERCENT}" ]]; then
             if [[ "${{ needs.coverage-job.result }}" == "success" ]]; then
               echo "COVERAGE_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
@@ -215,7 +215,7 @@ jobs:
           else
             echo "COVERAGE_JOB_EMOJI=:red_circle:" >> $GITHUB_ENV
           fi
-      
+
           if [[ "${{ needs.lint-format-job.result }}" == "success" ]]; then
             echo "LINT_FORMAT_JOB_EMOJI=:large_green_circle:" >> $GITHUB_ENV
           else

@@ -43,15 +43,15 @@ BENCH_SH="${BENCH_SH:-${SOURCE_ROOT}/scripts/bench.sh}"
 ERR_FILE="${ERR_FILE:-${SOURCE_ROOT}/benchmarking_errors.txt}"
 
 if [ "${USE_DOCKER}" = "false" ]; then
-  echo "[+] Compiling zkv-node benchmarks..."
+  echo "[+] Compiling zkv-relay benchmarks..."
   cargo build \
     --locked \
     --features=runtime-benchmarks \
     --profile=production \
-    --bin zkv-node
+    --bin zkv-relay
 
   # The executable to use.
-  ZKV_NODE="${PROJECT_ROOT}/target/production/zkv-node"
+  ZKV_NODE="${PROJECT_ROOT}/target/production/zkv-relay"
   SKIP_LINES=2
 else
   IMAGE="zkverify"
@@ -72,7 +72,7 @@ else
     docker image prune -f
   fi
   # The executable to use.
-  ZKV_NODE="docker compose -f ${compose_file} run -T --rm --remove-orphans zkverify-bench /usr/local/bin/zkv-node"
+  ZKV_NODE="docker compose -f ${compose_file} run -T --rm --remove-orphans zkverify-bench /usr/local/bin/zkv-relay"
 
   # Now PROJECT_ROOT become the docker folder
   PROJECT_ROOT="/data/benchmark"
@@ -80,8 +80,11 @@ else
 fi
 
 DEFAULT_DEPLOY_WEIGHT_TEMPLATE="${PROJECT_ROOT}/node/zkv-deploy-weight-template.hbs"
+DEFAULT_DEPLOY_WEIGHT_TEMPLATE_XCM="${PROJECT_ROOT}/node/zkv-deploy-weight-template-xcm.hbs"
 
 WEIGTH_TEMPLATE="${WEIGTH_TEMPLATE:-${DEFAULT_DEPLOY_WEIGHT_TEMPLATE}}"
+WEIGTH_TEMPLATE_XCM="${WEIGTH_TEMPLATE_XCM:-${DEFAULT_DEPLOY_WEIGHT_TEMPLATE_XCM}}"
+
 WEIGHTS_FOLDER="${WEIGHTS_FOLDER:-${PROJECT_ROOT}/runtime/src/weights}"
 
 CODE_HEADER="${PROJECT_ROOT}/HEADER-APACHE2"
@@ -135,16 +138,24 @@ for PALLET in "${PALLETS[@]}"; do
   fi
 
   PALLET_NAME="$(tr '_' '-' <<< "${PALLET}")"
-  MODULE_NAME="${PALLET}.rs";
+  MODULE_NAME=$(echo "${PALLET}.rs" | sed 's/^crate:://g' | sed 's/::/\//g');
+  echo ${MODULE_NAME}
   WEIGHT_FILE="${WEIGHTS_FOLDER}/${MODULE_NAME}"
+  mkdir -p "${MODULE_NAME}"
   echo "[+] Benchmarking $PALLET with weight file $WEIGHT_FILE"
+
+  TEMPLATE="${WEIGTH_TEMPLATE}"
+  # XCM pallet-xcm-benchmarks benchmarks need a different template
+  if [[ "${PALLET}" == xcm::pallet_xcm_benchmarks_* ]] ; then
+    TEMPLATE="${WEIGTH_TEMPLATE_XCM}"
+  fi
 
   OUTPUT="$( \
     SOURCE_ROOT="${SOURCE_ROOT}" \
     WEIGTH_OUT_PATH="${WEIGHT_FILE}" \
     SKIP_BUILD="true" \
     ZKV_NODE_EXE="${ZKV_NODE}" \
-    WEIGTH_TEMPLATE="${WEIGTH_TEMPLATE}" \
+    WEIGTH_TEMPLATE="${TEMPLATE}" \
     CODE_HEADER="${CODE_HEADER}" \
     BM_STEPS="${BM_STEPS}" \
     BM_REPEAT="${BM_REPEAT}" \
