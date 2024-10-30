@@ -372,9 +372,16 @@ parameter_types! {
     pub const ExistentialDeposit: Balance = EXISTENTIAL_DEPOSIT;
 }
 
+parameter_types! {
+    pub const ExistentialDeposit: Balance = EXISTENTIAL_DEPOSIT;
+    pub const MaxLocks: u32 = 50;
+    pub const MaxReserves: u32 = 50;
+    pub const MaxFreezes: u32 = 8;
+}
+
 impl pallet_balances::Config for Runtime {
-    type MaxLocks = ConstU32<50>;
-    type MaxReserves = ConstU32<50>;
+    type MaxLocks = MaxLocks;
+    type MaxReserves = MaxReserves;
     type ReserveIdentifier = [u8; 8];
     /// The type for recording an account's balance.
     type Balance = Balance;
@@ -384,10 +391,10 @@ impl pallet_balances::Config for Runtime {
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
     type WeightInfo = weights::pallet_balances::ZKVWeight<Runtime>;
-    type FreezeIdentifier = ();
-    type MaxFreezes = ();
+    type FreezeIdentifier = RuntimeFreezeReason;
+    type MaxFreezes = MaxFreezes;
     type RuntimeHoldReason = RuntimeHoldReason;
-    type RuntimeFreezeReason = ();
+    type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
 parameter_types! {
