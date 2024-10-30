@@ -17,17 +17,14 @@ env:
   DOCKER_CARGO_HOME: /tmp/.cargo
   CARGO_BINARIES_INSTALL: "cargo-llvm-cov"
   CMAKE_INSTALL: true
+  LLD_INSTALL: true
 
 jobs:
   coverage:
-    runs-on: ubuntu-latest
+    runs-on: zkVerify_larger
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
-
-      - name: Free up disk space
-        if: ${{ !env.ACT }}
-        run: ${GITHUB_WORKSPACE}/.github/scripts/clean_ci.sh
 
       - name: Set up deps cache
         run: mkdir deps
@@ -63,7 +60,7 @@ jobs:
             set -o pipefail \
             && cargo llvm-cov clean --workspace \
             && find . -name "*.profraw" -delete \
-            && cargo llvm-cov --all-features --workspace --exclude mainchain --lcov --output-path lcov.info \
+            && cargo llvm-cov --all-features --workspace --exclude mainchain --exclude zkv-relay --exclude paratest-node --exclude test-service --lcov --output-path lcov.info \
             && cargo llvm-cov report --json --output-path coverage_report.json --summary-only \
             && cargo llvm-cov report | tee coverage_summary.txt
           '

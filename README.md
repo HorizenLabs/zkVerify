@@ -45,7 +45,7 @@ To build the client from source, clone this repository and run the following com
 
 ```bash
 git checkout <latest tagged release>
-cargo build --release
+cargo build -p mainchain --release
 ```
 
 #### Running GitHub workflows on local environment

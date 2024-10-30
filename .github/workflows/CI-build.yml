@@ -16,6 +16,7 @@ env:
   DOCKER_BUILD_DIR: /build
   DOCKER_CARGO_HOME: /tmp/.cargo
   CMAKE_INSTALL: true
+  LLD_INSTALL: true
 
 jobs:
   build:
@@ -52,8 +53,14 @@ jobs:
           echo "USER_ID=$(id -u)" >> $GITHUB_ENV
           echo "GRP_ID=$(id -g)" >> $GITHUB_ENV
 
-      - name: Cargo build
-        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build --release
+      - name: Cargo build solo chain
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build -p mainchain --release
+      
+      - name: Cargo build relay chain
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build -p zkv-relay --release
+
+      - name: Cargo build paratest node
+        run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build -p paratest-node --release
 
       - name: Save common cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}

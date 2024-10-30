@@ -87,6 +87,29 @@ while IFS='=' read -r -d '' var_name var_value; do
   fi
 done < <(env -0)
 
+# Realychain's collator configurations (env->arg)
+prefix="RC_CONF_"
+echo "Relaycain's collator configuration:"
+relaychain_appended_any=""
+while IFS='=' read -r -d '' var_name var_value; do
+  if [[ "$var_name" == ${prefix}* ]]; then
+    if [[ -z ${relaychain_appended_any} ]]; then
+      relaychain_appended_any="true"
+      # Add separator
+      conf_args+=("--")  
+    fi
+    # rules above
+    arg_name=$(get_arg_name_from_env_name "${var_name}" "${prefix}")
+    conf_args+=("${arg_name}")
+    # rules above
+    arg_value=$(get_arg_value_from_env_value "${var_value}")
+    if [ -n "${arg_value}" ]; then
+      conf_args+=("${arg_value}")
+    fi
+    echo "  ${var_name}=${var_value} -> ${arg_name} ${arg_value}"
+  fi
+done < <(env -0)
+
 if [ -n "${ZKV_CONF_BASE_PATH}" ]; then
   BASE_CHAINS="${ZKV_CONF_BASE_PATH}/chains"
 

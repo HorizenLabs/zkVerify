@@ -25,7 +25,7 @@ use sc_cli::SubstrateCli;
 use sc_service::PartialComponents;
 use sp_core::crypto::Ss58AddressFormat;
 use sp_keyring::Sr25519Keyring;
-use zkv_runtime::{Block, EXISTENTIAL_DEPOSIT};
+use zkv_runtime::{currency::EXISTENTIAL_DEPOSIT, Block};
 
 impl SubstrateCli for Cli {
     fn impl_name() -> String {

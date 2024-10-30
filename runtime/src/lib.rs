@@ -14,8 +14,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
-#![recursion_limit = "256"]
+// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 512 (for relay chain).
+#![recursion_limit = "512"]
+#![allow(clippy::identity_op)]
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -49,18 +50,21 @@ use frame_election_provider_support::{
 };
 use frame_support::genesis_builder_helper::{build_config, create_default_config};
 
+// A few exports that help ease life for downstream crates.
+use frame_support::traits::EqualPrivilegeOnly;
+
 pub use frame_support::{
     construct_runtime, derive_impl,
     dispatch::DispatchClass,
     parameter_types,
     traits::{
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
-        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly,
-        KeyOwnerProofSystem, Randomness, StorageInfo, WithdrawReasons,
+        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, KeyOwnerProofSystem,
+        Randomness, StorageInfo, WithdrawReasons,
     },
     weights::{
         constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
-        IdentityFee, Weight,
+        ConstantMultiplier, IdentityFee, Weight,
     },
     PalletId, StorageValue,
 };
@@ -80,6 +84,34 @@ pub use sp_runtime::{Perbill, Permill};
 
 pub mod governance;
 use governance::{pallet_custom_origins, Treasurer, TreasurySpender};
+
+pub mod macros {
+    macro_rules! prod_or_fast {
+        ($prod:expr, $test:expr) => {
+            if cfg!(feature = "fast-runtime") {
+                $test
+            } else {
+                $prod
+            }
+        };
+        ($prod:expr, $test:expr, $env:expr) => {
+            if cfg!(feature = "fast-runtime") {
+                core::option_env!($env)
+                    .map(|s| s.parse().ok())
+                    .flatten()
+                    .unwrap_or($test)
+            } else {
+                $prod
+            }
+        };
+    }
+    pub(crate) use prod_or_fast;
+}
+
+pub(crate) use macros::prod_or_fast;
+
+pub mod parachains;
+pub mod xcm_config;
 
 mod bag_thresholds;
 mod migrations;
@@ -106,6 +138,7 @@ pub mod currency {
     pub const THOUSANDS: Balance = 1_000 * ACME;
     pub const MILLIONS: Balance = 1_000 * THOUSANDS;
     pub const MILLICENTS: Balance = CENTS / 1_000;
+    pub const EXISTENTIAL_DEPOSIT: Balance = MILLICENTS;
     pub const fn deposit(items: u32, bytes: u32) -> Balance {
         items as Balance * 200 * CENTS + (bytes as Balance) * 100 * MILLICENTS
     }
@@ -254,7 +287,7 @@ impl frame_system::Config for Runtime {
 
 parameter_types! {
     pub const ExpectedBlockTime: u64 = MILLISECS_PER_BLOCK; // Should use primitives::Moment
-    pub const EpochDurationInBlocks: BlockNumber = HOURS; // TODO: use prod_or_fast!
+    pub EpochDurationInBlocks: BlockNumber = prod_or_fast!(1 * HOURS, 1 * MINUTES, "ZKV_RELAY_EPOCH_DURATION");
 
     /// How long (in blocks) an equivocation report is valid for
     pub ReportLongevity: u64 = EpochDurationInBlocks::get() as u64 * 10;
@@ -334,19 +367,21 @@ impl pallet_timestamp::Config for Runtime {
     type WeightInfo = weights::pallet_timestamp::ZKVWeight<Runtime>;
 }
 
-/// Existential deposit.
-pub const EXISTENTIAL_DEPOSIT: u128 = MILLICENTS;
+parameter_types! {
+    /// Existential deposit.
+    pub const ExistentialDeposit: Balance = EXISTENTIAL_DEPOSIT;
+}
 
 impl pallet_balances::Config for Runtime {
     type MaxLocks = ConstU32<50>;
-    type MaxReserves = ();
+    type MaxReserves = ConstU32<50>;
     type ReserveIdentifier = [u8; 8];
     /// The type for recording an account's balance.
     type Balance = Balance;
     /// The ubiquitous event type.
     type RuntimeEvent = RuntimeEvent;
     type DustRemoval = ();
-    type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;
+    type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
     type WeightInfo = weights::pallet_balances::ZKVWeight<Runtime>;
     type FreezeIdentifier = ();
@@ -357,15 +392,44 @@ impl pallet_balances::Config for Runtime {
 
 parameter_types! {
     pub FeeMultiplier: Multiplier = Multiplier::one();
+    pub TransactionByteFee: Balance = 10 * MILLICENTS;
 }
 
+#[cfg(not(feature = "relay"))]
 impl_opaque_keys! {
-    pub struct SessionKeys {
+    pub struct SessionKeysBase {
         pub babe: Babe,
         pub grandpa: Grandpa,
         pub im_online: ImOnline,
     }
 }
+
+// This is a temporary hack to make relay and non-relay runtimes coexist.
+#[cfg(feature = "relay")]
+impl_opaque_keys! {
+    pub struct SessionKeysBase {
+        pub babe: Babe,
+        pub grandpa: Grandpa,
+        pub im_online: ImOnlineId,
+    }
+}
+
+#[cfg(feature = "relay")]
+impl_opaque_keys! {
+    pub struct SessionKeysRelay {
+        pub babe: Babe,
+        pub grandpa: Grandpa,
+        pub para_validator: Initializer,
+        pub para_assignment: ParaSessionInfo,
+        pub authority_discovery: AuthorityDiscovery,
+    }
+}
+
+#[cfg(feature = "relay")]
+pub type SessionKeys = SessionKeysRelay;
+
+#[cfg(not(feature = "relay"))]
+pub type SessionKeys = SessionKeysBase;
 
 impl pallet_transaction_payment::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
@@ -554,14 +618,14 @@ impl pallet_session::Config for Runtime {
     type ValidatorIdOf = ValidatorIdOf;
     type ShouldEndSession = Babe;
     type NextSessionRotation = Babe;
-    type SessionManager = Staking;
+    type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, Staking>;
     type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
     type Keys = SessionKeys;
     type WeightInfo = weights::pallet_session::ZKVWeight<Runtime>;
 }
 
 parameter_types! {
-    pub const SessionsPerEra: sp_staking::SessionIndex = 6 * HOURS / EpochDurationInBlocks::get(); // number of sessions in 1 era, 6h
+    pub SessionsPerEra: sp_staking::SessionIndex = 6 * HOURS / EpochDurationInBlocks::get(); // number of sessions in 1 era, 6h
 
     pub const BondingDuration: sp_staking::EraIndex = 1; // number of sessions for which staking
                                                          // remains locked
@@ -639,7 +703,10 @@ impl pallet_staking::Config for Runtime {
 
 impl pallet_authorship::Config for Runtime {
     type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Babe>;
+    #[cfg(not(feature = "relay"))]
     type EventHandler = (Staking, ImOnline);
+    #[cfg(feature = "relay")]
+    type EventHandler = Staking;
 }
 
 impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
@@ -660,6 +727,7 @@ parameter_types! {
     pub const MaxPeerInHeartbeats: u32 = 10_000;
 }
 
+#[cfg(not(feature = "relay"))]
 impl pallet_im_online::Config for Runtime {
     type AuthorityId = ImOnlineId;
     type RuntimeEvent = RuntimeEvent;
@@ -802,6 +870,7 @@ impl pallet_verifiers::Config<pallet_proofofsql_verifier::ProofOfSql<Runtime>> f
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
+#[cfg(not(feature = "relay"))]
 construct_runtime!(
     pub struct Runtime {
         System: frame_system,
@@ -842,6 +911,94 @@ construct_runtime!(
     }
 );
 
+// Create the runtime by composing the FRAME pallets that were previously configured.
+#[cfg(feature = "relay")]
+construct_runtime!(
+    pub struct Runtime {
+        // Basic stuff
+        System: frame_system = 0,
+        Scheduler: pallet_scheduler = 1,
+        Preimage: pallet_preimage = 2,
+
+        Timestamp: pallet_timestamp = 3,
+        Balances: pallet_balances = 4,
+        TransactionPayment: pallet_transaction_payment = 5,
+
+        // Consensus support.
+        // Authorship must be before session in order to note author in the correct session and era
+        // for im-online and staking.
+        Authorship: pallet_authorship = 6,
+        Staking: pallet_staking = 7,
+        Offences: pallet_offences = 8,
+        Historical: pallet_session_historical = 9,
+
+        // Consensus
+        Babe: pallet_babe = 10,
+        Session: pallet_session = 11,
+        Grandpa: pallet_grandpa = 12,
+        AuthorityDiscovery: pallet_authority_discovery = 13,
+
+        // Opengov stuff
+        Treasury: pallet_treasury = 14,
+        ConvictionVoting: pallet_conviction_voting = 15,
+        Referenda: pallet_referenda = 16,
+        Origins: pallet_custom_origins = 17,
+        Whitelist: pallet_whitelist = 18,
+        VoterList: pallet_bags_list::<Instance1> = 19,
+
+        // Bounties modules.
+        Bounties: pallet_bounties = 25,
+        ChildBounties: pallet_child_bounties = 26,
+
+        // Utility modules.
+        Utility: pallet_utility = 30,
+        Multisig: pallet_multisig = 31,
+        Proxy: pallet_proxy = 32,
+
+
+        // Pallets that we know are to remove in a future. Start indices at 50 to leave room.
+        Sudo: pallet_sudo = 50,
+        // Vesting. Usable initially, but removed once all vesting is finished.
+        Vesting: pallet_vesting = 51,
+
+        // Our stuff
+        Poe: pallet_poe = 80,
+
+        // Parachain pallets. Start indices at 100 to leave room.
+        ParachainsOrigin: parachains::parachains_origin = 101,
+        Configuration: parachains::configuration = 102,
+        ParasShared: parachains::parachains_shared = 103,
+        ParaInclusion: parachains::inclusion = 104,
+        ParaInherent: parachains::paras_inherent = 105,
+        ParaScheduler: parachains::parachains_scheduler = 106,
+        Paras: parachains::paras = 107,
+        Initializer: parachains::initializer = 108,
+        Dmp: parachains::parachains_dmp = 109,
+        Hrmp: parachains::hrmp = 110,
+        ParaSessionInfo: parachains::parachains_session_info = 111,
+        ParasDisputes: parachains::disputes = 112,
+        ParasSlashing: parachains::slashing = 113,
+        ParachainsAssignmentProvider: parachains::parachains_assigner_parachains = 114,
+
+        // Parachain chain (removable) pallets. Start indices at 130.
+        ParasSudoWrapper: parachains::paras_sudo_wrapper = 130,
+
+        // XCM Pallet: start indices at 140.
+        XcmPallet: pallet_xcm = 140,
+        MessageQueue: pallet_message_queue = 141,
+
+        // Verifiers. Start indices at 160 to leave room and to the end (255). Don't add
+        // any kind of other pallets after this value.
+        CommonVerifiers: pallet_verifiers::common = 160,
+        SettlementFFlonkPallet: pallet_fflonk_verifier = 161,
+        SettlementZksyncPallet: pallet_zksync_verifier = 162,
+        SettlementGroth16Pallet: pallet_groth16_verifier = 163,
+        SettlementRisc0Pallet: pallet_risc0_verifier = 164,
+        SettlementUltraplonkPallet: pallet_ultraplonk_verifier = 165,
+        SettlementProofOfSqlPallet: pallet_proofofsql_verifier = 166,
+    }
+);
+
 /// The address format for describing accounts.
 pub type Address = sp_runtime::MultiAddress<AccountId, ()>;
 /// Block header type as expected by this runtime.
@@ -863,8 +1020,13 @@ pub type SignedExtra = (
 /// All migrations of the runtime, aside from the ones declared in the pallets.
 ///
 /// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
+#[cfg(feature = "relay")]
+pub type ParachainMigrations = parachains::Migrations;
+#[cfg(not(feature = "relay"))]
+pub type ParachainMigrations = ();
+
 #[allow(unused_parens)]
-type Migrations = migrations::Unreleased;
+type Migrations = (migrations::Unreleased, ParachainMigrations);
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
@@ -885,7 +1047,7 @@ pub type Executive = frame_executive::Executive<
 #[macro_use]
 extern crate frame_benchmarking;
 
-#[cfg(feature = "runtime-benchmarks")]
+#[cfg(all(feature = "runtime-benchmarks", not(feature = "relay")))]
 mod benches {
     define_benchmarks!(
         [frame_benchmarking, BaselineBench::<Runtime>]
@@ -908,6 +1070,41 @@ mod benches {
         [pallet_treasury, Treasury]
         [pallet_bounties, Bounties]
         [pallet_child_bounties, ChildBounties]
+        [pallet_utility, Utility]
+        [pallet_vesting, Vesting]
+        [pallet_referenda, Referenda]
+        [pallet_whitelist, Whitelist]
+        [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
+        [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
+        [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
+        [pallet_risc0_verifier, Risc0VerifierBench::<Runtime>]
+        [pallet_ultraplonk_verifier, UltraplonkVerifierBench::<Runtime>]
+        [pallet_proofofsql_verifier, ProofOfSqlVerifierBench::<Runtime>]
+    );
+}
+
+#[cfg(all(feature = "runtime-benchmarks", feature = "relay"))]
+mod benches {
+    define_benchmarks!(
+        [frame_benchmarking, BaselineBench::<Runtime>]
+        [frame_system, SystemBench::<Runtime>]
+        [pallet_balances, Balances]
+        [pallet_bags_list, VoterList]
+        [pallet_babe, crate::Babe]
+        [pallet_grandpa, crate::Grandpa]
+        [pallet_timestamp, Timestamp]
+        [pallet_sudo, Sudo]
+        [pallet_multisig, Multisig]
+        [pallet_scheduler, Scheduler]
+        [pallet_preimage, Preimage]
+        [pallet_session, SessionBench::<Runtime>]
+        [pallet_staking, Staking]
+        [frame_election_provider_support, ElectionProviderBench::<Runtime>]
+        [pallet_poe, Poe]
+        [pallet_conviction_voting, ConvictionVoting]
+        [pallet_treasury, Treasury]
+        [pallet_bounties, Bounties]
+        [pallet_child_bounties, ChildBounties]
         [pallet_referenda, Referenda]
         [pallet_utility, Utility]
         [pallet_vesting, Vesting]
@@ -919,6 +1116,20 @@ mod benches {
         [pallet_risc0_verifier, Risc0VerifierBench::<Runtime>]
         [pallet_ultraplonk_verifier, UltraplonkVerifierBench::<Runtime>]
         [pallet_proofofsql_verifier, ProofOfSqlVerifierBench::<Runtime>]
+        // parachains
+        [crate::parachains::configuration, Configuration]
+        [crate::parachains::disputes, ParasDisputes]
+        [crate::parachains::slashing, ParasSlashing]
+        [crate::parachains::hrmp, Hrmp]
+        [crate::parachains::inclusion, ParaInclusion]
+        [crate::parachains::initializer, Initializer]
+        [crate::parachains::paras, Paras]
+        [crate::parachains::paras_inherent, ParaInherent]
+        [pallet_message_queue, MessageQueue]
+        // xcm
+        [pallet_xcm, xcm::XcmPalletBench::<Runtime>]
+        [xcm::pallet_xcm_benchmarks_fungible, xcm::XcmPalletBenchFungible::<Runtime>]
+        [xcm::pallet_xcm_benchmarks_generic, xcm::XcmPalletBenchGeneric::<Runtime>]
     );
 }
 
@@ -928,6 +1139,28 @@ pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
         c: PRIMARY_PROBABILITY,
         allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryVRFSlots,
     };
+
+#[cfg(feature = "relay")]
+use polkadot_primitives::{
+    self as primitives, slashing, ApprovalVotingParams, CandidateEvent, CandidateHash,
+    CommittedCandidateReceipt, CoreState, DisputeState, ExecutorParams, GroupRotationInfo,
+    Id as ParaId, InboundDownwardMessage, InboundHrmpMessage, NodeFeatures, OccupiedCoreAssumption,
+    PersistedValidationData, ScrapedOnChainVotes, SessionIndex, SessionInfo, ValidationCode,
+    ValidationCodeHash, ValidatorId, ValidatorIndex, PARACHAIN_KEY_TYPE_ID,
+};
+
+#[cfg(feature = "relay")]
+pub use polkadot_runtime_parachains::runtime_api_impl::{
+    v10 as parachains_runtime_api_impl, vstaging as parachains_staging_runtime_api_impl,
+};
+
+// Used for testing purposes only.
+sp_api::decl_runtime_apis! {
+    pub trait GetLastTimestamp {
+        /// Returns the last timestamp of a runtime.
+        fn get_last_timestamp() -> u64;
+    }
+}
 
 impl_runtime_apis! {
     impl sp_api::Core<Block> for Runtime {
@@ -1044,6 +1277,13 @@ impl_runtime_apis! {
         }
     }
 
+    #[cfg(feature = "relay")]
+    impl authority_discovery_primitives::AuthorityDiscoveryApi<Block> for Runtime {
+        fn authorities() -> Vec<polkadot_primitives::AuthorityDiscoveryId> {
+            polkadot_runtime_parachains::runtime_api_impl::v10::relevant_authority_ids::<Runtime>()
+        }
+    }
+
     impl sp_session::SessionKeys<Block> for Runtime {
         fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
             SessionKeys::generate(seed)
@@ -1150,6 +1390,164 @@ impl_runtime_apis! {
         }
     }
 
+    #[cfg(feature = "relay")]
+    #[api_version(10)]
+    impl primitives::runtime_api::ParachainHost<Block> for Runtime {
+        fn validators() -> Vec<ValidatorId> {
+            parachains_runtime_api_impl::validators::<Runtime>()
+        }
+
+        fn validator_groups() -> (Vec<Vec<ValidatorIndex>>, GroupRotationInfo<BlockNumber>) {
+            parachains_runtime_api_impl::validator_groups::<Runtime>()
+        }
+
+        fn availability_cores() -> Vec<CoreState<Hash, BlockNumber>> {
+            parachains_runtime_api_impl::availability_cores::<Runtime>()
+        }
+
+        fn persisted_validation_data(para_id: ParaId, assumption: OccupiedCoreAssumption)
+            -> Option<PersistedValidationData<Hash, BlockNumber>> {
+            parachains_runtime_api_impl::persisted_validation_data::<Runtime>(para_id, assumption)
+        }
+
+        fn assumed_validation_data(
+            para_id: ParaId,
+            expected_persisted_validation_data_hash: Hash,
+        ) -> Option<(PersistedValidationData<Hash, BlockNumber>, ValidationCodeHash)> {
+            parachains_runtime_api_impl::assumed_validation_data::<Runtime>(
+                para_id,
+                expected_persisted_validation_data_hash,
+            )
+        }
+
+        fn check_validation_outputs(
+            para_id: ParaId,
+            outputs: primitives::CandidateCommitments,
+        ) -> bool {
+            parachains_runtime_api_impl::check_validation_outputs::<Runtime>(para_id, outputs)
+        }
+
+        fn session_index_for_child() -> SessionIndex {
+            parachains_runtime_api_impl::session_index_for_child::<Runtime>()
+        }
+
+        fn validation_code(para_id: ParaId, assumption: OccupiedCoreAssumption)
+            -> Option<ValidationCode> {
+            parachains_runtime_api_impl::validation_code::<Runtime>(para_id, assumption)
+        }
+
+        fn candidate_pending_availability(para_id: ParaId) -> Option<CommittedCandidateReceipt<Hash>> {
+            parachains_runtime_api_impl::candidate_pending_availability::<Runtime>(para_id)
+        }
+
+        fn candidate_events() -> Vec<CandidateEvent<Hash>> {
+            parachains_runtime_api_impl::candidate_events::<Runtime, _>(|ev| {
+                match ev {
+                    RuntimeEvent::ParaInclusion(ev) => {
+                        Some(ev)
+                    }
+                    _ => None,
+                }
+            })
+        }
+
+        fn session_info(index: SessionIndex) -> Option<SessionInfo> {
+            parachains_runtime_api_impl::session_info::<Runtime>(index)
+        }
+
+        fn session_executor_params(session_index: SessionIndex) -> Option<ExecutorParams> {
+            parachains_runtime_api_impl::session_executor_params::<Runtime>(session_index)
+        }
+
+        fn dmq_contents(recipient: ParaId) -> Vec<InboundDownwardMessage<BlockNumber>> {
+            parachains_runtime_api_impl::dmq_contents::<Runtime>(recipient)
+        }
+
+        fn inbound_hrmp_channels_contents(
+            recipient: ParaId
+        ) -> sp_std::collections::btree_map::BTreeMap<ParaId, Vec<InboundHrmpMessage<BlockNumber>>> {
+            parachains_runtime_api_impl::inbound_hrmp_channels_contents::<Runtime>(recipient)
+        }
+
+        fn validation_code_by_hash(hash: ValidationCodeHash) -> Option<ValidationCode> {
+            parachains_runtime_api_impl::validation_code_by_hash::<Runtime>(hash)
+        }
+
+        fn on_chain_votes() -> Option<ScrapedOnChainVotes<Hash>> {
+            parachains_runtime_api_impl::on_chain_votes::<Runtime>()
+        }
+
+        fn submit_pvf_check_statement(
+            stmt: primitives::PvfCheckStatement,
+            signature: primitives::ValidatorSignature
+        ) {
+            parachains_runtime_api_impl::submit_pvf_check_statement::<Runtime>(stmt, signature)
+        }
+
+        fn pvfs_require_precheck() -> Vec<ValidationCodeHash> {
+            parachains_runtime_api_impl::pvfs_require_precheck::<Runtime>()
+        }
+
+        fn validation_code_hash(para_id: ParaId, assumption: OccupiedCoreAssumption)
+            -> Option<ValidationCodeHash>
+        {
+            parachains_runtime_api_impl::validation_code_hash::<Runtime>(para_id, assumption)
+        }
+
+        fn disputes() -> Vec<(SessionIndex, CandidateHash, DisputeState<BlockNumber>)> {
+            parachains_runtime_api_impl::get_session_disputes::<Runtime>()
+        }
+
+        fn unapplied_slashes(
+        ) -> Vec<(SessionIndex, CandidateHash, slashing::PendingSlashes)> {
+            parachains_runtime_api_impl::unapplied_slashes::<Runtime>()
+        }
+
+        fn key_ownership_proof(
+            validator_id: ValidatorId,
+        ) -> Option<slashing::OpaqueKeyOwnershipProof> {
+            use codec::Encode;
+
+            Historical::prove((PARACHAIN_KEY_TYPE_ID, validator_id))
+                .map(|p| p.encode())
+                .map(slashing::OpaqueKeyOwnershipProof::new)
+        }
+
+        fn submit_report_dispute_lost(
+            dispute_proof: slashing::DisputeProof,
+            key_ownership_proof: slashing::OpaqueKeyOwnershipProof,
+        ) -> Option<()> {
+            parachains_runtime_api_impl::submit_unsigned_slashing_report::<Runtime>(
+                dispute_proof,
+                key_ownership_proof,
+            )
+        }
+
+        fn minimum_backing_votes() -> u32 {
+            parachains_runtime_api_impl::minimum_backing_votes::<Runtime>()
+        }
+
+        fn para_backing_state(para_id: ParaId) -> Option<primitives::async_backing::BackingState> {
+            parachains_runtime_api_impl::backing_state::<Runtime>(para_id)
+        }
+
+        fn async_backing_params() -> primitives::AsyncBackingParams {
+            parachains_runtime_api_impl::async_backing_params::<Runtime>()
+        }
+
+        fn disabled_validators() -> Vec<ValidatorIndex> {
+            parachains_runtime_api_impl::disabled_validators::<Runtime>()
+        }
+
+        fn node_features() -> NodeFeatures {
+            parachains_runtime_api_impl::node_features::<Runtime>()
+        }
+
+        fn approval_voting_params() -> ApprovalVotingParams {
+            parachains_runtime_api_impl::approval_voting_params::<Runtime>()
+        }
+    }
+
     #[cfg(feature = "runtime-benchmarks")]
     impl frame_benchmarking::Benchmark<Block> for Runtime {
         fn benchmark_metadata(extra: bool) -> (
@@ -1168,6 +1566,13 @@ impl_runtime_apis! {
             use pallet_risc0_verifier::benchmarking::Pallet as Risc0VerifierBench;
             use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
             use pallet_proofofsql_verifier::benchmarking::Pallet as ProofOfSqlVerifierBench;
+
+            #[cfg(feature = "relay")]
+            pub mod xcm {
+                pub use pallet_xcm::benchmarking::Pallet as XcmPalletBench;
+                pub use pallet_xcm_benchmarks::fungible::Pallet as XcmPalletBenchFungible;
+                pub use pallet_xcm_benchmarks::generic::Pallet as XcmPalletBenchGeneric;
+            }
 
             let mut list = Vec::<BenchmarkList>::new();
 
@@ -1193,11 +1598,167 @@ impl_runtime_apis! {
             use pallet_ultraplonk_verifier::benchmarking::Pallet as UltraplonkVerifierBench;
             use pallet_proofofsql_verifier::benchmarking::Pallet as ProofOfSqlVerifierBench;
 
+            #[cfg(feature = "relay")]
+            pub mod xcm {
+                use super::*;
+                use xcm::v4::{Asset, AssetId, Assets, Location, InteriorLocation, Junction, Junctions::Here, NetworkId, Response};
+                use frame_benchmarking::BenchmarkError;
+
+                pub use pallet_xcm::benchmarking::Pallet as XcmPalletBench;
+                pub use pallet_xcm_benchmarks::fungible::Pallet as XcmPalletBenchFungible;
+                pub use pallet_xcm_benchmarks::generic::Pallet as XcmPalletBenchGeneric;
+
+                parameter_types! {
+                    pub ExistentialDepositAsset: Option<Asset> = Some((
+                        xcm_config::TokenLocation::get(),
+                        ExistentialDeposit::get()
+                    ).into());
+                    pub const TestParaId: ParaId = ParaId::new(xcm_config::TEST_PARA_ID);
+                    pub const RndParaId: ParaId = ParaId::new(123456);
+                }
+
+                impl pallet_xcm::benchmarking::Config for Runtime {
+                    type DeliveryHelper = (
+                        polkadot_runtime_common::xcm_sender::ToParachainDeliveryHelper<
+                            xcm_config::XcmConfig,
+                            ExistentialDepositAsset,
+                            xcm_config::PriceForChildParachainDelivery,
+                            TestParaId,
+                            ()
+                        >,
+                        polkadot_runtime_common::xcm_sender::ToParachainDeliveryHelper<
+                            xcm_config::XcmConfig,
+                            ExistentialDepositAsset,
+                            xcm_config::PriceForChildParachainDelivery,
+                            RndParaId,
+                            ()
+                        >,
+                    );
+
+                    fn get_asset() -> Asset {
+                        Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                        }
+                    }
+                }
+
+                impl pallet_xcm_benchmarks::Config for Runtime {
+                    type XcmConfig = xcm_config::XcmConfig;
+                    type AccountIdConverter = xcm_config::SovereignAccountOf;
+                    type DeliveryHelper = (
+                        polkadot_runtime_common::xcm_sender::ToParachainDeliveryHelper<
+                            xcm_config::XcmConfig,
+                            ExistentialDepositAsset,
+                            xcm_config::PriceForChildParachainDelivery,
+                            TestParaId,
+                            ()
+                        >,
+                    );
+                    fn valid_destination() -> Result<Location, BenchmarkError> {
+                        Ok(xcm_config::TestParaLocation::get())
+                    }
+                    fn worst_case_holding(_depositable_count: u32) -> Assets {
+                        vec![Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ACME),
+                        }].into()
+                    }
+                }
+
+                parameter_types! {
+                    pub TrustedTeleporter: Option<(Location, Asset)> = Some((
+                        xcm_config::TestParaLocation::get(),
+                        Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                        },
+                    ));
+                    pub const TrustedReserve: Option<(Location, Asset)> = None;
+                }
+
+                impl pallet_xcm_benchmarks::fungible::Config for Runtime {
+                    type TransactAsset = Balances;
+                    type CheckedAccount = xcm_config::LocalCheckAccount;
+                    type TrustedTeleporter = TrustedTeleporter;
+                    type TrustedReserve = TrustedReserve;
+
+                    fn get_asset() -> Asset {
+                        Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                        }
+                    }
+                }
+
+                impl pallet_xcm_benchmarks::generic::Config for Runtime {
+                    type TransactAsset = Balances;
+                    type RuntimeCall = RuntimeCall;
+
+                    fn worst_case_response() -> (u64, Response) {
+                        (0u64, Response::Version(Default::default()))
+                    }
+
+                    fn worst_case_asset_exchange() -> Result<(Assets, Assets), BenchmarkError> {
+                        // ZKV doesn't support asset exchanges
+                        Err(BenchmarkError::Skip)
+                    }
+
+                    fn universal_alias() -> Result<(Location, Junction), BenchmarkError> {
+                        // The XCM executor of ZKV doesn't have a configured `UniversalAliases`
+                        Err(BenchmarkError::Skip)
+                    }
+
+                    fn transact_origin_and_runtime_call() -> Result<(Location, RuntimeCall), BenchmarkError> {
+                        Ok((xcm_config::TestParaLocation::get(), frame_system::Call::remark_with_event { remark: vec![] }.into()))
+                    }
+
+                    fn subscribe_origin() -> Result<Location, BenchmarkError> {
+                        Ok(xcm_config::TestParaLocation::get())
+                    }
+
+                    fn claimable_asset() -> Result<(Location, Location, Assets), BenchmarkError> {
+                        // an asset that can be trapped and claimed
+                        let origin = xcm_config::TestParaLocation::get();
+                        let assets: Assets = (AssetId(xcm_config::TokenLocation::get()), ACME).into();
+                        let ticket = Location { parents: 0, interior: Here };
+                        Ok((origin, ticket, assets))
+                    }
+
+                    fn fee_asset() -> Result<Asset, BenchmarkError> {
+                        Ok(Asset {
+                            id: xcm_config::FeeAssetId::get(),
+                            fun: xcm::latest::Fungibility::Fungible(ExistentialDeposit::get()),
+                        })
+                    }
+
+                    fn unlockable_asset() -> Result<(Location, Location, Asset), BenchmarkError> {
+                        // ZKV doesn't support asset locking
+                        Err(BenchmarkError::Skip)
+                    }
+
+                    fn export_message_origin_and_destination(
+                    ) -> Result<(Location, NetworkId, InteriorLocation), BenchmarkError> {
+                        // ZKV doesn't support exporting messages
+                        Err(BenchmarkError::Skip)
+                    }
+
+                    fn alias_origin() -> Result<(Location, Location), BenchmarkError> {
+                        // The XCM executor of ZKV doesn't have a configured `Aliasers`
+                        Err(BenchmarkError::Skip)
+                    }
+                }
+            }
+
+
             impl frame_system_benchmarking::Config for Runtime {}
             impl baseline::Config for Runtime {}
             impl pallet_election_provider_support_benchmarking::Config for Runtime {}
 
             impl pallet_session_benchmarking::Config for Runtime {}
+
+            #[cfg(feature = "relay")]
+            impl parachains::slashing::benchmarking::Config for Runtime {}
 
             use frame_support::traits::WhitelistedStorageKeys;
             let whitelist: Vec<TrackedStorageKey> = AllPalletsWithSystem::whitelisted_storage_keys();
@@ -1224,7 +1785,7 @@ impl_runtime_apis! {
             block: Block,
             state_root_check: bool,
             signature_check: bool,
-            select: frame_try_runtime::TryStateSelect
+            select: frame_try_runtime::TryStateSelect,
         ) -> Weight {
             // NOTE: intentional unwrap: we don't want to propagate the error backwards, and want to
             // have a backtrace here.
@@ -1241,4 +1802,12 @@ impl_runtime_apis! {
             build_config::<RuntimeGenesisConfig>(config)
         }
     }
+
+    // Used only in runtime tests
+    impl crate::GetLastTimestamp<Block> for Runtime {
+        fn get_last_timestamp() -> u64 {
+            Timestamp::now()
+        }
+    }
+
 }
