@@ -15,9 +15,19 @@
 #![cfg(test)]
 
 use frame_support::{derive_impl, weights::Weight};
+use frame_system::RawOrigin;
+use hp_verifiers::{Verifier, VerifyError, WeightInfo};
+use sp_core::{ConstU128, ConstU32};
 use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
-use hp_verifiers::{Verifier, VerifyError, WeightInfo};
+pub type Balance = u128;
+pub type AccountId = u64;
+pub type Origin = RawOrigin<AccountId>;
+
+pub const USER_1: AccountId = 42;
+pub const USER_2: AccountId = 24;
+
+pub static USERS: [(AccountId, Balance); 2] = [(USER_1, 42_000_000_000), (USER_2, 24_000_000_000)];
 
 /// A on_proof_verifier fake pallet
 pub mod on_proof_verified {
@@ -155,6 +165,7 @@ frame_support::construct_runtime!(
     pub enum Test
     {
         System: frame_system,
+        Balances: pallet_balances,
         CommonVerifiersPallet: crate::common,
         FakeVerifierPallet: fake_pallet,
         OnProofVerifiedMock: on_proof_verified,
@@ -163,15 +174,38 @@ frame_support::construct_runtime!(
 
 #[derive_impl(frame_system::config_preludes::SolochainDefaultConfig as frame_system::DefaultConfig)]
 impl frame_system::Config for Test {
-    type Block = frame_system::mocking::MockBlockU32<Test>;
-    type AccountId = u64;
+    type AccountId = AccountId;
     type Lookup = IdentityLookup<Self::AccountId>;
+    type Block = frame_system::mocking::MockBlockU32<Test>;
+    type AccountData = pallet_balances::AccountData<Balance>;
 }
 
 impl crate::Config<FakeVerifier> for Test {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = OnProofVerifiedMock;
+    type RuntimeHoldReason = RuntimeHoldReason;
+    type Hold = Balances;
     type WeightInfo = MockWeightInfo;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
+}
+
+impl pallet_balances::Config for Test {
+    type MaxLocks = ConstU32<50>;
+    type MaxReserves = ();
+    type ReserveIdentifier = [u8; 8];
+    /// The type for recording an account's balance.
+    type Balance = Balance;
+    /// The ubiquitous event type.
+    type RuntimeEvent = RuntimeEvent;
+    type DustRemoval = ();
+    type ExistentialDeposit = ConstU128<1>;
+    type AccountStore = System;
+    type WeightInfo = ();
+    type FreezeIdentifier = ();
+    type MaxFreezes = ();
+    type RuntimeHoldReason = RuntimeHoldReason;
+    type RuntimeFreezeReason = ();
 }
 
 impl crate::common::Config for Test {
@@ -184,11 +218,19 @@ impl on_proof_verified::Config for Test {
 
 /// Build genesis storage according to the mock runtime.
 pub fn test_ext() -> sp_io::TestExternalities {
-    let mut ext = sp_io::TestExternalities::from(
-        frame_system::GenesisConfig::<Test>::default()
-            .build_storage()
-            .unwrap(),
-    );
-    ext.execute_with(|| System::set_block_number(1));
+    let mut t = frame_system::GenesisConfig::<Test>::default()
+        .build_storage()
+        .unwrap();
+    pallet_balances::GenesisConfig::<Test> {
+        balances: USERS.to_vec(),
+    }
+    .assimilate_storage(&mut t)
+    .unwrap();
+
+    let mut ext = sp_io::TestExternalities::from(t);
+
+    ext.execute_with(|| {
+        System::set_block_number(1);
+    });
     ext
 }

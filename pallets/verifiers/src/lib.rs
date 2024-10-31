@@ -82,9 +82,15 @@ pub mod pallet {
     #![cfg(not(doc))]
 
     use codec::Encode;
+    #[cfg(feature = "runtime-benchmarks")]
+    use frame_support::traits::ReservableCurrency;
     use frame_support::{
         dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostInfo, PostDispatchInfo},
         pallet_prelude::*,
+        traits::{
+            fungible::{Inspect, InspectHold, MutateHold},
+            OriginTrait, VariantCount,
+        },
         Identity,
     };
     use frame_system::pallet_prelude::*;
@@ -94,6 +100,11 @@ pub mod pallet {
     use sp_std::boxed::Box;
 
     use hp_verifiers::{Verifier, VerifyError, WeightInfo};
+
+    /// Type alias for AccountId
+    pub type AccountOf<T> = <T as frame_system::Config>::AccountId;
+    /// Type alias for Balance
+    pub type BalanceOf<T> = <<T as Config>::Hold as Inspect<AccountOf<T>>>::Balance;
 
     #[pallet::pallet]
     /// The pallet component.
@@ -126,6 +137,13 @@ pub mod pallet {
         }
     }
 
+    /// A reason for this pallet placing a hold on funds.
+    #[pallet::composite_enum]
+    pub enum HoldReason {
+        /// The funds are held as storage deposit for a verification key registration.
+        VkRegistration,
+    }
+
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
     pub trait Config<I: 'static = ()>: frame_system::Config + crate::common::Config
@@ -137,8 +155,21 @@ pub mod pallet {
             + IsType<<Self as frame_system::Config>::RuntimeEvent>;
         /// Proof verified call back
         type OnProofVerified: OnProofVerified;
+        /// The overarching hold reason.
+        type RuntimeHoldReason: From<HoldReason>
+            + Parameter
+            + Member
+            + MaxEncodedLen
+            + Copy
+            + VariantCount;
+        /// The Hold trait.
+        type Hold: MutateHold<Self::AccountId>
+            + InspectHold<Self::AccountId, Reason = Self::RuntimeHoldReason>;
         /// Weights
         type WeightInfo: hp_verifiers::WeightInfo<I>;
+        /// Currency used in benchmarks.
+        #[cfg(feature = "runtime-benchmarks")]
+        type Currency: ReservableCurrency<AccountOf<Self>>;
     }
 
     fn statement_hash(ctx: &[u8], vk_hash: &H256, pubs: &[u8]) -> H256 {
@@ -268,7 +299,7 @@ pub mod pallet {
         /// On success emit a `VkRegistered` event that contain the hash to use on `submit_proof`.
         #[pallet::call_index(1)]
         #[pallet::weight(T::WeightInfo::register_vk(vk))]
-        pub fn register_vk(_origin: OriginFor<T>, vk: Box<I::Vk>) -> DispatchResultWithPostInfo {
+        pub fn register_vk(origin: OriginFor<T>, vk: Box<I::Vk>) -> DispatchResultWithPostInfo {
             log::trace!("Register vk");
             ensure!(
                 !Self::disabled().unwrap_or_default(),
@@ -277,6 +308,10 @@ pub mod pallet {
             I::validate_vk(&vk).map_err(Error::<T, I>::from)?;
             let hash = I::vk_hash(&vk);
             Vks::<T, I>::insert(hash, vk);
+            if let Some(account_id) = origin.into_signer() {
+                let amount = 1u32.into();
+                T::Hold::hold(&HoldReason::VkRegistration.into(), &account_id, amount)?;
+            }
             Self::deposit_event(Event::VkRegistered { hash });
             Ok(().into())
         }

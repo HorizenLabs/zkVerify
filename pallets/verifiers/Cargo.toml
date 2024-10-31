@@ -30,6 +30,7 @@ hp-verifiers = { workspace = true }
 pallet-verifiers-macros = { workspace = true }
 
 [dev-dependencies]
+pallet-balances = { workspace = true, features = ["std"] }
 rstest = { workspace = true }
 hex-literal = { workspace = true }
 

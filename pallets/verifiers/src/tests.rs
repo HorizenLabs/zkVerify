@@ -51,7 +51,7 @@ mod register_should {
     ) {
         test_ext.execute_with(|| {
             assert_ok!(FakeVerifierPallet::register_vk(
-                RuntimeOrigin::signed(1),
+                RuntimeOrigin::signed(USER_1),
                 Box::new(vk)
             ));
 
@@ -95,6 +95,37 @@ mod register_should {
         assert_eq!(info.pays_fee, Pays::Yes);
         assert_eq!(info.weight, MockWeightInfo::register_vk(&43));
     }
+
+    #[rstest]
+    fn hold_a_deposit(mut test_ext: sp_io::TestExternalities) {
+        test_ext.execute_with(|| {
+            let initial_reserved_balance = Balances::reserved_balance(USER_1);
+            assert_ok!(FakeVerifierPallet::register_vk(
+                RuntimeOrigin::signed(USER_1),
+                Box::new(42)
+            ));
+            assert!(Balances::reserved_balance(USER_1) > initial_reserved_balance);
+        })
+    }
+
+    #[rstest]
+    fn fail_if_insufficient_free_balance(mut test_ext: sp_io::TestExternalities) {
+        test_ext.execute_with(|| {
+            assert!(
+                FakeVerifierPallet::register_vk(RuntimeOrigin::signed(1), Box::new(42)).is_err()
+            );
+        })
+    }
+
+    #[rstest]
+    fn be_allowed_for_root(mut test_ext: sp_io::TestExternalities) {
+        test_ext.execute_with(|| {
+            assert_ok!(FakeVerifierPallet::register_vk(
+                RuntimeOrigin::root(),
+                Box::new(42)
+            ));
+        })
+    }
 }
 
 pub mod submit_proof_should {
@@ -114,7 +145,7 @@ pub mod submit_proof_should {
     #[fixture]
     fn def_vk(mut test_ext: sp_io::TestExternalities) -> sp_io::TestExternalities {
         test_ext.execute_with(|| {
-            FakeVerifierPallet::register_vk(RuntimeOrigin::signed(1), Box::new(REGISTERED_VK))
+            FakeVerifierPallet::register_vk(RuntimeOrigin::signed(USER_1), Box::new(REGISTERED_VK))
                 .unwrap();
             System::reset_events();
         });
@@ -363,7 +394,7 @@ mod disable_should {
                 Box::new(42),
             ));
             assert_ok!(FakeVerifierPallet::register_vk(
-                RuntimeOrigin::signed(1),
+                RuntimeOrigin::signed(USER_1),
                 42.into(),
             ));
         });

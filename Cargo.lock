@@ -7930,6 +7930,7 @@ dependencies = [
  "hp-poe",
  "hp-verifiers",
  "log",
+ "pallet-balances",
  "pallet-verifiers-macros",
  "parity-scale-codec",
  "rstest",
