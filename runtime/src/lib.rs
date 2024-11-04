@@ -50,17 +50,14 @@ use frame_election_provider_support::{
 };
 use frame_support::genesis_builder_helper::{build_state, get_preset};
 
-// A few exports that help ease life for downstream crates.
-use frame_support::traits::EqualPrivilegeOnly;
-
 pub use frame_support::{
     construct_runtime, derive_impl,
     dispatch::DispatchClass,
     parameter_types,
     traits::{
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
-        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, KeyOwnerProofSystem,
-        Randomness, StorageInfo, WithdrawReasons,
+        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly,
+        KeyOwnerProofSystem, Randomness, StorageInfo, Time, WithdrawReasons,
     },
     weights::{
         constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
@@ -1434,6 +1431,7 @@ impl_runtime_apis! {
         }
 
         fn candidate_pending_availability(para_id: ParaId) -> Option<CommittedCandidateReceipt<Hash>> {
+            #[allow(deprecated)]
             parachains_runtime_api_impl::candidate_pending_availability::<Runtime>(para_id)
         }
 

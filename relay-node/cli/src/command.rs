@@ -93,7 +93,7 @@ where
     F: FnOnce(&mut sc_cli::LoggerBuilder, &sc_service::Configuration),
 {
     let runner = cli
-        .create_runner_with_logger_hook::<sc_cli::RunCmd, F>(&cli.run.base, logger_hook)
+        .create_runner_with_logger_hook::<_, _, F>(&cli.run.base, logger_hook)
         .map_err(Error::from)?;
     let chain_spec = &runner.config().chain_spec;
 
@@ -145,6 +145,9 @@ where
                     .overseer_channel_capacity_override,
                 malus_finality_delay: maybe_malus_finality_delay,
                 hwbench,
+                execute_workers_max_num: None,
+                prepare_workers_hard_max_num: None,
+                prepare_workers_soft_max_num: None,
             },
         )
         .map(|full| full.task_manager)?;
@@ -361,7 +364,7 @@ pub fn run() -> Result<()> {
 
                     if cfg!(feature = "runtime-benchmarks") {
                         runner.sync_run(|config| {
-                            cmd.run::<sp_runtime::traits::HashingFor<service::Block>, HLNativeHostFunctions>(config)
+                            cmd.run_with_spec::<sp_runtime::traits::HashingFor<service::Block>, HLNativeHostFunctions>(Some(config.chain_spec))
                                 .map_err(Error::SubstrateCli)
                         })
                     } else {

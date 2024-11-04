@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::polkadot_rpc::{BabeDeps, FullDeps, GrandpaDeps, RpcExtension};
-use consensus_common::SelectChain;
+use sp_consensus::SelectChain;
 use jsonrpsee::RpcModule;
 use polkadot_primitives::{AccountId, Balance, Block, Nonce};
 use sc_client_api::AuxStore;
