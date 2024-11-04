@@ -137,6 +137,7 @@ pub struct ExtendedOverseerGenArgs {
     pub dispute_coordinator_config: DisputeCoordinatorConfig,
     /// Configuration for the chain selection subsystem.
     pub chain_selection_config: ChainSelectionConfig,
+<<<<<<< HEAD
     /// Optional availability recovery fetch chunks threshold. If PoV size size is lower
     /// than the value put in here we always try to recovery availability from backers.
     /// The presence of this parameter here is needed to have different values per chain.
