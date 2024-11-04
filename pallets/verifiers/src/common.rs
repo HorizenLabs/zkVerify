@@ -10,6 +10,7 @@ use sp_core::Get;
 pub trait WeightInfo {
     fn disable_verifier() -> Weight;
     fn on_verify_disabled_verifier() -> Weight;
+    fn unregister_vk() -> Weight;
 }
 
 #[frame_support::pallet]
@@ -38,5 +39,9 @@ impl<T: frame_system::Config> WeightInfo for T {
 
     fn on_verify_disabled_verifier() -> Weight {
         T::DbWeight::get().reads(1_u64)
+    }
+
+    fn unregister_vk() -> Weight {
+        T::DbWeight::get().writes(1_u64)
     }
 }

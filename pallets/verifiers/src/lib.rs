@@ -87,10 +87,7 @@ pub mod pallet {
     use frame_support::{
         dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostInfo, PostDispatchInfo},
         pallet_prelude::*,
-        traits::{
-            fungible::{Inspect, InspectHold, MutateHold},
-            OriginTrait, VariantCount,
-        },
+        traits::{Consideration, Footprint},
         Identity,
     };
     use frame_system::pallet_prelude::*;
@@ -103,8 +100,6 @@ pub mod pallet {
 
     /// Type alias for AccountId
     pub type AccountOf<T> = <T as frame_system::Config>::AccountId;
-    /// Type alias for Balance
-    pub type BalanceOf<T> = <<T as Config>::Hold as Inspect<AccountOf<T>>>::Balance;
 
     #[pallet::pallet]
     /// The pallet component.
@@ -144,6 +139,19 @@ pub mod pallet {
         VkRegistration,
     }
 
+    /// TODO
+    pub struct VkDepositReason<R, I>(PhantomData<fn() -> (R, I)>);
+
+    impl<R, I: 'static> Get<R> for VkDepositReason<R, I>
+    where
+        R: From<HoldReason>,
+        I: Verifier,
+    {
+        fn get() -> R {
+            HoldReason::VkRegistration.into()
+        }
+    }
+
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
     pub trait Config<I: 'static = ()>: frame_system::Config + crate::common::Config
@@ -155,21 +163,38 @@ pub mod pallet {
             + IsType<<Self as frame_system::Config>::RuntimeEvent>;
         /// Proof verified call back
         type OnProofVerified: OnProofVerified;
-        /// The overarching hold reason.
-        type RuntimeHoldReason: From<HoldReason>
-            + Parameter
-            + Member
-            + MaxEncodedLen
-            + Copy
-            + VariantCount;
-        /// The Hold trait.
-        type Hold: MutateHold<Self::AccountId>
-            + InspectHold<Self::AccountId, Reason = Self::RuntimeHoldReason>;
+        /// A means of providing some cost while data is stored on-chain.
+        type Consideration: Consideration<Self::AccountId>;
         /// Weights
         type WeightInfo: hp_verifiers::WeightInfo<I>;
         /// Currency used in benchmarks.
         #[cfg(feature = "runtime-benchmarks")]
         type Currency: ReservableCurrency<AccountOf<Self>>;
+    }
+
+    #[derive(Debug, Clone, PartialEq, Encode, Decode, TypeInfo, MaxEncodedLen)]
+    struct Deposit<A, C> {
+        who: A,
+        consideration: C,
+    }
+
+    impl<A, C> Deposit<A, C> {
+        fn new(who: A, consideration: C) -> Self {
+            Self { who, consideration }
+        }
+    }
+
+    ///TODO
+    #[derive(Debug, Clone, PartialEq, Encode, Decode, TypeInfo, MaxEncodedLen)]
+    pub struct VkEntry<V, A, C> {
+        vk: V,
+        deposit: Deposit<A, C>,
+    }
+
+    impl<V, A, C> VkEntry<V, A, C> {
+        fn new(vk: V, deposit: Deposit<A, C>) -> Self {
+            Self { vk, deposit }
+        }
     }
 
     fn statement_hash(ctx: &[u8], vk_hash: &H256, pubs: &[u8]) -> H256 {
@@ -203,6 +228,11 @@ pub mod pallet {
             /// Verification key hash
             hash: H256,
         },
+        /// The Vk has been unregistered.
+        VkUnregistered {
+            /// Verification key hash
+            hash: H256,
+        },
     }
 
     // Errors inform users that something went wrong.
@@ -220,6 +250,8 @@ pub mod pallet {
         VerificationKeyNotFound,
         /// Current Verifier Pallet is disabled.
         DisabledVerifier,
+        /// Verification key has already been registered.
+        VerificationKeyAlreadyRegistered,
     }
 
     impl<T, I> From<VerifyError> for Error<T, I> {
@@ -245,7 +277,11 @@ pub mod pallet {
     pub type Vks<T: Config<I>, I: 'static = ()>
     where
         I: Verifier,
-    = StorageMap<Hasher = Identity, Key = H256, Value = I::Vk>;
+    = StorageMap<
+        Hasher = Identity,
+        Key = H256,
+        Value = VkEntry<I::Vk, T::AccountId, T::Consideration>,
+    >;
 
     // Dispatchable functions allows users to interact with the pallet and invoke state changes.
     // These functions materialize as "extrinsics", which are often compared to transactions.
@@ -279,9 +315,9 @@ pub mod pallet {
                 on_disable_error::<T, I>()
             );
             let vk = match &vk_or_hash {
-                VkOrHash::Hash(h) => {
-                    Vks::<T, I>::get(h).ok_or(Error::<T, I>::VerificationKeyNotFound)?
-                }
+                VkOrHash::Hash(h) => Vks::<T, I>::get(h)
+                    .map(|vk_entry| vk_entry.vk)
+                    .ok_or(Error::<T, I>::VerificationKeyNotFound)?,
                 VkOrHash::Vk(vk) => {
                     I::validate_vk(vk).map_err(Error::<T, I>::from)?;
                     vk.as_ref().clone()
@@ -297,6 +333,7 @@ pub mod pallet {
 
         /// Register a new verification key.
         /// On success emit a `VkRegistered` event that contain the hash to use on `submit_proof`.
+        /// Lock some funds, which can be unlocked by calling `unregister_vk`.
         #[pallet::call_index(1)]
         #[pallet::weight(T::WeightInfo::register_vk(vk))]
         pub fn register_vk(origin: OriginFor<T>, vk: Box<I::Vk>) -> DispatchResultWithPostInfo {
@@ -305,13 +342,17 @@ pub mod pallet {
                 !Self::disabled().unwrap_or_default(),
                 on_disable_error::<T, I>()
             );
+            let account_id = ensure_signed(origin)?;
             I::validate_vk(&vk).map_err(Error::<T, I>::from)?;
             let hash = I::vk_hash(&vk);
-            Vks::<T, I>::insert(hash, vk);
-            if let Some(account_id) = origin.into_signer() {
-                let amount = 1u32.into();
-                T::Hold::hold(&HoldReason::VkRegistration.into(), &account_id, amount)?;
-            }
+            ensure!(
+                !Vks::<T, I>::contains_key(hash),
+                Error::<T, I>::VerificationKeyAlreadyRegistered
+            );
+            let footprint = Footprint::from_encodable(&vk);
+            let consideration = T::Consideration::new(&account_id, footprint)?;
+            let deposit = Deposit::new(account_id, consideration);
+            Vks::<T, I>::insert(hash, VkEntry::new(*vk, deposit));
             Self::deposit_event(Event::VkRegistered { hash });
             Ok(().into())
         }
@@ -326,6 +367,24 @@ pub mod pallet {
             ensure_root(origin)?;
 
             Disabled::<T, I>::put(disabled);
+            Ok(())
+        }
+
+        /// Unregister a previously registered verification key.
+        /// Should be called by the same account used for registering the verification key.
+        /// Unlock the funds which were locked when registering the verification key.
+        #[pallet::call_index(3)]
+        #[pallet::weight(<T::CommonWeightInfo as crate::common::WeightInfo>::unregister_vk())]
+        pub fn unregister_vk(origin: OriginFor<T>, vk_hash: H256) -> DispatchResult {
+            log::trace!("Unregister vk");
+            let account_id = ensure_signed(origin)?;
+            let VkEntry {
+                deposit: Deposit { who, consideration },
+                ..
+            } = Vks::<T, I>::take(vk_hash).ok_or(Error::<T, I>::VerificationKeyNotFound)?;
+            ensure!(account_id == who, DispatchError::BadOrigin);
+            consideration.drop(&who)?;
+            Self::deposit_event(Event::VkUnregistered { hash: vk_hash });
             Ok(())
         }
     }
@@ -347,9 +406,7 @@ pub mod pallet {
 
         use crate::{
             mock::FakeVerifier,
-            tests::submit_proof_should::{
-                REGISTERED_VK, REGISTERED_VK_HASH, VALID_HASH_REGISTERED_VK,
-            },
+            tests::registered_vk::{REGISTERED_VK, REGISTERED_VK_HASH, VALID_HASH_REGISTERED_VK},
         };
 
         use super::*;

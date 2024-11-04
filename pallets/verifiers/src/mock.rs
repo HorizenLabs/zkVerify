@@ -14,20 +14,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 #![cfg(test)]
 
-use frame_support::{derive_impl, weights::Weight};
+use crate::VkDepositReason;
+use frame_support::{
+    derive_impl,
+    traits::{fungible::HoldConsideration, LinearStoragePrice},
+    weights::Weight,
+};
 use frame_system::RawOrigin;
 use hp_verifiers::{Verifier, VerifyError, WeightInfo};
 use sp_core::{ConstU128, ConstU32};
-use sp_runtime::{traits::IdentityLookup, BuildStorage};
+use sp_runtime::traits::IdentityLookup;
+
+pub use fake_pallet::FakeVerifier;
 
 pub type Balance = u128;
 pub type AccountId = u64;
 pub type Origin = RawOrigin<AccountId>;
-
-pub const USER_1: AccountId = 42;
-pub const USER_2: AccountId = 24;
-
-pub static USERS: [(AccountId, Balance); 2] = [(USER_1, 42_000_000_000), (USER_2, 24_000_000_000)];
 
 /// A on_proof_verifier fake pallet
 pub mod on_proof_verified {
@@ -133,7 +135,6 @@ pub mod fake_pallet {
     }
 }
 
-pub use fake_pallet::FakeVerifier;
 pub struct MockWeightInfo;
 impl WeightInfo<FakeVerifier> for MockWeightInfo {
     fn submit_proof(_proof: &u64, _pubs: &u64) -> Weight {
@@ -158,6 +159,10 @@ impl crate::common::WeightInfo for MockCommonWeightInfo {
     fn on_verify_disabled_verifier() -> Weight {
         Weight::from_parts(1003, 1004)
     }
+
+    fn unregister_vk() -> Weight {
+        Weight::from_parts(1005, 1006)
+    }
 }
 
 // Configure a mock runtime to test the pallet.
@@ -180,11 +185,18 @@ impl frame_system::Config for Test {
     type AccountData = pallet_balances::AccountData<Balance>;
 }
 
+pub type BaseDeposit = ConstU128<1>;
+pub type PerByteDeposit = ConstU128<2>;
+
 impl crate::Config<FakeVerifier> for Test {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = OnProofVerifiedMock;
-    type RuntimeHoldReason = RuntimeHoldReason;
-    type Hold = Balances;
+    type Consideration = HoldConsideration<
+        AccountId,
+        Balances,
+        VkDepositReason<RuntimeHoldReason, FakeVerifier>,
+        LinearStoragePrice<BaseDeposit, PerByteDeposit, Balance>,
+    >;
     type WeightInfo = MockWeightInfo;
     #[cfg(feature = "runtime-benchmarks")]
     type Currency = Balances;
@@ -214,23 +226,4 @@ impl crate::common::Config for Test {
 
 impl on_proof_verified::Config for Test {
     type RuntimeEvent = RuntimeEvent;
-}
-
-/// Build genesis storage according to the mock runtime.
-pub fn test_ext() -> sp_io::TestExternalities {
-    let mut t = frame_system::GenesisConfig::<Test>::default()
-        .build_storage()
-        .unwrap();
-    pallet_balances::GenesisConfig::<Test> {
-        balances: USERS.to_vec(),
-    }
-    .assimilate_storage(&mut t)
-    .unwrap();
-
-    let mut ext = sp_io::TestExternalities::from(t);
-
-    ext.execute_with(|| {
-        System::set_block_number(1);
-    });
-    ext
 }
