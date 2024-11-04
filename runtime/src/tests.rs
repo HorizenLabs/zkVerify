@@ -1300,4 +1300,3 @@ mod pallets_interact {
         }
     }
 }
->>>>>>> c08a1d1 (feat: Update node + tests)
