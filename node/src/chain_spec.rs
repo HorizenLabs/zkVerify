@@ -21,7 +21,7 @@ use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use zkv_runtime::currency::{Balance, ACME};
-use zkv_runtime::{currency, AccountId, SessionKeys, Signature, WASM_BINARY};
+use zkv_runtime::{currency, AccountId, SessionKeysBase, Signature, WASM_BINARY};
 
 // The connection strings for bootnodes
 const BOOTNODE_1_DNS: &str = "bootnode-tn-1.zkverify.io";
@@ -64,8 +64,8 @@ fn from_ss58check<T: sp_core::crypto::Ss58Codec>(
     <T as sp_core::crypto::Ss58Codec>::from_ss58check(key)
 }
 
-fn session_keys(babe: BabeId, grandpa: GrandpaId, im_online: ImOnlineId) -> SessionKeys {
-    SessionKeys {
+fn session_keys(babe: BabeId, grandpa: GrandpaId, im_online: ImOnlineId) -> SessionKeysBase {
+    SessionKeysBase {
         babe,
         grandpa,
         im_online,

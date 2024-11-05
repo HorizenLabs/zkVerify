@@ -29,10 +29,7 @@ use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use telemetry::TelemetryEndpoints;
 use zkv_runtime::currency::{Balance, ACME};
-use zkv_runtime::{
-    currency, AccountId, SessionKeysRelay as SessionKeys, Signature,
-    WASM_BINARY,
-};
+use zkv_runtime::{currency, AccountId, SessionKeysRelay as SessionKeys, Signature, WASM_BINARY};
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Default, Clone, Serialize, Deserialize, ChainSpecExtension)]

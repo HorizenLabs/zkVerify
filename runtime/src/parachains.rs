@@ -26,7 +26,9 @@ use polkadot_primitives::ValidatorId;
 use xcm::opaque::lts::Junction;
 
 pub use polkadot_runtime_parachains::{
-    assigner_parachains as parachains_assigner_parachains, configuration, configuration::ActiveConfigHrmpChannelSizeAndCapacityRatio, disputes,
+    assigner_parachains as parachains_assigner_parachains, configuration,
+    configuration::ActiveConfigHrmpChannelSizeAndCapacityRatio,
+    disputes,
     disputes::slashing,
     dmp as parachains_dmp, hrmp, inclusion, initializer, origin as parachains_origin, paras,
     paras_inherent, reward_points as parachains_reward_points,
@@ -48,10 +50,10 @@ use super::{
 };
 use sp_runtime::transaction_validity::TransactionPriority;
 
+use crate::XcmPallet;
 use inclusion::AggregateMessageOrigin;
 use sp_core::parameter_types;
 use sp_runtime::{FixedU128, Percent};
-use crate::XcmPallet;
 
 parameter_types! {
     pub const OnDemandTrafficDefaultValue: FixedU128 = FixedU128::from_u32(1);
