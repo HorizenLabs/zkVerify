@@ -18,9 +18,8 @@ use std::{collections::btree_map::BTreeMap, pin::Pin, sync::Arc, time::Duration}
 
 use async_trait::async_trait;
 use cumulus_primitives_core::{
-};
     relay_chain::{
-        runtime_api::ParachainHost, Block as PBlock, BlockId, CommittedCandidateReceipt,
+        runtime_api::ParachainHost, Block as PBlock, BlockId, BlockNumber, CommittedCandidateReceipt, CoreState,
         Hash as PHash, Header as PHeader, InboundHrmpMessage, OccupiedCoreAssumption, SessionIndex,
         ValidationCodeHash, ValidatorId,
     },
@@ -28,9 +27,6 @@ use cumulus_primitives_core::{
 };
 use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface, RelayChainResult};
 use futures::{FutureExt, Stream, StreamExt};
-use polkadot_service::{
-	CollatorPair, Configuration, FullBackend, FullClient, Handle, NewFull, TaskManager,
-};
 use sc_cli::{RuntimeVersion, SubstrateCli};
 use sc_client_api::{
     blockchain::BlockStatus, Backend, BlockchainEvents, HeaderBackend, ImportNotifications,
@@ -327,17 +323,9 @@ fn build_polkadot_full_node(
             service::IsParachainNode::Collator(Box::new(collator_key.clone())),
             Some(collator_key),
         )
-        } else {
-            (service::IsParachainNode::FullNode, None)
-        };
-        overseer_message_channel_capacity_override: None,
-        malus_finality_delay: None,
-        hwbench,
-        execute_workers_max_num: None,
-        prepare_workers_hard_max_num: None,
-        prepare_workers_soft_max_num: None,
-        },
-    )?;
+    } else {
+        (service::IsParachainNode::FullNode, None)
+    };
 
     let relay_chain_full_node = service::build_full(
         config,
