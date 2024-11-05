@@ -244,12 +244,7 @@ impl<Block: BlockT, ExecutorDispatch, Backend, G: GenesisInit>
 }
 
 impl<Block: BlockT, D, Backend, G: GenesisInit>
-    TestClientBuilder<
-        Block,
-        client::LocalCallExecutor<Block, Backend, WasmExecutor<D>>,
-        Backend,
-        G,
-    >
+    TestClientBuilder<Block, client::LocalCallExecutor<Block, Backend, WasmExecutor<D>>, Backend, G>
 where
     D: sc_executor::NativeExecutionDispatch,
 {
@@ -272,9 +267,9 @@ where
         D: sc_executor::HostFunctions,
         Backend: sc_client_api::backend::Backend<Block> + 'static,
     {
-        let executor = executor.into().unwrap_or_else(||
-            WasmExecutor::<D>::builder().build()
-        );
+        let executor = executor
+            .into()
+            .unwrap_or_else(|| WasmExecutor::<D>::builder().build());
         let executor = LocalCallExecutor::new(
             self.backend.clone(),
             executor.clone(),
