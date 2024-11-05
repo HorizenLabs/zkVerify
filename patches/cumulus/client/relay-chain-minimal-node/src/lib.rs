@@ -78,7 +78,7 @@ fn build_authority_discovery_service<Block: BlockT>(
             ..Default::default()
         },
         client,
-        network,
+        Arc::new(network.clone()),
         Box::pin(dht_event_stream),
         authority_discovery_role,
         prometheus_registry,
@@ -93,6 +93,8 @@ fn build_authority_discovery_service<Block: BlockT>(
 }
 
 async fn build_interface(
+	polkadot_config: Configuration,
+	task_manager: &mut TaskManager,
 	client: RelayChainRpcClient,
 ) -> RelayChainResult<(Arc<(dyn RelayChainInterface + 'static)>, Option<CollatorPair>)> {
 	let collator_pair = CollatorPair::generate().0;
@@ -115,9 +117,6 @@ async fn build_interface(
 	task_manager.add_child(collator_node.task_manager);
 	Ok((
 		Arc::new(RelayChainRpcInterface::new(client, collator_node.overseer_handle)),
-            client,
-            collator_node.overseer_handle,
-        )),
         Some(collator_pair),
     ))
 }
@@ -213,7 +212,8 @@ async fn new_minimal_relay_chain<Block: BlockT, Network: NetworkBackend<RelayBlo
     } else {
         IsAuthority::No
     };
-    let notification_services = peer_sets_info(is_authority, &peerset_protocol_names)
+    let notification_services = peer_sets_info::<_, Network>(is_authority, &peerset_protocol_names, metrics.clone(), Arc::clone(&peer_store_handle)
+        )
         .into_iter()
         .map(|(config, (peerset, service))| {
             net_config.add_notification_protocol(config);
@@ -235,14 +235,15 @@ async fn new_minimal_relay_chain<Block: BlockT, Network: NetworkBackend<RelayBlo
         task_manager.spawn_handle(),
         genesis_hash,
         best_header,
+        metrics,
     )
     .map_err(|e| RelayChainError::Application(Box::new(e) as Box<_>))?;
 
-    let authority_discovery_service = build_authority_discovery_service(
+    let authority_discovery_service = build_authority_discovery_service::<Block>(
         &task_manager,
         relay_chain_rpc_client.clone(),
         &config,
-        network.clone(),
+        Arc::new(network.clone()),
         prometheus_registry.cloned(),
     );
 

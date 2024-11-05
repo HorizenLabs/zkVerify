@@ -275,7 +275,7 @@ impl RelayChainInterface for RelayChainInProcessInterface {
     ) -> RelayChainResult<Vec<CoreState<PHash, BlockNumber>>> {
         Ok(self.full_client.runtime_api().availability_cores(relay_parent)?)
     }
-    
+
     async fn candidates_pending_availability(
         &self,
         hash: PHash,
@@ -345,6 +345,9 @@ fn build_polkadot_full_node(
             overseer_message_channel_capacity_override: None,
             malus_finality_delay: None,
             hwbench,
+            execute_workers_max_num: None,
+            prepare_workers_hard_max_num: None,
+            prepare_workers_soft_max_num: None,
         },
     )?;
 

@@ -84,7 +84,7 @@ where
     /// Underlying network service implementation.
     pub network_service: Arc<dyn sc_network::service::traits::NetworkService>,
     /// Underlying syncing service implementation.
-	pub sync_service: Arc<dyn sp_consensus::SyncOracle + Send + Sync>,
+    pub sync_service: Arc<dyn sp_consensus::SyncOracle + Send + Sync>,
     /// Underlying authority discovery service.
     pub authority_discovery_service: AuthorityDiscoveryService,
     /// Collations request receiver for network protocol v1.
@@ -137,9 +137,9 @@ pub struct ExtendedOverseerGenArgs {
     pub dispute_coordinator_config: DisputeCoordinatorConfig,
     /// Configuration for the chain selection subsystem.
     pub chain_selection_config: ChainSelectionConfig,
-	/// Optional availability recovery fetch chunks threshold. If PoV size size is lower
-	/// than the value put in here we always try to recovery availability from backers.
-	/// The presence of this parameter here is needed to have different values per chain.
+    /// Optional availability recovery fetch chunks threshold. If PoV size size is lower
+    /// than the value put in here we always try to recovery availability from backers.
+    /// The presence of this parameter here is needed to have different values per chain.
     pub fetch_chunks_threshold: Option<usize>,
 }
 
@@ -231,7 +231,7 @@ where
             network_service.clone(),
             authority_discovery_service.clone(),
             network_bridge_metrics.clone(),
-			req_protocol_names.clone(),
+            req_protocol_names.clone(),
             peerset_protocol_names.clone(),
             notification_sinks.clone(),
         ))
@@ -420,7 +420,7 @@ pub fn collator_overseer_builder<Spawner, RuntimeClient>(
         DummySubsystem,
         DummySubsystem,
         DummySubsystem,
-		DummySubsystem,
+        DummySubsystem,
     >,
     Error,
 >
@@ -441,7 +441,7 @@ where
             network_service.clone(),
             authority_discovery_service.clone(),
             network_bridge_metrics.clone(),
-			req_protocol_names.clone(),
+            req_protocol_names.clone(),
             peerset_protocol_names.clone(),
             notification_sinks.clone(),
         ))
