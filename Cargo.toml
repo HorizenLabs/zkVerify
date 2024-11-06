@@ -146,6 +146,14 @@ pallet-preimage = { default-features = false, version = "37.0.0" }
 pallet-referenda = { default-features = false, version = "37.0.0" }
 pallet-utility = { default-features = false, version = "37.0.0" }
 pallet-vesting = { default-features = false, version = "37.0.0" }
+anyhow = { default-features = false, version = "1.0.71" }
+ismp = { default-features = false, version = "0.2.1" }
+ismp-grandpa = { default-features = false, version = "1.15.0" }
+pallet-hyperbridge = { default-features = false, version = "1.15.0" }
+pallet-ismp-rpc = { default-features = false, version = "1.15.0" }
+pallet-ismp = { default-features = false, version = "1.15.0" }
+pallet-ismp-runtime-api = { default-features = false, version = "1.15.0" }
+sp-mmr-primitives = { default-features = false, version = "34.1.0" }
 pallet-whitelist = { default-features = false, version = "36.0.0" }
 pallet-conviction-voting = { default-features = false, version = "37.0.0" }
 pallet-treasury = { default-features = false, version = "36.0.0" }
