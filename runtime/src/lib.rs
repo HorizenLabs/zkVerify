@@ -999,10 +999,7 @@ impl pallet_ismp::Config for Runtime {
     type Balance = Balance;
     type Router = ModuleRouter;
     type Coprocessor = Coprocessor;
-    type ConsensusClients = (
-        // Add the grandpa or beefy consensus client here
-        ismp_grandpa::consensus::GrandpaConsensusClient<Runtime>,
-    );
+    type ConsensusClients = (ismp_grandpa::consensus::GrandpaConsensusClient<Runtime>,);
     type Mmr = NoOpMmrTree<Runtime>;
     type WeightProvider = ();
 }
@@ -1036,17 +1033,14 @@ pub const RECEIVING_MESSAGE_MODULE_ID: &'static [u8] = b"RECE-FEE";
 
 impl IsmpModule for ReceivingMessageModule {
     fn on_accept(&self, _request: PostRequest) -> Result<(), Error> {
-        // do something useful with the request
         Ok(())
     }
 
     fn on_response(&self, _response: Response) -> Result<(), Error> {
-        // do something useful with the response
         Ok(())
     }
 
     fn on_timeout(&self, _request: Timeout) -> Result<(), Error> {
-        // revert any state changes that were made prior to dispatching the request
         Ok(())
     }
 }
