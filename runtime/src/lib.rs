@@ -985,38 +985,25 @@ impl pallet_verifiers::Config<pallet_proofofsql_verifier::ProofOfSql<Runtime>> f
 }
 
 parameter_types! {
-    // The hyperbridge parachain on Polkadot
     pub const Coprocessor: Option<StateMachine> = Some(StateMachine::Kusama(4009));
-    // The host state machine of this pallet, this must be unique to all every solochain
     pub const HostStateMachine: StateMachine = StateMachine::Substrate(*b"zkv_");
 }
 
 impl pallet_ismp::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    // Permissioned origin who can create or update consensus clients
     type AdminOrigin = EnsureRoot<AccountId>;
-    // The state machine identifier for this state machine
     type HostStateMachine = HostStateMachine;
-    // The pallet_timestamp pallet
     type TimestampProvider = Timestamp;
-    // The currency implementation that is offered to relayers
+    // TODO: Update to actual currency once stable coin on relayer is established
     type Currency = NullCurrency;
-    // The balance type for the currency implementation
     type Balance = Balance;
-    // Router implementation for routing requests/responses to their respective modules.
-    // Direct messages and requests to their appropriate modules within the blockchain's runtime
     type Router = ModuleRouter;
-    // Optional coprocessor for incoming requests/responses
     type Coprocessor = Coprocessor;
-    // Supported consensus clients
     type ConsensusClients = (
         // Add the grandpa or beefy consensus client here
         ismp_grandpa::consensus::GrandpaConsensusClient<Runtime>,
     );
-    // Optional merkle mountain range overlay tree, for cheaper outgoing request proofs.
-    // You most likely don't need it, just use the `NoOpMmrTree`
     type Mmr = NoOpMmrTree<Runtime>;
-    // Weight provider for local modules
     type WeightProvider = ();
 }
 
@@ -1042,30 +1029,22 @@ impl IsmpRouter for ModuleRouter {
     }
 }
 
-/// Some custom module capable of processing some incoming/request or response.
-/// This could also be a pallet itself.
 #[derive(Default)]
 struct ReceivingMessageModule;
 
 pub const RECEIVING_MESSAGE_MODULE_ID: &'static [u8] = b"RECE-FEE";
 
 impl IsmpModule for ReceivingMessageModule {
-    /// Called by the ISMP hanlder, to notify module of a new POST request
-    /// the module may choose to respond immediately, or in a later block
     fn on_accept(&self, _request: PostRequest) -> Result<(), Error> {
         // do something useful with the request
         Ok(())
     }
 
-    /// Called by the ISMP hanlder, to notify module of a response to a previously
-    /// sent out request
     fn on_response(&self, _response: Response) -> Result<(), Error> {
         // do something useful with the response
         Ok(())
     }
 
-    /// Called by the ISMP hanlder, to notify module of requests that were previously
-    /// sent but have now timed-out
     fn on_timeout(&self, _request: Timeout) -> Result<(), Error> {
         // revert any state changes that were made prior to dispatching the request
         Ok(())
@@ -1561,44 +1540,36 @@ impl_runtime_apis! {
             pallet_ismp::Pallet::<Runtime>::challenge_period(id)
         }
 
-        /// Generate a proof for the provided leaf indices
         fn generate_proof(
             keys: ProofKeys
         ) -> Result<(Vec<Leaf>, Proof<<Block as BlockT>::Hash>), sp_mmr_primitives::Error> {
             pallet_ismp::Pallet::<Runtime>::generate_proof(keys)
         }
 
-        /// Fetch all ISMP events and their extrinsic metadata, should only be called from runtime-api.
         fn block_events() -> Vec<ismp::events::Event> {
             pallet_ismp::Pallet::<Runtime>::block_events()
         }
 
-        /// Fetch all ISMP events and their extrinsic metadata
         fn block_events_with_metadata() -> Vec<(ismp::events::Event, Option<u32>)> {
             pallet_ismp::Pallet::<Runtime>::block_events_with_metadata()
         }
 
-        /// Return the scale encoded consensus state
         fn consensus_state(id: ConsensusClientId) -> Option<Vec<u8>> {
             pallet_ismp::Pallet::<Runtime>::consensus_states(id)
         }
 
-        /// Return the timestamp this client was last updated in seconds
         fn state_machine_update_time(height: StateMachineHeight) -> Option<u64> {
             pallet_ismp::Pallet::<Runtime>::state_machine_update_time(height)
         }
 
-        /// Return the latest height of the state machine
         fn latest_state_machine_height(id: StateMachineId) -> Option<u64> {
             pallet_ismp::Pallet::<Runtime>::latest_state_machine_height(id)
         }
 
-        /// Get actual requests
         fn requests(commitments: Vec<H256>) -> Vec<Request> {
             pallet_ismp::Pallet::<Runtime>::requests(commitments)
         }
 
-        /// Get actual requests
         fn responses(commitments: Vec<H256>) -> Vec<Response> {
             pallet_ismp::Pallet::<Runtime>::responses(commitments)
         }
