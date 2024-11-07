@@ -75,6 +75,7 @@ use ismp::host::StateMachine;
 use ismp::module::IsmpModule;
 use ismp::router::{IsmpRouter, PostRequest, Request, Response, Timeout};
 use ismp::Error;
+use null_currency::NullCurrency;
 pub use pallet_balances::Call as BalancesCall;
 use pallet_hyperbridge::PALLET_HYPERBRIDGE_ID;
 use pallet_ismp::mmr::{Leaf, Proof, ProofKeys};
@@ -84,7 +85,6 @@ pub use pallet_timestamp::Call as TimestampCall;
 use static_assertions::const_assert;
 use weights::block_weights::BlockExecutionWeight;
 use weights::extrinsic_weights::ExtrinsicBaseWeight;
-use null_currency::NullCurrency;
 
 use pallet_transaction_payment::{ConstFeeMultiplier, FungibleAdapter, Multiplier};
 #[cfg(any(feature = "std", test))]
@@ -1033,11 +1033,11 @@ impl pallet_hyperbridge::Config for Runtime {
 #[derive(Default)]
 pub struct ModuleRouter;
 impl IsmpRouter for ModuleRouter {
-    fn module_for_id(&self, id: Vec<u8>) -> Result<Box<dyn IsmpModule>, anyhow::Error> {
+    fn module_for_id(&self, id: Vec<u8>) -> Result<Box<dyn IsmpModule>, Error> {
         match id.as_slice() {
             RECEIVING_MESSAGE_MODULE_ID => Ok(Box::new(ReceivingMessageModule::default())),
             PALLET_HYPERBRIDGE_ID => Ok(Box::new(pallet_hyperbridge::Pallet::<Runtime>::default())),
-            _ => Err(anyhow::Error::from(Error::ModuleNotFound(id))),
+            _ => Err(Error::ModuleNotFound(id)),
         }
     }
 }
@@ -1052,21 +1052,21 @@ pub const RECEIVING_MESSAGE_MODULE_ID: &'static [u8] = b"RECE-FEE";
 impl IsmpModule for ReceivingMessageModule {
     /// Called by the ISMP hanlder, to notify module of a new POST request
     /// the module may choose to respond immediately, or in a later block
-    fn on_accept(&self, _request: PostRequest) -> Result<(), anyhow::Error> {
+    fn on_accept(&self, _request: PostRequest) -> Result<(), Error> {
         // do something useful with the request
         Ok(())
     }
 
     /// Called by the ISMP hanlder, to notify module of a response to a previously
     /// sent out request
-    fn on_response(&self, _response: Response) -> Result<(), anyhow::Error> {
+    fn on_response(&self, _response: Response) -> Result<(), Error> {
         // do something useful with the response
         Ok(())
     }
 
     /// Called by the ISMP hanlder, to notify module of requests that were previously
     /// sent but have now timed-out
-    fn on_timeout(&self, _request: Timeout) -> Result<(), anyhow::Error> {
+    fn on_timeout(&self, _request: Timeout) -> Result<(), Error> {
         // revert any state changes that were made prior to dispatching the request
         Ok(())
     }
@@ -1171,6 +1171,11 @@ construct_runtime!(
         // Our stuff
         Poe: pallet_poe = 80,
         Aggregate: pallet_aggregate = 81,
+
+        // ISMP
+        Ismp: pallet_ismp = 90,
+        IsmpGrandpa: ismp_grandpa = 91,
+        Hyperbridge: pallet_hyperbridge = 92,
 
         // Parachain pallets. Start indices at 100 to leave room.
         ParachainsOrigin: parachains::parachains_origin = 101,
