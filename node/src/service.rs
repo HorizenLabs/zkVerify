@@ -183,6 +183,10 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
         other: (block_import, grandpa_link, babe_link, babe_worker_handle, mut telemetry),
     } = new_partial(&config)?;
 
+    let metrics = Network::register_notification_metrics(
+        config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
+    );
+
     let mut net_config =
         sc_network::config::FullNetworkConfiguration::<_, _, Network>::new(&config.network);
     let peer_store_handle = net_config.peer_store_handle();
@@ -198,7 +202,7 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
     let (grandpa_protocol_config, grandpa_notification_service) =
         sc_consensus_grandpa::grandpa_peers_set_config::<_, Network>(
             grandpa_protocol_name.clone(),
-            NotificationMetrics::new(None),
+            metrics.clone(),
             peer_store_handle,
         );
     net_config.add_notification_protocol(grandpa_protocol_config);
