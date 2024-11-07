@@ -1,18 +1,11 @@
-use frame_support::{
-    traits::tokens::fungible::{Inspect, Mutate, Unbalanced, Dust},
-};
+use frame_support::traits::tokens::fungible::{Dust, Inspect, Mutate, Unbalanced};
 
 // Import DispatchError from sp_runtime instead
 use sp_runtime::DispatchError;
 
 // Import the specific types from frame_support
 use frame_support::traits::tokens::{
-    DepositConsequence,
-    WithdrawConsequence,
-    Fortitude,
-    Preservation,
-    Precision,
-    Provenance,
+    DepositConsequence, Fortitude, Preservation, Provenance, WithdrawConsequence,
 };
 
 pub struct NullCurrency;
@@ -61,7 +54,7 @@ impl<AccountId: Eq> Inspect<AccountId> for NullCurrency {
 }
 
 impl<AccountId: Eq> Unbalanced<AccountId> for NullCurrency {
-    fn handle_dust(dust: Dust<AccountId, Self>) {
+    fn handle_dust(_dust: Dust<AccountId, Self>) {
         // Do nothing with the dust
     }
 

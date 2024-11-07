@@ -146,8 +146,7 @@ pallet-preimage = { default-features = false, version = "37.0.0" }
 pallet-referenda = { default-features = false, version = "37.0.0" }
 pallet-utility = { default-features = false, version = "37.0.0" }
 pallet-vesting = { default-features = false, version = "37.0.0" }
-anyhow = { default-features = false, version = "1.0.71" }
-ismp = { default-features = false, version = "0.2.1" }
+ismp = { default-features = false, version = "=0.2.0" }
 ismp-grandpa = { default-features = false, version = "1.15.0" }
 pallet-hyperbridge = { default-features = false, version = "1.15.0" }
 pallet-ismp-rpc = { default-features = false, version = "1.15.0" }
