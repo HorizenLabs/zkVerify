@@ -118,7 +118,6 @@ fn verifier_render(item: Item) -> proc_macro2::TokenStream {
         pub type Pallet<#t> = #crate_name::Pallet<#t, #ident #generic>;
         pub type Event<#t> = #crate_name::Event<#t, #ident #generic>;
         pub type Error<#t> = #crate_name::Error<#t, #ident #generic>;
-        pub type HoldReason = #crate_name::HoldReason;
         pub use #crate_name::{
             __substrate_call_check, __substrate_event_check, tt_default_parts, tt_error_token,
         };
@@ -191,7 +190,6 @@ mod tests {
                 pub type Pallet<T> = pallet_verifiers::Pallet<T, Ver>;
                 pub type Event<T> = pallet_verifiers::Event<T, Ver>;
                 pub type Error<T> = pallet_verifiers::Error<T, Ver>;
-                pub type HoldReason = pallet_verifiers::HoldReason;
                 pub use pallet_verifiers::{
                     __substrate_call_check, __substrate_event_check, tt_default_parts, tt_error_token,
                 };
@@ -223,7 +221,6 @@ mod tests {
                 pub type Pallet<R> = pallet_verifiers::Pallet<R, Ver<R>>;
                 pub type Event<R> = pallet_verifiers::Event<R, Ver<R>>;
                 pub type Error<R> = pallet_verifiers::Error<R, Ver<R>>;
-                pub type HoldReason = pallet_verifiers::HoldReason;
                 pub use pallet_verifiers::{
                     __substrate_call_check, __substrate_event_check, tt_default_parts, tt_error_token,
                 };

@@ -14,9 +14,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 #![cfg(test)]
 
-use crate::VkDepositReason;
 use frame_support::{
-    derive_impl,
+    derive_impl, parameter_types,
     traits::{fungible::HoldConsideration, LinearStoragePrice},
     weights::Weight,
 };
@@ -185,16 +184,19 @@ impl frame_system::Config for Test {
     type AccountData = pallet_balances::AccountData<Balance>;
 }
 
-pub type BaseDeposit = ConstU128<1>;
-pub type PerByteDeposit = ConstU128<2>;
+parameter_types! {
+    pub const BaseDeposit: Balance = 1;
+    pub const PerByteDeposit: Balance = 2;
+    pub const HoldReasonVkRegistration: RuntimeHoldReason = RuntimeHoldReason::CommonVerifiersPallet(crate::common::HoldReason::VkRegistration);
+}
 
 impl crate::Config<FakeVerifier> for Test {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = OnProofVerifiedMock;
-    type Consideration = HoldConsideration<
+    type Ticket = HoldConsideration<
         AccountId,
         Balances,
-        VkDepositReason<RuntimeHoldReason, FakeVerifier>,
+        HoldReasonVkRegistration,
         LinearStoragePrice<BaseDeposit, PerByteDeposit, Balance>,
     >;
     type WeightInfo = MockWeightInfo;

@@ -132,26 +132,6 @@ pub mod pallet {
         }
     }
 
-    /// A reason for this pallet placing a hold on funds.
-    #[pallet::composite_enum]
-    pub enum HoldReason {
-        /// The funds are held as storage deposit for a verification key registration.
-        VkRegistration,
-    }
-
-    /// TODO
-    pub struct VkDepositReason<R, I>(PhantomData<fn() -> (R, I)>);
-
-    impl<R, I: 'static> Get<R> for VkDepositReason<R, I>
-    where
-        R: From<HoldReason>,
-        I: Verifier,
-    {
-        fn get() -> R {
-            HoldReason::VkRegistration.into()
-        }
-    }
-
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
     pub trait Config<I: 'static = ()>: frame_system::Config + crate::common::Config
@@ -164,7 +144,7 @@ pub mod pallet {
         /// Proof verified call back
         type OnProofVerified: OnProofVerified;
         /// A means of providing some cost while data is stored on-chain.
-        type Consideration: Consideration<Self::AccountId>;
+        type Ticket: Consideration<Self::AccountId>;
         /// Weights
         type WeightInfo: hp_verifiers::WeightInfo<I>;
         /// Currency used in benchmarks.
@@ -172,28 +152,16 @@ pub mod pallet {
         type Currency: ReservableCurrency<AccountOf<Self>>;
     }
 
-    #[derive(Debug, Clone, PartialEq, Encode, Decode, TypeInfo, MaxEncodedLen)]
-    struct Deposit<A, C> {
-        who: A,
-        consideration: C,
-    }
-
-    impl<A, C> Deposit<A, C> {
-        fn new(who: A, consideration: C) -> Self {
-            Self { who, consideration }
-        }
-    }
-
     ///TODO
     #[derive(Debug, Clone, PartialEq, Encode, Decode, TypeInfo, MaxEncodedLen)]
-    pub struct VkEntry<V, A, C> {
+    pub struct VkEntry<V> {
         vk: V,
-        deposit: Deposit<A, C>,
+        ref_count: u64,
     }
 
-    impl<V, A, C> VkEntry<V, A, C> {
-        fn new(vk: V, deposit: Deposit<A, C>) -> Self {
-            Self { vk, deposit }
+    impl<V> VkEntry<V> {
+        fn new(vk: V) -> Self {
+            Self { vk, ref_count: 1 }
         }
     }
 
@@ -277,10 +245,19 @@ pub mod pallet {
     pub type Vks<T: Config<I>, I: 'static = ()>
     where
         I: Verifier,
-    = StorageMap<
-        Hasher = Identity,
-        Key = H256,
-        Value = VkEntry<I::Vk, T::AccountId, T::Consideration>,
+    = StorageMap<Hasher = Identity, Key = H256, Value = VkEntry<I::Vk>>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn deposits)]
+    pub type Tickets<T: Config<I>, I: 'static = ()>
+    where
+        I: Verifier,
+    = StorageDoubleMap<
+        Hasher1 = Identity,
+        Key1 = T::AccountId,
+        Hasher2 = Identity,
+        Key2 = H256,
+        Value = T::Ticket,
     >;
 
     // Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -345,14 +322,15 @@ pub mod pallet {
             let account_id = ensure_signed(origin)?;
             I::validate_vk(&vk).map_err(Error::<T, I>::from)?;
             let hash = I::vk_hash(&vk);
-            ensure!(
-                !Vks::<T, I>::contains_key(hash),
-                Error::<T, I>::VerificationKeyAlreadyRegistered
-            );
-            let footprint = Footprint::from_encodable(&vk);
-            let consideration = T::Consideration::new(&account_id, footprint)?;
-            let deposit = Deposit::new(account_id, consideration);
-            Vks::<T, I>::insert(hash, VkEntry::new(*vk, deposit));
+            if !Tickets::<T, I>::contains_key(&account_id, hash) {
+                let footprint = Footprint::from_encodable(&vk);
+                let ticket = T::Ticket::new(&account_id, footprint)?;
+                Tickets::<T, I>::insert(account_id, hash, ticket);
+                Vks::<T, I>::mutate(hash, |vk_entry| match vk_entry {
+                    Some(VkEntry { ref_count, .. }) => *ref_count += 1,
+                    None => *vk_entry = Some(VkEntry::new(*vk)),
+                })
+            }
             Self::deposit_event(Event::VkRegistered { hash });
             Ok(().into())
         }
@@ -378,12 +356,19 @@ pub mod pallet {
         pub fn unregister_vk(origin: OriginFor<T>, vk_hash: H256) -> DispatchResult {
             log::trace!("Unregister vk");
             let account_id = ensure_signed(origin)?;
-            let VkEntry {
-                deposit: Deposit { who, consideration },
-                ..
-            } = Vks::<T, I>::take(vk_hash).ok_or(Error::<T, I>::VerificationKeyNotFound)?;
-            ensure!(account_id == who, DispatchError::BadOrigin);
-            consideration.drop(&who)?;
+            let ticket = Tickets::<T, I>::take(&account_id, vk_hash)
+                .ok_or(Error::<T, I>::VerificationKeyNotFound)?;
+            ticket.drop(&account_id)?;
+            Vks::<T, I>::mutate_exists(vk_hash, |vk_entry| match vk_entry {
+                Some(v) => {
+                    if v.ref_count > 1 {
+                        v.ref_count -= 1;
+                    } else {
+                        *vk_entry = None;
+                    }
+                }
+                None => unreachable!(),
+            });
             Self::deposit_event(Event::VkUnregistered { hash: vk_hash });
             Ok(())
         }

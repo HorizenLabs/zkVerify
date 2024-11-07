@@ -171,15 +171,26 @@ mod register_should {
     }
 
     #[rstest]
-    fn fail_if_vk_is_registered_twice(mut def_vk: sp_io::TestExternalities) {
+    fn handle_double_registration_by_different_users(mut def_vk: sp_io::TestExternalities) {
         def_vk.execute_with(|| {
-            assert_noop!(
-                FakeVerifierPallet::register_vk(
-                    RuntimeOrigin::signed(USER_1),
-                    Box::new(REGISTERED_VK)
-                ),
-                RError::VerificationKeyAlreadyRegistered
-            );
+            let initial_reserved_balance = Balances::reserved_balance(USER_2);
+            assert_ok!(FakeVerifierPallet::register_vk(
+                RuntimeOrigin::signed(USER_2),
+                Box::new(REGISTERED_VK)
+            ));
+            assert!(Balances::reserved_balance(USER_2) > initial_reserved_balance);
+        })
+    }
+
+    #[rstest]
+    fn handle_double_registration_by_same_user(mut def_vk: sp_io::TestExternalities) {
+        def_vk.execute_with(|| {
+            let initial_reserved_balance = Balances::reserved_balance(USER_1);
+            assert_ok!(FakeVerifierPallet::register_vk(
+                RuntimeOrigin::signed(USER_1),
+                Box::new(REGISTERED_VK)
+            ));
+            assert_eq!(Balances::reserved_balance(USER_1), initial_reserved_balance);
         })
     }
 }
@@ -191,10 +202,23 @@ mod unregister_should {
     #[rstest]
     fn unregister_a_previously_registered_vk(mut def_vk: sp_io::TestExternalities) {
         def_vk.execute_with(|| {
-            assert_ok!(FakeVerifierPallet::unregister_vk(
-                RuntimeOrigin::signed(USER_1),
-                REGISTERED_VK_HASH
-            ));
+            assert!(FakeVerifierPallet::vks(REGISTERED_VK_HASH).is_some());
+            FakeVerifierPallet::unregister_vk(RuntimeOrigin::signed(USER_1), REGISTERED_VK_HASH)
+                .unwrap();
+            assert!(FakeVerifierPallet::vks(REGISTERED_VK_HASH).is_none());
+        })
+    }
+
+    #[rstest]
+    fn keep_previously_registered_vk_around_if_another_user_is_referencing_it(
+        mut def_vk: sp_io::TestExternalities,
+    ) {
+        def_vk.execute_with(|| {
+            FakeVerifierPallet::register_vk(RuntimeOrigin::signed(USER_2), Box::new(REGISTERED_VK))
+                .unwrap();
+            FakeVerifierPallet::unregister_vk(RuntimeOrigin::signed(USER_1), REGISTERED_VK_HASH)
+                .unwrap();
+            assert!(FakeVerifierPallet::vks(REGISTERED_VK_HASH).is_some());
         })
     }
 
@@ -246,7 +270,7 @@ mod unregister_should {
                         RuntimeOrigin::signed(USER_2),
                         REGISTERED_VK_HASH
                     ),
-                    DispatchError::BadOrigin
+                    RError::VerificationKeyNotFound
                 );
             })
         }

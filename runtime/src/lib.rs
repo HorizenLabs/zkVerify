@@ -48,7 +48,10 @@ use frame_election_provider_support::{
     onchain::OnChainExecution,
     SequentialPhragmen,
 };
-use frame_support::genesis_builder_helper::{build_config, create_default_config};
+use frame_support::{
+    genesis_builder_helper::{build_config, create_default_config},
+    traits::{fungible::HoldConsideration, LinearStoragePrice},
+};
 
 // A few exports that help ease life for downstream crates.
 use frame_support::traits::EqualPrivilegeOnly;
@@ -774,6 +777,19 @@ impl pallet_proxy::Config for Runtime {
     type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+parameter_types! {
+    pub const VkRegistrationBaseDeposit: Balance = deposit(2, 64);
+    pub const VkRegistrationByteDeposit: Balance = deposit(0, 1);
+    pub const VkRegistrationHoldReason: RuntimeHoldReason = RuntimeHoldReason::CommonVerifiers(pallet_verifiers::common::HoldReason::VkRegistration);
+}
+
+type VkRegistrationHoldConsideration = HoldConsideration<
+    AccountId,
+    Balances,
+    VkRegistrationHoldReason,
+    LinearStoragePrice<VkRegistrationBaseDeposit, VkRegistrationByteDeposit, Balance>,
+>;
+
 impl pallet_verifiers::common::Config for Runtime {
     type CommonWeightInfo = Runtime;
 }
@@ -783,6 +799,7 @@ impl pallet_verifiers::Config<pallet_fflonk_verifier::Fflonk> for Runtime {
     type OnProofVerified = Poe;
     type WeightInfo =
         pallet_fflonk_verifier::FflonkWeight<weights::pallet_fflonk_verifier::ZKVWeight<Runtime>>;
+    type Ticket = VkRegistrationHoldConsideration;
 }
 
 impl pallet_verifiers::Config<pallet_zksync_verifier::Zksync> for Runtime {
@@ -790,6 +807,7 @@ impl pallet_verifiers::Config<pallet_zksync_verifier::Zksync> for Runtime {
     type OnProofVerified = Poe;
     type WeightInfo =
         pallet_zksync_verifier::ZksyncWeight<weights::pallet_zksync_verifier::ZKVWeight<Runtime>>;
+    type Ticket = VkRegistrationHoldConsideration;
 }
 
 pub const GROTH16_MAX_NUM_INPUTS: u32 = 16;
@@ -813,6 +831,7 @@ impl pallet_verifiers::Config<pallet_groth16_verifier::Groth16<Runtime>> for Run
     type WeightInfo = pallet_groth16_verifier::Groth16Weight<
         weights::pallet_groth16_verifier::ZKVWeight<Runtime>,
     >;
+    type Ticket = VkRegistrationHoldConsideration;
 }
 
 parameter_types! {
@@ -832,6 +851,7 @@ impl pallet_verifiers::Config<pallet_risc0_verifier::Risc0<Runtime>> for Runtime
     type OnProofVerified = Poe;
     type WeightInfo =
         pallet_risc0_verifier::Risc0Weight<weights::pallet_risc0_verifier::ZKVWeight<Runtime>>;
+    type Ticket = VkRegistrationHoldConsideration;
 }
 
 parameter_types! {
@@ -848,6 +868,7 @@ impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> f
     type WeightInfo = pallet_ultraplonk_verifier::UltraplonkWeight<
         weights::pallet_ultraplonk_verifier::ZKVWeight<Runtime>,
     >;
+    type Ticket = VkRegistrationHoldConsideration;
 }
 
 parameter_types! {
@@ -869,6 +890,7 @@ impl pallet_verifiers::Config<pallet_proofofsql_verifier::ProofOfSql<Runtime>> f
     type WeightInfo = pallet_proofofsql_verifier::ProofOfSqlWeight<
         weights::pallet_proofofsql_verifier::ZKVWeight<Runtime>,
     >;
+    type Ticket = VkRegistrationHoldConsideration;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
