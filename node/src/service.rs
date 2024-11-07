@@ -18,7 +18,6 @@
 use futures::FutureExt;
 use sc_client_api::{Backend, BlockBackend};
 use sc_consensus_babe::{BabeBlockImport, SlotProportion};
-use sc_network::NotificationMetrics;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager, WarpSyncParams};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
@@ -183,6 +182,10 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
         other: (block_import, grandpa_link, babe_link, babe_worker_handle, mut telemetry),
     } = new_partial(&config)?;
 
+    let metrics = Network::register_notification_metrics(
+        config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
+    );
+
     let mut net_config =
         sc_network::config::FullNetworkConfiguration::<_, _, Network>::new(&config.network);
     let peer_store_handle = net_config.peer_store_handle();
@@ -198,7 +201,7 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
     let (grandpa_protocol_config, grandpa_notification_service) =
         sc_consensus_grandpa::grandpa_peers_set_config::<_, Network>(
             grandpa_protocol_name.clone(),
-            NotificationMetrics::new(None),
+            metrics.clone(),
             peer_store_handle,
         );
     net_config.add_notification_protocol(grandpa_protocol_config);
@@ -220,7 +223,7 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
             block_announce_validator_builder: None,
             warp_sync_params: Some(WarpSyncParams::WithProvider(warp_sync)),
             block_relay: None,
-            metrics: NotificationMetrics::new(None),
+            metrics,
         })?;
 
     if config.offchain_worker.enabled {
