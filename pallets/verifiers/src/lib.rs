@@ -69,6 +69,7 @@ pub use pallet::*;
 pub use pallet_verifiers_macros::*;
 
 pub mod common;
+pub mod migrations;
 #[allow(missing_docs)]
 pub mod mock;
 mod tests;

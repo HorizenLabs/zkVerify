@@ -17,7 +17,7 @@
 use frame_support::{
     derive_impl, parameter_types,
     traits::{fungible::HoldConsideration, LinearStoragePrice},
-    weights::Weight,
+    weights::{constants::ParityDbWeight, Weight},
 };
 use frame_system::RawOrigin;
 use hp_verifiers::{Verifier, VerifyError, WeightInfo};
@@ -182,6 +182,7 @@ impl frame_system::Config for Test {
     type Lookup = IdentityLookup<Self::AccountId>;
     type Block = frame_system::mocking::MockBlockU32<Test>;
     type AccountData = pallet_balances::AccountData<Balance>;
+    type DbWeight = ParityDbWeight;
 }
 
 parameter_types! {
