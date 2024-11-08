@@ -58,7 +58,7 @@ RUN apt-get update \
   ca-certificates \
   curl \
   jq \
-  && useradd -m -U -s /bin/bash -d "/${RUN_USER}" "${RUN_USER}" \
+  && useradd -m -U -s /bin/bash -d /${RUN_USER} ${RUN_USER} \
   && mkdir -p /data /${RUN_USER}/.local/share \
   && chown -R ${RUN_USER}:${RUN_USER} /data /${RUN_USER} \
   && ln -s /data /${RUN_USER}/.local/share \
