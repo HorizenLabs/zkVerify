@@ -26,6 +26,26 @@
 
 set -eEuo pipefail
 
+####
+# Function(s)
+####
+fn_die() {
+  echo -e "\n\033[1;31m${1}\033[0m\n" >&2
+  exit "${2:-1}"
+}
+
+log_bold_green() {
+  echo -e "\n\033[1;32m${1}\033[0m\n"
+}
+
+log_green() {
+  echo -e "\n\033[0;32m${1}\033[0m\n"
+}
+
+log_yellow() {
+  echo -e "\n\033[1;33m${1}\033[0m\n"
+}
+
 get_arg_name_from_env_name() {
     local env_name="$1"
     local prefix="$2"
@@ -45,6 +65,41 @@ get_arg_value_from_env_value() {
     fi
     echo "${arg_value}"
 }
+
+# Function to validate chain specification and download if necessary
+validate_and_download() {
+  local CHAIN_VAR_NAME="$1"
+  local URL_VAR_NAME="$2"
+
+  # Dynamically retrieve the values of the variables using indirect expansion
+  local CHAIN_VALUE="${!CHAIN_VAR_NAME}"
+  local SPEC_FILE_URL="${!URL_VAR_NAME}"
+
+  # Check if the chain variable is empty
+  if [ -z "${CHAIN_VALUE}" ]; then
+    fn_die "ERROR: '${CHAIN_VAR_NAME}' variable can not be empty or undefined. Aborting ..."
+  fi
+
+  # Echo the chain value
+  echo "  ${CHAIN_VAR_NAME}=${CHAIN_VALUE}"
+
+  # Check if CHAIN_VALUE points to an existing .json file and download it otherwise
+  if [[ "${CHAIN_VALUE}" == *.json ]] && [ ! -f "${CHAIN_VALUE}" ] ; then
+    # Attempt to download the file if it doesn't exist
+    if [ -n "${SPEC_FILE_URL}" ]; then
+      log_green "INFO: Spec file '${CHAIN_VALUE}' does not exist. Downloading it from '${SPEC_FILE_URL}' ..."
+      mkdir -p "$(dirname "${CHAIN_VALUE}")" || fn_die "ERROR: could not create directory '$(dirname "${CHAIN_VALUE}")' for spec file. Aborting ..."
+      cd "$(dirname "${CHAIN_VALUE}")"
+      aria2c --file-allocation=none -s16 -x16 --max-tries=3 --continue=true "${SPEC_FILE_URL}" -o "$(basename "${CHAIN_VALUE}")" || fn_die "ERROR: Failed to download spec file from '${SPEC_FILE_URL}' url. Aborting ..."
+    else
+      fn_die "ERROR: The variable '${CHAIN_VAR_NAME}' (spec file) is set to '${CHAIN_VALUE}', which is a .json file that does not exist. The variable '${URL_VAR_NAME}' is empty, therefore the file can not be downloaded. Aborting ..."
+    fi
+  fi
+}
+
+####
+# Main
+####
 
 # Sanity check
 if [ -z "${BINARY:-}" ]; then
@@ -68,6 +123,7 @@ echo "ZKV_NODE_KEY_FILE=${ZKV_NODE_KEY_FILE}"
 
 ZKV_CONF_BASE_PATH=${ZKV_CONF_BASE_PATH:-}
 ZKV_CONF_CHAIN=${ZKV_CONF_CHAIN:-}
+ZKV_SPEC_FILE_URL="${ZKV_SPEC_FILE_URL:-}"
 
 # Node configurations (env->arg)
 prefix="ZKV_CONF_"
@@ -121,6 +177,9 @@ if [ -n "${ZKV_CONF_BASE_PATH}" ]; then
       mv "${source_chain_dir}" "${dest_chain_dir}"
   done
 fi
+
+# Call the function for ZKV_CONF_CHAIN
+validate_and_download "ZKV_CONF_CHAIN" "ZKV_SPEC_FILE_URL"
 
 # Keys handling
 if [ -f "${ZKV_SECRET_PHRASE_PATH}" ]; then
