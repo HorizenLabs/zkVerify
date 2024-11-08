@@ -21,7 +21,8 @@ env:
 
 jobs:
   coverage:
-    runs-on: zkVerify_larger
+    runs-on:
+      group: zkVerify
     steps:
       - name: Git checkout
         uses: actions/checkout@v4

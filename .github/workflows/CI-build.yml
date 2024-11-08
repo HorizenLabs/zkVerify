@@ -20,7 +20,8 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: zkVerify
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
