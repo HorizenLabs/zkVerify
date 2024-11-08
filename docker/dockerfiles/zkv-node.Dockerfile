@@ -54,8 +54,11 @@ RUN chmod -R a+rx "/usr/local/bin"
 
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  aria2 \
+  ca-certificates \
   curl \
-  && useradd -m -u 1000 -U -s /bin/sh -d /${RUN_USER} ${RUN_USER} \
+  jq \
+  && useradd -m -U -s /bin/bash -d /${RUN_USER} ${RUN_USER} \
   && mkdir -p /data /${RUN_USER}/.local/share \
   && chown -R ${RUN_USER}:${RUN_USER} /data /${RUN_USER} \
   && ln -s /data /${RUN_USER}/.local/share \
