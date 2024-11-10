@@ -71,15 +71,15 @@ jobs:
           compression-level: 0
           overwrite: true
 
-  test-publish:
+  build-test-publish:
     needs: build
     strategy:
       matrix: 
-        artifact_name: [${{ needs.build.outputs.artifact_name_solo }}, ${{ needs.build.outputs.artifact_name_relay }}]
+        chain: [solo, relay]
     
-    uses: ./.github/workflows/CI-test-publish.yml
+    uses: ./.github/workflows/CI-release.yml
     with:
-      artifact_name: ${{ matrix.artifact_name }}
+      chain: ${{ matrix.chain }}
 
   # rustdoc-job:
   #   uses: ./.github/workflows/CI-rustdoc.yml
