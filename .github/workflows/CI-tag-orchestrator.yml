@@ -81,8 +81,8 @@ jobs:
           echo "tar_file_name_solo=$TAR_FILE_NAME_SOLO" >> $GITHUB_OUTPUT
           echo "tar_file_solo=$TAR_FILE_SOLO" >> $GITHUB_OUTPUT
 
-          echo "tar_file_name_solo=$TAR_FILE_NAME_RELAY" >> $GITHUB_OUTPUT
-          echo "tar_file_solo=$TAR_FILE_RELAY" >> $GITHUB_OUTPUT
+          echo "tar_file_name_relay=$TAR_FILE_NAME_RELAY" >> $GITHUB_OUTPUT
+          echo "tar_file_relay=$TAR_FILE_RELAY" >> $GITHUB_OUTPUT
 
           docker save "${{ steps.save-image-names.outputs.docker_image_solo }}" -o "${TAR_FILE_SOLO}"
           docker save "${{ steps.save-image-names.outputs.docker_image_relay }}" -o "${TAR_FILE_RELAY}"
