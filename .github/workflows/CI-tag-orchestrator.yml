@@ -7,7 +7,9 @@ on:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+-[0-9]+.[0-9]+.[0-9]+*"
   workflow_dispatch:
-
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
 env:
   RUST_BACKTRACE: 1
 
@@ -109,15 +111,15 @@ jobs:
 
   test-publish:
     # needs: build
-    # strategy:
-    #   matrix: 
-    #     artifact_name: [ zkverify-solo, zkverify-relay ]
+    strategy:
+      matrix: 
+        artifact_name: [ zkverify-solo, zkverify-relay ]
         # - ${{ needs.build.outputs.artifact_name_solo }}
         # - ${{ needs.build.outputs.artifact_name_relay }}
     
     uses: ./.github/workflows/CI-test-publish.yml
     with:
-      artifact_name: zkverify-solo
+      artifact_name: ${{ matrix.artifact_name }}
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
 
