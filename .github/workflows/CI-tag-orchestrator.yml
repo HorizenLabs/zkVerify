@@ -100,8 +100,8 @@ jobs:
       - name: Upload Docker Image Artifact (relay chain)
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.create_tar_file.outputs.tar_file_name_relay }}
-          path: ${{ steps.create_tar_file.outputs.tar_file_relay }}
+          name: ${{ steps.create-tar-file.outputs.tar_file_name_relay }}
+          path: ${{ steps.create-tar-file.outputs.tar_file_relay }}
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
