@@ -7,6 +7,13 @@ on:
         description: "Name of artifact of Docker image"
         required: true
         type: string
+      # DOCKER_HUB_USERNAME:
+      #   required: true
+      #   type: string
+      # DOCKER_HUB_TOKEN:
+      #   required: true
+      #   type: string
+    secrets:
       DOCKER_HUB_USERNAME:
         required: true
         type: string
@@ -53,9 +60,9 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-          fetch-depth: 0
+        # with:
+        #   ref: ${{ github.ref }}
+        #   fetch-depth: 0
 
       # - name: Download zkVerify Docker image artifact
       #   uses: actions/download-artifact@v4
@@ -67,10 +74,10 @@ jobs:
         env:
           RELEASE_BRANCH: release
           MAINTAINERS_KEYS: ${{ vars.MAINTAINERS_KEYS }}
-          DOCKER_HUB_USERNAME: ${{ inputs.DOCKER_HUB_USERNAME }}
-          DOCKER_HUB_TOKEN: ${{ inputs.DOCKER_HUB_TOKEN }}
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
         run: |
-          echo "token ${{ inputs.DOCKER_HUB_TOKEN }}"
+          echo "token ${{ secrets.DOCKER_HUB_TOKEN }}"
           source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
           "${GITHUB_WORKSPACE}/ci/docker.sh" --image-artifact ${{ inputs.artifact_name }}
         shell: bash
