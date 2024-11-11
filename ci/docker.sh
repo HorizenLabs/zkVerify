@@ -52,6 +52,7 @@ fi
 # if [ "${is_a_release}" = "true" ]; then
   docker_tag_full="${github_ref_name}"
 # fi
+test_release=true
 
 # Load docker image
 if [ -n "${docker_tag_full:-}" ]; then
