@@ -66,8 +66,8 @@ jobs:
       - name: Set Docker image names as output
         id: save-image-names
         run: |
-          echo "docker_image_solo=horizenlabs/zkv-relay:latest" >> $GITHUB_OUTPUT
-          echo "docker_image_relay=docker.io/horizenlabs/zkverify:latest" >> $GITHUB_OUTPUT
+          echo "docker_image_solo=horizenlabs/zkverify:latest" >> $GITHUB_OUTPUT
+          echo "docker_image_relay=horizenlabs/zkv-relay:latest" >> $GITHUB_OUTPUT
 
       - name: Save the Docker image as a tarball
         id: create-tar-file
