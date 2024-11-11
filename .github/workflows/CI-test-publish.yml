@@ -67,13 +67,8 @@ jobs:
         env:
           RELEASE_BRANCH: release
           MAINTAINERS_KEYS: ${{ vars.MAINTAINERS_KEYS }}
-          DOCKER_HUB_USERNAME: ${{ inputs.DOCKER_HUB_USERNAME }}
-          DOCKER_HUB_TOKEN: ${{ inputs.DOCKER_HUB_TOKEN }}
-        secrets:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
-          QA_SLACK_WEBHOOK_URL: ${{ secrets.QA_SLACK_WEBHOOK_URL }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
           "${GITHUB_WORKSPACE}/ci/docker.sh" --image-artifact ${{ inputs.artifact_name }}
