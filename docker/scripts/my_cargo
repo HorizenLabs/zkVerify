@@ -3,8 +3,6 @@
 
 mkdir -p "${HOME}/.cargo/registry"
 
-echo "HOME ${HOME}"
-
 # Use rbuilder image to compile the source. All package and cargo cache are mapped on
 # host's user folder. It also maps the .git-credentials user file from the user in order
 # to download dependencies from private repos.

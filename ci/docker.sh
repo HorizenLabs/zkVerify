@@ -86,7 +86,7 @@ if [ -n "${docker_tag_full:-}" ] && [ -n "${image_artifact:-}" ]; then
   fi
 
   # Append -relay to tag names for relay chain images
-  if [ "${chain}" = "relay" ]; then
+  if [[ "${chain}" == *"relay"* ]]; then
     for publish_tag in "${!publish_tags[@]}"; do
       publish_tags[$publish_tag]="${publish_tags[$publish_tag]}-relay"
     done
