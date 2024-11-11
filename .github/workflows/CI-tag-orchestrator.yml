@@ -128,8 +128,8 @@ jobs:
     uses: ./.github/workflows/CI-test-publish.yml
     with:
       artifact_name: ${{ matrix.artifact_name }}
-      # DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-      # DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
 
   # rustdoc-job:
   #   uses: ./.github/workflows/CI-rustdoc.yml
