@@ -60,7 +60,7 @@ jobs:
         id: build_images
         run: |
           SKIP_IMAGE_VALIDATION=true
-          "${GITHUB_WORKSPACE}/docker/scripts/bootstrap.sh" --skip-parachain
+          "${GITHUB_WORKSPACE}/docker/scripts/bootstrap.sh" --skip-parachain --skip-compile
         shell: bash
 
       - name: Set Docker image names as output
