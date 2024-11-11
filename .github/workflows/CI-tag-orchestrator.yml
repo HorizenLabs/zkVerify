@@ -22,8 +22,8 @@ jobs:
     needs: env-setup
 
     outputs:
-      artifact_name_solo: ${{ steps.save-image-names.docker_image_solo }}
-      artifact_name_relay: ${{ steps.save-image-names.docker_image_relay }}
+      artifact_name_solo: ${{ steps.create-tar-file.outputs.tar_file_name_solo }}
+      artifact_name_relay: ${{ steps.create-tar-file.outputs.tar_file_name_relay }}
 
     steps:
       - uses: actions/checkout@v4
