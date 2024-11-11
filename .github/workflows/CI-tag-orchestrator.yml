@@ -121,7 +121,7 @@ jobs:
     strategy:
       matrix: 
         artifact_name:
-        # - ${{ needs.build.outputs.artifact_name_solo }}
+        - ${{ needs.build.outputs.artifact_name_solo }}
         - ${{ needs.build.outputs.artifact_name_relay }}
     
     uses: ./.github/workflows/CI-test-publish.yml
@@ -132,24 +132,24 @@ jobs:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-  # rustdoc-job:
-  #   uses: ./.github/workflows/CI-rustdoc.yml
-  #   with:
-  #     CACHING_MODE: "CACHE_RESTORE"
+  rustdoc-job:
+    uses: ./.github/workflows/CI-rustdoc.yml
+    with:
+      CACHING_MODE: "CACHE_RESTORE"
 
-  # notify-slack:
-  #   runs-on: ubuntu-latest
-  #   needs: [build-and-publish, rustdoc-job]
-  #   if: ${{ always() }}
-  #   steps:
-  #     - name: Check previous job status
-  #       id: job_status
-  #       run: |
-  #         if [ "${{ needs.build-and-publish.result }}" == "failure" ] || [ "${{ needs.rustdoc-job.result }}" == "failure" ]; then
-  #           echo "JOB_STATUS=failed" >> $GITHUB_ENV
-  #         else
-  #           echo "JOB_STATUS=success" >> $GITHUB_ENV
-  #         fi
+  notify-slack:
+    runs-on: ubuntu-latest
+    needs: [build-and-publish, rustdoc-job]
+    if: ${{ always() }}
+    steps:
+      - name: Check previous job status
+        id: job_status
+        run: |
+          if [ "${{ needs.build-and-publish.result }}" == "failure" ] || [ "${{ needs.rustdoc-job.result }}" == "failure" ]; then
+            echo "JOB_STATUS=failed" >> $GITHUB_ENV
+          else
+            echo "JOB_STATUS=success" >> $GITHUB_ENV
+          fi
 
   #     - name: Notify Slack
   #       if: ${{ env.JOB_STATUS == 'failed' && !env.ACT }}

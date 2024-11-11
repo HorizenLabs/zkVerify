@@ -48,11 +48,10 @@ if [ -z "${docker_hub_username:-}" ]; then
   fn_die "ERROR: DOCKER_HUB_USERNAME variable is not set. Exiting ..."
 fi
 
-# docker_tag_full=""
-# if [ "${is_a_release}" = "true" ]; then
+docker_tag_full=""
+if [ "${is_a_release}" = "true" ]; then
   docker_tag_full="${github_ref_name}"
-# fi
-test_release=true
+fi
 
 # Load docker image
 if [ -n "${docker_tag_full:-}" ]; then
