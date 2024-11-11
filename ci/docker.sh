@@ -13,7 +13,6 @@ test_release="${TEST_RELEASE:-false}"
 github_ref_name="${GITHUB_REF_NAME:-}"
 common_file_location="${COMMON_FILE_LOCATION:-not-set}"
 image_artifact=""
-chain=""
 
 # Requirement
 if ! [ -f "${common_file_location}" ]; then
@@ -30,10 +29,6 @@ while [[ $# -gt 0 ]]; do
     --image-artifact)
       echo "Option --image-artifact was triggered with value: $2"
       image_artifact="$2"
-      shift ;;
-    --chain)
-      echo "Option --chain was triggered with value: $2"
-      chain="$2"
       shift ;;
     *) shift ;;
   esac
@@ -59,10 +54,9 @@ if [ "${is_a_release}" = "true" ]; then
 fi
 
 # Load docker image
-if [ -n "${docker_tag_full:-}" ] && [ -n "${image_artifact:-}" ]; then
+if [ -n "${docker_tag_full:-}" ]; then
   if [ -n "${image_artifact:-}" ]; then
     log_info "=== Using Docker image artifact from upstream ==="
-    log_info "Using GITHUB_WORKSPACE: ${GITHUB_WORKSPACE}"
     image_name="$(docker load -i "${GITHUB_WORKSPACE}/${image_artifact}.tar" | awk '/Loaded image:/ { print $3 }')"
     log_info "=== Loaded image ${image_name} ==="
   else 
@@ -86,7 +80,7 @@ if [ -n "${docker_tag_full:-}" ] && [ -n "${image_artifact:-}" ]; then
   fi
 
   # Append -relay to tag names for relay chain images
-  if [[ "${chain}" == *"relay"* ]]; then
+  if [[ "${image_artifact}" == *"relay"* ]]; then
     for publish_tag in "${!publish_tags[@]}"; do
       publish_tags[$publish_tag]="${publish_tags[$publish_tag]}-relay"
     done

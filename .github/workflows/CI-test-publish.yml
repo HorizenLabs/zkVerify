@@ -65,7 +65,7 @@ jobs:
           DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
         run: |
           source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
-          "${GITHUB_WORKSPACE}/ci/docker.sh" --image-artifact ${{ needs.build-docker-image.outputs.artifact_name }}
+          "${GITHUB_WORKSPACE}/ci/docker.sh" --image-artifact ${{ inputs.artifact_name }}
       - name: Upload runtime artifact
         uses: actions/upload-artifact@v4
         with:
