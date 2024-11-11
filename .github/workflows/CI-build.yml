@@ -62,12 +62,6 @@ jobs:
 
       - name: Cargo build paratest node
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build -p paratest-node --release
-   
-      - name: Upload target directory as an artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: target-artifact
-          path: target
 
       - name: Save common cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}

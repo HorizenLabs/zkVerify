@@ -26,6 +26,8 @@ jobs:
       artifact_name_relay: ${{ steps.save-image-names.docker_image_relay }}
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Set up deps cache
         run: mkdir deps
 
@@ -41,12 +43,18 @@ jobs:
             deps/
           key: common-cache
       
-      - name: Download the target artifact
-        uses: actions/download-artifact@v3
+      - name: Restore build cache
+        if: ${{ !env.ACT }}
+        uses: actions/cache/restore@v3
         with:
-          name: target-artifact
+          path: |
+            target/
+          key: build-cache
       
-      - uses: actions/checkout@v4
+      - name: Verify release build
+        run: |
+          ls target
+          ls target/release
 
       - name: Build solo and relay chain configured images
         id: build_images
