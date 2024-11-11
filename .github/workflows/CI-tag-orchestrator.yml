@@ -2,8 +2,6 @@ name: Tag-orchestrator
 
 on:
   push:
-    branches:
-      - "yuriko/WEB3-1184"
     tags:
       - "[0-9]+.[0-9]+.[0-9]+-[0-9]+.[0-9]+.[0-9]+*"
   workflow_dispatch:
@@ -132,10 +130,10 @@ jobs:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-  # rustdoc-job:
-  #   uses: ./.github/workflows/CI-rustdoc.yml
-  #   with:
-  #     CACHING_MODE: "CACHE_RESTORE"
+  rustdoc-job:
+    uses: ./.github/workflows/CI-rustdoc.yml
+    with:
+      CACHING_MODE: "CACHE_RESTORE"
 
   # notify-slack:
   #   runs-on: ubuntu-latest
