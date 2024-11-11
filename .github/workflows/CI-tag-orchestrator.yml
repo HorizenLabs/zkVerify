@@ -5,17 +5,15 @@ on:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+-[0-9]+.[0-9]+.[0-9]+*"
   workflow_dispatch:
+    inputs:
+      git_tag:
+        type: string
     secrets:
       DOCKER_HUB_USERNAME:
         required: true
       DOCKER_HUB_TOKEN:
         required: true
-  workflow_call:
-    secrets:
-      DOCKER_HUB_USERNAME:
-        required: true
-      DOCKER_HUB_TOKEN:
-        required: true
+
 env:
   RUST_BACKTRACE: 1
 
@@ -35,6 +33,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.git_tag || github.ref }}
+          fetch-depth: 0
 
       - name: Set up deps cache
         run: mkdir deps
@@ -120,7 +121,7 @@ jobs:
     strategy:
       matrix: 
         artifact_name:
-        - ${{ needs.build.outputs.artifact_name_solo }}
+        # - ${{ needs.build.outputs.artifact_name_solo }}
         - ${{ needs.build.outputs.artifact_name_relay }}
     
     uses: ./.github/workflows/CI-test-publish.yml
