@@ -7,6 +7,8 @@ on:
         description: "Name of artifact of Docker image"
         required: true
         type: string
+      git_tag:
+        type: string
     secrets:
       DOCKER_HUB_USERNAME:
         required: true
@@ -53,7 +55,7 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ inputs.git_tag || github.ref }}
           fetch-depth: 0
 
       - name: Download zkVerify Docker image artifact
