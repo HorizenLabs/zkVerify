@@ -41,6 +41,14 @@ jobs:
             deps/
           key: common-cache
       
+      - name: Restore build cache
+        if: ${{ !env.ACT }}
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            target/
+          key: build-cache
+      
       - uses: actions/checkout@v4
 
       - name: Build solo and relay chain configured images
