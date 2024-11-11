@@ -16,10 +16,8 @@ on:
     secrets:
       DOCKER_HUB_USERNAME:
         required: true
-        type: string
       DOCKER_HUB_TOKEN:
         required: true
-        type: string
 
 jobs:
   # execute-e2e-tests:
@@ -60,9 +58,9 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
-        # with:
-        #   ref: ${{ github.ref }}
-        #   fetch-depth: 0
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
 
       # - name: Download zkVerify Docker image artifact
       #   uses: actions/download-artifact@v4
