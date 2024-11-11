@@ -11,10 +11,6 @@ on:
 env:
   RUST_BACKTRACE: 1
 
-secrets:
-  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-  DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
-
 jobs:
   # env-setup:
   #   uses: ./.github/workflows/CI-build.yml
@@ -113,15 +109,15 @@ jobs:
 
   test-publish:
     # needs: build
-    strategy:
-      matrix: 
-        artifact_name: [ zkverify-solo, zkverify-relay ]
+    # strategy:
+    #   matrix: 
+    #     artifact_name: [ zkverify-solo, zkverify-relay ]
         # - ${{ needs.build.outputs.artifact_name_solo }}
         # - ${{ needs.build.outputs.artifact_name_relay }}
     
     uses: ./.github/workflows/CI-test-publish.yml
     with:
-      artifact_name: ${{ matrix.artifact_name }}
+      artifact_name: zkverify-solo
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
 
