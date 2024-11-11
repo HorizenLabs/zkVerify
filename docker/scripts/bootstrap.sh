@@ -8,6 +8,7 @@ CARGO=${SCRIPTS}/my_cargo
 BUILD_PROFILE="${BUILD_PROFILE:---release}"
 
 SKIP_PARACHAIN=false
+SKIP_COMPILE=false
 
 # Features
 FAST_RUNTIME="${FAST_RUNTIME:-true}"                    # for dev, limit an epoch to 1min. Useful for testing with parachains
@@ -34,22 +35,28 @@ while [ $# -gt 0 ]; do
             SKIP_PARACHAIN=true
             shift
             ;;
+        --skip-compile)
+            SKIP_COMPILE=true
+            shift
+            ;;
     esac
 done
 
-# Compile nodes
-echo "----------------------------------------------------------"
-echo "Compile solo node"
-${CARGO} build -p mainchain "${BUILD_PROFILE}"
-
-echo "----------------------------------------------------------"
-echo "Compile relay node"
-${CARGO} build -p zkv-relay "${BUILD_PROFILE}" "${RELAY_FEATURES}"
-
-if [ "${SKIP_PARACHAIN}" != "true" ]; then
+if [ "${SKIP_COMPILE}" != "true" ]; then
+  # Compile nodes
   echo "----------------------------------------------------------"
-  echo "Compile test parachain node"
-  ${CARGO} build -p paratest-node "${BUILD_PROFILE}"
+  echo "Compile solo node"
+  ${CARGO} build -p mainchain "${BUILD_PROFILE}"
+
+  echo "----------------------------------------------------------"
+  echo "Compile relay node"
+  ${CARGO} build -p zkv-relay "${BUILD_PROFILE}" "${RELAY_FEATURES}"
+
+  if [ "${SKIP_PARACHAIN}" != "true" ]; then
+    echo "----------------------------------------------------------"
+    echo "Compile test parachain node"
+    ${CARGO} build -p paratest-node "${BUILD_PROFILE}"
+  fi
 fi
 
 # Create docker images
