@@ -11,6 +11,10 @@ on:
 env:
   RUST_BACKTRACE: 1
 
+secrets:
+  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+  DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+
 jobs:
   # env-setup:
   #   uses: ./.github/workflows/CI-build.yml
