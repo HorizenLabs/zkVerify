@@ -7,12 +7,6 @@ on:
         description: "Name of artifact of Docker image"
         required: true
         type: string
-      # DOCKER_HUB_USERNAME:
-      #   required: true
-      #   type: string
-      # DOCKER_HUB_TOKEN:
-      #   required: true
-      #   type: string
     secrets:
       DOCKER_HUB_USERNAME:
         required: true
@@ -20,35 +14,35 @@ on:
         required: true
 
 jobs:
-  # execute-e2e-tests:
-  #   runs-on: ubuntu-latest
-  #   name: Execute E2E Tests
-  #   outputs:
-  #     docker_image_tag: ${{ steps.set-docker-tag.outputs.docker_image_tag }}
-  #     test_status: ${{ steps.runtest.outputs.test_status }} 
-  #   steps:
-  #     - name: E2E
-  #       run: echo "execute-e2e-tests with ${{ inputs.artifact_name }}"  
+  execute-e2e-tests:
+    runs-on: ubuntu-latest
+    name: Execute E2E Tests
+    outputs:
+      docker_image_tag: ${{ steps.set-docker-tag.outputs.docker_image_tag }}
+      test_status: ${{ steps.runtest.outputs.test_status }} 
+    steps:
+      - name: E2E
+        run: echo "execute-e2e-tests with ${{ inputs.artifact_name }}"  
 
-  #     - name: Download zkVerify Docker image artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: ${{ inputs.artifact_name }}
-  #         path: ./
+      - name: Download zkVerify Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ./
 
-  #     - name: Load Docker image
-  #       run: |
-  #         image_name="$(docker load -i "${GITHUB_WORKSPACE}/${image_artifact}.tar" | awk '/Loaded image:/ { print $3 }')"
-  #         log_info "=== Loaded image ${image_name} ==="
-  #       shell: bash
+      - name: Load Docker image
+        run: |
+          image_name="$(docker load -i "${GITHUB_WORKSPACE}/${image_artifact}.tar" | awk '/Loaded image:/ { print $3 }')"
+          log_info "=== Loaded image ${image_name} ==="
+        shell: bash
 
-  #     - name: Run test
-  #       id: run-test
-  #       uses: 'HorizenLabs/zkVerify-qa/.github/actions/e2e-test@main'
-  #       with:
-  #         artifact_name: ${{ inputs.artifact_name }}
-  #         zkverify_docker_tag: latest
-  #         GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Run test
+        id: run-test
+        uses: 'HorizenLabs/zkVerify-qa/.github/actions/e2e-test@main'
+        with:
+          artifact_name: ${{ inputs.artifact_name }}
+          zkverify_docker_tag: latest
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   publish-docker-image:
     name: Publish Docker Image
@@ -62,11 +56,11 @@ jobs:
           ref: ${{ github.ref }}
           fetch-depth: 0
 
-      # - name: Download zkVerify Docker image artifact
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: ${{ inputs.artifact_name }}
-      #     path: ./
+      - name: Download zkVerify Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ./
 
       - name: Publish Docker image
         env:
@@ -75,7 +69,6 @@ jobs:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
         run: |
-          echo "token ${{ secrets.DOCKER_HUB_TOKEN }}"
           source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
           "${GITHUB_WORKSPACE}/ci/docker.sh" --image-artifact ${{ inputs.artifact_name }}
         shell: bash
