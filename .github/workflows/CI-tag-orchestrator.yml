@@ -41,13 +41,10 @@ jobs:
             deps/
           key: common-cache
       
-      - name: Restore build cache
-        if: ${{ !env.ACT }}
-        uses: actions/cache/restore@v3
+      - name: Download the target artifact
+        uses: actions/download-artifact@v3
         with:
-          path: |
-            target/
-          key: build-cache
+          name: target-artifact
       
       - uses: actions/checkout@v4
 
