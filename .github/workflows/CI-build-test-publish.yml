@@ -21,6 +21,8 @@ on:
 
 jobs:
   build:
+    runs-on: ubuntu-latest
+    name: Build Docker image
     outputs:
       artifact_name: ${{ steps.create-tar-file.outputs.artifact_name }}
   
@@ -77,7 +79,7 @@ jobs:
           echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
           echo "tar_file=$TAR_FILE" >> $GITHUB_OUTPUT
 
-          docker save "${{ DOCKER_IMAGE_NAME }}" -o "${TAR_FILE}"
+          docker save "${ DOCKER_IMAGE_NAME }" -o "${TAR_FILE}"
 
       - name: Upload Docker Image Artifact
         uses: actions/upload-artifact@v4
