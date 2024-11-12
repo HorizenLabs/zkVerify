@@ -19,7 +19,7 @@ use super::ProofOfSql;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
-use pallet_verifiers::{VkOrHash, Vks};
+use pallet_verifiers::{VkEntry, VkOrHash, Vks};
 
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 
@@ -59,7 +59,8 @@ mod benchmarks {
             .into();
         let proof = include_bytes!("resources/VALID_PROOF_MAX_NU_8.bin").to_vec();
         let pubs = include_bytes!("resources/VALID_PUBS_MAX_NU_8.bin").to_vec();
-        Vks::<T, ProofOfSql<T>>::insert(vk_hash, vk);
+        let vk_entry = VkEntry::new(vk);
+        Vks::<T, ProofOfSql<T>>::insert(vk_hash, vk_entry);
 
         #[extrinsic_call]
         submit_proof(

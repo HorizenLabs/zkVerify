@@ -19,7 +19,7 @@ use super::Risc0;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
-use pallet_verifiers::{VkOrHash, Vks};
+use pallet_verifiers::{VkEntry, VkOrHash, Vks};
 
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 
@@ -211,7 +211,8 @@ mod benchmarks {
             .to_vec()
             .into();
         let pubs = VALID_PUBS_CYCLE_2_POW_12.to_vec().into();
-        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+        let vk_entry = VkEntry::new(VALID_VK);
+        Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
@@ -225,7 +226,8 @@ mod benchmarks {
             .to_vec()
             .into();
         let pubs = VALID_PUBS_CYCLE_2_POW_13.to_vec().into();
-        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+        let vk_entry = VkEntry::new(VALID_VK);
+        Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
@@ -239,7 +241,8 @@ mod benchmarks {
             .to_vec()
             .into();
         let pubs = VALID_PUBS_CYCLE_2_POW_14.to_vec().into();
-        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+        let vk_entry = VkEntry::new(VALID_VK);
+        Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
@@ -253,7 +256,8 @@ mod benchmarks {
             .to_vec()
             .into();
         let pubs = VALID_PUBS_CYCLE_2_POW_15.to_vec().into();
-        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+        let vk_entry = VkEntry::new(VALID_VK);
+        Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
@@ -267,7 +271,8 @@ mod benchmarks {
             .to_vec()
             .into();
         let pubs = VALID_PUBS_CYCLE_2_POW_16.to_vec().into();
-        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+        let vk_entry = VkEntry::new(VALID_VK);
+        Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
@@ -281,7 +286,8 @@ mod benchmarks {
             .to_vec()
             .into();
         let pubs = VALID_PUBS_CYCLE_2_POW_17.to_vec().into();
-        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+        let vk_entry = VkEntry::new(VALID_VK);
+        Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
@@ -295,7 +301,8 @@ mod benchmarks {
             .to_vec()
             .into();
         let pubs = VALID_PUBS_CYCLE_2_POW_18.to_vec().into();
-        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+        let vk_entry = VkEntry::new(VALID_VK);
+        Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
@@ -309,7 +316,8 @@ mod benchmarks {
             .to_vec()
             .into();
         let pubs = VALID_PUBS_CYCLE_2_POW_19.to_vec().into();
-        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+        let vk_entry = VkEntry::new(VALID_VK);
+        Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
@@ -323,7 +331,8 @@ mod benchmarks {
             .to_vec()
             .into();
         let pubs = VALID_PUBS_CYCLE_2_POW_20.to_vec().into();
-        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+        let vk_entry = VkEntry::new(VALID_VK);
+        Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
@@ -337,7 +346,8 @@ mod benchmarks {
             .to_vec()
             .into();
         let pubs = VALID_PUBS_CYCLE_2_POW_21.to_vec().into();
-        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+        let vk_entry = VkEntry::new(VALID_VK);
+        Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
@@ -351,7 +361,8 @@ mod benchmarks {
             .to_vec()
             .into();
         let pubs = VALID_PUBS_CYCLE_2_POW_22.to_vec().into();
-        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+        let vk_entry = VkEntry::new(VALID_VK);
+        Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
@@ -365,7 +376,8 @@ mod benchmarks {
             .to_vec()
             .into();
         let pubs = VALID_PUBS_CYCLE_2_POW_23.to_vec().into();
-        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+        let vk_entry = VkEntry::new(VALID_VK);
+        Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);
@@ -379,7 +391,8 @@ mod benchmarks {
             .to_vec()
             .into();
         let pubs = VALID_PUBS_CYCLE_2_POW_24.to_vec().into();
-        Vks::<T, Risc0<T>>::insert(VALID_VK, VALID_VK);
+        let vk_entry = VkEntry::new(VALID_VK);
+        Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
         submit_proof(RawOrigin::Signed(caller), vk, proof, pubs);

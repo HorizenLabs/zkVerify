@@ -161,7 +161,8 @@ pub mod pallet {
     }
 
     impl<V> VkEntry<V> {
-        fn new(vk: V) -> Self {
+        /// Construct a new vk with reference count set to 1.
+        pub fn new(vk: V) -> Self {
             Self { vk, ref_count: 1 }
         }
     }

@@ -19,7 +19,7 @@ use crate::Zksync;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
-use pallet_verifiers::{VkOrHash, Vks};
+use pallet_verifiers::{VkEntry, VkOrHash, Vks};
 
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: pallet_verifiers::Config<Zksync> {}
@@ -52,7 +52,8 @@ mod benchmarks {
         let proof = PROOF.into();
         let pubs = PUBS.into();
         let hash = sp_core::H256::repeat_byte(2);
-        Vks::<T, Zksync>::insert(hash, ());
+        let vk_entry = VkEntry::new(());
+        Vks::<T, Zksync>::insert(hash, vk_entry);
         let vk_or_hash = VkOrHash::from_hash(hash);
 
         #[extrinsic_call]

@@ -19,7 +19,7 @@ use crate::Ultraplonk;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
-use pallet_verifiers::{VkOrHash, Vks};
+use pallet_verifiers::{VkEntry, VkOrHash, Vks};
 use sp_std::{vec, vec::Vec};
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: crate::Config {}
@@ -138,7 +138,8 @@ pub mod benchmarks {
         let pubs = public_input();
         let vk = VALID_VK;
         let hash = sp_core::H256::repeat_byte(2);
-        Vks::<T, Ultraplonk<T>>::insert(hash, vk);
+        let vk_entry = VkEntry::new(vk);
+        Vks::<T, Ultraplonk<T>>::insert(hash, vk_entry);
 
         #[extrinsic_call]
         submit_proof(
@@ -161,7 +162,8 @@ pub mod benchmarks {
             .collect();
         let vk = *include_bytes!("resources/32_vk");
         let hash = sp_core::H256::repeat_byte(2);
-        Vks::<T, Ultraplonk<T>>::insert(hash, vk);
+        let vk_entry = VkEntry::new(vk);
+        Vks::<T, Ultraplonk<T>>::insert(hash, vk_entry);
 
         #[extrinsic_call]
         submit_proof(

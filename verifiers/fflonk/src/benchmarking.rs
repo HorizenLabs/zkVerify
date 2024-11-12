@@ -19,7 +19,7 @@ use crate::Fflonk;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
-use pallet_verifiers::{VkOrHash, Vks};
+use pallet_verifiers::{VkEntry, VkOrHash, Vks};
 
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: pallet_verifiers::Config<Fflonk> {}
@@ -56,9 +56,9 @@ mod benchmarks {
         let caller = whitelisted_caller();
         let proof = VALID_PROOF;
         let pubs = VALID_PUBS;
-        let vk = cdk_key();
+        let vk_entry = VkEntry::new(cdk_key());
         let hash = sp_core::H256::repeat_byte(2);
-        Vks::<T, Fflonk>::insert(hash, vk);
+        Vks::<T, Fflonk>::insert(hash, vk_entry);
 
         #[extrinsic_call]
         submit_proof(

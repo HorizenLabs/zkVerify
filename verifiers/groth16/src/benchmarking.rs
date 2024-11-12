@@ -19,7 +19,7 @@ use super::Groth16;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
-use pallet_verifiers::{VkOrHash, Vks};
+use pallet_verifiers::{VkEntry, VkOrHash, Vks};
 
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: crate::Config {}
@@ -65,7 +65,8 @@ mod benchmarks {
         let caller = whitelisted_caller();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bn254);
         let hash = sp_core::H256::repeat_byte(2);
-        Vks::<T, Groth16<T>>::insert(hash, vk);
+        let vk_entry = VkEntry::new(vk);
+        Vks::<T, Groth16<T>>::insert(hash, vk_entry);
 
         #[extrinsic_call]
         submit_proof(
@@ -81,7 +82,8 @@ mod benchmarks {
         let caller = whitelisted_caller();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bls12_381);
         let hash = sp_core::H256::repeat_byte(2);
-        Vks::<T, Groth16<T>>::insert(hash, vk);
+        let vk_entry = VkEntry::new(vk);
+        Vks::<T, Groth16<T>>::insert(hash, vk_entry);
 
         #[extrinsic_call]
         submit_proof(
