@@ -7,9 +7,6 @@ DOCKERS=${PROJECT_ROOT}/docker/dockerfiles
 CARGO=${SCRIPTS}/my_cargo
 BUILD_PROFILE="${BUILD_PROFILE:---release}"
 
-SKIP_PARACHAIN=false
-SKIP_COMPILE=false
-
 # Features
 FAST_RUNTIME="${FAST_RUNTIME:-true}"                    # for dev, limit an epoch to 1min. Useful for testing with parachains
 
@@ -28,36 +25,18 @@ if [ "$RELAY_FEATURES" ]; then
   RELAY_FEATURES="--features ${RELAY_FEATURES}"
 fi
 
-# Determine what to compile/build
-while [ $# -gt 0 ]; do
-    case "$1" in
-        --skip-parachain)
-            SKIP_PARACHAIN=true
-            shift
-            ;;
-        --skip-compile)
-            SKIP_COMPILE=true
-            shift
-            ;;
-    esac
-done
+# Compile nodes
+echo "----------------------------------------------------------"
+echo "Compile solo node"
+${CARGO} build -p mainchain "${BUILD_PROFILE}"
 
-if [ "${SKIP_COMPILE}" != "true" ]; then
-  # Compile nodes
-  echo "----------------------------------------------------------"
-  echo "Compile solo node"
-  ${CARGO} build -p mainchain "${BUILD_PROFILE}"
+echo "----------------------------------------------------------"
+echo "Compile relay node"
+${CARGO} build -p zkv-relay "${BUILD_PROFILE}" "${RELAY_FEATURES}"
 
-  echo "----------------------------------------------------------"
-  echo "Compile relay node"
-  ${CARGO} build -p zkv-relay "${BUILD_PROFILE}" "${RELAY_FEATURES}"
-
-  if [ "${SKIP_PARACHAIN}" != "true" ]; then
-    echo "----------------------------------------------------------"
-    echo "Compile test parachain node"
-    ${CARGO} build -p paratest-node "${BUILD_PROFILE}"
-  fi
-fi
+echo "----------------------------------------------------------"
+echo "Compile test parachain node"
+${CARGO} build -p paratest-node "${BUILD_PROFILE}"
 
 # Create docker images
 echo "----------------------------------------------------------"
@@ -68,8 +47,6 @@ echo "----------------------------------------------------------"
 echo "Building relay node image"
 "${SCRIPTS}/build-zkv-relay-image-injected.sh"
 
-if [ "${SKIP_PARACHAIN}" != "true" ]; then
-  echo "----------------------------------------------------------"
-  echo "Building parachain node image"
-  "${SCRIPTS}/build-paratest-image-injected.sh"
-fi
+echo "----------------------------------------------------------"
+echo "Building parachain node image"
+"${SCRIPTS}/build-paratest-image-injected.sh"
