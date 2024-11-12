@@ -7,10 +7,6 @@ on:
         description: "Solo or relay"
         required: true
         type: string
-      artifact_name:
-        description: "Name of artifact of Docker image"
-        required: true
-        type: string
       git_tag:
         type: string
     secrets:
