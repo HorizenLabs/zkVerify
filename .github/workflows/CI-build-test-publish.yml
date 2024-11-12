@@ -59,7 +59,7 @@ jobs:
           ls target/release
       
       - name: Build docker image
-        runs: |
+        run: |
           if [[ "${{ inputs.chain }}" == "solo" ]]; then
             docker build --build-arg PROFILE=production -f "docker/dockerfiles/zkv-node.Dockerfile" -t "horizenlabs/zkverify-solo" .
             echo "DOCKER_IMAGE_NAME=horizenlabs/zkverify-solo" >> $GITHUB_ENV
