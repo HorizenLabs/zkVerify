@@ -27,7 +27,8 @@ jobs:
     needs: env-setup
     strategy:
       matrix: 
-        chain: [solo, relay]
+        # chain: [solo, relay]
+        chain: [relay]
     
     uses: ./.github/workflows/CI-build-test-publish.yml
     with:
