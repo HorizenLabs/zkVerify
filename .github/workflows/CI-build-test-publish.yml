@@ -17,7 +17,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: zkVerify
     name: Build Docker image
     outputs:
       artifact_name: ${{ steps.create-tar-file.outputs.artifact_name }}
@@ -75,7 +76,7 @@ jobs:
           echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
           echo "tar_file=$TAR_FILE" >> $GITHUB_OUTPUT
 
-          docker save "${ DOCKER_IMAGE_NAME }" -o "${TAR_FILE}"
+          docker save "${DOCKER_IMAGE_NAME}" -o "${TAR_FILE}"
 
       - name: Upload Docker Image Artifact
         uses: actions/upload-artifact@v4
@@ -89,6 +90,7 @@ jobs:
   
   execute-e2e-tests:
     runs-on: ubuntu-latest
+    needs: build
     name: Execute E2E Tests
     outputs:
       docker_image_tag: ${{ steps.set-docker-tag.outputs.docker_image_tag }}
