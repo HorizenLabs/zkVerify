@@ -22,13 +22,13 @@ jobs:
     uses: ./.github/workflows/CI-build.yml
     with:
       CACHING_MODE: "CACHE_RESTORE"
+      SKIP_PARACHAIN: true
 
   build-test-publish:
     needs: env-setup
     strategy:
       matrix: 
-        # chain: [solo, relay]
-        chain: [relay]
+        chain: [solo, relay]
     
     uses: ./.github/workflows/CI-build-test-publish.yml
     with:

@@ -19,7 +19,7 @@ docker run --rm -ti \
     -v "${HOME}/.gitconfig:/.gitconfig" \
     -v /etc/passwd:/etc/passwd:ro \
     -v /etc/group:/etc/group:ro \
-    -v $(pwd):/usr/src/node \
+    -v "$(pwd)":/usr/src/node \
     -u "$(id -u):$(id -g)" \
     rbuilder \
     cargo $@

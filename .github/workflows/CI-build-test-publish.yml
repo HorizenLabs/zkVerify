@@ -52,7 +52,7 @@ jobs:
             target/
           key: build-cache
       
-      - name: Verify restored build cache artifacts
+      - name: Verify restored build cache
         run: |
           ls target
           ls target/release
@@ -74,7 +74,7 @@ jobs:
           TAR_FILE="${{github.workspace}}/${ARTIFACT_NAME}.tar"
 
           echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
-          echo "tar_file=$TAR_FILE" >> $GITHUB_OUTPUT
+          echo "TAR_FILE=$TAR_FILE" >> $GITHUB_ENV
 
           docker save "${DOCKER_IMAGE_NAME}" -o "${TAR_FILE}"
 
@@ -82,7 +82,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.create-tar-file.outputs.artifact_name }}
-          path: ${{ steps.create-tar-file.outputs.tar_file }}
+          path: ${TAR_FILE}
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
@@ -93,21 +93,20 @@ jobs:
     needs: build
     name: Execute E2E Tests
     outputs:
-      docker_image_tag: ${{ steps.set-docker-tag.outputs.docker_image_tag }}
-      test_status: ${{ steps.runtest.outputs.test_status }} 
+      test_status: ${{ steps.run-test.outputs.test_status }} 
     steps:
       - name: E2E
-        run: echo "execute-e2e-tests with ${{ inputs.artifact_name }}"  
+        run: echo "execute-e2e-tests with ${{ needs.build.outputs.artifact_name }}"  
 
       - name: Download zkVerify Docker image artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ inputs.artifact_name }}
+          name: ${{ needs.buid.outputs.artifact_name }}
           path: ./
 
       - name: Load Docker image
         run: |
-          image_name="$(docker load -i "${GITHUB_WORKSPACE}/${image_artifact}.tar" | awk '/Loaded image:/ { print $3 }')"
+          image_name="$(docker load -i "${GITHUB_WORKSPACE}/${{ needs.build.outputs.artifact_name }}.tar" | awk '/Loaded image:/ { print $3 }')"
           echo "=== Loaded image ${image_name} ==="
         shell: bash
 
@@ -115,7 +114,7 @@ jobs:
         id: run-test
         uses: 'HorizenLabs/zkVerify-qa/.github/actions/e2e-test@main'
         with:
-          artifact_name: ${{ inputs.artifact_name }}
+          artifact_name: ${{ needs.build.outputs.artifact_name }}
           zkverify_docker_tag: latest
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 

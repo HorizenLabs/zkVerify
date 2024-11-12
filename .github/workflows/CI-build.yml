@@ -8,6 +8,9 @@ on:
       CACHING_MODE:
         required: true
         type: string
+      SKIP_PARACHAIN:
+        default: 'false'
+        type: boolean
         
 env:
   IMAGE_NAME: zencash/sc-ci-base
@@ -61,6 +64,7 @@ jobs:
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build -p zkv-relay --release
 
       - name: Cargo build paratest node
+        if: ${{ inputs.SKIP_PARACHAIN != 'true' }}
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo build -p paratest-node --release
 
       - name: Save common cache

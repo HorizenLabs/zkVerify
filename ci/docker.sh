@@ -48,13 +48,10 @@ if [ -z "${docker_hub_username:-}" ]; then
   fn_die "ERROR: DOCKER_HUB_USERNAME variable is not set. Exiting ..."
 fi
 
-# docker_tag_full=""
-# if [ "${is_a_release}" = "true" ]; then
-#   docker_tag_full="${github_ref_name}"
-# fi
-
-docker_tag_full="${github_ref_name}"
-test_release=true
+docker_tag_full=""
+if [ "${is_a_release}" = "true" ]; then
+  docker_tag_full="${github_ref_name}"
+fi
 
 # Load docker image
 if [ -n "${docker_tag_full:-}" ]; then
@@ -63,8 +60,7 @@ if [ -n "${docker_tag_full:-}" ]; then
     image_name="$(docker load -i "${GITHUB_WORKSPACE}/${image_artifact}.tar" | awk '/Loaded image:/ { print $3 }')"
     log_info "=== Loaded image ${image_name} ==="
   else 
-    log_info "=== No artifact specified ==="
-    exit 1
+    fn_die "ERROR: No artifact specified with --image-artifact. Exiting ..."
   fi
 
   # Publishing to DockerHub
@@ -84,8 +80,9 @@ if [ -n "${docker_tag_full:-}" ]; then
 
   # Append -relay to tag names for relay chain images
   if [[ "${image_artifact}" == *"relay"* ]]; then
+    docker_tag_full="${docker_tag_full}-relay"
     for publish_tag in "${!publish_tags[@]}"; do
-      publish_tags[$publish_tag]="${publish_tags[$publish_tag]}-relay"
+      publish_tags["${publish_tag}"]="${publish_tags["${publish_tag}"]}-relay"
     done
   fi
 
