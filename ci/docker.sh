@@ -79,7 +79,7 @@ if [ -n "${docker_tag_full:-}" ]; then
   fi
 
   # Append -relay to tag names for relay chain images
-  if [[ "${image_artifact}" == *"relay"* ]]; then
+  if [[ "${image_artifact}" == "zkverify-relay" ]]; then
     docker_tag_full="${docker_tag_full}-relay"
     for publish_tag in "${!publish_tags[@]}"; do
       publish_tags["${publish_tag}"]="${publish_tags["${publish_tag}"]}-relay"
