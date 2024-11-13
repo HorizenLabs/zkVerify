@@ -9,7 +9,7 @@ on:
         required: true
         type: string
       SKIP_PARACHAIN:
-        default: 'false'
+        default: false
         type: boolean
         
 env:
