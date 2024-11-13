@@ -1,6 +1,7 @@
 //! Some utilities for benchmarking verifiers.
 
 #![cfg(feature = "runtime-benchmarks")]
+#![cfg(not(doc))]
 
 use crate::Config;
 use frame_benchmarking::whitelisted_caller;

@@ -74,7 +74,7 @@ mod test {
     use sp_core::H256;
 
     #[test]
-    fn asdf() {
+    fn successful_migration() {
         test_ext().execute_with(|| {
             // Populate `Vks` storage map with some entries
             let num_entries = 5;

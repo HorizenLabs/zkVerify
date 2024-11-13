@@ -155,7 +155,7 @@ pub mod pallet {
         type Currency: ReservableCurrency<AccountOf<Self>>;
     }
 
-    ///TODO
+    /// A Vk with a reference count
     #[derive(Debug, Clone, PartialEq, Encode, Decode, TypeInfo, MaxEncodedLen)]
     pub struct VkEntry<V> {
         vk: V,
