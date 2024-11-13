@@ -256,13 +256,7 @@ pub mod pallet {
     pub type Tickets<T: Config<I>, I: 'static = ()>
     where
         I: Verifier,
-    = StorageDoubleMap<
-        Hasher1 = Identity,
-        Key1 = T::AccountId,
-        Hasher2 = Identity,
-        Key2 = H256,
-        Value = T::Ticket,
-    >;
+    = StorageMap<Hasher = Blake2_128Concat, Key = (T::AccountId, H256), Value = T::Ticket>;
 
     // Dispatchable functions allows users to interact with the pallet and invoke state changes.
     // These functions materialize as "extrinsics", which are often compared to transactions.
@@ -326,10 +320,10 @@ pub mod pallet {
             let account_id = ensure_signed(origin)?;
             I::validate_vk(&vk).map_err(Error::<T, I>::from)?;
             let hash = I::vk_hash(&vk);
-            if !Tickets::<T, I>::contains_key(&account_id, hash) {
+            if !Tickets::<T, I>::contains_key((&account_id, hash)) {
                 let footprint = Footprint::from_encodable(&vk);
                 let ticket = T::Ticket::new(&account_id, footprint)?;
-                Tickets::<T, I>::insert(account_id, hash, ticket);
+                Tickets::<T, I>::insert((account_id, hash), ticket);
                 Vks::<T, I>::mutate(hash, |vk_entry| match vk_entry {
                     Some(VkEntry { ref_count, .. }) => *ref_count += 1,
                     None => *vk_entry = Some(VkEntry::new(*vk)),
@@ -360,7 +354,7 @@ pub mod pallet {
         pub fn unregister_vk(origin: OriginFor<T>, vk_hash: H256) -> DispatchResult {
             log::trace!("Unregister vk");
             let account_id = ensure_signed(origin)?;
-            let ticket = Tickets::<T, I>::take(&account_id, vk_hash)
+            let ticket = Tickets::<T, I>::take((&account_id, vk_hash))
                 .ok_or(Error::<T, I>::VerificationKeyNotFound)?;
             ticket.drop(&account_id)?;
             Vks::<T, I>::mutate_exists(vk_hash, |vk_entry| match vk_entry {
