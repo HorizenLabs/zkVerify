@@ -22,6 +22,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use codec::MaxEncodedLen;
 use pallet_babe::AuthorityId as BabeId;
 use pallet_grandpa::AuthorityId as GrandpaId;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
@@ -51,6 +52,7 @@ use frame_election_provider_support::{
 use frame_support::{
     genesis_builder_helper::{build_config, create_default_config},
     traits::{fungible::HoldConsideration, LinearStoragePrice},
+    Blake2_128Concat, Identity, StorageHasher,
 };
 
 // A few exports that help ease life for downstream crates.
@@ -777,11 +779,26 @@ impl pallet_proxy::Config for Runtime {
     type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
-parameter_types! {
-    pub const VkRegistrationBaseDeposit: Balance = deposit(2, 64);
-    pub const VkRegistrationByteDeposit: Balance = deposit(0, 1);
-    pub const VkRegistrationHoldReason: RuntimeHoldReason = RuntimeHoldReason::CommonVerifiers(pallet_verifiers::common::HoldReason::VkRegistration);
+mod vk_registration_parameters {
+    use super::*;
+
+    fn vks_key_size() -> u32 {
+        Identity::max_len::<sp_core::H256>() as u32
+    }
+    fn tickets_key_size() -> u32 {
+        Blake2_128Concat::max_len::<(AccountId, sp_core::H256)>() as u32
+    }
+    fn tickets_value_size() -> u32 {
+        VkRegistrationHoldConsideration::max_encoded_len() as u32
+    }
+    parameter_types! {
+        pub VkRegistrationBaseDeposit: Balance = deposit(4, vks_key_size() + tickets_key_size() + tickets_value_size());
+        pub const VkRegistrationByteDeposit: Balance = deposit(0, 1);
+        pub const VkRegistrationHoldReason: RuntimeHoldReason = RuntimeHoldReason::CommonVerifiers(pallet_verifiers::common::HoldReason::VkRegistration);
+    }
 }
+
+use vk_registration_parameters::*;
 
 type VkRegistrationHoldConsideration = HoldConsideration<
     AccountId,
