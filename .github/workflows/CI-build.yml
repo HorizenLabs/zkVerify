@@ -10,7 +10,7 @@ on:
         type: string
       SKIP_PARACHAIN:
         default: false
-        type: boolean
+        type: string
         
 env:
   IMAGE_NAME: zencash/sc-ci-base
