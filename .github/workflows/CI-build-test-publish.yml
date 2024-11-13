@@ -86,7 +86,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.create-tar-file.outputs.artifact_name }}
-          path: ${TAR_FILE}
+          path: ${{ env.TAR_FILE }}
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
@@ -120,7 +120,7 @@ jobs:
         id: run-test
         uses: 'HorizenLabs/zkVerify-qa/.github/actions/e2e-test@main'
         with:
-          zkverify_docker_tag: ${TEST_TAG}
+          zkverify_docker_tag: ${{ env.TEST_TAG }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   publish-docker-image:

@@ -22,7 +22,7 @@ jobs:
     uses: ./.github/workflows/CI-build.yml
     with:
       CACHING_MODE: "CACHE_SAVE"
-      SKIP_PARACHAIN: true
+      SKIP_PARACHAIN: 'true'
 
   build-test-publish:
     needs: env-setup
