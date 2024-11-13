@@ -206,4 +206,19 @@ impl<T: frame_system::Config> pallet_ultraplonk_verifier::WeightInfo for ZKVWeig
             .saturating_add(T::DbWeight::get().reads(1_u64))
             .saturating_add(T::DbWeight::get().writes(1_u64))
     }
+    /// Storage: `SettlementUltraplonkPallet::Tickets` (r:1 w:1)
+    /// Proof: `SettlementUltraplonkPallet::Tickets` (`max_values`: None, `max_size`: Some(80), added: 2555, mode: `MaxEncodedLen`)
+    /// Storage: `Balances::Holds` (r:1 w:1)
+    /// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(85), added: 2560, mode: `MaxEncodedLen`)
+    /// Storage: `SettlementUltraplonkPallet::Vks` (r:1 w:1)
+    /// Proof: `SettlementUltraplonkPallet::Vks` (`max_values`: None, `max_size`: Some(1759), added: 4234, mode: `MaxEncodedLen`)
+    fn unregister_vk() -> Weight {
+        // Proof Size summary in bytes:
+        //  Measured:  `1952`
+        //  Estimated: `5224`
+        // Minimum execution time: 174_756_000 picoseconds.
+        Weight::from_parts(174_756_000, 5224)
+            .saturating_add(RocksDbWeight::get().reads(3_u64))
+            .saturating_add(RocksDbWeight::get().writes(3_u64))
+    }
 }

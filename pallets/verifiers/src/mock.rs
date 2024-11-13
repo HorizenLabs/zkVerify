@@ -147,6 +147,10 @@ impl WeightInfo<FakeVerifier> for MockWeightInfo {
     fn register_vk(_vk: &u64) -> Weight {
         Weight::from_parts(5, 6)
     }
+
+    fn unregister_vk() -> Weight {
+        Weight::from_parts(7, 8)
+    }
 }
 
 pub struct MockCommonWeightInfo;
@@ -157,10 +161,6 @@ impl crate::common::WeightInfo for MockCommonWeightInfo {
 
     fn on_verify_disabled_verifier() -> Weight {
         Weight::from_parts(1003, 1004)
-    }
-
-    fn unregister_vk() -> Weight {
-        Weight::from_parts(1005, 1006)
     }
 }
 

@@ -17,9 +17,10 @@
 
 use crate::Ultraplonk;
 use frame_benchmarking::v2::*;
+use frame_support::traits::{Consideration, Footprint};
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
-use pallet_verifiers::{utils::funded_account, VkEntry, VkOrHash, Vks};
+use pallet_verifiers::{utils::funded_account, Tickets, VkEntry, VkOrHash, Vks};
 use sp_std::{vec, vec::Vec};
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: crate::Config {}
@@ -185,6 +186,23 @@ pub mod benchmarks {
 
         // Verify
         assert!(Vks::<T, Ultraplonk<T>>::get(Ultraplonk::<T>::vk_hash(&vk)).is_some());
+    }
+
+    #[benchmark]
+    fn unregister_vk() {
+        // setup code
+        let caller: T::AccountId = funded_account::<T, Ultraplonk<T>>();
+        let hash = sp_core::H256::repeat_byte(2);
+        let vk = VALID_VK;
+        let vk_entry = VkEntry::new(vk);
+        let footprint = Footprint::from_encodable(&vk_entry);
+        let ticket = T::Ticket::new(&caller, footprint).unwrap();
+
+        Vks::<T, Ultraplonk<T>>::insert(hash, vk_entry);
+        Tickets::<T, Ultraplonk<T>>::insert((caller.clone(), hash), ticket);
+
+        #[extrinsic_call]
+        unregister_vk(RawOrigin::Signed(caller), hash);
     }
 
     // WE CANNOT IMPLEMENT TESTS FOR BENCHMARKS FOR THIS PALLET

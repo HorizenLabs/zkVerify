@@ -17,9 +17,10 @@
 
 use super::Groth16;
 use frame_benchmarking::v2::*;
+use frame_support::traits::{Consideration, Footprint};
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
-use pallet_verifiers::{utils::funded_account, VkEntry, VkOrHash, Vks};
+use pallet_verifiers::{utils::funded_account, Tickets, VkEntry, VkOrHash, Vks};
 
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: crate::Config {}
@@ -116,6 +117,23 @@ mod benchmarks {
 
         // Verify
         assert!(Vks::<T, Groth16<T>>::get(Groth16::<T>::vk_hash(&vk)).is_some());
+    }
+
+    #[benchmark]
+    fn unregister_vk() {
+        // setup code
+        let caller: T::AccountId = funded_account::<T, Groth16<T>>();
+        let hash = sp_core::H256::repeat_byte(2);
+        let (_, vk, _) = Groth16Circuits::get_instance(0 as usize, None, Curve::Bn254);
+        let vk_entry = VkEntry::new(vk);
+        let footprint = Footprint::from_encodable(&vk_entry);
+        let ticket = T::Ticket::new(&caller, footprint).unwrap();
+
+        Vks::<T, Groth16<T>>::insert(hash, vk_entry);
+        Tickets::<T, Groth16<T>>::insert((caller.clone(), hash), ticket);
+
+        #[extrinsic_call]
+        unregister_vk(RawOrigin::Signed(caller), hash);
     }
 
     impl_benchmark_test_suite!(Pallet, super::mock::test_ext(), super::mock::Test);

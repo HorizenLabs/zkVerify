@@ -104,6 +104,10 @@ pub trait WeightInfo<V: Verifier> {
 
     /// Here you should map the given request to a weight computed with your verifier.
     fn register_vk(vk: &V::Vk) -> Weight;
+
+    /// Here you should map the given unregister_vk request to the weight computed with
+    /// your verifier.
+    fn unregister_vk() -> Weight;
 }
 
 /// `()` is a verifier that reject the proof and returns `VerifyError::VerifyError`.

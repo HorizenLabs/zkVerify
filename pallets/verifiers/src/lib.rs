@@ -356,7 +356,7 @@ pub mod pallet {
         /// Should be called by the same account used for registering the verification key.
         /// Unlock the funds which were locked when registering the verification key.
         #[pallet::call_index(3)]
-        #[pallet::weight(<T::CommonWeightInfo as crate::common::WeightInfo>::unregister_vk())]
+        #[pallet::weight(T::WeightInfo::unregister_vk())]
         pub fn unregister_vk(origin: OriginFor<T>, vk_hash: H256) -> DispatchResult {
             log::trace!("Unregister vk");
             let account_id = ensure_signed(origin)?;

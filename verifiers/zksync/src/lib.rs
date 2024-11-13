@@ -86,4 +86,8 @@ impl<W: weight::WeightInfo> pallet_verifiers::WeightInfo<Zksync> for ZksyncWeigh
     fn register_vk(_vk: &<Zksync as hp_verifiers::Verifier>::Vk) -> Weight {
         W::register_vk()
     }
+
+    fn unregister_vk() -> frame_support::weights::Weight {
+        W::unregister_vk()
+    }
 }

@@ -180,4 +180,19 @@ impl<T: frame_system::Config> pallet_groth16_verifier::WeightInfo for ZKVWeight<
             .saturating_add(T::DbWeight::get().reads(1_u64))
             .saturating_add(T::DbWeight::get().writes(1_u64))
     }
+    /// Storage: `SettlementGroth16Pallet::Tickets` (r:1 w:1)
+    /// Proof: `SettlementGroth16Pallet::Tickets` (`max_values`: None, `max_size`: Some(80), added: 2555, mode: `MaxEncodedLen`)
+    /// Storage: `Balances::Holds` (r:1 w:1)
+    /// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(85), added: 2560, mode: `MaxEncodedLen`)
+    /// Storage: `SettlementGroth16Pallet::Vks` (r:1 w:1)
+    /// Proof: `SettlementGroth16Pallet::Vks` (`max_values`: None, `max_size`: Some(3956), added: 6431, mode: `MaxEncodedLen`)
+    fn unregister_vk() -> Weight {
+        // Proof Size summary in bytes:
+        //  Measured:  `795`
+        //  Estimated: `7421`
+        // Minimum execution time: 70_240_000 picoseconds.
+        Weight::from_parts(70_240_000, 7421)
+            .saturating_add(RocksDbWeight::get().reads(3_u64))
+            .saturating_add(RocksDbWeight::get().writes(3_u64))
+    }
 }

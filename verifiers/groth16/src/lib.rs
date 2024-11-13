@@ -137,4 +137,8 @@ impl<T: Config, W: WeightInfo> pallet_verifiers::WeightInfo<Groth16<T>> for Grot
             Curve::Bls12_381 => W::register_vk_bls12_381(n),
         }
     }
+
+    fn unregister_vk() -> frame_support::weights::Weight {
+        W::unregister_vk()
+    }
 }

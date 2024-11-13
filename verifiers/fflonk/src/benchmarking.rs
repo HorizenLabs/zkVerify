@@ -17,9 +17,10 @@
 
 use crate::Fflonk;
 use frame_benchmarking::v2::*;
+use frame_support::traits::{Consideration, Footprint};
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
-use pallet_verifiers::{utils::funded_account, VkEntry, VkOrHash, Vks};
+use pallet_verifiers::{utils::funded_account, Tickets, VkEntry, VkOrHash, Vks};
 
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: pallet_verifiers::Config<Fflonk> {}
@@ -80,6 +81,22 @@ mod benchmarks {
 
         // Verify
         assert!(Vks::<T, Fflonk>::get(Fflonk::vk_hash(&vk)).is_some());
+    }
+
+    #[benchmark]
+    fn unregister_vk() {
+        // setup code
+        let caller: T::AccountId = funded_account::<T, Fflonk>();
+        let hash = sp_core::H256::repeat_byte(2);
+        let vk_entry = VkEntry::new(cdk_key());
+        let footprint = Footprint::from_encodable(&cdk_key());
+        let ticket = T::Ticket::new(&caller, footprint).unwrap();
+
+        Vks::<T, Fflonk>::insert(hash, vk_entry);
+        Tickets::<T, Fflonk>::insert((caller.clone(), hash), ticket);
+
+        #[extrinsic_call]
+        unregister_vk(RawOrigin::Signed(caller), hash);
     }
 
     impl_benchmark_test_suite!(Pallet, super::mock::test_ext(), super::mock::Test);

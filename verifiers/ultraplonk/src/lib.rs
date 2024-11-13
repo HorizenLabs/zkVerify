@@ -114,4 +114,8 @@ impl<T: Config, W: weight::WeightInfo> pallet_verifiers::WeightInfo<Ultraplonk<T
     fn register_vk(_vk: &<Ultraplonk<T> as hp_verifiers::Verifier>::Vk) -> Weight {
         W::register_vk()
     }
+
+    fn unregister_vk() -> frame_support::weights::Weight {
+        W::unregister_vk()
+    }
 }

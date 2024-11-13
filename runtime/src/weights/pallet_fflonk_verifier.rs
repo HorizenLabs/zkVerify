@@ -109,4 +109,19 @@ impl<T: frame_system::Config> pallet_fflonk_verifier::WeightInfo for ZKVWeight<T
             .saturating_add(T::DbWeight::get().reads(1_u64))
             .saturating_add(T::DbWeight::get().writes(1_u64))
     }
+    /// Storage: `SettlementFFlonkPallet::Tickets` (r:1 w:1)
+    /// Proof: `SettlementFFlonkPallet::Tickets` (`max_values`: None, `max_size`: Some(80), added: 2555, mode: `MaxEncodedLen`)
+    /// Storage: `Balances::Holds` (r:1 w:1)
+    /// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(85), added: 2560, mode: `MaxEncodedLen`)
+    /// Storage: `SettlementFFlonkPallet::Vks` (r:1 w:1)
+    /// Proof: `SettlementFFlonkPallet::Vks` (`max_values`: None, `max_size`: Some(553), added: 3028, mode: `MaxEncodedLen`)
+    fn unregister_vk() -> Weight {
+        // Proof Size summary in bytes:
+        //  Measured:  `784`
+        //  Estimated: `4018`
+        // Minimum execution time: 73_683_000 picoseconds.
+        Weight::from_parts(73_683_000, 4018)
+            .saturating_add(RocksDbWeight::get().reads(3_u64))
+            .saturating_add(RocksDbWeight::get().writes(3_u64))
+    }
 }

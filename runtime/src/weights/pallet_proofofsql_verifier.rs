@@ -109,4 +109,19 @@ impl<T: frame_system::Config> pallet_proofofsql_verifier::WeightInfo for ZKVWeig
             .saturating_add(T::DbWeight::get().reads(1_u64))
             .saturating_add(T::DbWeight::get().writes(1_u64))
     }
+    /// Storage: `SettlementProofOfSqlPallet::Tickets` (r:1 w:1)
+    /// Proof: `SettlementProofOfSqlPallet::Tickets` (`max_values`: None, `max_size`: Some(80), added: 2555, mode: `MaxEncodedLen`)
+    /// Storage: `Balances::Holds` (r:1 w:1)
+    /// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(85), added: 2560, mode: `MaxEncodedLen`)
+    /// Storage: `SettlementProofOfSqlPallet::Vks` (r:1 w:1)
+    /// Proof: `SettlementProofOfSqlPallet::Vks` (`max_values`: None, `max_size`: Some(26980), added: 29455, mode: `MaxEncodedLen`)
+    fn unregister_vk() -> Weight {
+        // Proof Size summary in bytes:
+        //  Measured:  `27251`
+        //  Estimated: `30445`
+        // Minimum execution time: 98_763_000 picoseconds.
+        Weight::from_parts(98_763_000, 30445)
+            .saturating_add(RocksDbWeight::get().reads(3_u64))
+            .saturating_add(RocksDbWeight::get().writes(3_u64))
+    }
 }
