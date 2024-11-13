@@ -15,6 +15,10 @@ on:
       DOCKER_HUB_TOKEN:
         required: true
 
+env:
+  DOCKER_HUB_ORG: horizenlabs
+  DOCKER_IMAGE_BUILD_NAME: zkverify
+
 jobs:
   build:
     runs-on:
@@ -60,11 +64,11 @@ jobs:
       - name: Build docker image
         run: |
           if [[ "${{ inputs.chain }}" == "solo" ]]; then
-            docker build --build-arg PROFILE=production -f "docker/dockerfiles/zkv-node.Dockerfile" -t "horizenlabs/zkverify-solo" .
-            echo "DOCKER_IMAGE_NAME=horizenlabs/zkverify-solo" >> $GITHUB_ENV
+            docker build --build-arg PROFILE=production -f "docker/dockerfiles/zkv-node.Dockerfile" -t "${DOCKER_HUB_ORG}/zkverify-solo" .
+            echo "DOCKER_IMAGE_NAME=${DOCKER_HUB_ORG}/zkverify-solo" >> $GITHUB_ENV
           elif [[ "${{ inputs.chain }}" == "relay" ]]; then
-            docker build --build-arg PROFILE=production -f "docker/dockerfiles/zkv-relay.Dockerfile" -t "horizenlabs/zkverify-relay" .
-            echo "DOCKER_IMAGE_NAME=horizenlabs/zkverify-relay" >> $GITHUB_ENV
+            docker build --build-arg PROFILE=production -f "docker/dockerfiles/zkv-relay.Dockerfile" -t "${DOCKER_HUB_ORG}/zkverify-relay" .
+            echo "DOCKER_IMAGE_NAME=${DOCKER_HUB_ORG}/zkverify-relay" >> $GITHUB_ENV
           fi
       
       - name: Save the Docker image as a tarball
@@ -104,26 +108,26 @@ jobs:
           name: ${{ needs.buid.outputs.artifact_name }}
           path: ./
 
-      - name: Load Docker image
+      - name: Load Docker image and rename
         run: |
           image_name="$(docker load -i "${GITHUB_WORKSPACE}/${{ needs.build.outputs.artifact_name }}.tar" | awk '/Loaded image:/ { print $3 }')"
           echo "=== Loaded image ${image_name} ==="
+          echo "TEST_TAG=test" >> $GITHUB_ENV
+          docker image tag "${image_name}" "${DOCKER_HUB_ORG}/${DOCKER_IMAGE_BUILD_NAME}:${TEST_TAG}"
         shell: bash
 
       - name: Run test
         id: run-test
         uses: 'HorizenLabs/zkVerify-qa/.github/actions/e2e-test@main'
         with:
-          artifact_name: ${{ needs.build.outputs.artifact_name }}
-          zkverify_docker_tag: latest
+          zkverify_docker_tag: ${TEST_TAG}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   publish-docker-image:
     name: Publish Docker Image
     runs-on: ubuntu-latest
-    needs: build
-    # needs: [ build, execute-e2e-tests ] # Wait for e2e tests to finish
-    # if: ${{ needs.execute-e2e-tests.outputs.test_status == 'success' }}
+    needs: [ build, execute-e2e-tests ] # Wait for e2e tests to finish
+    if: ${{ needs.execute-e2e-tests.outputs.test_status == 'success' }}
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
@@ -151,5 +155,5 @@ jobs:
       - name: Upload runtime artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zkv_runtime.compact.compressed.wasm
+          name: "zkv_runtime.${{ inputs.chain }}.compact.compressed.wasm"
           path: ./zkv_runtime.compact.compressed.wasm

@@ -21,7 +21,7 @@ jobs:
   env-setup:
     uses: ./.github/workflows/CI-build.yml
     with:
-      CACHING_MODE: "CACHE_RESTORE"
+      CACHING_MODE: "CACHE_SAVE"
       SKIP_PARACHAIN: true
 
   build-test-publish:
