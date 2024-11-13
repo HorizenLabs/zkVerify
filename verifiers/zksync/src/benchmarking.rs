@@ -19,7 +19,7 @@ use crate::Zksync;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
-use pallet_verifiers::{VkEntry, VkOrHash, Vks};
+use pallet_verifiers::{utils::funded_account, VkEntry, VkOrHash, Vks};
 
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: pallet_verifiers::Config<Zksync> {}
@@ -63,7 +63,7 @@ mod benchmarks {
     #[benchmark]
     fn register_vk() {
         // setup code
-        let caller = whitelisted_caller();
+        let caller: T::AccountId = funded_account::<T, Zksync>();
         let vk = ().into();
 
         #[extrinsic_call]
@@ -71,5 +71,91 @@ mod benchmarks {
 
         // Verify
         assert!(Vks::<T, Zksync>::get(Zksync::vk_hash(&())).is_some());
+    }
+
+    impl_benchmark_test_suite!(Pallet, super::mock::test_ext(), super::mock::Test);
+}
+
+#[cfg(test)]
+mod mock {
+    use frame_support::{
+        derive_impl, parameter_types,
+        sp_runtime::{traits::IdentityLookup, BuildStorage},
+        traits::{fungible::HoldConsideration, LinearStoragePrice},
+    };
+    use sp_core::{ConstU128, ConstU32};
+
+    type Balance = u128;
+    type AccountId = u64;
+
+    // Configure a mock runtime to test the pallet.
+    frame_support::construct_runtime!(
+        pub enum Test
+        {
+            System: frame_system,
+            Balances: pallet_balances,
+            CommonVerifiersPallet: pallet_verifiers::common,
+            VerifierPallet: crate,
+        }
+    );
+
+    #[derive_impl(frame_system::config_preludes::SolochainDefaultConfig as frame_system::DefaultConfig)]
+    impl frame_system::Config for Test {
+        type Block = frame_system::mocking::MockBlockU32<Test>;
+        type AccountId = AccountId;
+        type Lookup = IdentityLookup<Self::AccountId>;
+        type AccountData = pallet_balances::AccountData<Balance>;
+    }
+
+    parameter_types! {
+        pub const BaseDeposit: Balance = 1;
+        pub const PerByteDeposit: Balance = 2;
+        pub const HoldReasonVkRegistration: RuntimeHoldReason = RuntimeHoldReason::CommonVerifiersPallet(pallet_verifiers::common::HoldReason::VkRegistration);
+    }
+
+    impl pallet_verifiers::Config<crate::Zksync> for Test {
+        type RuntimeEvent = RuntimeEvent;
+        type OnProofVerified = ();
+        type WeightInfo = crate::ZksyncWeight<()>;
+        type Ticket = HoldConsideration<
+            AccountId,
+            Balances,
+            HoldReasonVkRegistration,
+            LinearStoragePrice<BaseDeposit, PerByteDeposit, Balance>,
+        >;
+        type Currency = Balances;
+    }
+
+    impl pallet_balances::Config for Test {
+        type MaxLocks = ConstU32<50>;
+        type MaxReserves = ();
+        type ReserveIdentifier = [u8; 8];
+        /// The type for recording an account's balance.
+        type Balance = Balance;
+        /// The ubiquitous event type.
+        type RuntimeEvent = RuntimeEvent;
+        type DustRemoval = ();
+        type ExistentialDeposit = ConstU128<1>;
+        type AccountStore = System;
+        type WeightInfo = ();
+        type FreezeIdentifier = ();
+        type MaxFreezes = ();
+        type RuntimeHoldReason = RuntimeHoldReason;
+        type RuntimeFreezeReason = ();
+    }
+
+    impl pallet_verifiers::common::Config for Test {
+        type CommonWeightInfo = Test;
+    }
+
+    /// Build genesis storage according to the mock runtime.
+    pub fn test_ext() -> sp_io::TestExternalities {
+        let mut ext = sp_io::TestExternalities::from(
+            frame_system::GenesisConfig::<Test>::default()
+                .build_storage()
+                .unwrap(),
+        );
+        ext.execute_with(|| System::set_block_number(1));
+        ext
     }
 }

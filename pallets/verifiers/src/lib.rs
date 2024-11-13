@@ -72,6 +72,8 @@ pub mod common;
 pub mod migrations;
 #[allow(missing_docs)]
 pub mod mock;
+pub mod utils;
+
 mod tests;
 
 pub use hp_verifiers::WeightInfo;

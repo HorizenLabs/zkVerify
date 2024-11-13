@@ -25,6 +25,10 @@ frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
 hex-literal = { workspace = true }
+pallet-balances = { workspace = true }
+codec = { workspace = true }
+scale-info = { workspace = true }
+sp-io = { workspace = true }
 
 [features]
 runtime-benchmarks = [
@@ -40,5 +44,6 @@ std = [
     "scale-info/std",
     "pallet-verifiers/std",
     "frame-support/std",
+    "pallet-balances/std",
 ]
 try-runtime = ["pallet-verifiers/try-runtime", "frame-support/try-runtime"]

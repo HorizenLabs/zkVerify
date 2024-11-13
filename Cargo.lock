@@ -7375,6 +7375,7 @@ dependencies = [
  "hex-literal",
  "hp-verifiers",
  "log",
+ "pallet-balances",
  "pallet-verifiers",
  "parity-scale-codec",
  "scale-info",
@@ -7420,6 +7421,7 @@ dependencies = [
  "hp-groth16",
  "hp-verifiers",
  "native",
+ "pallet-balances",
  "pallet-verifiers",
  "parity-scale-codec",
  "rstest",
@@ -7608,6 +7610,7 @@ dependencies = [
  "hex-literal",
  "hp-verifiers",
  "log",
+ "pallet-balances",
  "pallet-verifiers",
  "parity-scale-codec",
  "proof-of-sql-verifier",
@@ -7665,8 +7668,12 @@ dependencies = [
  "hp-verifiers",
  "log",
  "native",
+ "pallet-balances",
  "pallet-verifiers",
+ "parity-scale-codec",
+ "scale-info",
  "sp-core",
+ "sp-io",
  "sp-std",
 ]
 
@@ -7892,6 +7899,7 @@ dependencies = [
  "hp-verifiers",
  "log",
  "native",
+ "pallet-balances",
  "pallet-verifiers",
  "parity-scale-codec",
  "scale-info",
@@ -8041,9 +8049,12 @@ dependencies = [
  "hex-literal",
  "hp-verifiers",
  "native",
+ "pallet-balances",
  "pallet-verifiers",
+ "parity-scale-codec",
  "scale-info",
  "sp-core",
+ "sp-io",
 ]
 
 [[package]]

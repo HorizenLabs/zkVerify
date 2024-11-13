@@ -28,6 +28,7 @@ codec = { workspace = true }
 scale-info = { workspace = true }
 sp-runtime = { workspace = true }
 sp-io = { workspace = true }
+pallet-balances = { workspace = true }
 
 [features]
 std = [
@@ -38,6 +39,7 @@ std = [
     "frame-system/std",
     "pallet-verifiers/std",
     "native/std",
+    "pallet-balances/std",
 ]
 default = ["std"]
 runtime-benchmarks = [

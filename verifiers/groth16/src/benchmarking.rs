@@ -19,7 +19,7 @@ use super::Groth16;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
-use pallet_verifiers::{VkEntry, VkOrHash, Vks};
+use pallet_verifiers::{utils::funded_account, VkEntry, VkOrHash, Vks};
 
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: crate::Config {}
@@ -96,7 +96,7 @@ mod benchmarks {
 
     #[benchmark]
     fn register_vk_bn254(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
-        let caller = whitelisted_caller();
+        let caller: T::AccountId = funded_account::<T, Groth16<T>>();
         let (_, vk, _) = Groth16Circuits::get_instance(n as usize, None, Curve::Bn254);
 
         #[extrinsic_call]
@@ -108,7 +108,7 @@ mod benchmarks {
 
     #[benchmark]
     fn register_vk_bls12_381(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
-        let caller = whitelisted_caller();
+        let caller: T::AccountId = funded_account::<T, Groth16<T>>();
         let (_, vk, _) = Groth16Circuits::get_instance(n as usize, None, Curve::Bls12_381);
 
         #[extrinsic_call]
@@ -123,14 +123,23 @@ mod benchmarks {
 
 #[cfg(test)]
 mod mock {
-    use frame_support::derive_impl;
+    use frame_support::{
+        derive_impl, parameter_types,
+        traits::{fungible::HoldConsideration, LinearStoragePrice},
+    };
+    use sp_core::{ConstU128, ConstU32};
     use sp_runtime::{traits::IdentityLookup, BuildStorage};
+
+    type Balance = u128;
+    type AccountId = u64;
 
     // Configure a mock runtime to test the pallet.
     frame_support::construct_runtime!(
         pub enum Test
         {
             System: frame_system,
+            Balances: pallet_balances,
+            CommonVerifiersPallet: pallet_verifiers::common,
             VerifierPallet: crate,
         }
     );
@@ -138,14 +147,46 @@ mod mock {
     #[derive_impl(frame_system::config_preludes::SolochainDefaultConfig as frame_system::DefaultConfig)]
     impl frame_system::Config for Test {
         type Block = frame_system::mocking::MockBlockU32<Test>;
-        type AccountId = u64;
+        type AccountId = AccountId;
         type Lookup = IdentityLookup<Self::AccountId>;
+        type AccountData = pallet_balances::AccountData<Balance>;
+    }
+
+    parameter_types! {
+        pub const BaseDeposit: Balance = 1;
+        pub const PerByteDeposit: Balance = 2;
+        pub const HoldReasonVkRegistration: RuntimeHoldReason = RuntimeHoldReason::CommonVerifiersPallet(pallet_verifiers::common::HoldReason::VkRegistration);
     }
 
     impl pallet_verifiers::Config<crate::Groth16<Test>> for Test {
         type RuntimeEvent = RuntimeEvent;
         type OnProofVerified = ();
         type WeightInfo = crate::Groth16Weight<()>;
+        type Ticket = HoldConsideration<
+            AccountId,
+            Balances,
+            HoldReasonVkRegistration,
+            LinearStoragePrice<BaseDeposit, PerByteDeposit, Balance>,
+        >;
+        type Currency = Balances;
+    }
+
+    impl pallet_balances::Config for Test {
+        type MaxLocks = ConstU32<50>;
+        type MaxReserves = ();
+        type ReserveIdentifier = [u8; 8];
+        /// The type for recording an account's balance.
+        type Balance = Balance;
+        /// The ubiquitous event type.
+        type RuntimeEvent = RuntimeEvent;
+        type DustRemoval = ();
+        type ExistentialDeposit = ConstU128<1>;
+        type AccountStore = System;
+        type WeightInfo = ();
+        type FreezeIdentifier = ();
+        type MaxFreezes = ();
+        type RuntimeHoldReason = RuntimeHoldReason;
+        type RuntimeFreezeReason = ();
     }
 
     impl pallet_verifiers::common::Config for Test {

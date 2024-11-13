@@ -19,7 +19,7 @@ use crate::Ultraplonk;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
-use pallet_verifiers::{VkEntry, VkOrHash, Vks};
+use pallet_verifiers::{utils::funded_account, VkEntry, VkOrHash, Vks};
 use sp_std::{vec, vec::Vec};
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: crate::Config {}
@@ -177,7 +177,7 @@ pub mod benchmarks {
     #[benchmark]
     fn register_vk() {
         // setup code
-        let caller = whitelisted_caller();
+        let caller: T::AccountId = funded_account::<T, Ultraplonk<T>>();
         let vk = VALID_VK;
 
         #[extrinsic_call]

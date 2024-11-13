@@ -34,6 +34,7 @@ fflonk_verifier = { git = "https://github.com/HorizenLabs/fflonk_verifier.git", 
 ], tag = "v0.4.0" }
 hex-literal = { workspace = true }
 serde_json = { version = "1.0.117" }
+pallet-balances = { workspace = true }
 
 
 [features]
@@ -47,6 +48,7 @@ std = [
     "hp-verifiers/std",
     "fflonk_verifier/std",
     "pallet-verifiers/std",
+    "pallet-balances/std",
 ]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",

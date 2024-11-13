@@ -24,6 +24,10 @@ frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
 hex-literal = { workspace = true }
+pallet-balances = { workspace = true }
+codec = { workspace = true }
+scale-info = { workspace = true }
+sp-io = { workspace = true }
 
 [features]
 std = [
@@ -34,6 +38,7 @@ std = [
     "frame-support/std",
     "frame-system/std",
     "native/std",
+    "pallet-balances/std",
 ]
 default = ["std"]
 runtime-benchmarks = [

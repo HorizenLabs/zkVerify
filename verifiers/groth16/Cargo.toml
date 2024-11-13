@@ -33,6 +33,7 @@ rstest = { workspace = true }
 rstest_reuse = { workspace = true }
 hex-literal = { workspace = true }
 hp-groth16 = { workspace = true, features = ["dummy-circuit"] }
+pallet-balances = { workspace = true }
 
 [features]
 std = [
@@ -45,6 +46,7 @@ std = [
     "frame-support/std",
     "hp-groth16/std",
     "native/std",
+    "pallet-balances/std",
 ]
 default = ["std"]
 runtime-benchmarks = [

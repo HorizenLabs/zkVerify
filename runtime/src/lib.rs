@@ -800,6 +800,8 @@ impl pallet_verifiers::Config<pallet_fflonk_verifier::Fflonk> for Runtime {
     type WeightInfo =
         pallet_fflonk_verifier::FflonkWeight<weights::pallet_fflonk_verifier::ZKVWeight<Runtime>>;
     type Ticket = VkRegistrationHoldConsideration;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
 }
 
 impl pallet_verifiers::Config<pallet_zksync_verifier::Zksync> for Runtime {
@@ -808,6 +810,8 @@ impl pallet_verifiers::Config<pallet_zksync_verifier::Zksync> for Runtime {
     type WeightInfo =
         pallet_zksync_verifier::ZksyncWeight<weights::pallet_zksync_verifier::ZKVWeight<Runtime>>;
     type Ticket = VkRegistrationHoldConsideration;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
 }
 
 pub const GROTH16_MAX_NUM_INPUTS: u32 = 16;
@@ -832,6 +836,8 @@ impl pallet_verifiers::Config<pallet_groth16_verifier::Groth16<Runtime>> for Run
         weights::pallet_groth16_verifier::ZKVWeight<Runtime>,
     >;
     type Ticket = VkRegistrationHoldConsideration;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
 }
 
 parameter_types! {
@@ -852,6 +858,8 @@ impl pallet_verifiers::Config<pallet_risc0_verifier::Risc0<Runtime>> for Runtime
     type WeightInfo =
         pallet_risc0_verifier::Risc0Weight<weights::pallet_risc0_verifier::ZKVWeight<Runtime>>;
     type Ticket = VkRegistrationHoldConsideration;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
 }
 
 parameter_types! {
@@ -869,6 +877,8 @@ impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> f
         weights::pallet_ultraplonk_verifier::ZKVWeight<Runtime>,
     >;
     type Ticket = VkRegistrationHoldConsideration;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
 }
 
 parameter_types! {
@@ -891,6 +901,8 @@ impl pallet_verifiers::Config<pallet_proofofsql_verifier::ProofOfSql<Runtime>> f
         weights::pallet_proofofsql_verifier::ZKVWeight<Runtime>,
     >;
     type Ticket = VkRegistrationHoldConsideration;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
