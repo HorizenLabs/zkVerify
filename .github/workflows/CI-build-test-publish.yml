@@ -34,34 +34,6 @@ jobs:
           ref: ${{ inputs.git_ref }}
           fetch-depth: 0
 
-      - name: Set up deps cache
-        run: mkdir deps
-
-      - name: Restore common cache
-        if: ${{ !env.ACT }}
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            deps/
-          key: common-cache
-      
-      - name: Restore build cache
-        if: ${{ !env.ACT }}
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            target/
-          key: build-cache
-      
-      - name: Verify restored build cache
-        run: |
-          ls target
-          ls target/release
-      
       - name: Build docker image
         run: |
           if [[ "${{ inputs.chain }}" == "solo" ]]; then
@@ -111,10 +83,11 @@ jobs:
 
       - name: Load Docker image and rename
         run: |
-          image_name="$(docker load -i "${GITHUB_WORKSPACE}/${{ needs.build.outputs.artifact_name }}.tar" | awk '/Loaded image:/ { print $3 }')"
-          echo "=== Loaded image ${image_name} ==="
-          echo "TEST_TAG=test" >> $GITHUB_ENV
-          docker image tag "${image_name}" "${DOCKER_HUB_ORG}/${DOCKER_IMAGE_BUILD_NAME}:${TEST_TAG}"
+          IMAGE_NAME="$(docker load -i "${GITHUB_WORKSPACE}/${{ needs.build.outputs.artifact_name }}.tar" | awk '/Loaded image:/ { print $3 }')"
+          echo "=== Loaded image ${IMAGE_NAME} ==="
+          TEST_TAG="test"
+          echo "TEST_TAG=${TEST_TAG}" >> $GITHUB_ENV
+          docker image tag "${IMAGE_NAME}" "${DOCKER_HUB_ORG}/${DOCKER_IMAGE_BUILD_NAME}:${TEST_TAG}"
         shell: bash
 
       - name: Run test
