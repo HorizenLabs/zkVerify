@@ -30,7 +30,8 @@ sp-runtime.workspace = true
 sp-runtime.default-features = true
 sp-state-machine.workspace = true
 sp-state-machine.default-features = true
-zkv-cli = { workspace = true, default-features = false, features = ["cli"] }
+zkv-cli = { workspace = true, features = ["cli"] }
+# service is our own zkv-service (see workspace)
 service = { workspace = true }
 cumulus-primitives-core.workspace = true
 cumulus-primitives-core.default-features = true
@@ -42,6 +43,3 @@ sp-keyring = { workspace = true }
 polkadot-primitives = { workspace = true, default-features = true }
 test-client = { path = "../../../../relay-node/test/client" }
 metered = { features = ["futures_channel"], workspace = true }
-
-# Cumulus
-cumulus-test-service = { path = "../../test/service" }

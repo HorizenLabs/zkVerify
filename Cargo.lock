@@ -2601,6 +2601,8 @@ dependencies = [
  "cumulus-relay-chain-interface",
  "futures",
  "futures-timer",
+ "polkadot-primitives",
+ "prioritized-metered-channel",
  "sc-cli",
  "sc-client-api",
  "sc-sysinfo",
@@ -2609,8 +2611,10 @@ dependencies = [
  "sp-api",
  "sp-consensus",
  "sp-core",
+ "sp-keyring",
  "sp-runtime",
  "sp-state-machine",
+ "test-client",
  "zkv-cli",
  "zkv-service",
 ]
@@ -16762,7 +16766,7 @@ dependencies = [
 
 [[package]]
 name = "zkv-relay"
-version = "11.0.0"
+version = "16.0.0"
 dependencies = [
  "assert_cmd",
  "color-eyre",

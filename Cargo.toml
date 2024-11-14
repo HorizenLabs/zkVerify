@@ -36,6 +36,8 @@ members = [
     "paratest/runtime",
     "paratest/node",
     "paratest/pallets/template",
+    "patches/cumulus/client/relay-chain-inprocess-interface",
+    "patches/cumulus/client/relay-chain-minimal-node/"
 ]
 
 exclude = [
