@@ -22,7 +22,6 @@ use pallet_staking::Forcing;
 use polkadot_primitives::{AccountId, AssignmentId, ValidatorId, MAX_CODE_SIZE, MAX_POV_SIZE};
 use sc_chain_spec::{ChainSpec, ChainType};
 pub use sc_consensus_grandpa as grandpa;
-use sc_service::NoExtension;
 use service::chain_spec::{get_account_id_from_seed, get_from_seed};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 pub use sp_consensus_babe as babe_primitives;
@@ -32,10 +31,9 @@ use test_runtime::BABE_GENESIS_EPOCH_CONFIG;
 use test_runtime_constants::currency::DOTS;
 
 const DEFAULT_PROTOCOL_ID: &str = "dot";
-type Extensions = NoExtension;
 
 /// The `ChainSpec` parameterized for polkadot test runtime.
-pub type PolkadotChainSpec = sc_service::GenericChainSpec<Extensions>;
+pub type PolkadotChainSpec = sc_service::GenericChainSpec;
 
 /// Returns the properties for the [`PolkadotChainSpec`].
 pub fn polkadot_chain_spec_properties() -> serde_json::map::Map<String, serde_json::Value> {

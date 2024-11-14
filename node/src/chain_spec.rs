@@ -33,8 +33,7 @@ const BOOTNODE_2_PEER_ID: &str = "12D3KooWEjVadU1YWyfDGvyRXPbCq2rXhzJtXaG4RxJZBk
 const STAGING_TELEMETRY_URL: &str = "wss://testnet-telemetry.zkverify.io/submit/";
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-type Extensions = Option<()>;
-pub type ChainSpec = sc_service::GenericChainSpec<Extensions>;
+pub type ChainSpec = sc_service::GenericChainSpec;
 
 const ENDOWMENT: Balance = 1_000_000 * ACME;
 const STASH_BOND: Balance = ENDOWMENT / 100;

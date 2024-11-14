@@ -1,4 +1,3 @@
-// Copyright 2024, Horizen Labs, Inc.
 // Copyright (C) Parity Technologies (UK) Ltd.
 
 // This program is free software: you can redistribute it and/or modify
@@ -786,14 +785,6 @@ pub fn new_full<
         );
     net_config.add_notification_protocol(grandpa_protocol_config);
 
-    let genesis_hash = client
-        .block_hash(0)
-        .ok()
-        .flatten()
-        .expect("Genesis block exists; qed");
-
-    let peer_store_handle = net_config.peer_store_handle();
-
     // validation/collation protocols are enabled only if `Overseer` is enabled
     let peerset_protocol_names =
         PeerSetProtocolNames::new(genesis_hash, config.chain_spec.fork_id());
@@ -880,14 +871,7 @@ pub fn new_full<
                 secure_validator_mode,
                 prep_worker_path,
                 exec_worker_path,
-                pvf_execute_workers_max_num: execute_workers_max_num.unwrap_or_else(
-                    || match config.chain_spec.identify_chain() {
-                        // The intention is to use this logic for gradual increasing from 2 to 4
-                        // of this configuration chain by chain until it reaches production chain.
-                        Chain::ZkvTestnet => 2,
-                        Chain::Dev | Chain::Unknown => 4,
-                    },
-                ),
+                pvf_execute_workers_max_num: execute_workers_max_num.unwrap_or(1),
                 pvf_prepare_workers_soft_max_num: prepare_workers_soft_max_num.unwrap_or(1),
                 pvf_prepare_workers_hard_max_num: prepare_workers_hard_max_num.unwrap_or(2),
             })
