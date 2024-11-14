@@ -72,12 +72,15 @@ if [ -n "${docker_tag_full:-}" ]; then
 
   # Docker image(s) tags for PROD vs DEV release
   if [ "${prod_release}" = "true" ]; then
+    log_info "=== prod_release = true ==="
     docker_tag_node="$(cut -d '-' -f1 <<< "${docker_tag_full}")"
     publish_tags=("${docker_tag_full}" "${docker_tag_node}" "latest")
   elif [ "${dev_release}" = "true" ]; then
+    log_info "=== dev_release = true ==="
     docker_tag_node="$(cut -d '-' -f1 <<< "${docker_tag_full}")-$(cut -d '-' -f3- <<< "${docker_tag_full}")"
     publish_tags=("${docker_tag_full}" "${docker_tag_node}")
   elif [ "${test_release}" = "true" ]; then
+    log_info "=== test_release = true ==="
     publish_tags=("${docker_tag_full}")
   fi
 
@@ -96,6 +99,7 @@ if [ -n "${docker_tag_full:-}" ]; then
   done
 
   # Extract runtime artifact
+  log_info "=== Extract runtime artifact ==="
   container_id="$(docker create "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${docker_tag_full}")"
   docker cp ${container_id}:/app/zkv_runtime.compact.compressed.wasm ./zkv_runtime.compact.compressed.wasm
   docker rm ${container_id}  # Clean up the container
