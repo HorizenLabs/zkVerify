@@ -318,17 +318,19 @@ pub mod pallet {
                 on_disable_error::<T, I>()
             );
             let account_id = ensure_signed(origin)?;
-            I::validate_vk(&vk).map_err(Error::<T, I>::from)?;
             let hash = I::vk_hash(&vk);
-            if !Tickets::<T, I>::contains_key((&account_id, hash)) {
-                let footprint = Footprint::from_encodable(&vk);
-                let ticket = T::Ticket::new(&account_id, footprint)?;
-                Tickets::<T, I>::insert((account_id, hash), ticket);
-                Vks::<T, I>::mutate(hash, |vk_entry| match vk_entry {
-                    Some(VkEntry { ref_count, .. }) => *ref_count += 1,
-                    None => *vk_entry = Some(VkEntry::new(*vk)),
-                })
-            }
+            ensure!(
+                !Tickets::<T, I>::contains_key((&account_id, hash)),
+                Error::<T, I>::VerificationKeyAlreadyRegistered
+            );
+            I::validate_vk(&vk).map_err(Error::<T, I>::from)?;
+            let footprint = Footprint::from_encodable(&vk);
+            let ticket = T::Ticket::new(&account_id, footprint)?;
+            Tickets::<T, I>::insert((account_id, hash), ticket);
+            Vks::<T, I>::mutate(hash, |vk_entry| match vk_entry {
+                Some(VkEntry { ref_count, .. }) => *ref_count += 1,
+                None => *vk_entry = Some(VkEntry::new(*vk)),
+            });
             Self::deposit_event(Event::VkRegistered { hash });
             Ok(().into())
         }

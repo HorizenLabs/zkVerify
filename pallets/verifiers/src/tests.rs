@@ -183,14 +183,15 @@ mod register_should {
     }
 
     #[rstest]
-    fn handle_double_registration_by_same_user(mut def_vk: sp_io::TestExternalities) {
+    fn fail_for_double_registration_by_same_user(mut def_vk: sp_io::TestExternalities) {
         def_vk.execute_with(|| {
-            let initial_reserved_balance = Balances::reserved_balance(USER_1);
-            assert_ok!(FakeVerifierPallet::register_vk(
-                RuntimeOrigin::signed(USER_1),
-                Box::new(REGISTERED_VK)
-            ));
-            assert_eq!(Balances::reserved_balance(USER_1), initial_reserved_balance);
+            assert_noop!(
+                FakeVerifierPallet::register_vk(
+                    RuntimeOrigin::signed(USER_1),
+                    Box::new(REGISTERED_VK)
+                ),
+                RError::VerificationKeyAlreadyRegistered
+            );
         })
     }
 }
