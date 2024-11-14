@@ -6,7 +6,7 @@ on:
       - "[0-9]+.[0-9]+.[0-9]+-[0-9]+.[0-9]+.[0-9]+*"
   workflow_dispatch:
     inputs:
-      git_tag:
+      git_ref:
         type: string
     secrets:
       DOCKER_HUB_USERNAME:
@@ -19,7 +19,6 @@ env:
 
 jobs:
   build-test-publish:
-    needs: env-setup
     strategy:
       matrix: 
         chain: [solo, relay]
@@ -27,7 +26,7 @@ jobs:
     uses: ./.github/workflows/CI-build-test-publish.yml
     with:
       chain: ${{ matrix.chain }}
-      git_tag: ${{ github.event.inputs.git_tag }}
+      git_ref: ${{ github.event.inputs.git_ref || github.ref }}
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
