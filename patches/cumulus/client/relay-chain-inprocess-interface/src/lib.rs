@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Cumulus.  If not, see <http://www.gnu.org/licenses/>.
 
+#![allow(clippy::all)]
+
 use std::{collections::btree_map::BTreeMap, pin::Pin, sync::Arc, time::Duration};
 
 use async_trait::async_trait;
