@@ -105,7 +105,7 @@ jobs:
       - name: Download zkVerify Docker image artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.buid.outputs.artifact_name }}
+          name: ${{ needs.build.outputs.artifact_name }}
           path: ./
 
       - name: Load Docker image and rename
