@@ -31,9 +31,24 @@ jobs:
     with:
       CACHING_MODE: "CACHE_RESTORE"
 
+  check-act:
+    runs-on: ubuntu-latest
+    outputs:
+      act: ${{ steps.check.outputs.act }}
+    steps:
+      - name: Check if ACT exists
+        id: check
+        run: |
+          if [ -n "${{ env.ACT }}" ]; then
+            echo "act=true" >> $GITHUB_OUTPUT
+          else
+            echo "act=false" >> $GITHUB_OUTPUT
+          fi
+
   set-overall-result:
     runs-on: ubuntu-latest
-    needs: [build-job, test-job, coverage-job, lint-format-job, zombienet-test-job]
+    needs: [build-job, test-job, coverage-job, lint-format-job, zombienet-test-job, check-act]
+    if: needs.check-act.outputs.act == 'false'
     steps:
       - name: Set overall result
         id: set-status
