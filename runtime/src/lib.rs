@@ -1026,6 +1026,8 @@ impl IsmpRouter for ModuleRouter {
     }
 }
 
+// The ReceivingMessageModule is just added as a placeholder, we just intend sending messages
+// for the moment, not receiving them.
 #[derive(Default)]
 struct ReceivingMessageModule;
 
@@ -1069,9 +1071,6 @@ construct_runtime!(
         Offences: pallet_offences,
         Historical: pallet_session_historical::{Pallet},
         ImOnline: pallet_im_online,
-        Ismp: pallet_ismp,
-        IsmpGrandpa: ismp_grandpa,
-        Hyperbridge: pallet_hyperbridge,
         SettlementFFlonkPallet: pallet_fflonk_verifier,
         Poe: pallet_poe,
         SettlementZksyncPallet: pallet_zksync_verifier,
@@ -1088,6 +1087,9 @@ construct_runtime!(
         CommonVerifiers: pallet_verifiers::common,
         SettlementProofOfSqlPallet: pallet_proofofsql_verifier,
         Aggregate: pallet_aggregate,
+        Ismp: pallet_ismp,
+        IsmpGrandpa: ismp_grandpa,
+        Hyperbridge: pallet_hyperbridge,
     }
 );
 
