@@ -13,6 +13,10 @@ on:
         required: true
       DOCKER_HUB_TOKEN:
         required: true
+      GH_TOKEN:
+        required: true
+      QA_SLACK_WEBHOOK_URL:
+        required: true
 
 env:
   RUST_BACKTRACE: 1
@@ -30,6 +34,8 @@ jobs:
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      QA_SLACK_WEBHOOK_URL: ${{ secrets.QA_SLACK_WEBHOOK_URL }}
 
   # rustdoc-job:
   #   uses: ./.github/workflows/CI-rustdoc.yml
