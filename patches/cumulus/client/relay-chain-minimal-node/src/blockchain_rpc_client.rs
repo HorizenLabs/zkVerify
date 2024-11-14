@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Cumulus.  If not, see <http://www.gnu.org/licenses/>.
 
+#![rustfmt::skip]
+
 use std::{
 	collections::{BTreeMap, VecDeque},
 	pin::Pin,
