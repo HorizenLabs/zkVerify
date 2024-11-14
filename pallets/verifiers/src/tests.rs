@@ -264,14 +264,14 @@ mod unregister_should {
         }
 
         #[rstest]
-        fn on_wrong_origin(mut def_vk: sp_io::TestExternalities) {
+        fn if_vk_exists_but_caller_did_not_register_it(mut def_vk: sp_io::TestExternalities) {
             def_vk.execute_with(|| {
                 assert_noop!(
                     FakeVerifierPallet::unregister_vk(
                         RuntimeOrigin::signed(USER_2),
                         REGISTERED_VK_HASH
                     ),
-                    RError::VerificationKeyNotFound
+                    DispatchError::BadOrigin
                 );
             })
         }

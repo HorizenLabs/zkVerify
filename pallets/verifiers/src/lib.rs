@@ -97,6 +97,7 @@ pub mod pallet {
     use hp_poe::OnProofVerified;
     use sp_core::{hexdisplay::AsBytesRef, H256};
     use sp_io::hashing::keccak_256;
+    use sp_runtime::traits::BadOrigin;
     use sp_std::boxed::Box;
 
     use hp_verifiers::{Verifier, VerifyError, WeightInfo};
@@ -356,21 +357,27 @@ pub mod pallet {
         pub fn unregister_vk(origin: OriginFor<T>, vk_hash: H256) -> DispatchResult {
             log::trace!("Unregister vk");
             let account_id = ensure_signed(origin)?;
-            let ticket = Tickets::<T, I>::take((&account_id, vk_hash))
-                .ok_or(Error::<T, I>::VerificationKeyNotFound)?;
-            ticket.drop(&account_id)?;
-            Vks::<T, I>::mutate_exists(vk_hash, |vk_entry| match vk_entry {
-                Some(v) => {
-                    if v.ref_count > 1 {
-                        v.ref_count -= 1;
-                    } else {
-                        *vk_entry = None;
+            if let Some(ticket) = Tickets::<T, I>::take((&account_id, vk_hash)) {
+                ticket.drop(&account_id)?;
+                Vks::<T, I>::mutate_exists(vk_hash, |vk_entry| match vk_entry {
+                    Some(v) => {
+                        if v.ref_count > 1 {
+                            v.ref_count -= 1;
+                        } else {
+                            *vk_entry = None;
+                        }
                     }
+                    None => unreachable!(),
+                });
+                Self::deposit_event(Event::VkUnregistered { hash: vk_hash });
+                Ok(())
+            } else {
+                if Vks::<T, I>::contains_key(&vk_hash) {
+                    Err(BadOrigin)?
+                } else {
+                    Err(Error::<T, I>::VerificationKeyNotFound)?
                 }
-                None => unreachable!(),
-            });
-            Self::deposit_event(Event::VkUnregistered { hash: vk_hash });
-            Ok(())
+            }
         }
     }
 
