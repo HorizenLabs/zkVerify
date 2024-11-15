@@ -26,7 +26,8 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: zkVerify
     name: Build Docker image
     outputs:
       artifact_name: ${{ steps.create-tar-file.outputs.artifact_name }}
@@ -46,7 +47,6 @@ jobs:
             docker build --build-arg PROFILE=production -f "docker/dockerfiles/zkv-relay.Dockerfile" -t "${DOCKER_HUB_ORG}/zkverify-relay" .
             echo "DOCKER_IMAGE_NAME=${DOCKER_HUB_ORG}/zkverify-relay" >> $GITHUB_ENV
           fi
-        timeout-minutes: 30
       
       - name: Save the Docker image as a tarball
         id: create-tar-file
