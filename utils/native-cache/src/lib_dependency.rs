@@ -118,7 +118,7 @@ impl<I: DependencyImpl> LibFilesDependency<I> {
 }
 
 impl<I: DependencyImpl> Dependency for LibFilesDependency<I> {
-    fn cache_path(&self) -> &Path {
+    fn default_cache_path(&self) -> &Path {
         &self.cache_path
     }
 
@@ -126,21 +126,11 @@ impl<I: DependencyImpl> Dependency for LibFilesDependency<I> {
         &self.env_key
     }
 
-    fn env_value(&self) -> String {
-        self.cache_path()
-            .canonicalize()
-            .expect("Should create absolute path")
-            .display()
-            .to_string()
-    }
-
-    fn is_valid_cache(&self) -> bool {
-        let cache = self.cache_path();
+    fn is_valid_cache(&self, cache: &Path) -> bool {
         fs::metadata(cache).is_ok() && self.is_valid_libs_folder(cache)
     }
 
-    fn cache_files(&self, source: &Path) -> Result<(), std::io::Error> {
-        let dest = self.cache_path();
+    fn cache_files(&self, source: &Path, dest: &Path) -> Result<(), std::io::Error> {
         fs::create_dir_all(dest)?;
         for entry in fs::read_dir(self.source_folder(source))? {
             let entry = entry?;
@@ -160,8 +150,8 @@ impl<I: DependencyImpl> Dependency for LibFilesDependency<I> {
             self.is_valid_source_folder(path))
     }
 
-    fn rerun_if(&self) {
-        println!("cargo::rerun-if-changed={}", self.cache_path().display());
+    fn rerun_if(&self, cache: &Path) {
+        println!("cargo::rerun-if-changed={}", cache.display());
         println!("cargo::rerun-if-env-changed={}", self.env_key());
     }
 }

@@ -54,17 +54,42 @@ pub fn handle_dependency(
     dependency: &impl Dependency,
     profile: &str,
 ) -> anyhow::Result<()> {
+    let mut config = cargo_config()?;
+    handle_dependency_inner(&mut config, target_root, dependency, profile)
+}
+
+fn handle_dependency_inner(
+    config: &mut Config,
+    target_root: impl AsRef<Path>,
+    dependency: &impl Dependency,
+    profile: &str,
+) -> anyhow::Result<()> {
     if skip_native_cache() {
         return Ok(());
     }
     let target_path = target_path(target_root, profile);
-    let valid = cache_dependency(&target_path, dependency)?;
+    let cache = config.get(dependency).map(PathBuf::from);
+
+    if let Some(cache) = cache {
+        if dependency.is_valid_cache(&cache) {
+            dependency.rerun_if(&cache);
+            return Ok(());
+        }
+        // Otherwise ignore it and try with the default cache.
+    }
+
+    let cache = dependency.default_cache_path();
+    let valid = if dependency.is_valid_cache(&cache) {
+        true
+    } else {
+        fill_cache(&target_path, cache, dependency)?
+    };
     if valid {
-        dependency.rerun_if();
+        dependency.rerun_if(&cache);
     } else {
         println!("cargo::rerun-if-changed={}", target_path.display());
     }
-    set_env_paths(dependency, !valid)
+    set_env_path(config, dependency, &format!("{}", cache.display()), !valid)
 }
 
 /// Handle a set of dependencies
@@ -80,8 +105,9 @@ pub fn handle_dependencies<'a>(
     if skip_native_cache() {
         return Ok(());
     }
+    let mut config = cargo_config()?;
     for dependency in dependencies {
-        handle_dependency(target_root.as_ref(), dependency, profile)?
+        handle_dependency_inner(&mut config, target_root.as_ref(), dependency, profile)?
     }
     Ok(())
 }
@@ -94,41 +120,39 @@ fn target_path(target_root: impl AsRef<Path>, profile: &str) -> PathBuf {
         .join("build")
 }
 
-fn cache_dependency(
+fn fill_cache(
     target_path: impl AsRef<Path>,
+    cache: impl AsRef<Path>,
     dependency: &impl Dependency,
-) -> anyhow::Result<bool> {
-    if !dependency.is_valid_cache() {
-        let target_path = target_path.as_ref();
-        // We ignore the error because doesn't matter if the cache folder doesn't exist.
-        let _ = fs::remove_dir_all(dependency.cache_path());
-        log!("Rebuild from {}", target_path.display());
-        for entry in WalkDir::new(target_path).max_depth(1).into_iter().flatten() {
-            let path = entry.path();
-            log!("folder {}", path.display());
-            if dependency.folder_match(path) {
-                log!("folder {} MATCH", path.display());
-                dependency
-                    .cache_files(path)
-                    .context("Unable to copy dependency")?;
-                return Ok(true);
-            }
+) -> Result<bool, anyhow::Error> {
+    let target_path = target_path.as_ref();
+    // We ignore the error because doesn't matter if the cache folder doesn't exist.
+    let _ = fs::remove_dir_all(cache.as_ref());
+    log!("Rebuild from {}", target_path.display());
+    for entry in WalkDir::new(target_path).max_depth(1).into_iter().flatten() {
+        let path = entry.path();
+        log!("folder {}", path.display());
+        if dependency.folder_match(path) {
+            log!("folder {} MATCH", path.display());
+            dependency
+                .cache_files(path, cache.as_ref())
+                .context("Unable to copy dependency")?;
+            return Ok(true);
         }
-        Ok(false)
-    } else {
-        Ok(true)
     }
+    Ok(false)
 }
 
-fn set_env_paths(dependency: &impl Dependency, reset: bool) -> anyhow::Result<()> {
-    let cargo_config = PathBuf::from(env!("CARGO_HOME")).join("config.toml");
-
-    let mut config = Config::load(cargo_config.clone())?;
-
+fn set_env_path(
+    config: &mut Config,
+    dependency: &impl Dependency,
+    value: &str,
+    reset: bool,
+) -> anyhow::Result<()> {
     if reset {
         config.remove(dependency);
     } else {
-        config.add(dependency);
+        config.add(dependency, value);
     }
     config.store()
 }
@@ -138,4 +162,8 @@ fn skip_native_cache() -> bool {
         == &env::var("DONT_CACHE_NATIVE")
             .unwrap_or_default()
             .to_lowercase()
+}
+
+fn cargo_config() -> Result<Config, anyhow::Error> {
+    Config::load(PathBuf::from(env!("CARGO_HOME")).join("config.toml"))
 }
