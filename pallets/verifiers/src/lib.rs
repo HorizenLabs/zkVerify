@@ -371,12 +371,10 @@ pub mod pallet {
                 });
                 Self::deposit_event(Event::VkUnregistered { hash: vk_hash });
                 Ok(())
+            } else if Vks::<T, I>::contains_key(vk_hash) {
+                Err(BadOrigin)?
             } else {
-                if Vks::<T, I>::contains_key(&vk_hash) {
-                    Err(BadOrigin)?
-                } else {
-                    Err(Error::<T, I>::VerificationKeyNotFound)?
-                }
+                Err(Error::<T, I>::VerificationKeyNotFound)?
             }
         }
     }
