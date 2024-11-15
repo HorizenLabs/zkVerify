@@ -792,7 +792,7 @@ mod vk_registration_parameters {
         VkRegistrationHoldConsideration::max_encoded_len() as u32
     }
     parameter_types! {
-        pub VkRegistrationBaseDeposit: Balance = deposit(4, vks_key_size() + tickets_key_size() + tickets_value_size());
+        pub VkRegistrationBaseDeposit: Balance = deposit(2, vks_key_size() + tickets_key_size() + tickets_value_size());
         pub const VkRegistrationByteDeposit: Balance = deposit(0, 1);
         pub const VkRegistrationHoldReason: RuntimeHoldReason = RuntimeHoldReason::CommonVerifiers(pallet_verifiers::common::HoldReason::VkRegistration);
     }
