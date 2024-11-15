@@ -16,6 +16,7 @@
 
 use super::*;
 use crate::mock::*;
+use codec::Encode;
 use frame_support::dispatch::{GetDispatchInfo, Pays};
 use frame_support::{assert_err, assert_err_ignore_postinfo};
 use frame_support::{assert_noop, assert_ok};
@@ -142,11 +143,15 @@ mod register_should {
     fn hold_a_deposit(mut test_ext: sp_io::TestExternalities) {
         test_ext.execute_with(|| {
             let initial_reserved_balance = Balances::reserved_balance(USER_1);
+            let vk = 42;
             assert_ok!(FakeVerifierPallet::register_vk(
                 RuntimeOrigin::signed(USER_1),
-                Box::new(42)
+                Box::new(vk)
             ));
-            assert!(Balances::reserved_balance(USER_1) > initial_reserved_balance);
+            assert_eq!(
+                Balances::reserved_balance(USER_1),
+                initial_reserved_balance + reserved_balance(&vk)
+            );
         })
     }
 
@@ -178,7 +183,16 @@ mod register_should {
                 RuntimeOrigin::signed(USER_2),
                 Box::new(REGISTERED_VK)
             ));
-            assert!(Balances::reserved_balance(USER_2) > initial_reserved_balance);
+            System::assert_last_event(
+                Event::VkRegistered {
+                    hash: REGISTERED_VK_HASH,
+                }
+                .into(),
+            );
+            assert_eq!(
+                Balances::reserved_balance(USER_2),
+                initial_reserved_balance + reserved_balance(&REGISTERED_VK)
+            );
         })
     }
 
@@ -219,6 +233,12 @@ mod unregister_should {
                 .unwrap();
             FakeVerifierPallet::unregister_vk(RuntimeOrigin::signed(USER_1), REGISTERED_VK_HASH)
                 .unwrap();
+            System::assert_last_event(
+                Event::VkUnregistered {
+                    hash: REGISTERED_VK_HASH,
+                }
+                .into(),
+            );
             assert!(FakeVerifierPallet::vks(REGISTERED_VK_HASH).is_some());
         })
     }
@@ -226,10 +246,13 @@ mod unregister_should {
     #[rstest]
     fn release_deposit(mut def_vk: sp_io::TestExternalities) {
         def_vk.execute_with(|| {
-            assert!(Balances::reserved_balance(USER_1) > 0);
+            let initial_reserved_balance = Balances::reserved_balance(USER_1);
             FakeVerifierPallet::unregister_vk(RuntimeOrigin::signed(USER_1), REGISTERED_VK_HASH)
                 .unwrap();
-            assert_eq!(Balances::reserved_balance(USER_1), 0)
+            assert_eq!(
+                Balances::reserved_balance(USER_1),
+                initial_reserved_balance - reserved_balance(&REGISTERED_VK)
+            )
         })
     }
 
@@ -555,4 +578,8 @@ mod disable_should {
             );
         });
     }
+}
+
+fn reserved_balance(vk: &Vk) -> Balance {
+    BaseDeposit::get() + PerByteDeposit::get() * vk.encoded_size() as Balance
 }
