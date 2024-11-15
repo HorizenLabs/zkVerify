@@ -26,8 +26,7 @@ env:
 
 jobs:
   build:
-    runs-on:
-      group: zkVerify
+    runs-on: ubuntu-latest
     name: Build Docker image
     outputs:
       artifact_name: ${{ steps.create-tar-file.outputs.artifact_name }}

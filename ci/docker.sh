@@ -54,7 +54,7 @@ fi
 # fi
 
 docker_tag_full="${github_ref_name}"
-test_relase=true
+test_release=true
 
 # Load docker image
 if [ -n "${docker_tag_full:-}" ]; then
@@ -72,15 +72,12 @@ if [ -n "${docker_tag_full:-}" ]; then
 
   # Docker image(s) tags for PROD vs DEV release
   if [ "${prod_release}" = "true" ]; then
-    log_info "=== prod_release = true ==="
     docker_tag_node="$(cut -d '-' -f1 <<< "${docker_tag_full}")"
     publish_tags=("${docker_tag_full}" "${docker_tag_node}" "latest")
   elif [ "${dev_release}" = "true" ]; then
-    log_info "=== dev_release = true ==="
     docker_tag_node="$(cut -d '-' -f1 <<< "${docker_tag_full}")-$(cut -d '-' -f3- <<< "${docker_tag_full}")"
     publish_tags=("${docker_tag_full}" "${docker_tag_node}")
   elif [ "${test_release}" = "true" ]; then
-    log_info "=== test_release = true ==="
     publish_tags=("${docker_tag_full}")
   fi
 
