@@ -25,7 +25,8 @@ jobs:
   build-test-publish:
     strategy:
       matrix: 
-        chain: [relay]
+        chain: [solo, relay]
+      fail-fast: false
     
     uses: ./.github/workflows/CI-build-test-publish.yml
     with:
