@@ -84,7 +84,7 @@ impl Config {
         Ok(())
     }
 
-    /// Add a dependency to the cargo config.toml file.
+    /// Get dependency configuration from the cargo config.toml file.
     pub fn get(&self, dependency: &impl Dependency) -> Option<String> {
         self.envs()
             .and_then(|envs| envs.get(dependency.env_key()))

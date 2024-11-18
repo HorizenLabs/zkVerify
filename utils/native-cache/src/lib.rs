@@ -79,13 +79,13 @@ fn handle_dependency_inner(
     }
 
     let cache = dependency.default_cache_path();
-    let valid = if dependency.is_valid_cache(&cache) {
+    let valid = if dependency.is_valid_cache(cache) {
         true
     } else {
         fill_cache(&target_path, cache, dependency)?
     };
     if valid {
-        dependency.rerun_if(&cache);
+        dependency.rerun_if(cache);
     } else {
         println!("cargo::rerun-if-changed={}", target_path.display());
     }
