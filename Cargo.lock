@@ -3943,6 +3943,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "frame-metadata-hash-extension"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4033a2b473472e7ad29ff501d3cedff36f8eaa26f61654d19b6b5cf3e1885296"
+dependencies = [
+ "array-bytes",
+ "docify",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+]
+
+[[package]]
 name = "frame-support"
 version = "37.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6423,6 +6439,7 @@ dependencies = [
  "clap 4.5.20",
  "frame-benchmarking",
  "frame-benchmarking-cli",
+ "frame-metadata-hash-extension",
  "frame-system",
  "futures",
  "hp-poe",
@@ -16858,6 +16875,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
  "frame-executive",
+ "frame-metadata-hash-extension",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",

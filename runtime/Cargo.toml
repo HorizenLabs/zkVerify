@@ -42,6 +42,7 @@ pallet-ismp = { workspace = true, features = [ "unsigned" ]}
 pallet-hyperbridge = { workspace = true }
 pallet-ismp-runtime-api = { workspace = true }
 ismp-grandpa = { workspace = true }
+frame-metadata-hash-extension = { workspace = true }
 pallet-whitelist = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-treasury = { workspace = true }
@@ -219,6 +220,7 @@ std = [
 	"pallet-hyperbridge/std",
 	"pallet-ismp-runtime-api/std",
 	"ismp-grandpa/std",
+	"frame-metadata-hash-extension/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",

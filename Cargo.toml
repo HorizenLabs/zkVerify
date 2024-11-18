@@ -201,6 +201,7 @@ pallet-ismp-rpc = { default-features = false, version = "1.15.1" }
 pallet-ismp-runtime-api = { default-features = false, version = "1.15.1" }
 pallet-hyperbridge = { default-features = false, version = "1.15.1" }
 ismp-grandpa = { default-features = false, version = "1.15.1" }
+frame-metadata-hash-extension = { default-features = false, version = "0.5.0" }
 
 # Used for the node template's RPCs
 frame-system-rpc-runtime-api = { default-features = false, version = "34.0.0" }
