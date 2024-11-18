@@ -97,8 +97,7 @@ jobs:
           IMAGE_NAME="$(docker load -i "${GITHUB_WORKSPACE}/${{ needs.build.outputs.artifact_name }}.tar" | awk '/Loaded image:/ { print $3 }')"
           echo $(docker images -q "${IMAGE_NAME}" > /dev/null 2>&1 && echo "Image exists..." || echo "Image missing...")
           echo "Loaded image ${IMAGE_NAME}"
-          TEST_TAG="test"
-          echo "TEST_TAG=${TEST_TAG}" >> $GITHUB_ENV
+          echo "TEST_TAG=test" >> $GITHUB_ENV
           docker image tag "${IMAGE_NAME}" "${DOCKER_HUB_ORG}/${DOCKER_IMAGE_BUILD_NAME}:${TEST_TAG}"
         shell: bash
 
@@ -115,9 +114,9 @@ jobs:
   publish-docker-image:
     name: Publish Docker Image
     runs-on: ubuntu-latest
-    needs: build
-    # needs: [ build, execute-e2e-tests ] # Wait for e2e tests to finish
-    # if: ${{ needs.execute-e2e-tests.outputs.test_status == 'success' }}
+    needs: [ build, execute-e2e-tests ] # Wait for e2e tests to finish
+    if: ${{ needs.execute-e2e-tests.outputs.test_status == 'success' }}
+
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
