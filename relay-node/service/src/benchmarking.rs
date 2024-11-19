@@ -201,7 +201,7 @@ fn sign_call(
             (),
             (),
             (),
-            None
+            None,
         ),
     );
 
