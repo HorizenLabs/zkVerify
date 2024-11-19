@@ -155,7 +155,7 @@ where
         .into_rpc(),
     )?;
     module.merge(PoE::new(client.clone()).into_rpc())?;
-    module.merge(Aggregate::new(client).into_rpc())?;
+    module.merge(Aggregate::new(client.clone()).into_rpc())?;
     module.merge(IsmpRpcHandler::new(client, backend.clone())?.into_rpc())?;
 
     // Extend this RPC with a custom API by using the following syntax.
