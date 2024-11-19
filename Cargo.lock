@@ -15579,14 +15579,15 @@ dependencies = [
 
 [[package]]
 name = "ultraplonk_verifier"
-version = "0.1.0"
-source = "git+https://github.com/HorizenLabs/ultraplonk_verifier.git?tag=v0.1.0#ac8c6261dea475ebd0313ca650c9e21c61eddc19"
+version = "0.2.0"
+source = "git+https://github.com/HorizenLabs/ultraplonk_verifier.git?tag=v0.2.0#bcb1842a98f5e5f5b0894f94b4fb924d923a798e"
 dependencies = [
  "bindgen 0.69.5",
  "byteorder",
  "cc",
  "cmake",
  "hex-literal",
+ "regex",
  "substrate-bn",
  "thiserror",
 ]
