@@ -83,7 +83,7 @@ if [[ ${NODES[*]} =~ "solo" && ! -f "../target/${PROFILE}/zkv-node" ]]; then
     HAS_BINARIES="false"
 fi
 if [[ ${NODES[*]} =~ "relay" &&  ! ( -f "../target/${PROFILE}/zkv-relay" && -f "../target/${PROFILE}/paratest-node" ) ]]; then
-    echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}zkv-relay binary not found. Compile zkv-relay in ${PROFILE} mode and re-launch this script${TXT_NORML}"
+    echo -e "${TXT_BIRED}ERROR: ${TXT_BIBLK}zkv-relay and/or paratest-node binary not found. Compile zkv-relay and paratest-node in ${PROFILE} mode and re-launch this script${TXT_NORML}"
     echo -e "       ${TXT_BIBLK}cargo build -p zkv-relay -p paratest-node --${PROFILE} --features fast-runtime${TXT_NORML}"
     HAS_BINARIES="false"
 fi
