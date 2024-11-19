@@ -55,8 +55,6 @@ pub mod pallet {
     use crate::data::{DomainState, StatementEntry, User};
 
     use super::WeightInfo;
-    #[cfg(feature = "runtime-benchmarks")]
-    use frame_support::traits::ReservableCurrency;
     use frame_support::{
         dispatch::{DispatchErrorWithPostInfo, PostDispatchInfo},
         pallet_prelude::*,
@@ -137,7 +135,7 @@ pub mod pallet {
         const AGGREGATION_SIZE: u32;
         /// The weight definition for this pallet
         #[cfg(feature = "runtime-benchmarks")]
-        type Currency: ReservableCurrency<AccountOf<Self>>;
+        type Currency: frame_support::traits::fungible::Mutate<AccountOf<Self>>;
     }
 
     impl<T: Config> hp_on_proof_verified::OnProofVerified<<T as frame_system::Config>::AccountId>
