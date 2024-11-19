@@ -36,7 +36,7 @@ ARG PROFILE="release"
 ARG FEATURES=""
 
 ENV BINARY="${BINARY}" \
-  RUN_USER=hl
+  RUN_USER=user
 
 LABEL io.hl.image.authors="${AUTHORS}" \
   io.hl.image.vendor="${VENDOR}" \
@@ -62,7 +62,7 @@ RUN apt-get update \
   jq \
   && useradd -m -U -s /bin/bash -d "/${RUN_USER}" "${RUN_USER}" \
   && mkdir -p /data /${RUN_USER}/.local/share \
-  && chown -R ${RUN_USER}:${RUN_USER} /data /${RUN_USER} \
+  && chown -R "${RUN_USER}:${RUN_USER}" /data "/${RUN_USER}" \
   && ln -s /data /${RUN_USER}/.local/share \
   && apt-get -y clean \
   && apt-get -y autoclean \

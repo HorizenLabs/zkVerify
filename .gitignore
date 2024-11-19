@@ -2,6 +2,7 @@ target/
 **/*.rs.bk
 .idea
 *.iml
+.secrets
 .vscode
 docker/resources/deploy
 docker/resources/envs/.env
