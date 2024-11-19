@@ -146,3 +146,42 @@ jobs:
         with:
           name: "zkv_runtime.${{ inputs.chain }}.compact.compressed.wasm"
           path: ./zkv_runtime.compact.compressed.wasm
+
+      - name: Notify Slack Production Releases
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "🎉 zkVerify Docker Image v${{ github.ref_name }} Released! 🎉"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Docker Image:*  <https://hub.docker.com/r/horizenlabs/zkverify/tags?page=1&name=${{ github.ref_name }}| v${{ github.ref_name }}>\n"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Build URL:*  <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Build>"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "```docker pull horizenlabs/zkverify:${{ github.ref_name }}```"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.RELEASES_PROD_SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
