@@ -31,6 +31,7 @@ codec = { workspace = true, features = ["std"] }
 sp-io = { workspace = true, features = ["std"] }
 hex-literal = { workspace = true }
 pallet-balances = { workspace = true, features = ["std", "runtime-benchmarks"] }
+scale-info = { workspace = true, features = ["std"] }
 
 [features]
 runtime-benchmarks = [
@@ -47,5 +48,6 @@ std = [
     "scale-info/std",
     "pallet-verifiers/std",
     "frame-support/std",
+    "pallet-balances/std",
 ]
 try-runtime = ["pallet-verifiers/try-runtime", "frame-support/try-runtime"]

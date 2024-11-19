@@ -49,6 +49,7 @@ std = [
     "hp-verifiers/std",
     "fflonk_verifier/std",
     "pallet-verifiers/std",
+    "pallet-balances/std",
 ]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",

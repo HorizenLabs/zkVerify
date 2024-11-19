@@ -69,8 +69,10 @@ pub use pallet::*;
 pub use pallet_verifiers_macros::*;
 
 pub mod common;
+pub mod migrations;
 #[allow(missing_docs)]
 pub mod mock;
+
 mod tests;
 
 pub use hp_verifiers::WeightInfo;
@@ -82,18 +84,25 @@ pub mod pallet {
     #![cfg(not(doc))]
 
     use codec::Encode;
+    #[cfg(feature = "runtime-benchmarks")]
+    use frame_support::traits::fungible::Mutate;
     use frame_support::{
         dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostInfo, PostDispatchInfo},
         pallet_prelude::*,
+        traits::{Consideration, Footprint},
         Identity,
     };
     use frame_system::pallet_prelude::*;
     use hp_on_proof_verified::OnProofVerified;
     use sp_core::{hexdisplay::AsBytesRef, H256};
     use sp_io::hashing::keccak_256;
+    use sp_runtime::{traits::BadOrigin, ArithmeticError};
     use sp_std::boxed::Box;
 
     use hp_verifiers::{Verifier, VerifyError, WeightInfo};
+
+    /// Type alias for AccountId
+    pub type AccountOf<T> = <T as frame_system::Config>::AccountId;
 
     #[pallet::pallet]
     /// The pallet component.
@@ -137,8 +146,27 @@ pub mod pallet {
             + IsType<<Self as frame_system::Config>::RuntimeEvent>;
         /// Proof verified call back
         type OnProofVerified: OnProofVerified<Self::AccountId>;
+        /// A means of providing some cost while data is stored on-chain.
+        type Ticket: Consideration<Self::AccountId, Footprint>;
         /// Weights
         type WeightInfo: hp_verifiers::WeightInfo<I>;
+        /// Currency used in benchmarks.
+        #[cfg(feature = "runtime-benchmarks")]
+        type Currency: Mutate<AccountOf<Self>>;
+    }
+
+    /// A Vk with a reference count
+    #[derive(Debug, Clone, PartialEq, Encode, Decode, TypeInfo, MaxEncodedLen)]
+    pub struct VkEntry<V> {
+        vk: V,
+        ref_count: u64,
+    }
+
+    impl<V> VkEntry<V> {
+        /// Construct a new vk with reference count set to 1.
+        pub fn new(vk: V) -> Self {
+            Self { vk, ref_count: 1 }
+        }
     }
 
     fn statement_hash(ctx: &[u8], vk_hash: &H256, pubs: &[u8]) -> H256 {
@@ -172,6 +200,11 @@ pub mod pallet {
             /// Verification key hash
             hash: H256,
         },
+        /// The Vk has been unregistered.
+        VkUnregistered {
+            /// Verification key hash
+            hash: H256,
+        },
         /// The proof has been verified.
         ProofVerified {
             /// Proof verified statement
@@ -194,6 +227,8 @@ pub mod pallet {
         VerificationKeyNotFound,
         /// Current Verifier Pallet is disabled.
         DisabledVerifier,
+        /// Verification key has already been registered.
+        VerificationKeyAlreadyRegistered,
     }
 
     impl<T, I> From<VerifyError> for Error<T, I> {
@@ -219,7 +254,14 @@ pub mod pallet {
     pub type Vks<T: Config<I>, I: 'static = ()>
     where
         I: Verifier,
-    = StorageMap<Hasher = Identity, Key = H256, Value = I::Vk>;
+    = StorageMap<Hasher = Identity, Key = H256, Value = VkEntry<I::Vk>>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn deposits)]
+    pub type Tickets<T: Config<I>, I: 'static = ()>
+    where
+        I: Verifier,
+    = StorageMap<Hasher = Blake2_128Concat, Key = (T::AccountId, H256), Value = Option<T::Ticket>>;
 
     // Dispatchable functions allows users to interact with the pallet and invoke state changes.
     // These functions materialize as "extrinsics", which are often compared to transactions.
@@ -254,9 +296,9 @@ pub mod pallet {
                 on_disable_error::<T, I>()
             );
             let vk = match &vk_or_hash {
-                VkOrHash::Hash(h) => {
-                    Vks::<T, I>::get(h).ok_or(Error::<T, I>::VerificationKeyNotFound)?
-                }
+                VkOrHash::Hash(h) => Vks::<T, I>::get(h)
+                    .map(|vk_entry| vk_entry.vk)
+                    .ok_or(Error::<T, I>::VerificationKeyNotFound)?,
                 VkOrHash::Vk(vk) => {
                     I::validate_vk(vk).map_err(Error::<T, I>::from)?;
                     vk.as_ref().clone()
@@ -273,17 +315,38 @@ pub mod pallet {
 
         /// Register a new verification key.
         /// On success emit a `VkRegistered` event that contain the hash to use on `submit_proof`.
+        /// Lock some funds, which can be unlocked by calling `unregister_vk`.
         #[pallet::call_index(1)]
         #[pallet::weight(T::WeightInfo::register_vk(vk))]
-        pub fn register_vk(_origin: OriginFor<T>, vk: Box<I::Vk>) -> DispatchResultWithPostInfo {
+        pub fn register_vk(origin: OriginFor<T>, vk: Box<I::Vk>) -> DispatchResultWithPostInfo {
             log::trace!("Register vk");
             ensure!(
                 !Self::disabled().unwrap_or_default(),
                 on_disable_error::<T, I>()
             );
-            I::validate_vk(&vk).map_err(Error::<T, I>::from)?;
+            let account_id = ensure_signed(origin)?;
             let hash = I::vk_hash(&vk);
-            Vks::<T, I>::insert(hash, vk);
+            ensure!(
+                !Tickets::<T, I>::contains_key((&account_id, hash)),
+                Error::<T, I>::VerificationKeyAlreadyRegistered
+            );
+            I::validate_vk(&vk).map_err(Error::<T, I>::from)?;
+            let footprint = Footprint::from_encodable(&vk);
+            let ticket = T::Ticket::new(&account_id, footprint)?;
+            Tickets::<T, I>::insert((account_id, hash), ticket);
+            Vks::<T, I>::mutate(hash, |vk_entry| {
+                match vk_entry {
+                    Some(VkEntry { ref_count, .. }) => {
+                        *ref_count = ref_count
+                            .checked_add(1)
+                            .ok_or(DispatchError::Arithmetic(ArithmeticError::Overflow))?;
+                    }
+                    None => {
+                        *vk_entry = Some(VkEntry::new(*vk));
+                    }
+                }
+                Ok::<_, DispatchError>(())
+            })?;
             Self::deposit_event(Event::VkRegistered { hash });
             Ok(().into())
         }
@@ -299,6 +362,36 @@ pub mod pallet {
 
             Disabled::<T, I>::put(disabled);
             Ok(())
+        }
+
+        /// Unregister a previously registered verification key.
+        /// Should be called by the same account used for registering the verification key.
+        /// Unlock the funds which were locked when registering the verification key.
+        #[pallet::call_index(3)]
+        #[pallet::weight(T::WeightInfo::unregister_vk())]
+        pub fn unregister_vk(origin: OriginFor<T>, vk_hash: H256) -> DispatchResult {
+            log::trace!("Unregister vk");
+            let account_id = ensure_signed(origin)?;
+            if let Some(ticket) = Tickets::<T, I>::take((&account_id, vk_hash)) {
+                if let Some(ticket) = ticket {
+                    ticket.drop(&account_id)?;
+                }
+                Vks::<T, I>::mutate_exists(vk_hash, |vk_entry| match vk_entry {
+                    Some(v) => {
+                        v.ref_count = v.ref_count.saturating_sub(1);
+                        if v.ref_count == 0 {
+                            *vk_entry = None;
+                            Self::deposit_event(Event::VkUnregistered { hash: vk_hash });
+                        }
+                    }
+                    None => unreachable!(),
+                });
+                Ok(())
+            } else if Vks::<T, I>::contains_key(vk_hash) {
+                Err(BadOrigin)?
+            } else {
+                Err(Error::<T, I>::VerificationKeyNotFound)?
+            }
         }
     }
 
@@ -319,9 +412,7 @@ pub mod pallet {
 
         use crate::{
             mock::FakeVerifier,
-            tests::submit_proof_should::{
-                REGISTERED_VK, REGISTERED_VK_HASH, VALID_HASH_REGISTERED_VK,
-            },
+            tests::registered_vk::{REGISTERED_VK, REGISTERED_VK_HASH, VALID_HASH_REGISTERED_VK},
         };
 
         use super::*;

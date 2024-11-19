@@ -22,6 +22,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use codec::MaxEncodedLen;
 use pallet_babe::AuthorityId as BabeId;
 use pallet_grandpa::AuthorityId as GrandpaId;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
@@ -48,6 +49,7 @@ use frame_election_provider_support::{
     onchain::OnChainExecution,
     SequentialPhragmen,
 };
+
 use frame_support::genesis_builder_helper::{build_state, get_preset};
 
 pub use frame_support::{
@@ -55,15 +57,16 @@ pub use frame_support::{
     dispatch::DispatchClass,
     parameter_types,
     traits::{
+        fungible::HoldConsideration,
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
         ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly,
-        KeyOwnerProofSystem, Randomness, StorageInfo, Time, WithdrawReasons,
+        KeyOwnerProofSystem, LinearStoragePrice, Randomness, StorageInfo, Time, WithdrawReasons,
     },
     weights::{
         constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
         ConstantMultiplier, IdentityFee, Weight,
     },
-    PalletId, StorageValue,
+    Blake2_128Concat, Identity, PalletId, StorageHasher, StorageValue,
 };
 pub use frame_system::Call as SystemCall;
 use frame_system::EnsureRoot;
@@ -828,6 +831,34 @@ impl pallet_proxy::Config for Runtime {
     type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+mod vk_registration_parameters {
+    use super::*;
+
+    fn vks_key_size() -> u32 {
+        Identity::max_len::<sp_core::H256>() as u32
+    }
+    fn tickets_key_size() -> u32 {
+        Blake2_128Concat::max_len::<(AccountId, sp_core::H256)>() as u32
+    }
+    fn tickets_value_size() -> u32 {
+        VkRegistrationHoldConsideration::max_encoded_len() as u32
+    }
+    parameter_types! {
+        pub VkRegistrationBaseDeposit: Balance = deposit(2, vks_key_size() + tickets_key_size() + tickets_value_size());
+        pub const VkRegistrationByteDeposit: Balance = deposit(0, 1);
+        pub const VkRegistrationHoldReason: RuntimeHoldReason = RuntimeHoldReason::CommonVerifiers(pallet_verifiers::common::HoldReason::VkRegistration);
+    }
+}
+
+use vk_registration_parameters::*;
+
+type VkRegistrationHoldConsideration = HoldConsideration<
+    AccountId,
+    Balances,
+    VkRegistrationHoldReason,
+    LinearStoragePrice<VkRegistrationBaseDeposit, VkRegistrationByteDeposit, Balance>,
+>;
+
 impl pallet_verifiers::common::Config for Runtime {
     type CommonWeightInfo = Runtime;
 }
@@ -837,6 +868,9 @@ impl pallet_verifiers::Config<pallet_fflonk_verifier::Fflonk> for Runtime {
     type OnProofVerified = (Poe, Aggregate);
     type WeightInfo =
         pallet_fflonk_verifier::FflonkWeight<weights::pallet_fflonk_verifier::ZKVWeight<Runtime>>;
+    type Ticket = VkRegistrationHoldConsideration;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
 }
 
 impl pallet_verifiers::Config<pallet_zksync_verifier::Zksync> for Runtime {
@@ -844,6 +878,9 @@ impl pallet_verifiers::Config<pallet_zksync_verifier::Zksync> for Runtime {
     type OnProofVerified = (Poe, Aggregate);
     type WeightInfo =
         pallet_zksync_verifier::ZksyncWeight<weights::pallet_zksync_verifier::ZKVWeight<Runtime>>;
+    type Ticket = VkRegistrationHoldConsideration;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
 }
 
 pub const GROTH16_MAX_NUM_INPUTS: u32 = 16;
@@ -867,6 +904,9 @@ impl pallet_verifiers::Config<pallet_groth16_verifier::Groth16<Runtime>> for Run
     type WeightInfo = pallet_groth16_verifier::Groth16Weight<
         weights::pallet_groth16_verifier::ZKVWeight<Runtime>,
     >;
+    type Ticket = VkRegistrationHoldConsideration;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
 }
 
 parameter_types! {
@@ -886,6 +926,9 @@ impl pallet_verifiers::Config<pallet_risc0_verifier::Risc0<Runtime>> for Runtime
     type OnProofVerified = (Poe, Aggregate);
     type WeightInfo =
         pallet_risc0_verifier::Risc0Weight<weights::pallet_risc0_verifier::ZKVWeight<Runtime>>;
+    type Ticket = VkRegistrationHoldConsideration;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
 }
 
 parameter_types! {
@@ -902,6 +945,9 @@ impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> f
     type WeightInfo = pallet_ultraplonk_verifier::UltraplonkWeight<
         weights::pallet_ultraplonk_verifier::ZKVWeight<Runtime>,
     >;
+    type Ticket = VkRegistrationHoldConsideration;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
 }
 
 parameter_types! {
@@ -923,6 +969,9 @@ impl pallet_verifiers::Config<pallet_proofofsql_verifier::ProofOfSql<Runtime>> f
     type WeightInfo = pallet_proofofsql_verifier::ProofOfSqlWeight<
         weights::pallet_proofofsql_verifier::ZKVWeight<Runtime>,
     >;
+    type Ticket = VkRegistrationHoldConsideration;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
