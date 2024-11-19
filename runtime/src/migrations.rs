@@ -79,4 +79,4 @@ pub mod migrate_staking_to_bags_list {
     }
 }
 
-pub type Unreleased = ();
+pub type Unreleased = pallet_staking::migrations::v15::MigrateV14ToV15<Runtime>;

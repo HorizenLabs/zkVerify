@@ -389,7 +389,7 @@ mod offences {
 mod staking {
     use super::*;
     use sp_staking::{
-        offence::{DisableStrategy, OffenceDetails, OnOffenceHandler},
+        offence::{OffenceDetails, OnOffenceHandler},
         Exposure,
     };
 
@@ -419,7 +419,6 @@ mod staking {
                 }],
                 &[Perbill::from_percent(100)],
                 0,
-                DisableStrategy::WhenSlashed,
             );
 
             // Check that treasury balance increased
@@ -505,6 +504,7 @@ mod scheduler {
                     VkOrHash::from_hash(H256::zero()),
                     [0; pallet_fflonk_verifier::PROOF_SIZE].into(),
                     [0; pallet_fflonk_verifier::PUBS_SIZE].into(),
+                    None,
                 )),
             );
             let call_hash = <Runtime as frame_system::Config>::Hashing::hash_of(&call);
