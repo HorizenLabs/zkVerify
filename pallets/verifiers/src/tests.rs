@@ -233,12 +233,6 @@ mod unregister_should {
                 .unwrap();
             FakeVerifierPallet::unregister_vk(RuntimeOrigin::signed(USER_1), REGISTERED_VK_HASH)
                 .unwrap();
-            System::assert_last_event(
-                Event::VkUnregistered {
-                    hash: REGISTERED_VK_HASH,
-                }
-                .into(),
-            );
             assert!(FakeVerifierPallet::vks(REGISTERED_VK_HASH).is_some());
         })
     }
@@ -257,18 +251,32 @@ mod unregister_should {
     }
 
     #[rstest]
-    fn emit_event(mut def_vk: sp_io::TestExternalities) {
+    fn emit_vk_unregistered_event_if_vk_is_dropped(mut def_vk: sp_io::TestExternalities) {
         def_vk.execute_with(|| {
-            assert_ok!(FakeVerifierPallet::unregister_vk(
-                RuntimeOrigin::signed(USER_1),
-                REGISTERED_VK_HASH
-            ));
-            mock::System::assert_last_event(
+            FakeVerifierPallet::unregister_vk(RuntimeOrigin::signed(USER_1), REGISTERED_VK_HASH)
+                .unwrap();
+            System::assert_last_event(
                 Event::VkUnregistered {
                     hash: REGISTERED_VK_HASH,
                 }
                 .into(),
             );
+        })
+    }
+
+    #[rstest]
+    fn emit_no_vk_unregistered_event_if_vk_is_not_dropped(mut def_vk: sp_io::TestExternalities) {
+        def_vk.execute_with(|| {
+            FakeVerifierPallet::register_vk(RuntimeOrigin::signed(USER_2), Box::new(REGISTERED_VK))
+                .unwrap();
+            FakeVerifierPallet::unregister_vk(RuntimeOrigin::signed(USER_1), REGISTERED_VK_HASH)
+                .unwrap();
+            assert!(System::events()
+                .into_iter()
+                .find(|e| {
+                    matches!(e.event.clone().try_into(), Ok(Event::VkUnregistered { .. }))
+                })
+                .is_none());
         })
     }
 

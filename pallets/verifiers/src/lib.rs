@@ -373,11 +373,11 @@ pub mod pallet {
                         v.ref_count = v.ref_count.saturating_sub(1);
                         if v.ref_count == 0 {
                             *vk_entry = None;
+                            Self::deposit_event(Event::VkUnregistered { hash: vk_hash });
                         }
                     }
                     None => unreachable!(),
                 });
-                Self::deposit_event(Event::VkUnregistered { hash: vk_hash });
                 Ok(())
             } else if Vks::<T, I>::contains_key(vk_hash) {
                 Err(BadOrigin)?
