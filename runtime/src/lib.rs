@@ -1019,7 +1019,7 @@ pub struct ModuleRouter;
 impl IsmpRouter for ModuleRouter {
     fn module_for_id(&self, id: Vec<u8>) -> Result<Box<dyn IsmpModule>, anyhow::Error> {
         match id.as_slice() {
-            RECEIVING_MESSAGE_MODULE_ID => Ok(Box::new(ReceivingMessageModule::default())),
+            RECEIVING_MESSAGE_MODULE_ID => Ok(Box::new(ReceivingMessageModule)),
             PALLET_HYPERBRIDGE_ID => Ok(Box::new(pallet_hyperbridge::Pallet::<Runtime>::default())),
             _ => Err(Error::ModuleNotFound(id))?,
         }
@@ -1031,7 +1031,7 @@ impl IsmpRouter for ModuleRouter {
 #[derive(Default)]
 struct ReceivingMessageModule;
 
-pub const RECEIVING_MESSAGE_MODULE_ID: &'static [u8] = b"RECE-FEE";
+pub const RECEIVING_MESSAGE_MODULE_ID: &[u8] = b"RECE-FEE";
 
 impl IsmpModule for ReceivingMessageModule {
     fn on_accept(&self, _request: PostRequest) -> Result<(), anyhow::Error> {
