@@ -18,14 +18,14 @@
 use super::*;
 
 use frame_benchmarking::v2::*;
-use frame_support::traits::Currency;
+use frame_support::traits::fungible::{Inspect, Mutate};
 use frame_system::RawOrigin;
 use hp_on_proof_verified::OnProofVerified;
 use sp_core::Get;
 use sp_runtime::traits::Bounded;
 
 type BalanceOf<T> =
-    <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+    <<T as Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 
 pub mod utils {
     use super::*;
@@ -33,7 +33,7 @@ pub mod utils {
     /// Return a whitelisted account with enough founds to do anything.
     pub fn funded_account<T: Config>() -> T::AccountId {
         let caller: T::AccountId = whitelisted_caller();
-        T::Currency::make_free_balance_be(&caller, BalanceOf::<T>::max_value() / 2u32.into());
+        T::Currency::set_balance(&caller, BalanceOf::<T>::max_value() / 2u32.into());
         caller
     }
 
