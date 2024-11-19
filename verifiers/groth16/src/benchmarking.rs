@@ -20,7 +20,8 @@ use frame_benchmarking::v2::*;
 use frame_support::traits::{Consideration, Footprint};
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
-use pallet_verifiers::{utils::funded_account, Tickets, VkEntry, VkOrHash, Vks};
+use pallet_aggregate::{funded_account, insert_domain};
+use pallet_verifiers::{Tickets, VkEntry, VkOrHash, Vks};
 
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: crate::Config {}
@@ -28,14 +29,21 @@ impl<T: crate::Config> Config for T {}
 pub type Call<T> = pallet_verifiers::Call<T, Groth16<T>>;
 use crate::groth16::{Curve, Groth16 as Groth16Circuits};
 
-#[benchmarks(where T: pallet_verifiers::Config<Groth16<T>>)]
+fn init<T: pallet_aggregate::Config>() -> (T::AccountId, u32) {
+    let caller: T::AccountId = funded_account::<T>();
+    let domain_id = 1;
+    insert_domain::<T>(domain_id, caller.clone(), Some(1));
+    (caller, domain_id)
+}
+
+#[benchmarks(where T: pallet_verifiers::Config<Groth16<T>> + pallet_aggregate::Config)]
 mod benchmarks {
 
     use super::*;
 
     #[benchmark]
     fn submit_proof_bn254(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
-        let caller = whitelisted_caller();
+        let (caller, domain_id) = init::<T>();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bn254);
 
         #[extrinsic_call]
@@ -44,12 +52,13 @@ mod benchmarks {
             VkOrHash::from_vk(vk),
             proof.into(),
             inputs.into(),
+            Some(domain_id),
         );
     }
 
     #[benchmark]
     fn submit_proof_bls12_381(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
-        let caller = whitelisted_caller();
+        let (caller, domain_id) = init::<T>();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bls12_381);
 
         #[extrinsic_call]
@@ -58,12 +67,13 @@ mod benchmarks {
             VkOrHash::from_vk(vk),
             proof.into(),
             inputs.into(),
+            Some(domain_id),
         );
     }
 
     #[benchmark]
     fn submit_proof_bn254_with_vk_hash(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
-        let caller = whitelisted_caller();
+        let (caller, domain_id) = init::<T>();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bn254);
         let hash = sp_core::H256::repeat_byte(2);
         let vk_entry = VkEntry::new(vk);
@@ -75,12 +85,13 @@ mod benchmarks {
             VkOrHash::from_hash(hash),
             proof.into(),
             inputs.into(),
+            Some(domain_id),
         );
     }
 
     #[benchmark]
     fn submit_proof_bls12_381_with_vk_hash(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
-        let caller = whitelisted_caller();
+        let (caller, domain_id) = init::<T>();
         let (proof, vk, inputs) = Groth16Circuits::get_instance(n as usize, None, Curve::Bls12_381);
         let hash = sp_core::H256::repeat_byte(2);
         let vk_entry = VkEntry::new(vk);
@@ -92,12 +103,13 @@ mod benchmarks {
             VkOrHash::from_hash(hash),
             proof.into(),
             inputs.into(),
+            Some(domain_id),
         );
     }
 
     #[benchmark]
     fn register_vk_bn254(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
-        let caller: T::AccountId = funded_account::<T, Groth16<T>>();
+        let caller: T::AccountId = funded_account::<T>();
         let (_, vk, _) = Groth16Circuits::get_instance(n as usize, None, Curve::Bn254);
 
         #[extrinsic_call]
@@ -109,7 +121,7 @@ mod benchmarks {
 
     #[benchmark]
     fn register_vk_bls12_381(n: Linear<0, <T as crate::Config>::MAX_NUM_INPUTS>) {
-        let caller: T::AccountId = funded_account::<T, Groth16<T>>();
+        let caller: T::AccountId = funded_account::<T>();
         let (_, vk, _) = Groth16Circuits::get_instance(n as usize, None, Curve::Bls12_381);
 
         #[extrinsic_call]
@@ -122,7 +134,7 @@ mod benchmarks {
     #[benchmark]
     fn unregister_vk() {
         // setup code
-        let caller: T::AccountId = funded_account::<T, Groth16<T>>();
+        let caller: T::AccountId = funded_account::<T>();
         let hash = sp_core::H256::repeat_byte(2);
         let (_, vk, _) = Groth16Circuits::get_instance(0 as usize, None, Curve::Bn254);
         let vk_entry = VkEntry::new(vk);
@@ -143,10 +155,10 @@ mod benchmarks {
 mod mock {
     use frame_support::{
         derive_impl, parameter_types,
-        traits::{fungible::HoldConsideration, LinearStoragePrice},
+        sp_runtime::{traits::IdentityLookup, BuildStorage},
+        traits::{fungible::HoldConsideration, EnsureOrigin, LinearStoragePrice},
     };
     use sp_core::{ConstU128, ConstU32};
-    use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
     type Balance = u128;
     type AccountId = u64;
@@ -159,6 +171,7 @@ mod mock {
             Balances: pallet_balances,
             CommonVerifiersPallet: pallet_verifiers::common,
             VerifierPallet: crate,
+            Aggregate: pallet_aggregate,
         }
     );
 
@@ -166,8 +179,8 @@ mod mock {
     impl frame_system::Config for Test {
         type Block = frame_system::mocking::MockBlockU32<Test>;
         type AccountId = AccountId;
-        type Lookup = IdentityLookup<Self::AccountId>;
         type AccountData = pallet_balances::AccountData<Balance>;
+        type Lookup = IdentityLookup<Self::AccountId>;
     }
 
     parameter_types! {
@@ -178,7 +191,7 @@ mod mock {
 
     impl pallet_verifiers::Config<crate::Groth16<Test>> for Test {
         type RuntimeEvent = RuntimeEvent;
-        type OnProofVerified = ();
+        type OnProofVerified = Aggregate;
         type WeightInfo = crate::Groth16Weight<()>;
         type Ticket = HoldConsideration<
             AccountId,
@@ -190,21 +203,19 @@ mod mock {
     }
 
     impl pallet_balances::Config for Test {
-        type MaxLocks = ConstU32<50>;
-        type MaxReserves = ();
-        type ReserveIdentifier = [u8; 8];
-        /// The type for recording an account's balance.
-        type Balance = Balance;
-        /// The ubiquitous event type.
         type RuntimeEvent = RuntimeEvent;
+        type RuntimeHoldReason = RuntimeHoldReason;
+        type RuntimeFreezeReason = RuntimeFreezeReason;
+        type WeightInfo = ();
+        type Balance = Balance;
         type DustRemoval = ();
         type ExistentialDeposit = ConstU128<1>;
         type AccountStore = System;
-        type WeightInfo = ();
-        type FreezeIdentifier = ();
-        type MaxFreezes = ();
-        type RuntimeHoldReason = RuntimeHoldReason;
-        type RuntimeFreezeReason = ();
+        type ReserveIdentifier = [u8; 8];
+        type FreezeIdentifier = RuntimeFreezeReason;
+        type MaxLocks = ConstU32<10>;
+        type MaxReserves = ConstU32<10>;
+        type MaxFreezes = ConstU32<10>;
     }
 
     impl pallet_verifiers::common::Config for Test {
@@ -213,6 +224,34 @@ mod mock {
 
     impl crate::Config for Test {
         const MAX_NUM_INPUTS: u32 = crate::MAX_NUM_INPUTS - 1;
+    }
+
+    pub struct NoManager;
+    impl EnsureOrigin<RuntimeOrigin> for NoManager {
+        type Success = ();
+
+        fn try_origin(o: RuntimeOrigin) -> Result<Self::Success, RuntimeOrigin> {
+            Err(o)
+        }
+
+        fn try_successful_origin() -> Result<RuntimeOrigin, ()> {
+            Err(())
+        }
+    }
+
+    impl pallet_aggregate::Config for Test {
+        type RuntimeEvent = RuntimeEvent;
+        type RuntimeHoldReason = RuntimeHoldReason;
+        type AggregationSize = ConstU32<32>;
+        type MaxPendingPublishQueueSize = ConstU32<16>;
+        type ManagerOrigin = NoManager;
+        type Hold = Balances;
+        type Consideration = ();
+        type EstimateCallFee = ConstU32<1_000_000>;
+        type ComputePublisherTip = ();
+        type WeightInfo = ();
+        const AGGREGATION_SIZE: u32 = 32;
+        type Currency = Balances;
     }
 
     /// Build genesis storage according to the mock runtime.

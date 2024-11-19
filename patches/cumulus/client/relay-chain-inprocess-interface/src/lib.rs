@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Cumulus.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::{pin::Pin, sync::Arc, time::Duration};
+#![allow(clippy::all)]
+
+use std::{collections::btree_map::BTreeMap, pin::Pin, sync::Arc, time::Duration};
 
 use async_trait::async_trait;
 use cumulus_primitives_core::{
     relay_chain::{
-        runtime_api::ParachainHost, Block as PBlock, BlockId, CommittedCandidateReceipt,
+        runtime_api::ParachainHost, Block as PBlock, BlockId, BlockNumber, CommittedCandidateReceipt, CoreState,
         Hash as PHash, Header as PHeader, InboundHrmpMessage, OccupiedCoreAssumption, SessionIndex,
         ValidationCodeHash, ValidatorId,
     },
@@ -27,7 +29,7 @@ use cumulus_primitives_core::{
 };
 use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface, RelayChainResult};
 use futures::{FutureExt, Stream, StreamExt};
-use sc_cli::SubstrateCli;
+use sc_cli::{RuntimeVersion, SubstrateCli};
 use sc_client_api::{
     blockchain::BlockStatus, Backend, BlockchainEvents, HeaderBackend, ImportNotifications,
     StorageProof,
@@ -36,7 +38,7 @@ use sc_telemetry::TelemetryWorkerHandle;
 use service::{CollatorPair, Configuration, FullBackend, FullClient, Handle, NewFull, TaskManager};
 use sp_api::ProvideRuntimeApi;
 use sp_consensus::SyncOracle;
-use sp_core::{sp_std::collections::btree_map::BTreeMap, Pair};
+use sp_core::Pair;
 use sp_state_machine::{Backend as StateBackend, StorageValue};
 
 /// The timeout in seconds after that the waiting for a block should be aborted.
@@ -71,6 +73,10 @@ impl RelayChainInProcessInterface {
 
 #[async_trait]
 impl RelayChainInterface for RelayChainInProcessInterface {
+    async fn version(&self, relay_parent: PHash) -> RelayChainResult<RuntimeVersion> {
+        Ok(self.full_client.runtime_version_at(relay_parent)?)
+    }
+
     async fn retrieve_dmq_contents(
         &self,
         para_id: ParaId,
@@ -264,6 +270,21 @@ impl RelayChainInterface for RelayChainInProcessInterface {
                 });
         Ok(Box::pin(notifications_stream))
     }
+
+    async fn availability_cores(
+        &self,
+        relay_parent: PHash,
+    ) -> RelayChainResult<Vec<CoreState<PHash, BlockNumber>>> {
+        Ok(self.full_client.runtime_api().availability_cores(relay_parent)?)
+    }
+
+    async fn candidates_pending_availability(
+        &self,
+        hash: PHash,
+        para_id: ParaId,
+    ) -> RelayChainResult<Vec<CommittedCandidateReceipt>> {
+        Ok(self.full_client.runtime_api().candidates_pending_availability(hash, para_id)?)
+    }
 }
 
 pub enum BlockCheckStatus {
@@ -326,6 +347,9 @@ fn build_polkadot_full_node(
             overseer_message_channel_capacity_override: None,
             malus_finality_delay: None,
             hwbench,
+            execute_workers_max_num: None,
+            prepare_workers_hard_max_num: None,
+            prepare_workers_soft_max_num: None,
         },
     )?;
 
@@ -378,7 +402,7 @@ mod tests {
     use super::*;
 
     use polkadot_primitives::Block as PBlock;
-    use polkadot_test_client::{
+    use test_client::{
         construct_transfer_extrinsic, BlockBuilderExt, Client, ClientBlockImportExt,
         DefaultTestClientBuilderExt, InitPolkadotBlockBuilder, TestClientBuilder,
         TestClientBuilderExt,

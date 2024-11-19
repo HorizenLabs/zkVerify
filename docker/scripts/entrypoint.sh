@@ -54,6 +54,7 @@ get_arg_name_from_env_name() {
     arg_name="${arg_name//_/-}"
     arg_name="${arg_name,,}"
     arg_name=--"${arg_name}"
+    arg_name="$(echo "$arg_name" | sed -r 's/^---+/--/')"
     echo "${arg_name}"
 }
 

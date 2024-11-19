@@ -28,7 +28,7 @@ use pallet_grandpa::AuthorityId as GrandpaId;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use proof_of_existence_rpc_runtime_api::MerkleProof;
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
+use sp_core::{crypto::KeyTypeId, Get, OpaqueMetadata};
 use sp_runtime::{
     create_runtime_str, generic, impl_opaque_keys,
     traits::{
@@ -49,29 +49,24 @@ use frame_election_provider_support::{
     onchain::OnChainExecution,
     SequentialPhragmen,
 };
-use frame_support::{
-    genesis_builder_helper::{build_config, create_default_config},
-    traits::{fungible::HoldConsideration, LinearStoragePrice},
-    Blake2_128Concat, Identity, StorageHasher,
-};
 
-// A few exports that help ease life for downstream crates.
-use frame_support::traits::EqualPrivilegeOnly;
+use frame_support::genesis_builder_helper::{build_state, get_preset};
 
 pub use frame_support::{
     construct_runtime, derive_impl,
     dispatch::DispatchClass,
     parameter_types,
     traits::{
+        fungible::HoldConsideration,
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
-        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, KeyOwnerProofSystem,
-        Randomness, StorageInfo, WithdrawReasons,
+        ConstBool, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly,
+        KeyOwnerProofSystem, LinearStoragePrice, Randomness, StorageInfo, Time, WithdrawReasons,
     },
     weights::{
         constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
         ConstantMultiplier, IdentityFee, Weight,
     },
-    PalletId, StorageValue,
+    Blake2_128Concat, Identity, PalletId, StorageHasher, StorageValue,
 };
 pub use frame_system::Call as SystemCall;
 use frame_system::EnsureRoot;
@@ -82,7 +77,7 @@ use static_assertions::const_assert;
 use weights::block_weights::BlockExecutionWeight;
 use weights::extrinsic_weights::ExtrinsicBaseWeight;
 
-use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier};
+use pallet_transaction_payment::{ConstFeeMultiplier, FungibleAdapter, Multiplier};
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
@@ -440,7 +435,7 @@ pub type SessionKeys = SessionKeysBase;
 
 impl pallet_transaction_payment::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
+    type OnChargeTransaction = FungibleAdapter<Balances, ()>;
     type OperationalFeeMultiplier = ConstU8<5>;
     type WeightToFee = IdentityFee<Balance>;
     type LengthToFee = IdentityFee<Balance>;
@@ -527,13 +522,8 @@ parameter_types! {
 impl pallet_treasury::Config for Runtime {
     type PalletId = TreasuryPalletId;
     type Currency = Balances;
-    type ApproveOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
     type RejectOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
     type RuntimeEvent = RuntimeEvent;
-    type OnSlash = Treasury;
-    type ProposalBond = ProposalBond;
-    type ProposalBondMinimum = ProposalBondMinimum;
-    type ProposalBondMaximum = ProposalBondMaximum;
     type SpendPeriod = SpendPeriod;
     type Burn = Burn;
     type BurnDestination = ();
@@ -575,6 +565,7 @@ impl pallet_bounties::Config for Runtime {
     type DataDepositPerByte = DataDepositPerByte;
     type MaximumReasonLength = MaximumReasonLength;
     type WeightInfo = weights::pallet_bounties::ZKVWeight<Runtime>;
+    type OnSlash = Treasury;
 }
 
 parameter_types! {
@@ -588,6 +579,68 @@ impl pallet_child_bounties::Config for Runtime {
     type ChildBountyValueMinimum = ChildBountyValueMinimum;
     type WeightInfo = weights::pallet_child_bounties::ZKVWeight<Runtime>;
 }
+
+parameter_types! {
+    pub const AggregateBaseDeposit: Balance = deposit(2, 64);
+    pub const AggregateByteDeposit: Balance = deposit(0, 1);
+    pub const AggregateRegisterHoldReason: RuntimeHoldReason = RuntimeHoldReason::Aggregate(pallet_aggregate::HoldReason::Domain);
+    pub const AggregateBaseTip: Balance = 10 * CENTS;
+    pub const AggregateLinearTip: Permill = Permill::from_percent(10);
+    pub const AggregateMaxSize: pallet_aggregate::AggregationSize = 128;
+    pub const AggregateQueueSize: u32 = 16;
+}
+
+/// Linear increment.
+pub struct Linear<Base, Slope, Balance>(core::marker::PhantomData<(Base, Slope, Balance)>);
+impl<Base, Slope> pallet_aggregate::ComputePublisherTip<Balance> for Linear<Base, Slope, Balance>
+where
+    Base: Get<Balance>,
+    Slope: Get<Permill>,
+{
+    fn compute_tip(estimated: Balance) -> Option<Balance> {
+        Base::get()
+            .saturating_add(Slope::get().mul_floor(estimated))
+            .into()
+    }
+}
+
+impl pallet_aggregate::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeHoldReason = RuntimeHoldReason;
+    type AggregationSize = AggregateMaxSize;
+    type MaxPendingPublishQueueSize = AggregateQueueSize;
+    type ManagerOrigin = EnsureRoot<AccountId>;
+    type Hold = Balances;
+
+    type Consideration = frame_support::traits::fungible::HoldConsideration<
+        AccountId,
+        Balances,
+        AggregateRegisterHoldReason,
+        frame_support::traits::LinearStoragePrice<
+            AggregateBaseDeposit,
+            AggregateByteDeposit,
+            Balance,
+        >,
+    >;
+    type EstimateCallFee = TransactionPayment;
+
+    type ComputePublisherTip = Linear<AggregateBaseTip, AggregateLinearTip, Balance>;
+
+    type WeightInfo = weights::pallet_aggregate::ZKVWeight<Runtime>;
+
+    #[cfg(feature = "runtime-benchmarks")]
+    const AGGREGATION_SIZE: u32 = AggregateMaxSize::get() as u32;
+
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
+}
+
+// We should be sure that the benchmark aggregation size matches the runtime configuration.
+#[cfg(feature = "runtime-benchmarks")]
+static_assertions::const_assert!(
+    <Runtime as pallet_aggregate::Config>::AggregationSize::get() as u32
+        == <Runtime as pallet_aggregate::Config>::AGGREGATION_SIZE,
+);
 
 pub const MILLISECS_PER_PROOF_ROOT_PUBLISHING: u64 = MILLISECS_PER_BLOCK * 10;
 pub const MIN_PROOFS_FOR_ROOT_PUBLISHING: u32 = 16;
@@ -638,7 +691,6 @@ parameter_types! {
                                                          // remains locked
     pub const SlashDeferDuration: sp_staking::EraIndex = 0; // eras to wait before slashing is
                                                             // applied
-    pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(17);
     pub HistoryDepth: u32 = 30; // Number of eras to keep in history. Older eras cannot be claimed.
 }
 
@@ -692,7 +744,6 @@ impl pallet_staking::Config for Runtime {
     type SessionInterface = Self;
     type EraPayout = payout::ZKVPayout;
     type NextNewSession = Session;
-    type OffendingValidatorsThreshold = OffendingValidatorsThreshold; // Exceeding this threshold would force a new era
     type ElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
     type GenesisElectionProvider = OnChainExecution<OnChainSeqPhragmen>;
     type VoterList = VoterList;
@@ -706,6 +757,7 @@ impl pallet_staking::Config for Runtime {
     type MaxExposurePageSize = ConstU32<64>;
     type MaxControllersInDeprecationBatch = ConstU32<1>; // We do not have any controller accounts
                                                          // but we need at least 1 for benchmarks
+    type DisablingStrategy = pallet_staking::UpToLimitDisablingStrategy;
 }
 
 impl pallet_authorship::Config for Runtime {
@@ -813,7 +865,7 @@ impl pallet_verifiers::common::Config for Runtime {
 
 impl pallet_verifiers::Config<pallet_fflonk_verifier::Fflonk> for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnProofVerified = Poe;
+    type OnProofVerified = (Poe, Aggregate);
     type WeightInfo =
         pallet_fflonk_verifier::FflonkWeight<weights::pallet_fflonk_verifier::ZKVWeight<Runtime>>;
     type Ticket = VkRegistrationHoldConsideration;
@@ -823,7 +875,7 @@ impl pallet_verifiers::Config<pallet_fflonk_verifier::Fflonk> for Runtime {
 
 impl pallet_verifiers::Config<pallet_zksync_verifier::Zksync> for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnProofVerified = Poe;
+    type OnProofVerified = (Poe, Aggregate);
     type WeightInfo =
         pallet_zksync_verifier::ZksyncWeight<weights::pallet_zksync_verifier::ZKVWeight<Runtime>>;
     type Ticket = VkRegistrationHoldConsideration;
@@ -848,7 +900,7 @@ const_assert!(
 
 impl pallet_verifiers::Config<pallet_groth16_verifier::Groth16<Runtime>> for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnProofVerified = Poe;
+    type OnProofVerified = (Poe, Aggregate);
     type WeightInfo = pallet_groth16_verifier::Groth16Weight<
         weights::pallet_groth16_verifier::ZKVWeight<Runtime>,
     >;
@@ -871,7 +923,7 @@ impl pallet_risc0_verifier::Config for Runtime {
 
 impl pallet_verifiers::Config<pallet_risc0_verifier::Risc0<Runtime>> for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnProofVerified = Poe;
+    type OnProofVerified = (Poe, Aggregate);
     type WeightInfo =
         pallet_risc0_verifier::Risc0Weight<weights::pallet_risc0_verifier::ZKVWeight<Runtime>>;
     type Ticket = VkRegistrationHoldConsideration;
@@ -889,7 +941,7 @@ impl pallet_ultraplonk_verifier::Config for Runtime {
 
 impl pallet_verifiers::Config<pallet_ultraplonk_verifier::Ultraplonk<Runtime>> for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnProofVerified = Poe;
+    type OnProofVerified = (Poe, Aggregate);
     type WeightInfo = pallet_ultraplonk_verifier::UltraplonkWeight<
         weights::pallet_ultraplonk_verifier::ZKVWeight<Runtime>,
     >;
@@ -913,7 +965,7 @@ const_assert!(
 
 impl pallet_verifiers::Config<pallet_proofofsql_verifier::ProofOfSql<Runtime>> for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnProofVerified = Poe;
+    type OnProofVerified = (Poe, Aggregate);
     type WeightInfo = pallet_proofofsql_verifier::ProofOfSqlWeight<
         weights::pallet_proofofsql_verifier::ZKVWeight<Runtime>,
     >;
@@ -961,6 +1013,7 @@ construct_runtime!(
         Proxy: pallet_proxy,
         CommonVerifiers: pallet_verifiers::common,
         SettlementProofOfSqlPallet: pallet_proofofsql_verifier,
+        Aggregate: pallet_aggregate,
     }
 );
 
@@ -1016,6 +1069,7 @@ construct_runtime!(
 
         // Our stuff
         Poe: pallet_poe = 80,
+        Aggregate: pallet_aggregate = 81,
 
         // Parachain pallets. Start indices at 100 to leave room.
         ParachainsOrigin: parachains::parachains_origin = 101,
@@ -1127,6 +1181,7 @@ mod benches {
         [pallet_vesting, Vesting]
         [pallet_referenda, Referenda]
         [pallet_whitelist, Whitelist]
+        [pallet_aggregate, Aggregate]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
@@ -1163,6 +1218,7 @@ mod benches {
         [pallet_vesting, Vesting]
         [pallet_whitelist, Whitelist]
         [pallet_proxy, Proxy]
+        [pallet_aggregate, Aggregate]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
@@ -1443,6 +1499,16 @@ impl_runtime_apis! {
         }
     }
 
+    impl aggregate_rpc_runtime_api::AggregateApi<Block> for Runtime {
+        fn get_statement_path(
+            domain_id: u32,
+            aggregation_id: u64,
+            statement: sp_core::H256
+        ) -> Result<aggregate_rpc_runtime_api::MerkleProof, aggregate_rpc_runtime_api::PathRequestError> {
+            Aggregate::get_statement_path(domain_id, aggregation_id, statement).map(|c| c.into())
+        }
+    }
+
     #[cfg(feature = "relay")]
     #[api_version(10)]
     impl primitives::runtime_api::ParachainHost<Block> for Runtime {
@@ -1490,6 +1556,7 @@ impl_runtime_apis! {
         }
 
         fn candidate_pending_availability(para_id: ParaId) -> Option<CommittedCandidateReceipt<Hash>> {
+            #[allow(deprecated)]
             parachains_runtime_api_impl::candidate_pending_availability::<Runtime>(para_id)
         }
 
@@ -1847,12 +1914,16 @@ impl_runtime_apis! {
     }
 
     impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-        fn create_default_config() -> Vec<u8> {
-            create_default_config::<RuntimeGenesisConfig>()
+        fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+            build_state::<RuntimeGenesisConfig>(config)
         }
 
-        fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
-            build_config::<RuntimeGenesisConfig>(config)
+        fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+            get_preset::<RuntimeGenesisConfig>(id, |_| None)
+        }
+
+        fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+            vec![]
         }
     }
 

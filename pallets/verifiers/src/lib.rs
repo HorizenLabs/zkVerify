@@ -72,7 +72,6 @@ pub mod common;
 pub mod migrations;
 #[allow(missing_docs)]
 pub mod mock;
-pub mod utils;
 
 mod tests;
 
@@ -94,7 +93,7 @@ pub mod pallet {
         Identity,
     };
     use frame_system::pallet_prelude::*;
-    use hp_poe::OnProofVerified;
+    use hp_on_proof_verified::OnProofVerified;
     use sp_core::{hexdisplay::AsBytesRef, H256};
     use sp_io::hashing::keccak_256;
     use sp_runtime::{traits::BadOrigin, ArithmeticError};
@@ -146,9 +145,9 @@ pub mod pallet {
         type RuntimeEvent: From<Event<Self, I>>
             + IsType<<Self as frame_system::Config>::RuntimeEvent>;
         /// Proof verified call back
-        type OnProofVerified: OnProofVerified;
+        type OnProofVerified: OnProofVerified<Self::AccountId>;
         /// A means of providing some cost while data is stored on-chain.
-        type Ticket: Consideration<Self::AccountId>;
+        type Ticket: Consideration<Self::AccountId, Footprint>;
         /// Weights
         type WeightInfo: hp_verifiers::WeightInfo<I>;
         /// Currency used in benchmarks.
@@ -206,6 +205,11 @@ pub mod pallet {
             /// Verification key hash
             hash: H256,
         },
+        /// The proof has been verified.
+        ProofVerified {
+            /// Proof verified statement
+            statement: H256,
+        },
     }
 
     // Errors inform users that something went wrong.
@@ -257,7 +261,7 @@ pub mod pallet {
     pub type Tickets<T: Config<I>, I: 'static = ()>
     where
         I: Verifier,
-    = StorageMap<Hasher = Blake2_128Concat, Key = (T::AccountId, H256), Value = T::Ticket>;
+    = StorageMap<Hasher = Blake2_128Concat, Key = (T::AccountId, H256), Value = Option<T::Ticket>>;
 
     // Dispatchable functions allows users to interact with the pallet and invoke state changes.
     // These functions materialize as "extrinsics", which are often compared to transactions.
@@ -277,10 +281,11 @@ pub mod pallet {
                 VkOrHash::Hash(_) => T::WeightInfo::submit_proof_with_vk_hash(proof, pubs),
             })]
         pub fn submit_proof(
-            _origin: OriginFor<T>,
+            origin: OriginFor<T>,
             vk_or_hash: VkOrHash<I::Vk>,
             proof: Box<I::Proof>,
             pubs: Box<I::Pubs>,
+            domain_id: Option<u32>,
         ) -> DispatchResultWithPostInfo
         where
             I: Verifier,
@@ -299,10 +304,11 @@ pub mod pallet {
                     vk.as_ref().clone()
                 }
             };
+            let account = ensure_signed(origin).ok();
+            let statement = compute_hash::<I>(&pubs, &vk_or_hash);
             I::verify_proof(&vk, &proof, &pubs)
-                .map(|_x| {
-                    T::OnProofVerified::on_proof_verified(compute_hash::<I>(&pubs, &vk_or_hash))
-                })
+                .inspect(|_| Self::deposit_event(Event::ProofVerified { statement }))
+                .map(|_x| T::OnProofVerified::on_proof_verified(account, domain_id, statement))
                 .map_err(Error::<T, I>::from)?;
             Ok(().into())
         }
@@ -367,7 +373,9 @@ pub mod pallet {
             log::trace!("Unregister vk");
             let account_id = ensure_signed(origin)?;
             if let Some(ticket) = Tickets::<T, I>::take((&account_id, vk_hash)) {
-                ticket.drop(&account_id)?;
+                if let Some(ticket) = ticket {
+                    ticket.drop(&account_id)?;
+                }
                 Vks::<T, I>::mutate_exists(vk_hash, |vk_entry| match vk_entry {
                     Some(v) => {
                         v.ref_count = v.ref_count.saturating_sub(1);

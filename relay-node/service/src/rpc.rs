@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::polkadot_rpc::{BabeDeps, FullDeps, GrandpaDeps, RpcExtension};
-use consensus_common::SelectChain;
 use jsonrpsee::RpcModule;
 use polkadot_primitives::{AccountId, Balance, Block, Nonce};
 use sc_client_api::AuxStore;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
+use sp_consensus::SelectChain;
 use sp_consensus_babe::BabeApi;
 use substrate_frame_rpc_system as frame_rpc_system;
 
@@ -49,6 +49,7 @@ where
     C::Api: frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
     C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
     C::Api: proof_of_existence_rpc::PoERuntimeApi<Block>,
+    C::Api: aggregate_rpc::AggregateRuntimeApi<Block>,
     C::Api: BabeApi<Block>,
     C::Api: BlockBuilder<Block>,
     P: sc_transaction_pool_api::TransactionPool + Sync + Send + 'static,
@@ -56,6 +57,7 @@ where
     B: sc_client_api::Backend<Block> + Send + Sync + 'static,
     B::State: sc_client_api::StateBackend<sp_runtime::traits::HashingFor<Block>>,
 {
+    use aggregate_rpc::{Aggregate, AggregateApiServer};
     use frame_rpc_system::{System, SystemApiServer};
     use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
     use proof_of_existence_rpc::{PoE, PoEApiServer};
@@ -99,7 +101,8 @@ where
         )
         .into_rpc(),
     )?;
-    io.merge(PoE::new(client).into_rpc())?;
+    io.merge(PoE::new(client.clone()).into_rpc())?;
+    io.merge(Aggregate::new(client).into_rpc())?;
 
     Ok(io)
 }

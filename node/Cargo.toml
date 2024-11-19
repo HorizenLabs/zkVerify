@@ -67,10 +67,8 @@ frame-benchmarking-cli = { workspace = true }
 zkv-runtime = { workspace = true, features = ["std"] }
 hp-poe = { workspace = true, features = ["std"] }
 proof-of-existence-rpc = { workspace = true, features = ["std"] }
+aggregate-rpc = { workspace = true, features = ["std"] }
 native = { workspace = true, features = ["std"] }
-
-# CLI-specific dependencies
-try-runtime-cli = { workspace = true, optional = true }
 
 [build-dependencies]
 substrate-build-script-utils = { workspace = true }
@@ -94,5 +92,4 @@ try-runtime = [
 	"zkv-runtime/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"sp-runtime/try-runtime",
-	"try-runtime-cli/try-runtime",
 ]
