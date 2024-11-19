@@ -97,7 +97,7 @@ pub mod pallet {
     use hp_poe::OnProofVerified;
     use sp_core::{hexdisplay::AsBytesRef, H256};
     use sp_io::hashing::keccak_256;
-    use sp_runtime::traits::BadOrigin;
+    use sp_runtime::{traits::BadOrigin, ArithmeticError};
     use sp_std::boxed::Box;
 
     use hp_verifiers::{Verifier, VerifyError, WeightInfo};
@@ -328,10 +328,19 @@ pub mod pallet {
             let footprint = Footprint::from_encodable(&vk);
             let ticket = T::Ticket::new(&account_id, footprint)?;
             Tickets::<T, I>::insert((account_id, hash), ticket);
-            Vks::<T, I>::mutate(hash, |vk_entry| match vk_entry {
-                Some(VkEntry { ref_count, .. }) => *ref_count += 1,
-                None => *vk_entry = Some(VkEntry::new(*vk)),
-            });
+            Vks::<T, I>::mutate(hash, |vk_entry| {
+                match vk_entry {
+                    Some(VkEntry { ref_count, .. }) => {
+                        *ref_count = ref_count
+                            .checked_add(1)
+                            .ok_or(DispatchError::Arithmetic(ArithmeticError::Overflow))?;
+                    }
+                    None => {
+                        *vk_entry = Some(VkEntry::new(*vk));
+                    }
+                }
+                Ok::<_, DispatchError>(())
+            })?;
             Self::deposit_event(Event::VkRegistered { hash });
             Ok(().into())
         }
@@ -361,9 +370,8 @@ pub mod pallet {
                 ticket.drop(&account_id)?;
                 Vks::<T, I>::mutate_exists(vk_hash, |vk_entry| match vk_entry {
                     Some(v) => {
-                        if v.ref_count > 1 {
-                            v.ref_count -= 1;
-                        } else {
+                        v.ref_count = v.ref_count.saturating_sub(1);
+                        if v.ref_count == 0 {
                             *vk_entry = None;
                         }
                     }
