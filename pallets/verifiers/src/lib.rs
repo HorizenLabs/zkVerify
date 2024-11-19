@@ -86,7 +86,7 @@ pub mod pallet {
 
     use codec::Encode;
     #[cfg(feature = "runtime-benchmarks")]
-    use frame_support::traits::ReservableCurrency;
+    use frame_support::traits::fungible::Mutate;
     use frame_support::{
         dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostInfo, PostDispatchInfo},
         pallet_prelude::*,
@@ -153,7 +153,7 @@ pub mod pallet {
         type WeightInfo: hp_verifiers::WeightInfo<I>;
         /// Currency used in benchmarks.
         #[cfg(feature = "runtime-benchmarks")]
-        type Currency: ReservableCurrency<AccountOf<Self>>;
+        type Currency: Mutate<AccountOf<Self>>;
     }
 
     /// A Vk with a reference count
