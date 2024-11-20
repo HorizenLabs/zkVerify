@@ -157,7 +157,7 @@ jobs:
                   "type": "header",
                   "text": {
                     "type": "plain_text",
-                    "text": "🎉 zkVerify Docker Image v${{ github.ref_name }} Released! 🎉"
+                    "text": "🎉 $DOCKER_IMAGE_BUILD_NAME Docker Image v${{ github.ref_name }} Released! 🎉"
                   }
                 },
                 {
@@ -165,7 +165,7 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*Docker Image:*  <https://hub.docker.com/r/horizenlabs/zkverify/tags?page=1&name=${{ github.ref_name }}| v${{ github.ref_name }}>\n"
+                      "text": "*Docker Image:*  <https://hub.docker.com/r/$DOCKER_HUB_ORG/$DOCKER_IMAGE_BUILD_NAME/tags?page=1&name=${{ github.ref_name }}| v${{ github.ref_name }}>\n"
                     },
                     {
                       "type": "mrkdwn",
@@ -177,7 +177,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "```docker pull horizenlabs/zkverify:${{ github.ref_name }}```"
+                    "text": "```docker pull $DOCKER_HUB_ORG/$DOCKER_IMAGE_BUILD_NAME:${{ github.ref_name }}```"
                   }
                 }
               ]
@@ -185,3 +185,4 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.RELEASES_PROD_SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+     
