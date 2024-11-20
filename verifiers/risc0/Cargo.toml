@@ -41,6 +41,7 @@ std = [
     "frame-support/std",
     "frame-system/std",
     "native/std",
+    "pallet-balances/std",
 ]
 default = ["std"]
 runtime-benchmarks = [

@@ -14,30 +14,73 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 #![cfg(test)]
 
-use frame_support::dispatch::{GetDispatchInfo, Pays};
-use frame_support::{assert_noop, assert_ok};
-
-use hp_verifiers::{Verifier, WeightInfo};
-use sp_core::H256;
-
 use super::*;
 use crate::mock::*;
+use codec::Encode;
+use frame_support::dispatch::{GetDispatchInfo, Pays};
 use frame_support::{assert_err, assert_err_ignore_postinfo};
+use frame_support::{assert_noop, assert_ok};
+use hp_verifiers::{Verifier, WeightInfo};
 use rstest::{fixture, rstest};
+use sp_core::H256;
+use sp_runtime::{BuildStorage, DispatchError};
 
 type Vk = <FakeVerifier as Verifier>::Vk;
 type RError = Error<Test, FakeVerifier>;
 type VkOrHash = super::VkOrHash<Vk>;
+type DisableStorage = Disabled<Test, FakeVerifier>;
+
+pub const USER_1: AccountId = 42;
+pub const USER_2: AccountId = 24;
+pub static USERS: [(AccountId, Balance); 2] = [(USER_1, 42_000_000_000), (USER_2, 24_000_000_000)];
 
 #[fixture]
 pub fn test_ext() -> sp_io::TestExternalities {
-    crate::mock::test_ext()
+    let mut t = frame_system::GenesisConfig::<Test>::default()
+        .build_storage()
+        .unwrap();
+    pallet_balances::GenesisConfig::<Test> {
+        balances: USERS.to_vec(),
+    }
+    .assimilate_storage(&mut t)
+    .unwrap();
+
+    let mut ext = sp_io::TestExternalities::from(t);
+
+    ext.execute_with(|| {
+        System::set_block_number(1);
+    });
+    ext
 }
 
-type DisableStorage = Disabled<Test, FakeVerifier>;
+pub mod registered_vk {
+    use hex_literal::hex;
+
+    use super::*;
+
+    pub const REGISTERED_VK: Vk = 4325;
+    pub const REGISTERED_VK_HASH: H256 = H256(hex!(
+        "7aeb79b96627dd87eac158bec5612ddb7f350513a179d9ab0daf4ab5788c3262"
+    ));
+    pub const VALID_HASH_REGISTERED_VK: H256 = H256(hex!(
+        "a65dc57cd8f1e436aaa8a8a473005040a4594f5411e0d9c7c5d7f20630217b79"
+    ));
+
+    /// Provide an environment with a registered vk
+    #[fixture]
+    pub fn def_vk(mut test_ext: sp_io::TestExternalities) -> sp_io::TestExternalities {
+        test_ext.execute_with(|| {
+            FakeVerifierPallet::register_vk(RuntimeOrigin::signed(USER_1), Box::new(REGISTERED_VK))
+                .unwrap();
+            System::reset_events();
+        });
+        test_ext
+    }
+}
 
 mod register_should {
     use hex_literal::hex;
+    use registered_vk::*;
 
     use super::*;
 
@@ -51,11 +94,11 @@ mod register_should {
     ) {
         test_ext.execute_with(|| {
             assert_ok!(FakeVerifierPallet::register_vk(
-                RuntimeOrigin::signed(1),
+                RuntimeOrigin::signed(USER_1),
                 Box::new(vk)
             ));
 
-            mock::System::assert_last_event(
+            System::assert_last_event(
                 Event::VkRegistered {
                     hash: expected_hash,
                 }
@@ -95,31 +138,194 @@ mod register_should {
         assert_eq!(info.pays_fee, Pays::Yes);
         assert_eq!(info.weight, MockWeightInfo::register_vk(&43));
     }
+
+    #[rstest]
+    fn hold_a_deposit(mut test_ext: sp_io::TestExternalities) {
+        test_ext.execute_with(|| {
+            let initial_reserved_balance = Balances::reserved_balance(USER_1);
+            let vk = 42;
+            assert_ok!(FakeVerifierPallet::register_vk(
+                RuntimeOrigin::signed(USER_1),
+                Box::new(vk)
+            ));
+            assert_eq!(
+                Balances::reserved_balance(USER_1),
+                initial_reserved_balance + reserved_balance(&vk)
+            );
+        })
+    }
+
+    #[rstest]
+    fn fail_if_insufficient_free_balance(mut test_ext: sp_io::TestExternalities) {
+        test_ext.execute_with(|| {
+            assert_noop!(
+                FakeVerifierPallet::register_vk(RuntimeOrigin::signed(1), Box::new(42)),
+                DispatchError::Token(sp_runtime::TokenError::FundsUnavailable)
+            );
+        })
+    }
+
+    #[rstest]
+    fn not_be_allowed_for_root(mut test_ext: sp_io::TestExternalities) {
+        test_ext.execute_with(|| {
+            assert_noop!(
+                FakeVerifierPallet::register_vk(RuntimeOrigin::root(), Box::new(42)),
+                DispatchError::BadOrigin
+            );
+        })
+    }
+
+    #[rstest]
+    fn handle_double_registration_by_different_users(mut def_vk: sp_io::TestExternalities) {
+        def_vk.execute_with(|| {
+            let initial_reserved_balance = Balances::reserved_balance(USER_2);
+            assert_ok!(FakeVerifierPallet::register_vk(
+                RuntimeOrigin::signed(USER_2),
+                Box::new(REGISTERED_VK)
+            ));
+            System::assert_last_event(
+                Event::VkRegistered {
+                    hash: REGISTERED_VK_HASH,
+                }
+                .into(),
+            );
+            assert_eq!(
+                Balances::reserved_balance(USER_2),
+                initial_reserved_balance + reserved_balance(&REGISTERED_VK)
+            );
+        })
+    }
+
+    #[rstest]
+    fn fail_for_double_registration_by_same_user(mut def_vk: sp_io::TestExternalities) {
+        def_vk.execute_with(|| {
+            assert_noop!(
+                FakeVerifierPallet::register_vk(
+                    RuntimeOrigin::signed(USER_1),
+                    Box::new(REGISTERED_VK)
+                ),
+                RError::VerificationKeyAlreadyRegistered
+            );
+        })
+    }
 }
 
-pub mod submit_proof_should {
-    use hex_literal::hex;
-
+mod unregister_should {
     use super::*;
+    use registered_vk::*;
 
-    pub const REGISTERED_VK: Vk = 4325;
-    pub const REGISTERED_VK_HASH: H256 = H256(hex!(
-        "7aeb79b96627dd87eac158bec5612ddb7f350513a179d9ab0daf4ab5788c3262"
-    ));
-    pub const VALID_HASH_REGISTERED_VK: H256 = H256(hex!(
-        "a65dc57cd8f1e436aaa8a8a473005040a4594f5411e0d9c7c5d7f20630217b79"
-    ));
-
-    /// Provide an environment with a registered vk (use used the default vk)
-    #[fixture]
-    fn def_vk(mut test_ext: sp_io::TestExternalities) -> sp_io::TestExternalities {
-        test_ext.execute_with(|| {
-            FakeVerifierPallet::register_vk(RuntimeOrigin::signed(1), Box::new(REGISTERED_VK))
+    #[rstest]
+    fn unregister_a_previously_registered_vk(mut def_vk: sp_io::TestExternalities) {
+        def_vk.execute_with(|| {
+            assert!(FakeVerifierPallet::vks(REGISTERED_VK_HASH).is_some());
+            FakeVerifierPallet::unregister_vk(RuntimeOrigin::signed(USER_1), REGISTERED_VK_HASH)
                 .unwrap();
-            System::reset_events();
-        });
-        test_ext
+            assert!(FakeVerifierPallet::vks(REGISTERED_VK_HASH).is_none());
+        })
     }
+
+    #[rstest]
+    fn keep_previously_registered_vk_around_if_another_user_is_referencing_it(
+        mut def_vk: sp_io::TestExternalities,
+    ) {
+        def_vk.execute_with(|| {
+            FakeVerifierPallet::register_vk(RuntimeOrigin::signed(USER_2), Box::new(REGISTERED_VK))
+                .unwrap();
+            FakeVerifierPallet::unregister_vk(RuntimeOrigin::signed(USER_1), REGISTERED_VK_HASH)
+                .unwrap();
+            assert!(FakeVerifierPallet::vks(REGISTERED_VK_HASH).is_some());
+        })
+    }
+
+    #[rstest]
+    fn release_deposit(mut def_vk: sp_io::TestExternalities) {
+        def_vk.execute_with(|| {
+            let initial_reserved_balance = Balances::reserved_balance(USER_1);
+            FakeVerifierPallet::unregister_vk(RuntimeOrigin::signed(USER_1), REGISTERED_VK_HASH)
+                .unwrap();
+            assert_eq!(
+                Balances::reserved_balance(USER_1),
+                initial_reserved_balance - reserved_balance(&REGISTERED_VK)
+            )
+        })
+    }
+
+    #[rstest]
+    fn emit_vk_unregistered_event_if_vk_is_dropped(mut def_vk: sp_io::TestExternalities) {
+        def_vk.execute_with(|| {
+            FakeVerifierPallet::unregister_vk(RuntimeOrigin::signed(USER_1), REGISTERED_VK_HASH)
+                .unwrap();
+            System::assert_last_event(
+                Event::VkUnregistered {
+                    hash: REGISTERED_VK_HASH,
+                }
+                .into(),
+            );
+        })
+    }
+
+    #[rstest]
+    fn emit_no_vk_unregistered_event_if_vk_is_not_dropped(mut def_vk: sp_io::TestExternalities) {
+        def_vk.execute_with(|| {
+            FakeVerifierPallet::register_vk(RuntimeOrigin::signed(USER_2), Box::new(REGISTERED_VK))
+                .unwrap();
+            FakeVerifierPallet::unregister_vk(RuntimeOrigin::signed(USER_1), REGISTERED_VK_HASH)
+                .unwrap();
+            assert!(System::events()
+                .into_iter()
+                .find(|e| {
+                    matches!(e.event.clone().try_into(), Ok(Event::VkUnregistered { .. }))
+                })
+                .is_none());
+        })
+    }
+
+    mod fail {
+        use super::*;
+        use frame_support::assert_noop;
+
+        #[rstest]
+        fn on_root_origin(mut test_ext: sp_io::TestExternalities) {
+            test_ext.execute_with(|| {
+                assert_noop!(
+                    FakeVerifierPallet::unregister_vk(RuntimeOrigin::root(), REGISTERED_VK_HASH),
+                    DispatchError::BadOrigin
+                );
+            })
+        }
+
+        #[rstest]
+        fn if_vk_exists_but_caller_did_not_register_it(mut def_vk: sp_io::TestExternalities) {
+            def_vk.execute_with(|| {
+                assert_noop!(
+                    FakeVerifierPallet::unregister_vk(
+                        RuntimeOrigin::signed(USER_2),
+                        REGISTERED_VK_HASH
+                    ),
+                    DispatchError::BadOrigin
+                );
+            })
+        }
+
+        #[rstest]
+        fn on_nonexistent_vk(mut def_vk: sp_io::TestExternalities) {
+            def_vk.execute_with(|| {
+                assert_noop!(
+                    FakeVerifierPallet::unregister_vk(
+                        RuntimeOrigin::signed(USER_1),
+                        H256::from_low_u64_be(42)
+                    ),
+                    RError::VerificationKeyNotFound
+                );
+            })
+        }
+    }
+}
+
+mod submit_proof_should {
+    use super::*;
+    use hex_literal::hex;
+    use registered_vk::*;
 
     #[rstest]
     #[case::vk(VkOrHash::Vk(Box::new(REGISTERED_VK)), VALID_HASH_REGISTERED_VK)]
@@ -321,7 +527,6 @@ pub mod submit_proof_should {
 #[cfg(test)]
 mod disable_should {
     use common::WeightInfo;
-    // use frame_support::assert_err_with_weight;
 
     use super::*;
 
@@ -419,7 +624,7 @@ mod disable_should {
                 None,
             ));
             assert_ok!(FakeVerifierPallet::register_vk(
-                RuntimeOrigin::signed(1),
+                RuntimeOrigin::signed(USER_1),
                 42.into(),
             ));
         });
@@ -437,4 +642,8 @@ mod disable_should {
             );
         });
     }
+}
+
+fn reserved_balance(vk: &Vk) -> Balance {
+    BaseDeposit::get() + PerByteDeposit::get() * vk.encoded_size() as Balance
 }

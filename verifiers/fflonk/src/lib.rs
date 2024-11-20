@@ -110,4 +110,8 @@ impl<W: weight::WeightInfo> pallet_verifiers::WeightInfo<Fflonk> for FflonkWeigh
     fn register_vk(_vk: &<Fflonk as hp_verifiers::Verifier>::Vk) -> Weight {
         W::register_vk()
     }
+
+    fn unregister_vk() -> Weight {
+        W::unregister_vk()
+    }
 }

@@ -154,6 +154,10 @@ impl<T: Config, W: weight::WeightInfo> pallet_verifiers::WeightInfo<ProofOfSql<T
     fn register_vk(_vk: &<ProofOfSql<T> as hp_verifiers::Verifier>::Vk) -> Weight {
         W::register_vk()
     }
+
+    fn unregister_vk() -> frame_support::weights::Weight {
+        W::unregister_vk()
+    }
 }
 
 #[cfg(test)]

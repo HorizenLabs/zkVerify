@@ -51,6 +51,7 @@ std = [
     "pallet-verifiers/std",
     "codec/std",
     "scale-info/std",
+    "pallet-balances/std",
 ]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",

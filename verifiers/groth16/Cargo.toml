@@ -48,6 +48,7 @@ std = [
     "frame-support/std",
     "hp-groth16/std",
     "native/std",
+    "pallet-balances/std",
 ]
 default = ["std"]
 runtime-benchmarks = [

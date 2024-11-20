@@ -17,10 +17,11 @@
 
 use crate::Zksync;
 use frame_benchmarking::v2::*;
+use frame_support::traits::{Consideration, Footprint};
 use frame_system::RawOrigin;
 use hp_verifiers::Verifier;
 use pallet_aggregate::{funded_account, insert_domain};
-use pallet_verifiers::{VkOrHash, Vks};
+use pallet_verifiers::{Tickets, VkEntry, VkOrHash, Vks};
 
 pub struct Pallet<T: Config>(crate::Pallet<T>);
 pub trait Config: pallet_verifiers::Config<Zksync> {}
@@ -62,7 +63,8 @@ mod benchmarks {
         let proof = PROOF.into();
         let pubs = PUBS.into();
         let hash = sp_core::H256::repeat_byte(2);
-        Vks::<T, Zksync>::insert(hash, ());
+        let vk_entry = VkEntry::new(());
+        Vks::<T, Zksync>::insert(hash, vk_entry);
         let vk_or_hash = VkOrHash::from_hash(hash);
 
         #[extrinsic_call]
@@ -78,7 +80,7 @@ mod benchmarks {
     #[benchmark]
     fn register_vk() {
         // setup code
-        let caller = whitelisted_caller();
+        let caller: T::AccountId = funded_account::<T>();
         let vk = ().into();
 
         #[extrinsic_call]
@@ -88,43 +90,90 @@ mod benchmarks {
         assert!(Vks::<T, Zksync>::get(Zksync::vk_hash(&())).is_some());
     }
 
+    #[benchmark]
+    fn unregister_vk() {
+        // setup code
+        let caller: T::AccountId = funded_account::<T>();
+        let hash = sp_core::H256::repeat_byte(2);
+        let vk = ().into();
+        let vk_entry = VkEntry::new(vk);
+        let footprint = Footprint::from_encodable(&vk_entry);
+        let ticket = T::Ticket::new(&caller, footprint).unwrap();
+
+        Vks::<T, Zksync>::insert(hash, vk_entry);
+        Tickets::<T, Zksync>::insert((caller.clone(), hash), ticket);
+
+        #[extrinsic_call]
+        unregister_vk(RawOrigin::Signed(caller), hash);
+    }
     impl_benchmark_test_suite!(Pallet, super::mock::test_ext(), super::mock::Test);
 }
 
 #[cfg(test)]
 mod mock {
     use frame_support::{
-        derive_impl,
+        derive_impl, parameter_types,
         sp_runtime::{traits::IdentityLookup, BuildStorage},
-        traits::EnsureOrigin,
+        traits::{fungible::HoldConsideration, EnsureOrigin, LinearStoragePrice},
     };
-    use sp_core::{ConstU32, ConstU64};
+    use sp_core::{ConstU128, ConstU32};
+
+    type Balance = u128;
+    type AccountId = u64;
 
     // Configure a mock runtime to test the pallet.
     frame_support::construct_runtime!(
         pub enum Test
         {
             System: frame_system,
-            VerifierPallet: crate,
             Balances: pallet_balances,
+            CommonVerifiersPallet: pallet_verifiers::common,
+            VerifierPallet: crate,
             Aggregate: pallet_aggregate,
         }
     );
 
-    type Balance = u64;
-
     #[derive_impl(frame_system::config_preludes::SolochainDefaultConfig as frame_system::DefaultConfig)]
     impl frame_system::Config for Test {
         type Block = frame_system::mocking::MockBlockU32<Test>;
-        type AccountId = u64;
-        type AccountData = pallet_balances::AccountData<Balance>;
+        type AccountId = AccountId;
         type Lookup = IdentityLookup<Self::AccountId>;
+        type AccountData = pallet_balances::AccountData<Balance>;
+    }
+
+    parameter_types! {
+            pub const BaseDeposit: Balance = 1;
+            pub const PerByteDeposit: Balance = 2;
+            pub const HoldReasonVkRegistration: RuntimeHoldReason = RuntimeHoldReason::CommonVerifiersPallet(pallet_verifiers::common::HoldReason::VkRegistration);
     }
 
     impl pallet_verifiers::Config<crate::Zksync> for Test {
         type RuntimeEvent = RuntimeEvent;
         type OnProofVerified = Aggregate;
         type WeightInfo = crate::ZksyncWeight<()>;
+        type Ticket = HoldConsideration<
+            AccountId,
+            Balances,
+            HoldReasonVkRegistration,
+            LinearStoragePrice<BaseDeposit, PerByteDeposit, Balance>,
+        >;
+        type Currency = Balances;
+    }
+
+    impl pallet_balances::Config for Test {
+        type RuntimeEvent = RuntimeEvent;
+        type RuntimeHoldReason = RuntimeHoldReason;
+        type RuntimeFreezeReason = RuntimeFreezeReason;
+        type WeightInfo = ();
+        type Balance = Balance;
+        type DustRemoval = ();
+        type ExistentialDeposit = ConstU128<1>;
+        type AccountStore = System;
+        type ReserveIdentifier = [u8; 8];
+        type FreezeIdentifier = RuntimeFreezeReason;
+        type MaxLocks = ConstU32<10>;
+        type MaxReserves = ConstU32<10>;
+        type MaxFreezes = ConstU32<10>;
     }
 
     impl pallet_verifiers::common::Config for Test {
@@ -157,22 +206,6 @@ mod mock {
         type WeightInfo = ();
         const AGGREGATION_SIZE: u32 = 32;
         type Currency = Balances;
-    }
-
-    impl pallet_balances::Config for Test {
-        type RuntimeEvent = RuntimeEvent;
-        type RuntimeHoldReason = RuntimeHoldReason;
-        type RuntimeFreezeReason = RuntimeFreezeReason;
-        type WeightInfo = ();
-        type Balance = Balance;
-        type DustRemoval = ();
-        type ExistentialDeposit = ConstU64<1>;
-        type AccountStore = System;
-        type ReserveIdentifier = [u8; 8];
-        type FreezeIdentifier = RuntimeFreezeReason;
-        type MaxLocks = ConstU32<10>;
-        type MaxReserves = ConstU32<10>;
-        type MaxFreezes = ConstU32<10>;
     }
 
     /// Build genesis storage according to the mock runtime.

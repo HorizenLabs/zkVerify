@@ -42,6 +42,7 @@ std = [
     "frame-system/std",
     "pallet-verifiers/std",
     "native/std",
+    "pallet-balances/std",
 ]
 default = ["std"]
 runtime-benchmarks = [

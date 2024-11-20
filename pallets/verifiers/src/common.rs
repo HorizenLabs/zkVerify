@@ -20,6 +20,13 @@ pub mod pallet {
     /// The common pallet-verifiers component.
     pub struct Pallet<T>(_);
 
+    #[pallet::composite_enum]
+    /// A reason for this pallet placing a hold on funds.
+    pub enum HoldReason {
+        /// The funds are held as storage deposit for a verification key registration.
+        VkRegistration,
+    }
+
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
     pub trait Config: frame_system::Config {

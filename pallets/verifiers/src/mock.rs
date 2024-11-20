@@ -14,10 +14,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 #![cfg(test)]
 
-use frame_support::{derive_impl, weights::Weight};
-use sp_runtime::{traits::IdentityLookup, BuildStorage};
-
+use frame_support::{
+    derive_impl, parameter_types,
+    traits::{fungible::HoldConsideration, LinearStoragePrice},
+    weights::{constants::ParityDbWeight, Weight},
+};
+use frame_system::RawOrigin;
 use hp_verifiers::{Verifier, VerifyError, WeightInfo};
+use sp_core::{ConstU128, ConstU32};
+use sp_runtime::traits::IdentityLookup;
+
+pub use fake_pallet::FakeVerifier;
+
+pub type Balance = u128;
+pub type AccountId = u64;
+pub type Origin = RawOrigin<AccountId>;
 
 /// A on_proof_verifier fake pallet
 pub mod on_proof_verified {
@@ -141,7 +152,6 @@ pub mod fake_pallet {
     }
 }
 
-pub use fake_pallet::FakeVerifier;
 pub struct MockWeightInfo;
 impl WeightInfo<FakeVerifier> for MockWeightInfo {
     fn submit_proof(_proof: &u64, _pubs: &u64) -> Weight {
@@ -154,6 +164,10 @@ impl WeightInfo<FakeVerifier> for MockWeightInfo {
 
     fn register_vk(_vk: &u64) -> Weight {
         Weight::from_parts(5, 6)
+    }
+
+    fn unregister_vk() -> Weight {
+        Weight::from_parts(7, 8)
     }
 }
 
@@ -173,6 +187,7 @@ frame_support::construct_runtime!(
     pub enum Test
     {
         System: frame_system,
+        Balances: pallet_balances,
         CommonVerifiersPallet: crate::common,
         FakeVerifierPallet: fake_pallet,
         OnProofVerifiedMock: on_proof_verified,
@@ -181,15 +196,49 @@ frame_support::construct_runtime!(
 
 #[derive_impl(frame_system::config_preludes::SolochainDefaultConfig as frame_system::DefaultConfig)]
 impl frame_system::Config for Test {
-    type Block = frame_system::mocking::MockBlockU32<Test>;
-    type AccountId = u64;
+    type AccountId = AccountId;
     type Lookup = IdentityLookup<Self::AccountId>;
+    type Block = frame_system::mocking::MockBlockU32<Test>;
+    type AccountData = pallet_balances::AccountData<Balance>;
+    type DbWeight = ParityDbWeight;
+}
+
+parameter_types! {
+    pub const BaseDeposit: Balance = 1;
+    pub const PerByteDeposit: Balance = 2;
+    pub const HoldReasonVkRegistration: RuntimeHoldReason = RuntimeHoldReason::CommonVerifiersPallet(crate::common::HoldReason::VkRegistration);
 }
 
 impl crate::Config<FakeVerifier> for Test {
     type RuntimeEvent = RuntimeEvent;
     type OnProofVerified = OnProofVerifiedMock;
+    type Ticket = HoldConsideration<
+        AccountId,
+        Balances,
+        HoldReasonVkRegistration,
+        LinearStoragePrice<BaseDeposit, PerByteDeposit, Balance>,
+    >;
     type WeightInfo = MockWeightInfo;
+    #[cfg(feature = "runtime-benchmarks")]
+    type Currency = Balances;
+}
+
+impl pallet_balances::Config for Test {
+    type MaxLocks = ConstU32<50>;
+    type MaxReserves = ();
+    type ReserveIdentifier = [u8; 8];
+    /// The type for recording an account's balance.
+    type Balance = Balance;
+    /// The ubiquitous event type.
+    type RuntimeEvent = RuntimeEvent;
+    type DustRemoval = ();
+    type ExistentialDeposit = ConstU128<1>;
+    type AccountStore = System;
+    type WeightInfo = ();
+    type FreezeIdentifier = ();
+    type MaxFreezes = ();
+    type RuntimeHoldReason = RuntimeHoldReason;
+    type RuntimeFreezeReason = ();
 }
 
 impl crate::common::Config for Test {
@@ -198,15 +247,4 @@ impl crate::common::Config for Test {
 
 impl on_proof_verified::Config for Test {
     type RuntimeEvent = RuntimeEvent;
-}
-
-/// Build genesis storage according to the mock runtime.
-pub fn test_ext() -> sp_io::TestExternalities {
-    let mut ext = sp_io::TestExternalities::from(
-        frame_system::GenesisConfig::<Test>::default()
-            .build_storage()
-            .unwrap(),
-    );
-    ext.execute_with(|| System::set_block_number(1));
-    ext
 }
