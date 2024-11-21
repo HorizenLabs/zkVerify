@@ -75,7 +75,6 @@ use ismp::host::StateMachine;
 use ismp::module::IsmpModule;
 use ismp::router::{IsmpRouter, PostRequest, Request, Response, Timeout};
 use ismp::Error;
-use null_currency::NullCurrency;
 pub use pallet_balances::Call as BalancesCall;
 use pallet_ismp::mmr::{Leaf, Proof, ProofKeys};
 use pallet_ismp::NoOpMmrTree;
@@ -123,7 +122,6 @@ pub mod xcm_config;
 
 mod bag_thresholds;
 mod migrations;
-mod null_currency;
 mod payout;
 mod proxy;
 #[cfg(test)]
@@ -993,8 +991,9 @@ impl pallet_ismp::Config for Runtime {
     type AdminOrigin = EnsureRoot<AccountId>;
     type HostStateMachine = HostStateMachine;
     type TimestampProvider = Timestamp;
-    // TODO: Update to actual currency once stable coin on relayer is established
-    type Currency = NullCurrency;
+    // TODO: Set to zk-verify token (+ need to allowlist module in relayer).
+    // Potentially in the future could be a stable coin
+    type Currency = Balances;
     type Balance = Balance;
     type Router = ModuleRouter;
     type Coprocessor = Coprocessor;
