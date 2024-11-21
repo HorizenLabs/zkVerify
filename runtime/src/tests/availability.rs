@@ -340,3 +340,19 @@ fn pallet_aggregate() {
         // just checking code builds, hence the pallet is available to the runtime
     });
 }
+
+#[test]
+fn pallet_ismp() {
+    test().execute_with(|| {
+        assert!(Ismp::handle_unsigned(RuntimeOrigin::root(), Vec::new()).is_err());
+        // just checking code builds, hence the pallet is available to the runtime
+    });
+}
+
+#[test]
+fn pallet_ismp_grandpa() {
+    test().execute_with(|| {
+        assert_ok!(IsmpGrandpa::remove_state_machines(RuntimeOrigin::root(), Vec::new()));
+        // just checking code builds, hence the pallet is available to the runtime
+    });
+}
