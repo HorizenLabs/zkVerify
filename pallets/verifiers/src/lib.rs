@@ -101,10 +101,15 @@ pub mod pallet {
 
     use hp_verifiers::{Verifier, VerifyError, WeightInfo};
 
+    /// The in-code storage version.
+    const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+
     /// Type alias for AccountId
     pub type AccountOf<T> = <T as frame_system::Config>::AccountId;
 
     #[pallet::pallet]
+    #[pallet::storage_version(STORAGE_VERSION)]
+
     /// The pallet component.
     pub struct Pallet<T, I = ()>(_);
 
