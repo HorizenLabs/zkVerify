@@ -352,7 +352,10 @@ fn pallet_ismp() {
 #[test]
 fn pallet_ismp_grandpa() {
     test().execute_with(|| {
-        assert_ok!(IsmpGrandpa::remove_state_machines(RuntimeOrigin::root(), Vec::new()));
+        assert_ok!(IsmpGrandpa::remove_state_machines(
+            RuntimeOrigin::root(),
+            Vec::new()
+        ));
         // just checking code builds, hence the pallet is available to the runtime
     });
 }
