@@ -77,7 +77,6 @@ use ismp::router::{IsmpRouter, PostRequest, Request, Response, Timeout};
 use ismp::Error;
 use null_currency::NullCurrency;
 pub use pallet_balances::Call as BalancesCall;
-use pallet_hyperbridge::PALLET_HYPERBRIDGE_ID;
 use pallet_ismp::mmr::{Leaf, Proof, ProofKeys};
 use pallet_ismp::NoOpMmrTree;
 use pallet_session::historical as pallet_session_historical;
@@ -1009,18 +1008,12 @@ impl ismp_grandpa::Config for Runtime {
     type IsmpHost = Ismp;
 }
 
-impl pallet_hyperbridge::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
-    type IsmpHost = Ismp;
-}
-
 #[derive(Default)]
 pub struct ModuleRouter;
 impl IsmpRouter for ModuleRouter {
     fn module_for_id(&self, id: Vec<u8>) -> Result<Box<dyn IsmpModule>, anyhow::Error> {
         match id.as_slice() {
             RECEIVING_MESSAGE_MODULE_ID => Ok(Box::new(ReceivingMessageModule)),
-            PALLET_HYPERBRIDGE_ID => Ok(Box::new(pallet_hyperbridge::Pallet::<Runtime>::default())),
             _ => Err(Error::ModuleNotFound(id))?,
         }
     }
@@ -1089,7 +1082,6 @@ construct_runtime!(
         Aggregate: pallet_aggregate,
         Ismp: pallet_ismp,
         IsmpGrandpa: ismp_grandpa,
-        Hyperbridge: pallet_hyperbridge,
     }
 );
 
@@ -1150,7 +1142,6 @@ construct_runtime!(
         // ISMP
         Ismp: pallet_ismp = 90,
         IsmpGrandpa: ismp_grandpa = 91,
-        Hyperbridge: pallet_hyperbridge = 92,
 
         // Parachain pallets. Start indices at 100 to leave room.
         ParachainsOrigin: parachains::parachains_origin = 101,
