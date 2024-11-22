@@ -7933,6 +7933,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-hyperbridge-attestations"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "ismp",
+ "log",
+ "pallet-balances",
+ "pallet-ismp",
+ "parity-scale-codec",
+ "rstest",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-identity"
 version = "37.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -17187,6 +17208,7 @@ dependencies = [
  "pallet-fflonk-verifier",
  "pallet-grandpa",
  "pallet-groth16-verifier",
+ "pallet-hyperbridge-attestations",
  "pallet-im-online",
  "pallet-ismp",
  "pallet-ismp-runtime-api",
