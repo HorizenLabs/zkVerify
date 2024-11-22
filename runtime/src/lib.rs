@@ -73,7 +73,7 @@ use frame_system::EnsureRoot;
 use ismp::consensus::{ConsensusClientId, StateMachineHeight, StateMachineId};
 use ismp::host::StateMachine;
 use ismp::module::IsmpModule;
-use ismp::router::{IsmpRouter, PostRequest, Request, Response, Timeout};
+use ismp::router::{IsmpRouter, Request, Response};
 use ismp::Error;
 pub use pallet_balances::Call as BalancesCall;
 use pallet_ismp::mmr::{Leaf, Proof, ProofKeys};
@@ -1002,6 +1002,11 @@ impl pallet_ismp::Config for Runtime {
     type WeightProvider = ();
 }
 
+impl pallet_hyperbridge_attestations::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type IsmpDispatcher = pallet_ismp::Pallet<Runtime>;
+}
+
 impl ismp_grandpa::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type IsmpHost = Ismp;
@@ -1012,30 +1017,11 @@ pub struct ModuleRouter;
 impl IsmpRouter for ModuleRouter {
     fn module_for_id(&self, id: Vec<u8>) -> Result<Box<dyn IsmpModule>, anyhow::Error> {
         match id.as_slice() {
-            RECEIVING_MESSAGE_MODULE_ID => Ok(Box::new(ReceivingMessageModule)),
+            id if id == ZKV_MODULE_ID.to_bytes().as_slice() => Ok(Box::new(
+                pallet_hyperbridge_attestations::Pallet::<Runtime>::default(),
+            )),
             _ => Err(Error::ModuleNotFound(id))?,
         }
-    }
-}
-
-// The ReceivingMessageModule is just added as a placeholder, we just intend sending messages
-// for the moment, not receiving them.
-#[derive(Default)]
-struct ReceivingMessageModule;
-
-pub const RECEIVING_MESSAGE_MODULE_ID: &[u8] = b"RECE-FEE";
-
-impl IsmpModule for ReceivingMessageModule {
-    fn on_accept(&self, _request: PostRequest) -> Result<(), anyhow::Error> {
-        Ok(())
-    }
-
-    fn on_response(&self, _response: Response) -> Result<(), anyhow::Error> {
-        Ok(())
-    }
-
-    fn on_timeout(&self, _request: Timeout) -> Result<(), anyhow::Error> {
-        Ok(())
     }
 }
 
@@ -1081,6 +1067,7 @@ construct_runtime!(
         Aggregate: pallet_aggregate,
         Ismp: pallet_ismp,
         IsmpGrandpa: ismp_grandpa,
+        HyperbridgeAttestations: pallet_hyperbridge_attestations,
     }
 );
 
@@ -1141,6 +1128,7 @@ construct_runtime!(
         // ISMP
         Ismp: pallet_ismp = 90,
         IsmpGrandpa: ismp_grandpa = 91,
+        HyperbridgeAttestations: pallet_hyperbridge_attestations = 92,
 
         // Parachain pallets. Start indices at 100 to leave room.
         ParachainsOrigin: parachains::parachains_origin = 101,
@@ -1330,6 +1318,7 @@ use polkadot_primitives::{
     ValidationCodeHash, ValidatorId, ValidatorIndex, PARACHAIN_KEY_TYPE_ID,
 };
 
+use pallet_hyperbridge_attestations::ZKV_MODULE_ID;
 #[cfg(feature = "relay")]
 pub use polkadot_runtime_parachains::runtime_api_impl::{
     v10 as parachains_runtime_api_impl, vstaging as parachains_staging_runtime_api_impl,
