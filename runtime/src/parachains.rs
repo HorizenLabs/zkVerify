@@ -165,7 +165,7 @@ parameter_types! {
     /// This is not a good value for para-chains since the `Scheduler` already uses up to 80% block weight.
     pub MessageQueueServiceWeight: Weight = Perbill::from_percent(20) * BlockWeights::get().max_block;
     pub MessageQueueIdleServiceWeight: Weight = Perbill::from_percent(20) * BlockWeights::get().max_block;
-    pub const MessageQueueHeapSize: u32 = 32 * 1024;
+    pub const MessageQueueHeapSize: u32 = 512 * 1024;
     pub const MessageQueueMaxStale: u32 = 96;
 }
 
