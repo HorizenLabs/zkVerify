@@ -30,24 +30,17 @@ jobs:
       - name: Set up deps cache
         run: mkdir deps
 
-      - name: Restore common cache
+      - name: Restore coverage cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v3 # Use GH
         with:
           path: |
             ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            deps/
-          key: common-cache
-    
-      - name: Restore coverage cache
-        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
-        uses: actions/cache/restore@v3
-        with:
-          path: |
             target/
+            deps/
           key: coverage-cache
 
       - name: Set docker env vars
@@ -68,10 +61,15 @@ jobs:
 
       - name: Save coverage cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v3 # Use GH
         with:
           path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             target/
+            deps/
           key: coverage-cache
 
       - name: Upload output(s)

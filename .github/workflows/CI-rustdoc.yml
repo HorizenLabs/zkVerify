@@ -28,17 +28,18 @@ jobs:
       - name: Set up deps cache
         run: mkdir deps
 
-      - name: Restore common cache
+      - name: Restore main cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
-        uses: actions/cache/restore@v3
+        uses: buildjet/cache/restore@v3
         with:
           path: |
             ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
+            target/
             deps/
-          key: common-cache
+          key: build-cache
     
       - name: Set docker env vars
         run: |

@@ -17,7 +17,7 @@
 //! [`handle_dependency`] and [`handle_dependencies`] functions.
 
 use std::{
-    fs,
+    env, fs,
     path::{Path, PathBuf},
 };
 
@@ -54,6 +54,9 @@ pub fn handle_dependency(
     dependency: &impl Dependency,
     profile: &str,
 ) -> anyhow::Result<()> {
+    if skip_native_cache() {
+        return Ok(());
+    }
     let target_path = target_path(target_root, profile);
     let valid = cache_dependency(&target_path, dependency)?;
     if valid {
@@ -74,6 +77,9 @@ pub fn handle_dependencies<'a>(
     dependencies: impl IntoIterator<Item = &'a Box<dyn Dependency>>,
     profile: &str,
 ) -> anyhow::Result<()> {
+    if skip_native_cache() {
+        return Ok(());
+    }
     for dependency in dependencies {
         handle_dependency(target_root.as_ref(), dependency, profile)?
     }
@@ -125,4 +131,11 @@ fn set_env_paths(dependency: &impl Dependency, reset: bool) -> anyhow::Result<()
         config.add(dependency);
     }
     config.store()
+}
+
+fn skip_native_cache() -> bool {
+    "true"
+        == &env::var("DONT_CACHE_NATIVE")
+            .unwrap_or_default()
+            .to_lowercase()
 }
