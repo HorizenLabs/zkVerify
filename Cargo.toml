@@ -93,7 +93,7 @@ sp-keystore = { version = "0.40.0" }
 native = { default-features = false, path = "native" }
 pallet-poe = { path = "pallets/proof_of_existence", default-features = false }
 pallet-aggregate = { path = "pallets/aggregate", default-features = false }
-pallet-hyperbridge-attestations = { path = "pallets/hyperbridge_attestations", default-features = false }
+pallet-hyperbridge-aggregations = { path = "pallets/hyperbridge_aggregations", default-features = false }
 pallet-verifiers = { path = "pallets/verifiers", default-features = false }
 pallet-verifiers-macros = { path = "pallets/verifiers/macros" }
 hp-on-proof-verified = { default-features = false, path = "primitives/hp-on-proof-verified" }
