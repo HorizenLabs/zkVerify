@@ -7933,7 +7933,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-hyperbridge-attestations"
+name = "pallet-hyperbridge-aggregations"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -17208,7 +17208,7 @@ dependencies = [
  "pallet-fflonk-verifier",
  "pallet-grandpa",
  "pallet-groth16-verifier",
- "pallet-hyperbridge-attestations",
+ "pallet-hyperbridge-aggregations",
  "pallet-im-online",
  "pallet-ismp",
  "pallet-ismp-runtime-api",

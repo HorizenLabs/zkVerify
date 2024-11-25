@@ -71,10 +71,10 @@ pub mod pallet {
     )]
     pub struct Params<Balance> {
         /// Attestation id
-        pub attestation_id: u64,
+        pub aggregation_id: u64,
 
         /// Attestation of Merkle tree
-        pub attestation: sp_core::H256,
+        pub aggregation: sp_core::H256,
 
         /// Destination contract
         pub module: sp_core::H160,
@@ -90,26 +90,26 @@ pub mod pallet {
     }
 
     #[derive(Encode, Decode)]
-    struct AttestationData {
-        attestation_id: u64,
-        attestation: sp_core::H256,
+    struct AggregationData {
+        aggregation_id: u64,
+        aggregation: sp_core::H256,
     }
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
-        /// Dispatch attestation to given EVM chain
+        /// Dispatch aggregation to given EVM chain
         #[pallet::weight(Weight::from_parts(1_000_000, 0))]
         #[pallet::call_index(0)]
-        pub fn dispatch_attestation(
+        pub fn dispatch_aggregation(
             origin: OriginFor<T>,
             params: Params<T::Balance>,
         ) -> DispatchResult {
             let origin = ensure_signed(origin)?;
 
-            // Create and encode the attestation data
-            let data = AttestationData {
-                attestation_id: params.attestation_id,
-                attestation: params.attestation,
+            // Create and encode the aggregation data
+            let data = AggregationData {
+                aggregation_id: params.aggregation_id,
+                aggregation: params.aggregation,
             };
             let body = data.encode();
 

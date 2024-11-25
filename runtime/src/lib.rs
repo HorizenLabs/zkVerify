@@ -1002,7 +1002,7 @@ impl pallet_ismp::Config for Runtime {
     type WeightProvider = ();
 }
 
-impl pallet_hyperbridge_attestations::Config for Runtime {
+impl pallet_hyperbridge_aggregations::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type IsmpDispatcher = pallet_ismp::Pallet<Runtime>;
 }
@@ -1018,7 +1018,7 @@ impl IsmpRouter for ModuleRouter {
     fn module_for_id(&self, id: Vec<u8>) -> Result<Box<dyn IsmpModule>, anyhow::Error> {
         match id.as_slice() {
             id if id == ZKV_MODULE_ID.to_bytes().as_slice() => Ok(Box::new(
-                pallet_hyperbridge_attestations::Pallet::<Runtime>::default(),
+                pallet_hyperbridge_aggregations::Pallet::<Runtime>::default(),
             )),
             _ => Err(Error::ModuleNotFound(id))?,
         }
@@ -1067,7 +1067,7 @@ construct_runtime!(
         Aggregate: pallet_aggregate,
         Ismp: pallet_ismp,
         IsmpGrandpa: ismp_grandpa,
-        HyperbridgeAttestations: pallet_hyperbridge_attestations,
+        HyperbridgeAggregations: pallet_hyperbridge_aggregations,
     }
 );
 
@@ -1128,7 +1128,7 @@ construct_runtime!(
         // ISMP
         Ismp: pallet_ismp = 90,
         IsmpGrandpa: ismp_grandpa = 91,
-        HyperbridgeAttestations: pallet_hyperbridge_attestations = 92,
+        HyperbridgeAggregations: pallet_hyperbridge_aggregations = 92,
 
         // Parachain pallets. Start indices at 100 to leave room.
         ParachainsOrigin: parachains::parachains_origin = 101,
@@ -1318,7 +1318,7 @@ use polkadot_primitives::{
     ValidationCodeHash, ValidatorId, ValidatorIndex, PARACHAIN_KEY_TYPE_ID,
 };
 
-use pallet_hyperbridge_attestations::ZKV_MODULE_ID;
+use pallet_hyperbridge_aggregations::ZKV_MODULE_ID;
 #[cfg(feature = "relay")]
 pub use polkadot_runtime_parachains::runtime_api_impl::{
     v10 as parachains_runtime_api_impl, vstaging as parachains_staging_runtime_api_impl,
