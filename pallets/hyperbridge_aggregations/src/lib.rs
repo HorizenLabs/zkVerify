@@ -79,8 +79,8 @@ pub mod pallet {
         /// Destination contract
         pub module: sp_core::H160,
 
-        /// Destination EVM host
-        pub destination: u32,
+        /// Destination State Machine
+        pub destination: StateMachine,
 
         /// Timeout timestamp on destination chain in seconds
         pub timeout: u64,
@@ -114,7 +114,7 @@ pub mod pallet {
             let body = data.encode();
 
             let post = DispatchPost {
-                dest: StateMachine::Evm(params.destination),
+                dest: params.destination,
                 from: ZKV_MODULE_ID.to_bytes(),
                 to: params.module.0.to_vec(),
                 timeout: params.timeout,
@@ -127,9 +127,9 @@ pub mod pallet {
             // This call will attempt to collect the protocol fee and relayer fee from the user's account
             dispatcher
                 .dispatch_request(
-                    DispatchRequest::Post(post.clone()),
+                    DispatchRequest::Post(post),
                     FeeMetadata {
-                        payer: origin.clone(),
+                        payer: origin,
                         fee: params.fee,
                     },
                 )
