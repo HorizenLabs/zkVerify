@@ -600,6 +600,7 @@ construct_runtime!(
         XcmPallet: pallet_xcm = 31,
         CumulusXcm: cumulus_pallet_xcm = 32,
         MessageQueue: pallet_message_queue = 33,
+        XcmNotifications: pallet_xcm_notifications = 34,
 
         // Template
         TemplatePallet: pallet_parachain_template = 50,

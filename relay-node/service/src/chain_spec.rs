@@ -432,7 +432,7 @@ fn default_parachains_host_configuration(
         max_upward_queue_count: 8,
         max_upward_queue_size: 1024 * 1024,
         max_downward_message_size: 1024 * 1024,
-        max_upward_message_size: 128 * 1024,
+        max_upward_message_size: 50 * 1024,
         max_upward_message_num_per_candidate: 5,
         hrmp_sender_deposit: 0,
         hrmp_recipient_deposit: 0,

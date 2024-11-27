@@ -109,8 +109,17 @@ exports.aggregate = async (signer, domain_id, aggregation_id) => {
     return await submitExtrinsic(extrinsic, signer, BlockUntil.InBlock, (event) => event.section == "aggregate");
 }
 
+exports.waitForEvent = async (api, timeout, pallet, name) => {
+    return await waitForEvent(api, timeout, pallet, name);
+}
+
 // Wait for the next attestaion id to be published
 exports.waitForNewAttestation = async (api, timeout) => {
+    return await waitForEvent(api, timeout, "poe", "NewAttestation");
+}
+
+// Wait for the next attestaion id to be published
+async function waitForEvent(api, timeout, pallet, name) {
 
     const retVal = await new Promise(async (resolve, reject) => {
         // Subscribe to system events via storage
@@ -127,7 +136,7 @@ exports.waitForNewAttestation = async (api, timeout) => {
                 // Show what we are busy with
                 console.log(`\t${event.section}: ${event.method}:: (phase = ${phase.toString()})`);
 
-                if ((event.section == "poe") && (event.method == "NewAttestation")) {
+                if ((event.section == pallet) && (event.method == name)) {
                     clearTimeout(timeout);
                     unsubscribe();
                     resolve(event);
@@ -141,11 +150,11 @@ exports.waitForNewAttestation = async (api, timeout) => {
         });
     }).then(
         (ourBestEvent) => {
-            console.log("A new attestation has been published")
+            console.log("A new event has been published")
             return ourBestEvent;
         },
         _error => {
-            console.log("An error happened when waiting for the new attestation to be published.")
+            console.log("An error happened when waiting for the new event to be published.")
             return -1;
         }
     );

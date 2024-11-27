@@ -1,63 +1,59 @@
-// There are a few global variables that are declared in zombienet js test executor but 
-// they are not properly documented. So far, I found these:
-// - zombie <- there a comment along the test about that
-// - window
-// - document <- alias for window.document, LOL!
-//
-// All the api.* calls refer to the polkadot.js api list, which is available here:
-// https://polkadot.js.org/docs/substrate
-// As now, I am unsure if we can also use the Polkadot / Kusama apis as well
-//
-// args can be passed from the .zndsl file as a comma-separated list of values, surrounded
-// by double quotes
+// This script is executed on the test parachain to verify that:
+// 1. the parachain received the teleport from the relay chain, minting tokens to the requested account
+// 2. it is possible to request an XCM teleport of a given amount of tokens toward a given account on the relay chain
+// 3. it is possible to request a custom remote execution on the relay chain through XCM (in this case a submitProof extrinsic)
+// 4. the test parachain receives an XCM response indicating the outcome of the remote execution
 
 const { BN } = require('@polkadot/util');
+
+const { BLOCK_TIME, receivedEvents, submitExtrinsic, waitForEvent } = require('zkv-lib');
 
 const ReturnCode = {
     Ok: 1,
     WrongTeleportReceived: 2,
     ExtrinsicUnsuccessful: 3,
+    FailedRegisteringXcmResponse: 4,
+    FailedSendingXcm: 5,
+    TimeoutWaitingForXcmResponse: 6,
+    RelayVerificationFailed: 7,
 };
-
-const { RISC0_VERIFY_CALL } = require('../verify_risc0_data.js')
 
 async function run(nodeName, networkInfo, args) {
     const {wsUri, userDefinedTypes} = networkInfo.nodesByName[nodeName];
     const api = await zombie.connect(wsUri, userDefinedTypes);
 
-    // Define Alice and Bob's addresses
-    const ALICE = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY';
+    // Alice's remote Computed Origin on the relay chain, computed offline with xcm-tools
     const ALICE_REMOTE_ORIGIN = '0x7b2ac6587a1931a0b108bb03777f8e552293bd6a6ea3790a5fe14e214f13072b';
 
-    // Build a keyring and import Alice's credential
-    // There's no documentation on that, it has been deducted from:
-    // javascript/packages/orchestrator/src/test-runner/assertion.ts
-    // By the way, zombie contains also the following objects / functions:
-    //    ApiPromise, Keyring, WsProvider, util: utilCrypto, connect(), registerParachain()
     const keyring = new zombie.Keyring({ type: 'sr25519' });
     const alice = keyring.addFromUri('//Alice');
 
     const amount = args[0];
     const receiver = args[1];
-    const benef = args[1];
-    // Collect Alice's and Bob's free balances
 
-    let timeout = 10000;
+    // 1. Check that we receive the teleport from the relay chain w/ the correct parameters
+
+    console.log("Waiting for teleport from relay chain");
+
+    let timeout = BLOCK_TIME * 3;
     let balance_receiver = (await api.query.system.account(receiver))["data"]["free"];
-    while (!balance_receiver.eq(new BN(amount, 10))) {
-        console.log('Receiver\'s balance: ' + balance_receiver.toHuman());
-        console.log('Not matching: ' + amount);
 
+    while (!balance_receiver.eq(new BN(amount, 10))) {
         await new Promise(r => setTimeout(r, 1000));
         timeout -= 1000;
         balance_receiver = (await api.query.system.account(receiver))["data"]["free"];
-        if (timeout <= 0) return ReturnCode.WrongTeleportReceived;
+        if (timeout <= 0) {
+            console.log("Not yet received, giving up!");
+            return ReturnCode.WrongTeleportReceived;
+        }
     }
+
     console.log('Received balance: ' + balance_receiver.toHuman());
 
-    // Teleport to Alice's remote origin on relay chain
+    // 2. Teleport to Alice's remote origin on relay chain
+
     const dest = {
-        V3: {
+        V4: {
             parents: '1',
             interior: {
                 Here: '',
@@ -65,184 +61,177 @@ async function run(nodeName, networkInfo, args) {
         },
     };
     const beneficiary = {
-        V3: {
+        V4: {
             parents: '0',
             interior: {
-                X1: {
+                X1: [{
                     AccountId32: {
-                      network: null,
-                      id: ALICE_REMOTE_ORIGIN,
+                        network: null,
+                        id: ALICE_REMOTE_ORIGIN,
                     },
-                }
+                }]
             },
         },
     };
     const assets = {
-        V3: [
-            {
+        V4: [{
                 id: {
-                    Concrete: {
-                        parents: 1,
-                        interior: {
-                            Here: '',
-                        },
+                    parents: 1,
+                    interior: {
+                        Here: '',
                     },
                 },
                 fun: {
-                  Fungible: amount,
+                    Fungible: amount,
                 },
-            },
-        ],
+        }],
     };
 
     const fee_asset_item = '0';
     const weight_limit = 'Unlimited';
-    // Create an extrinsic, transferring 1 token unit to Bob.
+
     const teleport = await api.tx.xcmPallet.teleportAssets(dest, beneficiary, assets, fee_asset_item);
 
-    // We sign and submit the extrinsic. We need to surround the execution of the api call
-    // around a Promise to block the test until the transaction gets finalized, thus
-    // preventing the main function to return before this event happens
-    let transaction_success_event = false;
-    await new Promise( async (resolve, reject) => {
+    console.log("Teleporting to Alice's remote origin on the relay chain");
+    if (!receivedEvents(await submitExtrinsic(teleport, alice, BlockUntil.InBlock, undefined))) {
+        console.log("Teleport failed!");
+        return ReturnCode.ExtrinsicUnsuccessful;
+    }
 
-      const unsub = await teleport.signAndSend(alice, ({ events = [], status }) => {
-        console.log('Transaction status:', status.type);
+    // 3. Send an XCM message which includes a Transact instruction for verifying a groth16 proof
 
-        if (status.isInBlock) {
-          console.log(`Transaction included at blockhash ${status.asInBlock}`);
-          console.log('Events:');
-          events.forEach(({ event: { data, method, section }, phase }) => {
-            console.log('\t', phase.toString(), `: ${section}.${method}`, data.toString());
-            if (section == "system" && method == "ExtrinsicSuccess") {
-              transaction_success_event = true;
-            }
-          });
+    const xcm_wait_for_response = await api.tx.xcmNotifications.prepareNewQuery();
 
-        }
+    console.log("Registering for XCM response");
+    const query_evts = (await submitExtrinsic(xcm_wait_for_response, alice, BlockUntil.InBlock,
+      (event) => event.section == "xcmNotifications" && event.method == "QueryPrepared")).events;
 
-        else if (status.isFinalized) {
-          console.log(`Transaction finalized at blockhash ${status.asFinalized}`);
-          unsub();
-          if (transaction_success_event) {
-            resolve();
-          } else {
-            reject("ExtrinsicSuccess has not been seen");
-          }
-        }
+    if (query_evts.length < 1) {
+        return ReturnCode.FailedRegisteringXcmResponse;
+    }
+    const query_id = query_evts[0].data[0].toString();
 
-        else if (status.isError) {
-          unsub();
-          reject("Transaction status.isError");
-        }
+    console.log("Registered for XCM response with id: " + query_id);
 
-      });
-
-    })
-      .then(
-        () => {
-          console.log("Transaction successfully finalized and included in a block")
-        },
-        error => {
-          return ReturnCode.ExtrinsicUnsuccessful;
-        }
-      );
-
-    // Get the updated balances
-    balance_alice = (await api.query.system.account(ALICE))["data"]["free"];
-    console.log('Alice\'s balance after tx: ' + balance_alice.toHuman());
-
-    const instr_withdraw = {
-      WithdrawAsset: [
-        {
-          id: {
-              Concrete: {
-                  parents: 0,
-                  interior: {
-                      Here: '',
-                  },
-              },
-          },
-          fun: {
-            Fungible: amount,
-          },
-        }
-      ],
-    };
-    const instr_buy_execution = {
-      BuyExecution:
-        {
-          fees: {
-            id: {
-              Concrete: {
+    // This is the asset that we use for remote execution.
+    // Overestimating this should be ok, any surplus is refunded with the instructions in the appendix (see SetAppendix)
+    const exec_amount = (new BN(amount, 10)).div(new BN(10, 10));
+    const exec_asset = {
+        id: {
+            Concrete: {
                 parents: 0,
                 interior: {
                     Here: '',
                 },
-              },
             },
-            fun: {
-              Fungible: amount,
-            },
-          },
-          weightLimit: { Unlimited: null },
+        },
+        fun: {
+            Fungible: exec_amount,
+        },
+    }
+
+    const instr_withdraw = {
+        WithdrawAsset: [ exec_asset ],
+    };
+
+    const instr_buy_execution = {
+        BuyExecution: {
+            fees: exec_asset,
+            weightLimit: { Unlimited: null },
         }
     };
+
+    const response_cfg = {
+        destination: {
+            parents: '0',
+            interior: {
+                X1: [{ Parachain: 1599 }],
+            },
+        },
+        queryId: query_id,
+        maxWeight: {
+            refTime: '1000000',
+            proofSize: '65536',
+        },
+    }
+
+    const instr_error_handler = {
+        SetErrorHandler: [
+            { ReportError: response_cfg }
+        ]
+    };
+
+    const { CALL: GROTH16_VERIFY_CALL } = require(networkInfo["tmpDir"] + '/groth_proof_call.js')
+
     const instr_transact = {
-      Transact: {
-        originType: { SovereignAccount: null },
-        requireWeightAtMost: '100000000000',
-        call: RISC0_VERIFY_CALL,
-      }
+        Transact: {
+            originKind: { SovereignAccount: null },
+            // This is the exact cost of the desired execution.
+            // Any higher value should be ok, as long as it fits in a single block on the relay chain
+            requireWeightAtMost: {
+                refTime: '5564640872',
+                proofSize: '177995',
+            },
+            call: GROTH16_VERIFY_CALL,
+        }
     };
+
+    const instr_report_transact_status = {
+        ReportTransactStatus: response_cfg 
+    };
+
+    const instr_refund_surplus = {
+        SetAppendix: [
+            {
+                RefundSurplus: null,
+            },
+            {
+                DepositAsset: {
+                    assets: { Wild: 'All' },
+                    beneficiary: {
+                        parents: 0,
+                        interior: { X1: [{
+                            AccountId32: {
+                                network: null,
+                                id: ALICE_REMOTE_ORIGIN,
+                            },
+                        }]}
+                    }
+                }
+            }
+        ]
+    }
+
+    // This is the actual XCM message, consisting of a vector of XCM instructions
     const remote_proof_verification = {
-      V2: [instr_withdraw, instr_buy_execution, instr_transact]  
+        V4: [instr_withdraw, instr_buy_execution, instr_refund_surplus, instr_error_handler, instr_transact, instr_report_transact_status]
     };
+
     const xcm_transact = await api.tx.xcmPallet.send(dest, remote_proof_verification);
 
-    console.log("######## Sending xcm transact")
-    await new Promise( async (resolve, reject) => {
-      const unsub = await xcm_transact.signAndSend(alice, ({ events = [], status }) => {
-        console.log('Transaction status:', status.type);
+    console.log("Sending XCM transact");
+    const xcmsend_evts = (await submitExtrinsic(xcm_transact, alice, BlockUntil.InBlock,
+      (event) => event.section == "xcmPallet" && event.method == "Sent")).events;
 
-        if (status.isInBlock) {
-          console.log(`Transaction included at blockhash ${status.asInBlock}`);
-          console.log('Events:');
-          events.forEach(({ event: { data, method, section }, phase }) => {
-            console.log('\t', phase.toString(), `: ${section}.${method}`, data.toString());
-            if (section == "system" && method == "ExtrinsicSuccess") {
-              transaction_success_event = true;
-            }
-          });
+    if (query_evts.length < 1) {
+        return ReturnCode.FailedSendingXcm;
+    }
 
-        }
+    // 4. Wait for the XCM response on the outcome of the remote execution
 
-        else if (status.isFinalized) {
-          console.log(`Transaction finalized at blockhash ${status.asFinalized}`);
-          unsub();
-          if (transaction_success_event) {
-            resolve();
-          } else {
-            reject("ExtrinsicSuccess has not been seen");
-          }
-        }
+    console.log("Waiting for XCM response");
+    const EXPECTED_RESP_TIMEOUT = BLOCK_TIME * 20.5;
+    response = (await waitForEvent(api, EXPECTED_RESP_TIMEOUT, "xcmPallet", "ResponseReady"));
 
-        else if (status.isError) {
-          unsub();
-          reject("Transaction status.isError");
-        }
+    if (response == -1) {
+        return ReturnCode.TimeoutWaitingForXcmResponse;
+    }
 
-      });
-
-    })
-      .then(
-        () => {
-          console.log("Transaction successfully finalized and included in a block")
-        },
-        error => {
-          return ReturnCode.ExtrinsicUnsuccessful;
-        }
-      );
+    if (response.data[0].toNumber() != 0
+        || response.data[1].toString() != '{"dispatchResult":{"success":null}}') {
+        console.log("Unexpected XCM response: qid=" + response.data[0].toString() + "; data=" + response.data[1].toString());
+        return ReturnCode.RelayVerificationFailed;
+    }
 
     return ReturnCode.Ok;
 }
