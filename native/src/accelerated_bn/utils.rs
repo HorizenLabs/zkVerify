@@ -19,7 +19,7 @@
 // curve may be excluded by the build we resort to `#[allow(unused)]` to
 // suppress the expected warning.
 
-use alloc::vec::Vec;
+// use alloc::vec::Vec;
 use ark_ec::{
     pairing::{MillerLoopOutput, Pairing},
     short_weierstrass::{Affine as SWAffine, Projective as SWProjective, SWCurveConfig},
@@ -36,31 +36,31 @@ type ArkScale<T> = ark_scale::ArkScale<T, SCALE_USAGE>;
 type ArkScaleProjective<T> = ark_scale::hazmat::ArkScaleProjective<T>;
 
 #[inline(always)]
-fn encode<T: CanonicalSerialize>(val: T) -> Vec<u8> {
+pub fn encode<T: CanonicalSerialize>(val: T) -> Vec<u8> {
     ArkScale::from(val).encode()
 }
 
 #[inline(always)]
-fn decode<T: CanonicalDeserialize>(buf: Vec<u8>) -> Result<T, ()> {
+pub fn decode<T: CanonicalDeserialize>(buf: Vec<u8>) -> Result<T, ()> {
     ArkScale::<T>::decode(&mut &buf[..])
         .map_err(|_| ())
         .map(|v| v.0)
 }
 
 #[inline(always)]
-fn encode_proj_sw<T: SWCurveConfig>(val: &SWProjective<T>) -> Vec<u8> {
+pub fn encode_proj_sw<T: SWCurveConfig>(val: &SWProjective<T>) -> Vec<u8> {
     ArkScaleProjective::from(val).encode()
 }
 
 #[inline(always)]
-fn decode_proj_sw<T: SWCurveConfig>(buf: Vec<u8>) -> Result<SWProjective<T>, ()> {
+pub fn decode_proj_sw<T: SWCurveConfig>(buf: Vec<u8>) -> Result<SWProjective<T>, ()> {
     ArkScaleProjective::decode(&mut &buf[..])
         .map_err(|_| ())
         .map(|v| v.0)
 }
 
 #[allow(unused)]
-fn multi_miller_loop<T: Pairing>(g1: Vec<u8>, g2: Vec<u8>) -> Result<Vec<u8>, ()> {
+pub fn multi_miller_loop<T: Pairing>(g1: Vec<u8>, g2: Vec<u8>) -> Result<Vec<u8>, ()> {
     let g1 = decode::<Vec<<T as Pairing>::G1Affine>>(g1)?;
     let g2 = decode::<Vec<<T as Pairing>::G2Affine>>(g2)?;
     let res = T::multi_miller_loop(g1, g2);
@@ -68,14 +68,14 @@ fn multi_miller_loop<T: Pairing>(g1: Vec<u8>, g2: Vec<u8>) -> Result<Vec<u8>, ()
 }
 
 #[allow(unused)]
-fn final_exponentiation<T: Pairing>(target: Vec<u8>) -> Result<Vec<u8>, ()> {
+pub fn final_exponentiation<T: Pairing>(target: Vec<u8>) -> Result<Vec<u8>, ()> {
     let target = decode::<<T as Pairing>::TargetField>(target)?;
     let res = T::final_exponentiation(MillerLoopOutput(target)).ok_or(())?;
     Ok(encode(res.0))
 }
 
 #[allow(unused)]
-fn msm_sw<T: SWCurveConfig>(bases: Vec<u8>, scalars: Vec<u8>) -> Result<Vec<u8>, ()> {
+pub fn msm_sw<T: SWCurveConfig>(bases: Vec<u8>, scalars: Vec<u8>) -> Result<Vec<u8>, ()> {
     let bases = decode::<Vec<SWAffine<T>>>(bases)?;
     let scalars = decode::<Vec<<T as CurveConfig>::ScalarField>>(scalars)?;
     let res = <SWProjective<T> as VariableBaseMSM>::msm(&bases, &scalars).map_err(|_| ())?;
@@ -83,7 +83,7 @@ fn msm_sw<T: SWCurveConfig>(bases: Vec<u8>, scalars: Vec<u8>) -> Result<Vec<u8>,
 }
 
 #[allow(unused)]
-fn mul_projective_sw<T: SWCurveConfig>(base: Vec<u8>, scalar: Vec<u8>) -> Result<Vec<u8>, ()> {
+pub fn mul_projective_sw<T: SWCurveConfig>(base: Vec<u8>, scalar: Vec<u8>) -> Result<Vec<u8>, ()> {
     let base = decode_proj_sw::<T>(base)?;
     let scalar = decode::<Vec<u64>>(scalar)?;
     let res = <T as SWCurveConfig>::mul_projective(&base, &scalar);
