@@ -1005,6 +1005,7 @@ impl pallet_ismp::Config for Runtime {
 impl pallet_hyperbridge_aggregations::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type IsmpDispatcher = pallet_ismp::Pallet<Runtime>;
+    type WeightInfo = weights::pallet_hyperbridge_aggregations::ZKVWeight<Runtime>;
 }
 
 impl ismp_grandpa::Config for Runtime {
@@ -1242,6 +1243,7 @@ mod benches {
         [pallet_referenda, Referenda]
         [pallet_whitelist, Whitelist]
         [pallet_aggregate, Aggregate]
+        [pallet_hyperbridge_aggregations, HyperbridgeAggregations]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]
@@ -1279,6 +1281,7 @@ mod benches {
         [pallet_whitelist, Whitelist]
         [pallet_proxy, Proxy]
         [pallet_aggregate, Aggregate]
+        [pallet_hyperbridge_aggregations, HyperbridgeAggregations]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]
         [pallet_fflonk_verifier, FflonkVerifierBench::<Runtime>]
         [pallet_groth16_verifier, Groth16VerifierBench::<Runtime>]

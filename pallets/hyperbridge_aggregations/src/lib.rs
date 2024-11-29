@@ -19,10 +19,19 @@ use ismp::module::IsmpModule;
 use ismp::router::{PostRequest, Response, Timeout};
 pub use pallet::*;
 
+mod benchmarking;
+mod mock;
+mod weight;
+
+// Export the benchmarking utils.
+#[cfg(feature = "runtime-benchmarks")]
+pub use benchmarking::utils::*;
+
+pub use weight::WeightInfo;
+
 #[frame_support::pallet]
 pub mod pallet {
-    use super::*;
-
+    use super::WeightInfo;
     use frame_support::{pallet_prelude::*, PalletId};
     use frame_system::pallet_prelude::*;
     use ismp::dispatcher::{DispatchPost, DispatchRequest, FeeMetadata, IsmpDispatcher};
@@ -39,6 +48,8 @@ pub mod pallet {
         /// [`IsmpDispatcher`] implementation
         type IsmpDispatcher: IsmpDispatcher<Account = Self::AccountId, Balance = Self::Balance>
             + Default;
+        /// The weight definition for this pallet
+        type WeightInfo: WeightInfo;
     }
 
     #[pallet::pallet]
@@ -65,7 +76,7 @@ pub mod pallet {
         }
     }
 
-    /// Extrisnic params for evm dispatch
+    /// Extrinsic params for evm dispatch
     #[derive(
         Clone, codec::Encode, codec::Decode, scale_info::TypeInfo, PartialEq, Eq, RuntimeDebug,
     )]
@@ -98,7 +109,7 @@ pub mod pallet {
     #[pallet::call]
     impl<T: Config> Pallet<T> {
         /// Dispatch aggregation to given EVM chain
-        #[pallet::weight(Weight::from_parts(1_000_000, 0))]
+        #[pallet::weight(T::WeightInfo::dispatch_aggregation())]
         #[pallet::call_index(0)]
         pub fn dispatch_aggregation(
             origin: OriginFor<T>,
@@ -133,7 +144,10 @@ pub mod pallet {
                         fee: params.fee,
                     },
                 )
-                .map_err(|_| Error::<T>::MessageDispatchFailed)?;
+                .map_err(|e| {
+                    log::error!("ISMP dispatch failed with error: {:?}", e);
+                    Error::<T>::MessageDispatchFailed
+                })?;
 
             Ok(())
         }
