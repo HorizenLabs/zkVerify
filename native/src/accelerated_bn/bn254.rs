@@ -23,7 +23,7 @@ use sp_runtime_interface::runtime_interface;
 
 /// First pairing group definitions.
 pub mod g1 {
-    pub use ark_bn254_ext::g1::{G1_GENERATOR_X, G1_GENERATOR_Y};
+    // pub use ark_bn254_ext::g1::{G1_GENERATOR_X, G1_GENERATOR_Y};
     /// Group configuration.
     pub type Config = ark_bn254_ext::g1::Config<super::HostHooks>;
     /// Short Weierstrass form point affine representation.
@@ -34,10 +34,10 @@ pub mod g1 {
 
 /// Second pairing group definitions.
 pub mod g2 {
-    pub use ark_bn254_ext::g2::{
-        G2_GENERATOR_X, G2_GENERATOR_X_C0, G2_GENERATOR_X_C1, G2_GENERATOR_Y, G2_GENERATOR_Y_C0,
-        G2_GENERATOR_Y_C1,
-    };
+    // pub use ark_bn254_ext::g2::{
+    //     G2_GENERATOR_X, G2_GENERATOR_X_C0, G2_GENERATOR_X_C1, G2_GENERATOR_Y, G2_GENERATOR_Y_C0,
+    //     G2_GENERATOR_Y_C1,
+    // };
     /// Group configuration.
     pub type Config = ark_bn254_ext::g2::Config<super::HostHooks>;
     /// Short Weierstrass form point affine representation.
@@ -56,6 +56,7 @@ pub use self::{
 pub struct HostHooks;
 
 /// Configuration for *BN254* curve.
+#[allow(dead_code)]
 pub type Config = ark_bn254_ext::Config<HostHooks>;
 
 /// *BN254* definition.

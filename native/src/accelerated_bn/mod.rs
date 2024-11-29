@@ -15,7 +15,7 @@
 
 #![warn(missing_docs)]
 
-extern crate alloc;
+// extern crate alloc;
 
 #[cfg(feature = "bn254")]
 pub mod bn254;

@@ -74,14 +74,7 @@ pub use accelerated_bn::bn254::host_calls;
 #[cfg(all(feature = "bn254", feature = "std"))]
 pub use accelerated_bn::bn254::host_calls::HostFunctions as AcceleratedBnHostFunctions;
 
-#[cfg(all(feature = "std", not(feature = "bn254")))]
-pub type HLNativeHostFunctions = (
-    ZksyncVerifierHostFunctions,
-    Risc0VerifierHostFunctions,
-    UltraplonkVerifierHostFunctions,
-    Groth16Bn254VerifierHostFunctions,
-    Groth16Bls12VerifierHostFunctions,
-);
+// TODO: Maybe there is a more elegant way to define HLNativeHostFunctions?
 
 #[cfg(all(feature = "std", feature = "bn254"))]
 pub type HLNativeHostFunctions = (
@@ -91,4 +84,13 @@ pub type HLNativeHostFunctions = (
     Groth16Bn254VerifierHostFunctions,
     Groth16Bls12VerifierHostFunctions,
     AcceleratedBnHostFunctions,
+);
+
+#[cfg(all(feature = "std", not(feature = "bn254")))]
+pub type HLNativeHostFunctions = (
+    ZksyncVerifierHostFunctions,
+    Risc0VerifierHostFunctions,
+    UltraplonkVerifierHostFunctions,
+    Groth16Bn254VerifierHostFunctions,
+    Groth16Bls12VerifierHostFunctions,
 );
