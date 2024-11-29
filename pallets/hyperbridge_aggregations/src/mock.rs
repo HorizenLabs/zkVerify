@@ -19,20 +19,12 @@ use super::*;
 use frame_support::pallet_prelude::ConstU32;
 use frame_support::traits::ConstU128;
 use frame_support::weights::RuntimeDbWeight;
-use frame_support::{
-    construct_runtime, derive_impl, parameter_types,
-    traits::{ConstU16, ConstU64},
-};
+use frame_support::{construct_runtime, derive_impl, parameter_types, traits::ConstU64};
 use ismp::host::StateMachine;
 use ismp::router::IsmpRouter;
 use pallet_ismp::NoOpMmrTree;
-use sp_core::H256;
-use sp_runtime::{
-    traits::{BlakeTwo256, IdentityLookup},
-    BuildStorage,
-};
+use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
-pub type Block = frame_system::mocking::MockBlock<Test>;
 pub type Balance = u128;
 pub type AccountId = u64;
 
@@ -115,17 +107,10 @@ impl IsmpRouter for ModuleRouter {
     }
 }
 
-pub struct MockWeightInfo;
-
-impl MockWeightInfo {
-    pub const REF_TIME: u64 = 42;
-    pub const PROOF_SIZE: u64 = 24;
-}
-
 impl Config for Test {
     type RuntimeEvent = RuntimeEvent;
     type IsmpDispatcher = pallet_ismp::Pallet<Test>;
-    type WeightInfo = MockWeightInfo;
+    type WeightInfo = ();
 }
 
 // Configure a mock runtime to test the pallet.
@@ -137,6 +122,7 @@ construct_runtime!(
         Timestamp: pallet_timestamp,
         Ismp: pallet_ismp,
         Balances: pallet_balances,
+        IsmpGrandpa: ismp_grandpa,
     }
 );
 
