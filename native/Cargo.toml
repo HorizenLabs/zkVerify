@@ -32,8 +32,8 @@ std = [
     "ark-bn254?/std",
     "ark-bn254-ext?/std",
     "ark-ec?/parallel",
-	"ark-ec?/std",
-	"ark-scale?/std",
+	  "ark-ec?/std",
+	  "ark-scale?/std",
     "hp-groth16/implementation",
     "sp-runtime-interface/std",
     "codec/std",
@@ -46,6 +46,4 @@ std = [
 ]
 common = ["ark-ec", "ark-scale"]
 bn254 = ["ark-bn254", "ark-bn254-ext", "common"]   # "sp-runtime-interface"
-all-curves = [
-  "bn254",
-]
+all-curves = ["bn254"]

@@ -69,11 +69,23 @@ pub use groth16::groth_16_bn_254_verify;
 #[cfg(feature = "std")]
 pub use groth16::groth_16_bn_254_verify::HostFunctions as Groth16Bn254VerifierHostFunctions;
 
-// TODO: Similar re-exports for accelerated_bn?
+#[cfg(feature = "bn254")]
+pub use accelerated_bn::bn254::host_calls;
+#[cfg(all(feature = "bn254", feature = "std"))]
+pub use accelerated_bn::bn254::host_calls::HostFunctions as AcceleratedBnHostFunctions;
 
-#[cfg(feature = "std")]
+#[cfg(all(feature = "bn254", feature = "std"))]
 pub type HLNativeHostFunctions = (
-    // AcceleratedBnHostFunctions,
+    AcceleratedBnHostFunctions,
+    ZksyncVerifierHostFunctions,
+    Risc0VerifierHostFunctions,
+    UltraplonkVerifierHostFunctions,
+    Groth16Bn254VerifierHostFunctions,
+    Groth16Bls12VerifierHostFunctions,
+);
+
+#[cfg(all(feature = "bn254", not(feature = "std")))]
+pub type HLNativeHostFunctions = (
     ZksyncVerifierHostFunctions,
     Risc0VerifierHostFunctions,
     UltraplonkVerifierHostFunctions,

@@ -21,5 +21,5 @@ extern crate alloc;
 #[cfg(feature = "bn254")]
 pub mod bn254;
 
-#[cfg(any(feature = "bn254",))]
+#[cfg(any(feature = "bn254"))]
 mod utils;
