@@ -29,6 +29,6 @@ pub trait WeightInfo {
 // For backwards compatibility and tests.
 impl WeightInfo for () {
     fn dispatch_aggregation() -> Weight {
-        Weight::from_parts(9_000_000, 3474)
+        Weight::from_parts(10_000_000, 3474)
     }
 }

@@ -28,6 +28,8 @@ pallet-timestamp = { workspace = true }
 pallet-balances = { workspace = true }
 anyhow = { workspace = true, default-features = false }
 hex-literal = { workspace = true }
+alloy-dyn-abi = { workspace = true }
+alloy-primitives = { workspace = true }
 
 [dev-dependencies]
 pallet-balances = { workspace = true, features = ["std"] }
@@ -48,6 +50,7 @@ std = [
     "ismp-grandpa/std",
     "sp-core/std",
     "sp-io/std",
+    "alloy-primitives/std",
     "pallet-timestamp/std",
     "frame-benchmarking/std",
     "frame-support/std",
