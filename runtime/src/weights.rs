@@ -56,4 +56,5 @@ pub mod pallet_zksync_verifier;
 #[cfg(feature = "relay")]
 pub mod xcm;
 
+pub mod pallet_hyperbridge_aggregations;
 pub mod parachains;
