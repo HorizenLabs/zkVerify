@@ -93,7 +93,6 @@ sp-keystore = { version = "0.40.0" }
 native = { default-features = false, path = "native" }
 pallet-poe = { path = "pallets/proof_of_existence", default-features = false }
 pallet-aggregate = { path = "pallets/aggregate", default-features = false }
-pallet-hyperbridge-aggregations = { path = "pallets/hyperbridge_aggregations", default-features = false }
 pallet-verifiers = { path = "pallets/verifiers", default-features = false }
 pallet-verifiers-macros = { path = "pallets/verifiers/macros" }
 hp-on-proof-verified = { default-features = false, path = "primitives/hp-on-proof-verified" }
@@ -202,6 +201,9 @@ pallet-ismp-rpc = { default-features = false, version = "1.15.1" }
 pallet-ismp-runtime-api = { default-features = false, version = "1.15.1" }
 ismp-grandpa = { default-features = false, version = "1.15.1" }
 frame-metadata-hash-extension = { default-features = false, version = "0.5.0" }
+pallet-hyperbridge-aggregations = { path = "pallets/hyperbridge_aggregations", default-features = false }
+alloy-dyn-abi = { default-features = false, version = "0.8.14" }
+alloy-primitives = { default-features = false, version = "0.8.14" }
 
 # Used for the node template's RPCs
 frame-system-rpc-runtime-api = { default-features = false, version = "34.0.0" }

@@ -32,11 +32,14 @@ pub use weight::WeightInfo;
 #[frame_support::pallet]
 pub mod pallet {
     use super::WeightInfo;
+    use alloy_dyn_abi::DynSolValue;
+    use alloy_primitives::{B256, U256};
     use frame_support::{pallet_prelude::*, PalletId};
     use frame_system::pallet_prelude::*;
     use ismp::dispatcher::{DispatchPost, DispatchRequest, FeeMetadata, IsmpDispatcher};
     use ismp::host::StateMachine;
     use pallet_ismp::ModuleId;
+    use sp_std::vec;
 
     pub const ZKV_MODULE_ID: ModuleId = ModuleId::Pallet(PalletId(*b"ZKVE-MOD"));
 
@@ -117,12 +120,12 @@ pub mod pallet {
         ) -> DispatchResult {
             let origin = ensure_signed(origin)?;
 
-            // Create and encode the aggregation data
-            let data = AggregationData {
-                aggregation_id: params.aggregation_id,
-                aggregation: params.aggregation,
-            };
-            let body = data.encode();
+            let data = DynSolValue::Tuple(vec![
+                DynSolValue::Uint(U256::from(params.aggregation_id), 256),
+                DynSolValue::FixedBytes(B256::from_slice(params.aggregation.as_ref()), 32),
+            ]);
+
+            let body = data.abi_encode();
 
             let post = DispatchPost {
                 dest: params.destination,

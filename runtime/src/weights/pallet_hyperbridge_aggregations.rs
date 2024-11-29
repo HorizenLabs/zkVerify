@@ -57,14 +57,14 @@ pub struct ZKVWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_hyperbridge_aggregations::WeightInfo for ZKVWeight<T> {
     /// Storage: `Ismp::Nonce` (r:1 w:1)
     /// Proof: `Ismp::Nonce` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: UNKNOWN KEY `0x52657175657374436f6d6d69746d656e747364c48c09c48121f614fc3a4b9c10` (r:1 w:1)
-    /// Proof: UNKNOWN KEY `0x52657175657374436f6d6d69746d656e747364c48c09c48121f614fc3a4b9c10` (r:1 w:1)
+    /// Storage: UNKNOWN KEY `0x52657175657374436f6d6d69746d656e7473e3ac00ccef0c503e18878ed6fe0d` (r:1 w:1)
+    /// Proof: UNKNOWN KEY `0x52657175657374436f6d6d69746d656e7473e3ac00ccef0c503e18878ed6fe0d` (r:1 w:1)
     fn dispatch_aggregation() -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `9`
         //  Estimated: `3474`
         // Minimum execution time: 9_000_000 picoseconds.
-        Weight::from_parts(9_000_000, 3474)
+        Weight::from_parts(10_000_000, 3474)
             .saturating_add(T::DbWeight::get().reads(2_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
