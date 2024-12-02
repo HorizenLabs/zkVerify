@@ -15,15 +15,14 @@
 
 //! *BN254* types and host functions.
 
+use super::BnCryptoError;
 use crate::accelerated_bn::utils;
-// use alloc::vec::Vec;
 use ark_bn254_ext::CurveHooks;
 use ark_ec::{pairing::Pairing, CurveConfig};
 use sp_runtime_interface::runtime_interface;
 
 /// First pairing group definitions.
 pub mod g1 {
-    // pub use ark_bn254_ext::g1::{G1_GENERATOR_X, G1_GENERATOR_Y};
     /// Group configuration.
     pub type Config = ark_bn254_ext::g1::Config<super::HostHooks>;
     /// Short Weierstrass form point affine representation.
@@ -34,10 +33,6 @@ pub mod g1 {
 
 /// Second pairing group definitions.
 pub mod g2 {
-    // pub use ark_bn254_ext::g2::{
-    //     G2_GENERATOR_X, G2_GENERATOR_X_C0, G2_GENERATOR_X_C1, G2_GENERATOR_Y, G2_GENERATOR_Y_C0,
-    //     G2_GENERATOR_Y_C1,
-    // };
     /// Group configuration.
     pub type Config = ark_bn254_ext::g2::Config<super::HostHooks>;
     /// Short Weierstrass form point affine representation.
@@ -72,7 +67,7 @@ impl CurveHooks for HostHooks {
         let g1 = utils::encode(g1.collect::<Vec<_>>());
         let g2 = utils::encode(g2.collect::<Vec<_>>());
         let res = host_calls::bn254_multi_miller_loop(g1, g2).unwrap_or_default();
-        utils::decode(res)
+        utils::decode(res).map_err(|_| ())
     }
 
     fn bn254_final_exponentiation(
@@ -80,7 +75,7 @@ impl CurveHooks for HostHooks {
     ) -> Result<<Bn254 as Pairing>::TargetField, ()> {
         let target = utils::encode(target);
         let res = host_calls::bn254_final_exponentiation(target).unwrap_or_default();
-        utils::decode(res)
+        utils::decode(res).map_err(|_| ())
     }
 
     fn bn254_msm_g1(
@@ -90,7 +85,7 @@ impl CurveHooks for HostHooks {
         let bases = utils::encode(bases);
         let scalars = utils::encode(scalars);
         let res = host_calls::bn254_msm_g1(bases, scalars).unwrap_or_default();
-        utils::decode_proj_sw(res)
+        utils::decode_proj_sw(res).map_err(|_| ())
     }
 
     fn bn254_msm_g2(
@@ -100,21 +95,21 @@ impl CurveHooks for HostHooks {
         let bases = utils::encode(bases);
         let scalars = utils::encode(scalars);
         let res = host_calls::bn254_msm_g2(bases, scalars).unwrap_or_default();
-        utils::decode_proj_sw(res)
+        utils::decode_proj_sw(res).map_err(|_| ())
     }
 
     fn bn254_mul_projective_g1(base: &G1Projective, scalar: &[u64]) -> Result<G1Projective, ()> {
         let base = utils::encode_proj_sw(base);
         let scalar = utils::encode(scalar);
         let res = host_calls::bn254_mul_projective_g1(base, scalar).unwrap_or_default();
-        utils::decode_proj_sw(res)
+        utils::decode_proj_sw(res).map_err(|_| ())
     }
 
     fn bn254_mul_projective_g2(base: &G2Projective, scalar: &[u64]) -> Result<G2Projective, ()> {
         let base = utils::encode_proj_sw(base);
         let scalar = utils::encode(scalar);
         let res = host_calls::bn254_mul_projective_g2(base, scalar).unwrap_or_default();
-        utils::decode_proj_sw(res)
+        utils::decode_proj_sw(res).map_err(|_| ())
     }
 }
 
@@ -134,7 +129,7 @@ pub trait HostCalls {
     ///   - `a`: `ArkScale<Vec<G1Affine>>`.
     ///   - `b`: `ArkScale<Vec<G2Affine>>`.
     /// - Returns encoded:  `ArkScale<Bn254::TargetField>`.
-    fn bn254_multi_miller_loop(a: Vec<u8>, b: Vec<u8>) -> Result<Vec<u8>, ()> {
+    fn bn254_multi_miller_loop(a: Vec<u8>, b: Vec<u8>) -> Result<Vec<u8>, BnCryptoError> {
         utils::multi_miller_loop::<ark_bn254::Bn254>(a, b)
     }
 
@@ -142,7 +137,7 @@ pub trait HostCalls {
     ///
     /// - Receives encoded: `ArkScale<Bn254::TargetField>`.
     /// - Returns encoded:  `ArkScale<Bn254::TargetField>`.
-    fn bn254_final_exponentiation(f: Vec<u8>) -> Result<Vec<u8>, ()> {
+    fn bn254_final_exponentiation(f: Vec<u8>) -> Result<Vec<u8>, BnCryptoError> {
         utils::final_exponentiation::<ark_bn254::Bn254>(f)
     }
 
@@ -152,7 +147,7 @@ pub trait HostCalls {
     ///   - `bases`: `ArkScale<Vec<G1Affine>>`.
     ///   - `scalars`: `ArkScale<Vec<G1Config::ScalarField>>`.
     /// - Returns encoded: `ArkScaleProjective<G1Projective>`.
-    fn bn254_msm_g1(bases: Vec<u8>, scalars: Vec<u8>) -> Result<Vec<u8>, ()> {
+    fn bn254_msm_g1(bases: Vec<u8>, scalars: Vec<u8>) -> Result<Vec<u8>, BnCryptoError> {
         utils::msm_sw::<ark_bn254::g1::Config>(bases, scalars)
     }
 
@@ -162,7 +157,7 @@ pub trait HostCalls {
     ///   - `bases`: `ArkScale<Vec<G2Affine>>`.
     ///   - `scalars`: `ArkScale<Vec<G2Config::ScalarField>>`.
     /// - Returns encoded: `ArkScaleProjective<G2Projective>`.
-    fn bn254_msm_g2(bases: Vec<u8>, scalars: Vec<u8>) -> Result<Vec<u8>, ()> {
+    fn bn254_msm_g2(bases: Vec<u8>, scalars: Vec<u8>) -> Result<Vec<u8>, BnCryptoError> {
         utils::msm_sw::<ark_bn254::g2::Config>(bases, scalars)
     }
 
@@ -172,7 +167,7 @@ pub trait HostCalls {
     ///   - `base`: `ArkScaleProjective<G1Projective>`.
     ///   - `scalar`: `ArkScale<Vec<u64>>`.
     /// - Returns encoded: `ArkScaleProjective<G1Projective>`.
-    fn bn254_mul_projective_g1(base: Vec<u8>, scalar: Vec<u8>) -> Result<Vec<u8>, ()> {
+    fn bn254_mul_projective_g1(base: Vec<u8>, scalar: Vec<u8>) -> Result<Vec<u8>, BnCryptoError> {
         utils::mul_projective_sw::<ark_bn254::g1::Config>(base, scalar)
     }
 
@@ -182,7 +177,7 @@ pub trait HostCalls {
     ///   - `base`: `ArkScaleProjective<G2Projective>`.
     ///   - `scalar`: `ArkScale<Vec<u64>>`.
     /// - Returns encoded: `ArkScaleProjective<ark_bn254::G2Projective>`.
-    fn bn254_mul_projective_g2(base: Vec<u8>, scalar: Vec<u8>) -> Result<Vec<u8>, ()> {
+    fn bn254_mul_projective_g2(base: Vec<u8>, scalar: Vec<u8>) -> Result<Vec<u8>, BnCryptoError> {
         utils::mul_projective_sw::<ark_bn254::g2::Config>(base, scalar)
     }
 }
