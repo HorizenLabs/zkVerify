@@ -29,24 +29,17 @@ jobs:
       - name: Set up deps cache
         run: mkdir deps
 
-      - name: Restore common cache
+      - name: Restore test cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
-        uses: actions/cache/restore@v3
+        uses: buildjet/cache/restore@v3
         with:
           path: |
             ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            deps/
-          key: common-cache
-    
-      - name: Restore test cache
-        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
-        uses: actions/cache/restore@v3
-        with:
-          path: |
             target/
+            deps/
           key: test-cache
 
       - name: Set docker env vars
@@ -66,24 +59,17 @@ jobs:
         shell: bash
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo test --test '*' --all-features --no-fail-fast --release 2>&1 | tee integration_tests_output.txt
 
-      - name: Save common cache
+      - name: Save test cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}
-        uses: actions/cache/save@v3
+        uses: buildjet/cache/save@v3
         with:
           path: |
             ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            deps/
-          key: common-cache
-    
-      - name: Save test cache
-        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}
-        uses: actions/cache/save@v3
-        with:
-          path: |
             target/
+            deps/
           key: test-cache
 
       - name: Upload output(s)

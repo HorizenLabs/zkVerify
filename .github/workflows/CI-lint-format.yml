@@ -28,24 +28,17 @@ jobs:
       - name: Set up deps cache
         run: mkdir deps
 
-      - name: Restore common cache
+      - name: Restore lint-format cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
-        uses: actions/cache/restore@v3
+        uses: buildjet/cache/restore@v3
         with:
           path: |
             ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            deps/
-          key: common-cache
-    
-      - name: Restore lint-format cache
-        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
-        uses: actions/cache/restore@v3
-        with:
-          path: |
             target/
+            deps/
           key: lint-format-cache
 
       - name: Set docker env vars
@@ -61,12 +54,17 @@ jobs:
         shell: bash
         run: ${{ env.DOCKER_COMPOSE_CMD }} cargo fmt --check 2>&1 | tee formatting_output.txt
 
-      - name: Save lint-format-test cache
+      - name: Save lint-format cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_SAVE' }}
-        uses: actions/cache/save@v3
+        uses: buildjet/cache/save@v3
         with:
           path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             target/
+            deps/
           key: lint-format-cache
 
       - name: Upload output(s)

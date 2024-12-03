@@ -29,25 +29,18 @@ jobs:
       - name: Set up deps cache
         run: mkdir deps
 
-      - name: Restore common cache
+      - name: Restore main cache
         if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
-        uses: actions/cache/restore@v3
+        uses: buildjet/cache/restore@v3
         with:
           path: |
             ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            deps/
-          key: common-cache
-    
-      - name: Restore zombienet-test cache
-        if: ${{ !env.ACT && inputs.CACHING_MODE == 'CACHE_RESTORE' }}
-        uses: actions/cache/restore@v3
-        with:
-          path: |
             target/
-          key: build-cache # same cache as "build" job (since "cargo build --release" is used in both jobs)
+            deps/
+          key: build-cache
 
       - name: Set docker env vars
         run: |

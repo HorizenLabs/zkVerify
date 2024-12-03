@@ -99,6 +99,12 @@ fi
 chown -fR "$CURRENT_UID":"$CURRENT_GID" "${CARGO_HOME}" || fn_die "ERROR: Failed to change ownership of ${CARGO_HOME} directory. Exiting ..."
 chown -fR "$CURRENT_UID":"$CURRENT_GID" "${TARGET_DIR}" || fn_die "ERROR: Failed to  change ownership of ${DOCKER_BUILD_DIR}/target directory. Exiting ..."
 
+export DONT_CACHE_NATIVE="true"
+# On CI use CARGO_INCREMENTAL=1 is useless because the local source files are always newer
+# then the compiled artifact (cargo use timestamp to identify what to recompile). So we can
+# save 20/30% time on disable it without to lose any advantage.
+export CARGO_INCREMENTAL=0
+
 # Run
 if [ "$USERNAME" = "root" ]; then
   exec "$@"

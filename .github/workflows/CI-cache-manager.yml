@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Git checkout
+      - name: Init
         uses: actions/checkout@v4
 
-      - name: Clear caches
+      - name: Clear GH caches
         run: |
           sudo apt-get install gh
           echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
@@ -25,6 +25,18 @@ jobs:
             echo ${caches_list}
             gh cache delete --all
           fi
+      - name: Clear Buildjet Build # ALL These steps are slow (3 min due bug on buildjet action)
+        uses: buildjet/cache-delete@v1
+        with:
+          cache_key: "build-cache"
+      - name: Clear Buildjet Test
+        uses: buildjet/cache-delete@v1
+        with:
+          cache_key: "test-cache"
+      - name: Clear Buildjet Format
+        uses: buildjet/cache-delete@v1
+        with:
+          cache_key: "lint-format-cache"
 
   build-job:
     needs: [clear-caches-job]
