@@ -69,7 +69,9 @@ exports.BlockUntil = BlockUntil;
 
 let api = null;
 
-exports.BLOCK_TIME = 6000; // block time in milliseconds
+const BLOCK_TIME = 6000;  // block time in milliseconds
+exports.BLOCK_TIME = BLOCK_TIME;
+
 exports.init_api = async (zombie, nodeName, networkInfo) => {
     if (api === null) {
         const { wsUri } = networkInfo.nodesByName[nodeName];
@@ -82,7 +84,7 @@ exports.init_api = async (zombie, nodeName, networkInfo) => {
 
 exports.submitProof = async (pallet, signer, ...verifierArgs) => {
     const validProofSubmission = (verifierArgs.length < 4) ? pallet.submitProof(...verifierArgs, null) : pallet.submitProof(...verifierArgs);
-    return await submitExtrinsic(validProofSubmission, signer, BlockUntil.InBlock, (event) =>
+    return await submitExtrinsic(api, validProofSubmission, signer, BlockUntil.InBlock, (event) =>
         (event.section == "poe" && event.method == "NewElement") ||
         (event.section == "aggregate" && event.method == "NewProof") ||
         (event.section == "aggregate" && event.method == "AggregationComplete")
@@ -91,22 +93,22 @@ exports.submitProof = async (pallet, signer, ...verifierArgs) => {
 
 exports.registerDomain = async (signer, aggregation_size, queue_len) => {
     let extrinsic = api.tx.aggregate.registerDomain(aggregation_size, queue_len);
-    return await submitExtrinsic(extrinsic, signer, BlockUntil.InBlock, (event) => event.section == "aggregate" && event.method == "NewDomain");
+    return await submitExtrinsic(api, extrinsic, signer, BlockUntil.InBlock, (event) => event.section == "aggregate" && event.method == "NewDomain");
 }
 
 exports.unregisterDomain = async (signer, domain_id) => {
     let extrinsic = api.tx.aggregate.unregisterDomain(domain_id);
-    return await submitExtrinsic(extrinsic, signer, BlockUntil.InBlock);
+    return await submitExtrinsic(api, extrinsic, signer, BlockUntil.InBlock);
 }
 
 exports.holdDomain = async (signer, domain_id) => {
     let extrinsic = api.tx.aggregate.holdDomain(domain_id);
-    return await submitExtrinsic(extrinsic, signer, BlockUntil.InBlock);
+    return await submitExtrinsic(api, extrinsic, signer, BlockUntil.InBlock);
 }
 
 exports.aggregate = async (signer, domain_id, aggregation_id) => {
     let extrinsic = api.tx.aggregate.aggregate(domain_id, aggregation_id);
-    return await submitExtrinsic(extrinsic, signer, BlockUntil.InBlock, (event) => event.section == "aggregate");
+    return await submitExtrinsic(api, extrinsic, signer, BlockUntil.InBlock, (event) => event.section == "aggregate");
 }
 
 exports.waitForEvent = async (api, timeout, pallet, name) => {
@@ -163,69 +165,103 @@ async function waitForEvent(api, timeout, pallet, name) {
 }
 
 exports.registerVk = async (pallet, signer, vk) => {
-    return await submitExtrinsic(pallet.registerVk(vk), signer, BlockUntil.InBlock,
+    return await submitExtrinsic(api, pallet.registerVk(vk), signer, BlockUntil.InBlock,
         (event) => event.section == "settlementFFlonkPallet" && event.method == "VkRegistered"
     )
 }
 
-exports.submitExtrinsic = async (extrinsic, signer, blockUntil, filter) => {
-    return await submitExtrinsic(extrinsic, signer, blockUntil, filter);
+exports.submitExtrinsic = async (api, extrinsic, signer, blockUntil, filter) => {
+    return await submitExtrinsic(api, extrinsic, signer, blockUntil, filter);
 }
 
-async function submitExtrinsic(extrinsic, signer, blockUntil, filter) {
+async function waitForEmptyMempool(api) {
+    let pending = 0;
+    do {
+        await new Promise(r => setTimeout(r, BLOCK_TIME));
+        pending = await api.rpc.author.pendingExtrinsics();
+        console.log(`${pending.length} extrinsics pending in the mempool`);
+    } while (pending.length > 0);
+}
+
+async function submitExtrinsic(api, extrinsic, signer, blockUntil, filter) {
     let transactionSuccessEvent = false;
     let done = false;
+    let max_retries = 5;
     if (filter === undefined) {
         console.log("No filtering");
         filter = (_event) => true;
     }
 
-    let retVal = await new Promise(async (resolve, reject) => {
-        const unsub = await extrinsic.signAndSend(signer, ({ events: records = [], status }) => {
-            let blockHash = null;
-            if (status.isInBlock) {
-                blockHash = status.asInBlock;
-                console.log(`Transaction included at blockhash ${blockHash}`);
-                records.forEach(({ event: { method, section } }) => {
-                    if (section == "system" && method == "ExtrinsicSuccess") {
-                        transactionSuccessEvent = true;
+    let retVal = -1;
+    while (!done && max_retries > 0) {
+        retVal = await new Promise(async (resolve, reject) => {
+            const unsub = await extrinsic.signAndSend(signer, ({ events: records = [], status }) => {
+                let blockHash = null;
+                if (status.isInBlock) {
+                    blockHash = status.asInBlock;
+                    console.log(`Transaction included at blockhash ${blockHash}`);
+                    records.forEach(({ event: { method, section } }) => {
+                        if (section == "system" && method == "ExtrinsicSuccess") {
+                            transactionSuccessEvent = true;
+                        }
+                    });
+                    if (blockUntil === BlockUntil.InBlock) {
+                        done = true;
                     }
-                });
-                if (blockUntil === BlockUntil.InBlock) {
+                }
+                else if (status.isFinalized) {
+                    console.log(`Transaction finalized at blockhash ${status.asFinalized}`);
+                    if (blockUntil === BlockUntil.Finalized) {
+                        done = true;
+                    }
+                }
+                else if (status.isInvalid) {
+                    console.log("Transaction marked as invalid");
                     done = true;
+                    reject("retry");
                 }
-            }
-            else if (status.isFinalized) {
-                console.log(`Transaction finalized at blockhash ${status.asFinalized}`);
-                if (blockUntil === BlockUntil.Finalized) {
+                else if (status.isError) {
                     done = true;
+                    console.log("ERROR: Transaction status.isError");
                 }
-            }
-            else if (status.isError) {
-                done = true;
-                console.log("ERROR: Transaction status.isError");
-            }
-            if (done) {
-                unsub();
-                if (transactionSuccessEvent) {
-                    resolve([blockHash, records]);
-                } else {
-                    reject("ExtrinsicSuccess has not been seen");
+                if (done) {
+                    unsub();
+                    if (transactionSuccessEvent) {
+                        resolve([blockHash, records]);
+                    } else {
+                        reject("ExtrinsicSuccess has not been seen");
+                    }
                 }
+            }).catch(
+                error => {
+                    console.log(`Sending extrinsic failed with error: ${error}`);
+                    if (error.code === 1014) { // priority too low error
+                        reject("retry");
+                    } else {
+                        reject(error);
+                    }
+                }
+            );
+        }).then(
+            ([blockHash, records]) => {
+                console.log(`Transaction successfully processed [${blockHash}]: ${records}`);
+                return {
+                    block: blockHash,
+                    events: records.map((record) => record.event).filter(filter)
+                };
+            },
+            async function(error) {
+                if (error !== "retry") {
+                    console.log("Not retrying!");
+                    return -1;
+                }
+                console.log("Transaction should be resubmitted, waiting for empty mempool...");
+                max_retries -= 1;
+                done = false;
+                await waitForEmptyMempool(api);
             }
-        });
-    }).then(
-        ([blockHash, records]) => {
-            console.log(`Transaction successfully processed [${blockHash}]: ${records}`)
-            return {
-                block: blockHash,
-                events: records.map((record) => record.event).filter(filter)
-            };
-        },
-        _error => {
-            return -1;
-        }
-    );
+        );
+    }
 
     return retVal;
 }

@@ -93,7 +93,7 @@ async function run(nodeName, networkInfo, args) {
     const teleport = await api.tx.xcmPallet.teleportAssets(dest, beneficiary, assets, fee_asset_item);
 
     console.log("Teleporting to Alice's remote origin on the relay chain");
-    if (!receivedEvents(await submitExtrinsic(teleport, alice, BlockUntil.InBlock, undefined))) {
+    if (!receivedEvents(await submitExtrinsic(api, teleport, alice, BlockUntil.InBlock, undefined))) {
         console.log("Teleport failed!");
         return ReturnCode.ExtrinsicUnsuccessful;
     }
@@ -103,7 +103,7 @@ async function run(nodeName, networkInfo, args) {
     const xcm_wait_for_response = await api.tx.xcmNotifications.prepareNewQuery();
 
     console.log("Registering for XCM response");
-    const query_evts = (await submitExtrinsic(xcm_wait_for_response, alice, BlockUntil.InBlock,
+    const query_evts = (await submitExtrinsic(api, xcm_wait_for_response, alice, BlockUntil.InBlock,
       (event) => event.section == "xcmNotifications" && event.method == "QueryPrepared")).events;
 
     if (query_evts.length < 1) {
@@ -210,7 +210,7 @@ async function run(nodeName, networkInfo, args) {
     const xcm_transact = await api.tx.xcmPallet.send(dest, remote_proof_verification);
 
     console.log("Sending XCM transact");
-    const xcmsend_evts = (await submitExtrinsic(xcm_transact, alice, BlockUntil.InBlock,
+    const xcmsend_evts = (await submitExtrinsic(api, xcm_transact, alice, BlockUntil.InBlock,
       (event) => event.section == "xcmPallet" && event.method == "Sent")).events;
 
     if (query_evts.length < 1) {
@@ -220,16 +220,19 @@ async function run(nodeName, networkInfo, args) {
     // 4. Wait for the XCM response on the outcome of the remote execution
 
     console.log("Waiting for XCM response");
-    const EXPECTED_RESP_TIMEOUT = BLOCK_TIME * 20.5;
+    const EXPECTED_RESP_TIMEOUT = BLOCK_TIME * 8; // 3 blocks for finalization on relay
+                                                  // + 1 for response receival
+                                                  // + 1 for XCM execution on para
+                                                  // + 4 as margin
     response = (await waitForEvent(api, EXPECTED_RESP_TIMEOUT, "xcmPallet", "ResponseReady"));
 
     if (response == -1) {
         return ReturnCode.TimeoutWaitingForXcmResponse;
     }
 
-    if (response.data[0].toNumber() != 0
+    if (response.data[0].toNumber() != query_id
         || response.data[1].toString() != '{"dispatchResult":{"success":null}}') {
-        console.log("Unexpected XCM response: qid=" + response.data[0].toString() + "; data=" + response.data[1].toString());
+        console.log(`Unexpected XCM response: qid=${response.data[0].toString()} (!= ${query_id}); data=${response.data[1].toString()}`);
         return ReturnCode.RelayVerificationFailed;
     }
 
