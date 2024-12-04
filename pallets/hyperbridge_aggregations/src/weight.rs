@@ -24,8 +24,7 @@ use core::marker::PhantomData;
 /// Weight functions needed for `pallet_hyperbridge_aggregations`.
 pub trait WeightInfo {
     fn dispatch_aggregation() -> Weight;
-    fn dispatch_aggregation_large_timeout() -> Weight;
-    fn dispatch_aggregation_large_fee() -> Weight;
+    fn dispatch_aggregation_var_fee(_n: u32, ) -> Weight;
 
 }
 
@@ -37,14 +36,8 @@ impl WeightInfo for () {
             .saturating_add(RocksDbWeight::get().writes(2_u64))
     }
 
-    fn dispatch_aggregation_large_timeout() -> Weight {
-        Weight::from_parts(15_000_000, 3480)
-            .saturating_add(RocksDbWeight::get().reads(3_u64))
-            .saturating_add(RocksDbWeight::get().writes(2_u64))
-    }
-
-    fn dispatch_aggregation_large_fee() -> Weight {
-        Weight::from_parts(32_000_000, 3593)
+    fn dispatch_aggregation_var_fee(_n: u32, ) -> Weight {
+        Weight::from_parts(32_239_999, 3593)
             .saturating_add(RocksDbWeight::get().reads(3_u64))
             .saturating_add(RocksDbWeight::get().writes(3_u64))
     }

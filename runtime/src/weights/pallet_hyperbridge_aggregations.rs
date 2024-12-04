@@ -68,33 +68,19 @@ impl<T: frame_system::Config> pallet_hyperbridge_aggregations::WeightInfo for ZK
             .saturating_add(T::DbWeight::get().reads(2_u64))
             .saturating_add(T::DbWeight::get().writes(2_u64))
     }
-    /// Storage: `Ismp::Nonce` (r:1 w:1)
-    /// Proof: `Ismp::Nonce` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `Timestamp::Now` (r:1 w:0)
-    /// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-    /// Storage: UNKNOWN KEY `0x52657175657374436f6d6d69746d656e7473826b5f18c1127cefa142afb1a4ce` (r:1 w:1)
-    /// Proof: UNKNOWN KEY `0x52657175657374436f6d6d69746d656e7473826b5f18c1127cefa142afb1a4ce` (r:1 w:1)
-    fn dispatch_aggregation_large_timeout() -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `15`
-        //  Estimated: `3480`
-        // Minimum execution time: 13_000_000 picoseconds.
-        Weight::from_parts(15_000_000, 3480)
-            .saturating_add(T::DbWeight::get().reads(3_u64))
-            .saturating_add(T::DbWeight::get().writes(2_u64))
-    }
     /// Storage: `System::Account` (r:1 w:1)
     /// Proof: `System::Account` (`max_values`: None, `max_size`: Some(128), added: 2603, mode: `MaxEncodedLen`)
     /// Storage: `Ismp::Nonce` (r:1 w:1)
     /// Proof: `Ismp::Nonce` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
     /// Storage: UNKNOWN KEY `0x52657175657374436f6d6d69746d656e7473e3ac00ccef0c503e18878ed6fe0d` (r:1 w:1)
     /// Proof: UNKNOWN KEY `0x52657175657374436f6d6d69746d656e7473e3ac00ccef0c503e18878ed6fe0d` (r:1 w:1)
-    fn dispatch_aggregation_large_fee() -> Weight {
+    /// The range of component `n` is `[1, 1000000]`.
+    fn dispatch_aggregation_var_fee(_n: u32, ) -> Weight {
         // Proof Size summary in bytes:
         //  Measured:  `9`
         //  Estimated: `3593`
-        // Minimum execution time: 31_000_000 picoseconds.
-        Weight::from_parts(32_000_000, 3593)
+        // Minimum execution time: 30_000_000 picoseconds.
+        Weight::from_parts(32_239_999, 3593)
             .saturating_add(T::DbWeight::get().reads(3_u64))
             .saturating_add(T::DbWeight::get().writes(3_u64))
     }

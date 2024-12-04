@@ -21,7 +21,7 @@ use crate::{
 };
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory};
 use native::HLNativeHostFunctions;
-use sc_cli::SubstrateCli;
+use sc_cli::{CliConfiguration, SubstrateCli};
 use sc_service::PartialComponents;
 use sp_core::crypto::Ss58AddressFormat;
 use sp_keyring::Sr25519Keyring;
@@ -66,7 +66,9 @@ impl SubstrateCli for Cli {
 
 /// Parse and run command line arguments
 pub fn run() -> sc_cli::Result<()> {
-    let cli = Cli::from_args();
+    let mut cli = Cli::from_args();
+
+    cli.run.offchain_worker_params.indexing_enabled = true;
 
     match &cli.subcommand {
         Some(Subcommand::Key(cmd)) => cmd.run(&cli),

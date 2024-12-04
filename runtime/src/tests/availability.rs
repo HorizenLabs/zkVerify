@@ -21,9 +21,12 @@ use frame_support::{
     assert_ok,
     traits::{schedule::DispatchTime, Currency, StorePreimage, VestingSchedule},
 };
+use hex_literal::hex;
 use pallet_conviction_voting::{AccountVote, Vote};
+use pallet_hyperbridge_aggregations::Params;
 use pallet_verifiers::VkOrHash;
 use sp_core::H256;
+use sp_runtime::traits::Zero;
 use sp_runtime::{traits::Hash, AccountId32, MultiAddress};
 
 #[test]
@@ -355,6 +358,31 @@ fn pallet_ismp_grandpa() {
         assert_ok!(IsmpGrandpa::remove_state_machines(
             RuntimeOrigin::root(),
             Vec::new()
+        ));
+        // just checking code builds, hence the pallet is available to the runtime
+    });
+}
+
+#[test]
+fn pallet_hyperbridge_aggregations() {
+    test().execute_with(|| {
+        let default_empty_aggr: [u8; 32] =
+            hex!("290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563");
+        let test_contract: [u8; 20] = hex!("d9145CCE52D386f254917e481eB44e9943F39138");
+        let dummy_origin = AccountId32::new([0; 32]);
+
+        let params = Params {
+            aggregation_id: 1u64,
+            aggregation: sp_core::H256(default_empty_aggr),
+            module: sp_core::H160(test_contract),
+            destination: StateMachine::Kusama(4009),
+            timeout: 0,
+            fee: Zero::zero(),
+        };
+
+        assert_ok!(HyperbridgeAggregations::dispatch_aggregation(
+            RuntimeOrigin::signed(dummy_origin),
+            params
         ));
         // just checking code builds, hence the pallet is available to the runtime
     });

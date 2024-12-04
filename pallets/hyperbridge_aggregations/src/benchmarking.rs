@@ -51,6 +51,11 @@ mod benchmarks {
     use super::utils::*;
     use super::*;
     use sp_runtime::traits::Bounded;
+    use sp_runtime::Saturating;
+
+    const fn get_max_benchmark_iterations() -> u32 {
+        1_000_000
+    }
 
     #[benchmark]
     fn dispatch_aggregation() {
@@ -85,41 +90,11 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn dispatch_aggregation_large_timeout() {
+    fn dispatch_aggregation_var_fee(n: Linear<1, { get_max_benchmark_iterations() }>) {
         let caller: T::AccountId = funded_account::<T>();
 
-        let one_year_seconds = 365 * 24 * 60 * 60;
-        let params = Params {
-            aggregation_id: 1u64,
-            aggregation: sp_core::H256(DEFAULT_EMPTY_ATT),
-            module: sp_core::H160(TEST_CONTRACT),
-            destination: StateMachine::Kusama(4009),
-            timeout: one_year_seconds,
-            fee: Zero::zero(),
-        };
-
-        let initial_nonce = pallet_ismp::Nonce::<T>::get();
-        let initial_event_count = frame_system::Pallet::<T>::events().len();
-
-        #[extrinsic_call]
-        dispatch_aggregation(RawOrigin::Signed(caller.clone()), params.clone());
-
-        // Assertions
-        assert!(
-            frame_system::Pallet::<T>::events().len() > initial_event_count,
-            "No events were emitted"
-        );
-        assert_eq!(
-            pallet_ismp::Nonce::<T>::get(),
-            initial_nonce + 1,
-            "Nonce should be incremented"
-        );
-    }
-
-    #[benchmark]
-    fn dispatch_aggregation_large_fee() {
-        let caller: T::AccountId = funded_account::<T>();
-        let large_fee = BalanceOf::<T>::max_value() / 4u32.into();
+        let max_fee = BalanceOf::<T>::max_value() / 4u32.into();
+        let fee = max_fee.saturating_mul(n.into()) / get_max_benchmark_iterations().into();
 
         let params = Params {
             aggregation_id: 1u64,
@@ -127,7 +102,7 @@ mod benchmarks {
             module: sp_core::H160(TEST_CONTRACT),
             destination: StateMachine::Kusama(4009),
             timeout: 0,
-            fee: large_fee,
+            fee,
         };
 
         let initial_nonce = pallet_ismp::Nonce::<T>::get();

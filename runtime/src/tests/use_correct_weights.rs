@@ -259,6 +259,17 @@ fn pallet_aggregate() {
 }
 
 #[test]
+fn pallet_hyperbridge_aggregations() {
+    use pallet_hyperbridge_aggregations::WeightInfo;
+
+    assert_eq!(
+        <Runtime as pallet_hyperbridge_aggregations::Config>::WeightInfo::dispatch_aggregation(),
+        crate::weights::pallet_hyperbridge_aggregations::ZKVWeight::<Runtime>::dispatch_aggregation(
+        )
+    );
+}
+
+#[test]
 fn pallet_staking() {
     use pallet_staking::WeightInfo;
 
