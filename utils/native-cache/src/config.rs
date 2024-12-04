@@ -38,7 +38,13 @@ impl Config {
         })
     }
 
-    fn envs(&mut self) -> &mut Table {
+    fn envs(&self) -> Option<&Table> {
+        self.body
+            .get("env")
+            .map(|e| e.as_table().expect("[env] if exists should be a table"))
+    }
+
+    fn envs_mut(&mut self) -> &mut Table {
         self.body
             .entry("env")
             .or_insert_with(|| {
@@ -50,9 +56,9 @@ impl Config {
             .expect("[env] if exists should be a table")
     }
 
-    fn inner_add(envs: &mut Table, dependency: &impl Dependency) -> bool {
+    fn inner_add(envs: &mut Table, dependency: &impl Dependency, value: impl AsRef<str>) -> bool {
         let k = dependency.env_key().to_owned();
-        let v: Value = dependency.env_value().into();
+        let v: Value = value.as_ref().to_owned().into();
 
         if Some(&v) != envs.get(&k) {
             log!("inserting envs value changed: {:?} -> {}", envs.get(&k), v);
@@ -78,15 +84,22 @@ impl Config {
         Ok(())
     }
 
+    /// Get dependency configuration from the cargo config.toml file.
+    pub fn get(&self, dependency: &impl Dependency) -> Option<String> {
+        self.envs()
+            .and_then(|envs| envs.get(dependency.env_key()))
+            .map(ToString::to_string)
+    }
+
     /// Add a dependency to the cargo config.toml file.
-    pub fn add(&mut self, dependency: &impl Dependency) {
-        self.dirty |= Self::inner_add(self.envs(), dependency);
+    pub fn add(&mut self, dependency: &impl Dependency, value: impl AsRef<str>) {
+        self.dirty |= Self::inner_add(self.envs_mut(), dependency, value);
     }
 
     /// Remove a dependency to the cargo config.toml file.
     pub fn remove(&mut self, dependency: &impl Dependency) {
         let old = self.dirty;
-        self.dirty |= self.envs().remove(dependency.env_key()).is_some();
+        self.dirty |= self.envs_mut().remove(dependency.env_key()).is_some();
         if self.dirty != old {
             log!("Removed env: {}", dependency.env_key());
         }
