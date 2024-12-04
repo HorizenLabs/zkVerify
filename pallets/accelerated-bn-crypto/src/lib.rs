@@ -1,6 +1,26 @@
+// Copyright 2024, Horizen Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+//! Generic executions of the operations for *Arkworks* elliptic curves.
+
+// As not all functions are used by each elliptic curve and some elliptic
+// curve may be excluded by the build we resort to `#[allow(unused)]` to
+// suppress the expected warning.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 #![recursion_limit = "1024"]
-// #![deny(missing_docs)]
 
 #[cfg(test)]
 mod mock;
@@ -15,6 +35,7 @@ mod tests;
 
 #[cfg(feature = "bn254")]
 mod bn254;
+pub use bn254::*;
 
 #[cfg(feature = "bn254")]
 mod utils;
@@ -28,14 +49,12 @@ const USAGE: ark_scale::Usage = ark_scale::WIRE;
 
 type ArkScale<T> = ark_scale::ArkScale<T, USAGE>;
 
-// pub use frame_system::pallet::*;
 #[cfg(not(doc))]
 pub use pallet::*;
 
 #[frame_support::pallet]
 pub mod pallet {
     use crate::{bn254, utils::ScalarFieldFor, ArkScale, ArkScaleProjective, WeightInfo};
-    // use ark_bn254::G1Affine;
     use ark_std::{vec, vec::Vec};
     use codec::Decode;
     use frame_support::{dispatch::DispatchResult, pallet_prelude::*};

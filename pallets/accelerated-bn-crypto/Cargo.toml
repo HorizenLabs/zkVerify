@@ -20,7 +20,7 @@ ark-serialize = { version = "0.4.0", default-features = false }
 ark-scale = { features = ["hazmat"], version = "0.0.12", default-features = false }
 ark-std = { version = "0.4.0", default-features = false }
 codec = { workspace = true }
-native = { path = "../../native", default-features = false, features = ["bn254"] }   # Notice that we *have* to enable this feature
+native = { path = "../../native", default-features = false, features = ["bn254"] }
 frame-benchmarking = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
@@ -42,7 +42,7 @@ std = [
     "ark-ff/std",
     "ark-scale/std",
     "codec/std",
-    "native/std",   # Should this be native/std since we want bn254 enabled???
+    "native/std",
     "scale-info/std",
     "sp-runtime/std",
     "sp-core/std",
@@ -50,9 +50,7 @@ std = [
     "frame-support/std",
     "frame-system/std",
 ]
-# common = ["ark-ec", "ark-ff", "ark-scale"]
 common = []
-# bn254 = ["ark-bn254", "ark-bn254-ext", "common"]   # "sp-runtime-interface"
 bn254 = []
 runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",
@@ -60,7 +58,6 @@ runtime-benchmarks = [
 	"frame-system/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 ]
-# try-runtime = ["frame-support/try-runtime", "frame-system/try-runtime"]
 try-runtime = [
 	"frame-support/try-runtime",
 	"frame-system/try-runtime",

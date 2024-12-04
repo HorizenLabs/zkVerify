@@ -45,5 +45,5 @@ std = [
     "dep:ultraplonk_verifier",
 ]
 common = ["ark-ec", "ark-scale"]
-bn254 = ["ark-bn254", "ark-bn254-ext", "common"]   # "sp-runtime-interface"
+bn254 = ["ark-bn254", "ark-bn254-ext", "common"]
 all-curves = ["bn254"]

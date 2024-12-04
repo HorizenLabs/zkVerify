@@ -1,13 +1,31 @@
+// Copyright 2024, Horizen Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+//! Generic executions of the operations for *Arkworks* elliptic curves.
+
+// As not all functions are used by each elliptic curve and some elliptic
+// curve may be excluded by the build we resort to `#[allow(unused)]` to
+// suppress the expected warning.
+
 use crate::utils::ScalarFieldFor;
-// use ark_bn254::{G1Affine, G1Projective, G2Affine, G2Projective};
-use ark_ec::pairing::Pairing;
-use ark_ec::short_weierstrass::SWCurveConfig;
-use ark_ec::AffineRepr;
+use ark_ec::{pairing::Pairing, short_weierstrass::SWCurveConfig, AffineRepr};
 use native::{g1, g2};
 use native::{
     Bn254 as Bn254Opt, G1Affine as G1AffineOpt, G1Projective as G1ProjectiveOpt,
     G2Affine as G2AffineOpt, G2Projective as G2ProjectiveOpt,
-}; // Fr as FrOpt
+};
 
 #[inline]
 pub fn pairing_opt(a: G1AffineOpt, b: G2AffineOpt) {
