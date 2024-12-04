@@ -21,6 +21,9 @@ use ark_bn254_ext::CurveHooks;
 use ark_ec::{pairing::Pairing, CurveConfig};
 use sp_runtime_interface::runtime_interface;
 
+// #[allow(unused)]
+// pub use ark_bn254_ext::{fq, fq::*, fq12, fq12::*, fq2, fq2::*, fq6, fq6::*, fr, fr::*};
+
 /// First pairing group definitions.
 pub mod g1 {
     /// Group configuration.

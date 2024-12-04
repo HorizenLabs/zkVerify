@@ -10,6 +10,7 @@ resolver = "2"
 members = [
     "node",
     "runtime",
+    "pallets/accelerated-bn-crypto",
     "pallets/proof_of_existence",
     "primitives/hp-proof-of-existence",
     "primitives/hp-on-proof-verified",
