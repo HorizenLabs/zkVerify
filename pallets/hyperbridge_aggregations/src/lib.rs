@@ -20,6 +20,7 @@ use ismp::router::{PostRequest, Response, Timeout};
 pub use pallet::*;
 
 mod benchmarking;
+#[cfg(test)]
 mod mock;
 mod weight;
 

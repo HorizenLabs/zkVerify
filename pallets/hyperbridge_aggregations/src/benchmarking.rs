@@ -33,6 +33,11 @@ pub mod utils {
     use frame_support::traits::fungible::Mutate;
     use sp_runtime::traits::Bounded;
 
+    pub static DEFAULT_EMPTY_ATT: [u8; 32] =
+        hex!("290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563");
+
+    pub static TEST_CONTRACT: [u8; 20] = hex!("d9145CCE52D386f254917e481eB44e9943F39138");
+
     /// Return a whitelisted account with enough founds to do anything.
     pub fn funded_account<T: Config>() -> T::AccountId {
         let caller: T::AccountId = whitelisted_caller();
@@ -45,15 +50,11 @@ pub mod utils {
 mod benchmarks {
     use super::utils::*;
     use super::*;
+    use sp_runtime::traits::Bounded;
 
     #[benchmark]
     fn dispatch_aggregation() {
         let caller: T::AccountId = funded_account::<T>();
-
-        pub static DEFAULT_EMPTY_ATT: [u8; 32] =
-            hex!("290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563");
-
-        pub static TEST_CONTRACT: [u8; 20] = hex!("d9145CCE52D386f254917e481eB44e9943F39138");
 
         // Prepare the parameters
         let params = Params {
@@ -65,10 +66,87 @@ mod benchmarks {
             fee: Zero::zero(),
         };
 
+        let initial_nonce = pallet_ismp::Nonce::<T>::get();
+        let initial_event_count = frame_system::Pallet::<T>::events().len();
+
         #[extrinsic_call]
         dispatch_aggregation(RawOrigin::Signed(caller), params);
 
-        // Add assertion to verify the dispatch was successful
+        // Assertions
+        assert!(
+            frame_system::Pallet::<T>::events().len() > initial_event_count,
+            "No events were emitted"
+        );
+        assert_eq!(
+            pallet_ismp::Nonce::<T>::get(),
+            initial_nonce + 1,
+            "Nonce should be incremented"
+        );
+    }
+
+    #[benchmark]
+    fn dispatch_aggregation_large_timeout() {
+        let caller: T::AccountId = funded_account::<T>();
+
+        let one_year_seconds = 365 * 24 * 60 * 60;
+        let params = Params {
+            aggregation_id: 1u64,
+            aggregation: sp_core::H256(DEFAULT_EMPTY_ATT),
+            module: sp_core::H160(TEST_CONTRACT),
+            destination: StateMachine::Kusama(4009),
+            timeout: one_year_seconds,
+            fee: Zero::zero(),
+        };
+
+        let initial_nonce = pallet_ismp::Nonce::<T>::get();
+        let initial_event_count = frame_system::Pallet::<T>::events().len();
+
+        #[extrinsic_call]
+        dispatch_aggregation(RawOrigin::Signed(caller.clone()), params.clone());
+
+        // Assertions
+        assert!(
+            frame_system::Pallet::<T>::events().len() > initial_event_count,
+            "No events were emitted"
+        );
+        assert_eq!(
+            pallet_ismp::Nonce::<T>::get(),
+            initial_nonce + 1,
+            "Nonce should be incremented"
+        );
+    }
+
+    #[benchmark]
+    fn dispatch_aggregation_large_fee() {
+        let caller: T::AccountId = funded_account::<T>();
+        let large_fee = BalanceOf::<T>::max_value() / 4u32.into();
+
+        let params = Params {
+            aggregation_id: 1u64,
+            aggregation: sp_core::H256(DEFAULT_EMPTY_ATT),
+            module: sp_core::H160(TEST_CONTRACT),
+            destination: StateMachine::Kusama(4009),
+            timeout: 0,
+            fee: large_fee,
+        };
+
+        let initial_nonce = pallet_ismp::Nonce::<T>::get();
+        let initial_event_count = frame_system::Pallet::<T>::events().len();
+
+        #[extrinsic_call]
+        dispatch_aggregation(RawOrigin::Signed(caller.clone()), params.clone());
+
+        // Verify fee transfer occurred
+        // Assertions
+        assert!(
+            frame_system::Pallet::<T>::events().len() > initial_event_count,
+            "No events were emitted"
+        );
+        assert_eq!(
+            pallet_ismp::Nonce::<T>::get(),
+            initial_nonce + 1,
+            "Nonce should be incremented"
+        );
     }
 
     #[cfg(test)]

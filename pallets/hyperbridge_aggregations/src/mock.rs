@@ -13,8 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg(test)]
-
 use super::*;
 use frame_support::pallet_prelude::ConstU32;
 use frame_support::traits::ConstU128;
