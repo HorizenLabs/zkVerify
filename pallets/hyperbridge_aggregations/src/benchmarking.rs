@@ -22,7 +22,6 @@ use frame_support::traits::fungible::Inspect;
 use frame_system::RawOrigin;
 use hex_literal::hex;
 use ismp::host::StateMachine;
-use sp_runtime::traits::Zero;
 
 type BalanceOf<T> = <<T as pallet_ismp::Config>::Currency as Inspect<
     <T as frame_system::Config>::AccountId,
@@ -51,11 +50,6 @@ mod benchmarks {
     use super::utils::*;
     use super::*;
     use sp_runtime::traits::Bounded;
-    use sp_runtime::Saturating;
-
-    const fn get_max_benchmark_iterations() -> u32 {
-        1_000_000
-    }
 
     #[benchmark]
     fn dispatch_aggregation() {
@@ -67,8 +61,8 @@ mod benchmarks {
             aggregation: sp_core::H256(DEFAULT_EMPTY_ATT),
             module: sp_core::H160(TEST_CONTRACT),
             destination: StateMachine::Kusama(4009),
-            timeout: 0,
-            fee: Zero::zero(),
+            timeout: 60 * 60, // One minute in seconds
+            fee: BalanceOf::<T>::max_value() / 4u32.into(),
         };
 
         let initial_nonce = pallet_ismp::Nonce::<T>::get();
@@ -77,41 +71,6 @@ mod benchmarks {
         #[extrinsic_call]
         dispatch_aggregation(RawOrigin::Signed(caller), params);
 
-        // Assertions
-        assert!(
-            frame_system::Pallet::<T>::events().len() > initial_event_count,
-            "No events were emitted"
-        );
-        assert_eq!(
-            pallet_ismp::Nonce::<T>::get(),
-            initial_nonce + 1,
-            "Nonce should be incremented"
-        );
-    }
-
-    #[benchmark]
-    fn dispatch_aggregation_var_fee(n: Linear<1, { get_max_benchmark_iterations() }>) {
-        let caller: T::AccountId = funded_account::<T>();
-
-        let max_fee = BalanceOf::<T>::max_value() / 4u32.into();
-        let fee = max_fee.saturating_mul(n.into()) / get_max_benchmark_iterations().into();
-
-        let params = Params {
-            aggregation_id: 1u64,
-            aggregation: sp_core::H256(DEFAULT_EMPTY_ATT),
-            module: sp_core::H160(TEST_CONTRACT),
-            destination: StateMachine::Kusama(4009),
-            timeout: 0,
-            fee,
-        };
-
-        let initial_nonce = pallet_ismp::Nonce::<T>::get();
-        let initial_event_count = frame_system::Pallet::<T>::events().len();
-
-        #[extrinsic_call]
-        dispatch_aggregation(RawOrigin::Signed(caller.clone()), params.clone());
-
-        // Verify fee transfer occurred
         // Assertions
         assert!(
             frame_system::Pallet::<T>::events().len() > initial_event_count,
