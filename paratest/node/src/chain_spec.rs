@@ -9,7 +9,7 @@ use sp_runtime::traits::{IdentifyAccount, Verify};
 /// Specialized `ChainSpec` for the normal parachain runtime.
 pub type ChainSpec = sc_service::GenericChainSpec<Extensions>;
 
-/// The default XCM version to set in genesis config.
+// /// The default XCM version to set in genesis config.
 // const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
 
 /// Helper function to generate a crypto pair from seed

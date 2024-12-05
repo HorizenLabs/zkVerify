@@ -21,7 +21,7 @@ use crate::{
 };
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory};
 use native::HLNativeHostFunctions;
-use sc_cli::{CliConfiguration, SubstrateCli};
+use sc_cli::SubstrateCli;
 use sc_service::PartialComponents;
 use sp_core::crypto::Ss58AddressFormat;
 use sp_keyring::Sr25519Keyring;
