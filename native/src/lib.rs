@@ -18,6 +18,7 @@
 use codec::{Decode, Encode};
 use sp_runtime_interface::pass_by::PassByCodec;
 
+mod accelerated_bn;
 mod groth16;
 mod risc0;
 mod ultraplonk;
@@ -68,7 +69,42 @@ pub use groth16::groth_16_bn_254_verify;
 #[cfg(feature = "std")]
 pub use groth16::groth_16_bn_254_verify::HostFunctions as Groth16Bn254VerifierHostFunctions;
 
-#[cfg(feature = "std")]
+#[cfg(feature = "bn254")]
+pub use accelerated_bn::bn254::g1;
+#[cfg(feature = "bn254")]
+pub use accelerated_bn::bn254::g2;
+#[cfg(feature = "bn254")]
+pub use accelerated_bn::bn254::host_calls;
+#[cfg(all(feature = "bn254", feature = "std"))]
+pub use accelerated_bn::bn254::host_calls::HostFunctions as AcceleratedBnHostFunctions;
+#[cfg(feature = "bn254")]
+pub use accelerated_bn::bn254::Bn254;
+#[cfg(feature = "bn254")]
+pub use accelerated_bn::bn254::G1Affine;
+#[cfg(feature = "bn254")]
+pub use accelerated_bn::bn254::G1Config;
+#[cfg(feature = "bn254")]
+pub use accelerated_bn::bn254::G1Projective;
+#[cfg(feature = "bn254")]
+pub use accelerated_bn::bn254::G2Affine;
+#[cfg(feature = "bn254")]
+pub use accelerated_bn::bn254::G2Config;
+#[cfg(feature = "bn254")]
+pub use accelerated_bn::bn254::G2Projective;
+
+// TODO: Perhaps there is a more elegant way to define HLNativeHostFunctions?
+
+#[cfg(all(feature = "std", feature = "bn254"))]
+pub type HLNativeHostFunctions = (
+    ZksyncVerifierHostFunctions,
+    Risc0VerifierHostFunctions,
+    UltraplonkVerifierHostFunctions,
+    Groth16Bn254VerifierHostFunctions,
+    Groth16Bls12VerifierHostFunctions,
+    AcceleratedBnHostFunctions,
+);
+
+#[cfg(all(feature = "std", not(feature = "bn254")))]
 pub type HLNativeHostFunctions = (
     ZksyncVerifierHostFunctions,
     Risc0VerifierHostFunctions,

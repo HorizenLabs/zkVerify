@@ -9,6 +9,10 @@ repository.workspace = true
 homepage.workspace = true
 
 [dependencies]
+ark-bn254 = { version = "0.4.0", optional = true, default-features = false }
+ark-bn254-ext = { git = "https://github.com/DimitrisPapac/accelerated-bn-cryptography.git", optional = true, default-features = false }
+ark-ec = { version = "0.4.0", optional = true, default-features = false }
+ark-scale = { features = ["hazmat"], version = "0.0.12", optional = true, default-features = false }
 zksync-era-verifier = { git = "https://github.com/HorizenLabs/zksync-era-verifier.git", tag = "v0.1.0", optional = true }
 zksync-era-verifier-deserialize = { git = "https://github.com/HorizenLabs/zksync-era-verifier.git", tag = "v0.1.0", optional = true }
 risc0-verifier = { git = "https://github.com/HorizenLabs/risc0-verifier.git", tag = "v0.2.0", optional = true }
@@ -25,6 +29,11 @@ native-cache = { workspace = true, features = ["ultraplonk"] }
 [features]
 default = ["std"]
 std = [
+    "ark-bn254?/std",
+    "ark-bn254-ext?/std",
+    "ark-ec?/parallel",
+    "ark-ec?/std",
+    "ark-scale?/std",
     "hp-groth16/implementation",
     "sp-runtime-interface/std",
     "codec/std",
@@ -35,3 +44,6 @@ std = [
     "dep:risc0-verifier",
     "dep:ultraplonk_verifier",
 ]
+common = ["ark-ec", "ark-scale"]
+bn254 = ["ark-bn254", "ark-bn254-ext", "common"]
+all-curves = ["bn254"]
