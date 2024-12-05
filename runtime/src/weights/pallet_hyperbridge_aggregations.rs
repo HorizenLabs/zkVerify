@@ -51,13 +51,11 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for `pallet_hyperbridge_aggregations`.
-pub trait WeightInfo {
-    fn dispatch_aggregation() -> Weight;
-}
+/// Weights for `pallet_hyperbridge_aggregations` using the zkVerify node and recommended hardware.
+pub struct ZKVWeight<T>(PhantomData<T>);
 
 // For backwards compatibility and tests.
-impl WeightInfo for () {
+impl<T: frame_system::Config> pallet_hyperbridge_aggregations::WeightInfo for ZKVWeight<T> {
     /// Storage: `System::Account` (r:1 w:1)
     /// Proof: `System::Account` (`max_values`: None, `max_size`: Some(128), added: 2603, mode: `MaxEncodedLen`)
     /// Storage: `Ismp::Nonce` (r:1 w:1)
