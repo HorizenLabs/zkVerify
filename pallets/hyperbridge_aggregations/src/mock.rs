@@ -118,7 +118,7 @@ construct_runtime!(
         System: frame_system,
         HyperbridgeAggregations: crate,
         Timestamp: pallet_timestamp,
-        Ismp: pallet_ismp,
+        Ismp:pallet_ismp::{Pallet, Call, Storage, Event<T>} = 10,
         Balances: pallet_balances,
         IsmpGrandpa: ismp_grandpa,
     }
@@ -129,6 +129,9 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
         .build_storage()
         .unwrap();
     let mut ext = sp_io::TestExternalities::new(t);
-    ext.execute_with(|| System::set_block_number(1));
+    ext.execute_with(|| {
+        System::set_block_number(1);
+        Timestamp::set_timestamp(1000);
+    });
     ext
 }
