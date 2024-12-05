@@ -66,7 +66,9 @@ impl SubstrateCli for Cli {
 
 /// Parse and run command line arguments
 pub fn run() -> sc_cli::Result<()> {
-    let cli = Cli::from_args();
+    let mut cli = Cli::from_args();
+
+    cli.run.offchain_worker_params.indexing_enabled = true;
 
     match &cli.subcommand {
         Some(Subcommand::Key(cmd)) => cmd.run(&cli),

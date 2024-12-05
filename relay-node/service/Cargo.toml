@@ -69,6 +69,7 @@ frame-support = { workspace = true }
 frame-benchmarking-cli = { workspace = true }
 frame-benchmarking = { workspace = true }
 sp-staking = { workspace = true }
+frame-metadata-hash-extension = { workspace = true, default-features = true }
 
 # External Crates
 async-trait = "0.1.57"
