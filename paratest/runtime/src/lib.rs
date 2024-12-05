@@ -506,6 +506,72 @@ impl pallet_parachain_template::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
 }
 
+impl pallet_xcm_notifications::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeOrigin = RuntimeOrigin;
+    type RuntimeCall = RuntimeCall;
+}
+
+// This pallet for testing only, and is not meant for use in production (e.g. see the weight
+// hardcoded to 0 below).
+#[frame_support::pallet]
+pub mod pallet_xcm_notifications {
+    use frame_support::pallet_prelude::*;
+    use frame_system::pallet_prelude::*;
+    use sp_runtime::DispatchResult;
+    use xcm::latest::prelude::*;
+    use xcm_executor::traits::QueryHandler as XcmQueryHandler;
+
+    #[pallet::pallet]
+    pub struct Pallet<T>(_);
+
+    #[pallet::config]
+    pub trait Config: frame_system::Config + pallet_xcm::Config {
+        type RuntimeEvent: IsType<<Self as frame_system::Config>::RuntimeEvent> + From<Event<Self>>;
+        type RuntimeOrigin: IsType<<Self as frame_system::Config>::RuntimeOrigin>
+            + Into<Result<pallet_xcm::Origin, <Self as Config>::RuntimeOrigin>>;
+        type RuntimeCall: IsType<<Self as pallet_xcm::Config>::RuntimeCall> + From<Call<Self>>;
+    }
+
+    #[pallet::event]
+    #[pallet::generate_deposit(pub(super) fn deposit_event)]
+    pub enum Event<T: Config> {
+        QueryPrepared(QueryId),
+    }
+
+    #[pallet::error]
+    pub enum Error<T> {
+        BadAccountFormat,
+    }
+
+    #[pallet::call]
+    impl<T: Config> Pallet<T> {
+        #[pallet::call_index(0)]
+        #[pallet::weight({0})]
+        pub fn prepare_new_query(origin: OriginFor<T>) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+            let id = who
+                .using_encoded(|mut d| <[u8; 32]>::decode(&mut d))
+                .map_err(|_| Error::<T>::BadAccountFormat)?;
+
+            // pallet_xcm::Pallet::<T>::new_notify_query() to set a callback
+            let qid = <pallet_xcm::Pallet<T> as XcmQueryHandler>::new_query(
+                Location {
+                    parents: 1,
+                    interior: Here,
+                },
+                100u32.into(),
+                Junction::AccountId32 {
+                    network: Some(NetworkId::Polkadot),
+                    id,
+                },
+            );
+            Self::deposit_event(Event::<T>::QueryPrepared(qid));
+            Ok(())
+        }
+    }
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub struct Runtime {
@@ -534,6 +600,7 @@ construct_runtime!(
         XcmPallet: pallet_xcm = 31,
         CumulusXcm: cumulus_pallet_xcm = 32,
         MessageQueue: pallet_message_queue = 33,
+        XcmNotifications: pallet_xcm_notifications = 34,
 
         // Template
         TemplatePallet: pallet_parachain_template = 50,

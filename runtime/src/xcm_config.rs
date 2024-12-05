@@ -31,10 +31,7 @@ use super::{
     XcmPallet,
     //Treasury,
 };
-use crate::{
-    governance::{FellowshipAdmin, GeneralAdmin, StakingAdmin, Treasurer},
-    parachains::parachains_origin,
-};
+use crate::{governance::GeneralAdmin, parachains::parachains_origin};
 use frame_support::{
     parameter_types,
     traits::{Contains, Equals, Everything, Nothing},
@@ -269,36 +266,11 @@ pub type LocalOriginToLocation = (
     SignedToAccountId32<RuntimeOrigin, AccountId, ThisNetwork>,
 );
 
-/// Type to convert the `StakingAdmin` origin to a Plurality `Location` value.
-pub type StakingAdminToPlurality =
-    OriginToPluralityVoice<RuntimeOrigin, StakingAdmin, StakingAdminBodyId>;
-
-/// Type to convert the `FellowshipAdmin` origin to a Plurality `Location` value.
-pub type FellowshipAdminToPlurality =
-    OriginToPluralityVoice<RuntimeOrigin, FellowshipAdmin, FellowshipAdminBodyId>;
-
-/// Type to convert the `Treasurer` origin to a Plurality `Location` value.
-pub type TreasurerToPlurality = OriginToPluralityVoice<RuntimeOrigin, Treasurer, TreasurerBodyId>;
-
-/// Type to convert a pallet `Origin` type value into a `Location` value which represents an
-/// interior location of this chain for a destination chain.
-pub type LocalPalletOriginToLocation = (
-    // GeneralAdmin origin to be used in XCM as a corresponding Plurality `Location` value.
-    GeneralAdminToPlurality,
-    // StakingAdmin origin to be used in XCM as a corresponding Plurality `Location` value.
-    StakingAdminToPlurality,
-    // FellowshipAdmin origin to be used in XCM as a corresponding Plurality `Location` value.
-    // We might not need this, but we keep it in sync with the governance part at least.
-    FellowshipAdminToPlurality,
-    // `Treasurer` origin to be used in XCM as a corresponding Plurality `Location` value.
-    TreasurerToPlurality,
-);
-
 impl pallet_xcm::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    // We only allow the root, the general admin, the fellowship admin and the staking admin to send
-    // messages.
-    type SendXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalPalletOriginToLocation>;
+    // We allow signed accounts to send XCM messages. We use this to test remote proof verification
+    // on the relay chain through XCM.
+    type SendXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
     type XcmRouter = XcmRouter;
     // Anyone can execute XCM messages locally (needed for teleporting).
     type ExecuteXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
