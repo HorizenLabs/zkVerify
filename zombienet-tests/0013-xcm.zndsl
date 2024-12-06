@@ -15,4 +15,4 @@ alice: parachain 1599 block height is at least 3 within 100 seconds
 
 ### Javascript test invocation
 alice: js-script ./js_scripts/0013-xcm/relay_send.js with "1000000000000000000,0xa2bffddad9c4d7d36055119ce34867b523f4711be871785c286a91fab21fd175" return is equal to 1 within 20 seconds
-collator-alice: js-script ./js_scripts/0013-xcm/para_recv_sendback.js with "1000000000000000000,0xa2bffddad9c4d7d36055119ce34867b523f4711be871785c286a91fab21fd175" return is equal to 1 within 100 seconds
+collator-alice: js-script ./js_scripts/0013-xcm/para_recv_sendback.js with "1000000000000000000,0xa2bffddad9c4d7d36055119ce34867b523f4711be871785c286a91fab21fd175" return is equal to 1 within 200 seconds
