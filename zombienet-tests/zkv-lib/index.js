@@ -187,6 +187,7 @@ async function submitExtrinsic(api, extrinsic, signer, blockUntil, filter) {
     let transactionSuccessEvent = false;
     let done = false;
     let max_retries = 5;
+    let hasBeenReady = false;
     if (filter === undefined) {
         console.log("No filtering");
         filter = (_event) => true;
@@ -197,7 +198,10 @@ async function submitExtrinsic(api, extrinsic, signer, blockUntil, filter) {
         retVal = await new Promise(async (resolve, reject) => {
             const unsub = await extrinsic.signAndSend(signer, ({ events: records = [], status }) => {
                 let blockHash = null;
-                if (status.isInBlock) {
+                if (status.isReady) {
+                    hasBeenReady = true;
+                }
+                else if (status.isInBlock) {
                     blockHash = status.asInBlock;
                     console.log(`Transaction included at blockhash ${blockHash}`);
                     records.forEach(({ event: { method, section } }) => {
@@ -218,7 +222,9 @@ async function submitExtrinsic(api, extrinsic, signer, blockUntil, filter) {
                 else if (status.isInvalid) {
                     console.log("Transaction marked as invalid");
                     done = true;
-                    reject("retry");
+                    if (hasBeenReady) {
+                        reject("retry");
+                    }
                 }
                 else if (status.isError) {
                     done = true;
