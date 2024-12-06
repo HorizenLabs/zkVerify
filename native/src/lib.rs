@@ -69,28 +69,9 @@ pub use groth16::groth_16_bn_254_verify;
 #[cfg(feature = "std")]
 pub use groth16::groth_16_bn_254_verify::HostFunctions as Groth16Bn254VerifierHostFunctions;
 
-#[cfg(feature = "bn254")]
-pub use accelerated_bn::bn254::g1;
-#[cfg(feature = "bn254")]
-pub use accelerated_bn::bn254::g2;
-#[cfg(feature = "bn254")]
-pub use accelerated_bn::bn254::host_calls;
-#[cfg(all(feature = "bn254", feature = "std"))]
-pub use accelerated_bn::bn254::host_calls::HostFunctions as AcceleratedBnHostFunctions;
-#[cfg(feature = "bn254")]
-pub use accelerated_bn::bn254::Bn254;
-#[cfg(feature = "bn254")]
-pub use accelerated_bn::bn254::G1Affine;
-#[cfg(feature = "bn254")]
-pub use accelerated_bn::bn254::G1Config;
-#[cfg(feature = "bn254")]
-pub use accelerated_bn::bn254::G1Projective;
-#[cfg(feature = "bn254")]
-pub use accelerated_bn::bn254::G2Affine;
-#[cfg(feature = "bn254")]
-pub use accelerated_bn::bn254::G2Config;
-#[cfg(feature = "bn254")]
-pub use accelerated_bn::bn254::G2Projective;
+pub use accelerated_bn::bn254;
+#[cfg(feature = "std")]
+pub use accelerated_bn::bn254::host_calls::HostFunctions as AcceleratedBn254HostFunctions;
 
 // TODO: Perhaps there is a more elegant way to define HLNativeHostFunctions?
 
