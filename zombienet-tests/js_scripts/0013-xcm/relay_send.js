@@ -87,7 +87,7 @@ async function run(nodeName, networkInfo, args) {
     const weight_limit = 'Unlimited';
     const teleport = await api.tx.xcmPallet.teleportAssets(dest, beneficiary, assets, fee_asset_item);
 
-    if (!receivedEvents(await submitExtrinsic(teleport, alice, BlockUntil.InBlock, undefined))) {
+    if (!receivedEvents(await submitExtrinsic(api, teleport, alice, BlockUntil.InBlock, undefined))) {
         return ReturnCode.ExtrinsicUnsuccessful;
     }
 
