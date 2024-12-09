@@ -98,7 +98,7 @@ jobs:
           echo $(docker images -q "${IMAGE_NAME}" > /dev/null 2>&1 && echo "Image exists..." || echo "Image missing...")
           echo "Loaded image ${IMAGE_NAME}"
           echo "TEST_TAG=test" >> $GITHUB_ENV
-          docker image tag "${IMAGE_NAME}" "${DOCKER_HUB_ORG}/${DOCKER_IMAGE_BUILD_NAME}:${TEST_TAG}"
+          docker image tag "${IMAGE_NAME}" "${DOCKER_HUB_ORG}/${DOCKER_IMAGE_BUILD_NAME}:$TEST_TAG"
         shell: bash
 
       - name: Run test
