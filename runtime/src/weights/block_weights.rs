@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 36.0.0
-//! DATE: 2024-08-07 (Y/M/D)
-//! HOSTNAME: `c0ae48dc3b2e`, CPU: `AMD Ryzen 7 7700 8-Core Processor`
+//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 42.0.0
+//! DATE: 2024-12-09 (Y/M/D)
+//! HOSTNAME: `8f92344bde02`, CPU: `AMD Ryzen 7 7700 8-Core Processor`
 //!
 //! SHORT-NAME: `block`, LONG-NAME: `BlockExecution`, RUNTIME: `Development`
 //! WARMUPS: `10`, REPEAT: `100`
@@ -23,7 +23,7 @@
 //! WEIGHT-METRIC: `Average`, WEIGHT-MUL: `1.0`, WEIGHT-ADD: `0`
 
 // Executed Command:
-//   /usr/local/bin/zkv-node
+//   /usr/local/bin/zkv-relay
 //   benchmark
 //   overhead
 //   --chain=dev
@@ -31,7 +31,7 @@
 //   --header=/data/benchmark/HEADER-APACHE2
 //   --warmup=10
 //   --repeat=100
-//   --base-path=/tmp/tmp.3HgX1SvP0b
+//   --base-path=/tmp/tmp.QvXT85Vkq8
 
 use sp_core::parameter_types;
 use sp_weights::{constants::WEIGHT_REF_TIME_PER_NANOS, Weight};
@@ -41,17 +41,17 @@ parameter_types! {
     /// Calculated by multiplying the *Average* with `1.0` and adding `0`.
     ///
     /// Stats nanoseconds:
-    ///   Min, Max: 173_345, 231_645
-    ///   Average:  178_364
-    ///   Median:   176_140
-    ///   Std-Dev:  7557.13
+    ///   Min, Max: 386_675, 415_790
+    ///   Average:  395_140
+    ///   Median:   394_641
+    ///   Std-Dev:  5241.92
     ///
     /// Percentiles nanoseconds:
-    ///   99th: 217_288
-    ///   95th: 185_148
-    ///   75th: 179_066
+    ///   99th: 413_876
+    ///   95th: 404_980
+    ///   75th: 397_225
     pub const BlockExecutionWeight: Weight =
-        Weight::from_parts(WEIGHT_REF_TIME_PER_NANOS.saturating_mul(178_364), 0);
+        Weight::from_parts(WEIGHT_REF_TIME_PER_NANOS.saturating_mul(395_140), 0);
 }
 
 #[cfg(test)]
