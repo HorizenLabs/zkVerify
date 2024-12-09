@@ -145,7 +145,10 @@ pub mod currency {
     pub const THOUSANDS: Balance = 1_000 * ACME;
     pub const MILLIONS: Balance = 1_000 * THOUSANDS;
     pub const MILLICENTS: Balance = CENTS / 1_000;
+    #[cfg(not(feature = "runtime-benchmarks"))]
     pub const EXISTENTIAL_DEPOSIT: Balance = MILLICENTS;
+    #[cfg(feature = "runtime-benchmarks")]
+    pub const EXISTENTIAL_DEPOSIT: Balance = 100;
     pub const fn deposit(items: u32, bytes: u32) -> Balance {
         items as Balance * 200 * CENTS + (bytes as Balance) * 100 * MILLICENTS
     }
@@ -1242,6 +1245,7 @@ mod benches {
         [pallet_vesting, Vesting]
         [pallet_referenda, Referenda]
         [pallet_whitelist, Whitelist]
+        [pallet_proxy, Proxy]
         [pallet_aggregate, Aggregate]
         [pallet_hyperbridge_aggregations, HyperbridgeAggregations]
         [pallet_zksync_verifier, ZksyncVerifierBench::<Runtime>]

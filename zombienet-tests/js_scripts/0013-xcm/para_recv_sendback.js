@@ -166,10 +166,10 @@ async function run(nodeName, networkInfo, args) {
     const instr_transact = {
         Transact: {
             originKind: { SovereignAccount: null },
-            // This is the exact cost of the desired execution.
+            // This is the overestimated cost of the desired execution.
             // Any higher value should be ok, as long as it fits in a single block on the relay chain
             requireWeightAtMost: {
-                refTime: '5564640872',
+                refTime: '9000000000',
                 proofSize: '177995',
             },
             call: GROTH16_VERIFY_CALL,
