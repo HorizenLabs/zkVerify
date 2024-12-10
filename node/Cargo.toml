@@ -68,7 +68,7 @@ zkv-runtime = { workspace = true, features = ["std"] }
 hp-poe = { workspace = true, features = ["std"] }
 proof-of-existence-rpc = { workspace = true, features = ["std"] }
 aggregate-rpc = { workspace = true, features = ["std"] }
-native = { workspace = true, features = ["std", "bn254"] }
+native = { workspace = true, features = ["std"] }
 
 [build-dependencies]
 substrate-build-script-utils = { workspace = true }

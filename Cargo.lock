@@ -13,10 +13,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "accelerated-bn-crypto"
+name = "accelerated-arkworks-curves"
 version = "0.1.0"
 dependencies = [
- "ark-bn254",
  "ark-bn254-ext",
  "ark-ec",
  "ark-ff",
@@ -27,7 +26,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "native",
- "pallet-balances",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
@@ -301,8 +299,8 @@ dependencies = [
 
 [[package]]
 name = "ark-bn254-ext"
-version = "0.4.2"
-source = "git+https://github.com/DimitrisPapac/accelerated-bn-cryptography.git#76b69ef0eaa8b2e4c08c5fda6ce5536d48211a63"
+version = "0.4.0"
+source = "git+https://github.com/zkVerify/accelerated-bn-cryptography.git#c764589d32d2460c41fb0fbee4c2012d1914e1f7"
 dependencies = [
  "ark-bn254",
  "ark-ec",
@@ -418,8 +416,8 @@ dependencies = [
 
 [[package]]
 name = "ark-models-ext"
-version = "0.4.2"
-source = "git+https://github.com/DimitrisPapac/accelerated-bn-cryptography.git#76b69ef0eaa8b2e4c08c5fda6ce5536d48211a63"
+version = "0.4.0"
+source = "git+https://github.com/zkVerify/accelerated-bn-cryptography.git#c764589d32d2460c41fb0fbee4c2012d1914e1f7"
 dependencies = [
  "ark-ec",
  "ark-ff",

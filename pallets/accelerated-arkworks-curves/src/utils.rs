@@ -22,12 +22,9 @@
 #![allow(dead_code)]
 
 use crate::ArkScale;
-use ark_ec::AffineRepr;
 use ark_scale::hazmat::ArkScaleProjective;
 use ark_serialize::{CanonicalSerialize, Compress};
 use ark_std::{test_rng, vec, vec::Vec, UniformRand};
-
-pub type ScalarFieldFor<AffineT> = <AffineT as AffineRepr>::ScalarField;
 
 // `words_count` is the scalar length in words, with 1 word assumed to be 64 bits.
 // Most significant bit is set.

@@ -19,12 +19,13 @@
 // curve may be excluded by the build we resort to `#[allow(unused)]` to
 // suppress the expected warning.
 
-use crate::utils::ScalarFieldFor;
+// use crate::utils::ScalarFieldFor;
 use ark_ec::{pairing::Pairing, short_weierstrass::SWCurveConfig, AffineRepr};
-use native::{g1, g2};
+use native::bn254::{g1, g2};
 use native::{
-    Bn254 as Bn254Opt, G1Affine as G1AffineOpt, G1Projective as G1ProjectiveOpt,
-    G2Affine as G2AffineOpt, G2Projective as G2ProjectiveOpt,
+    bn254::Bn254 as Bn254Opt, bn254::G1Affine as G1AffineOpt,
+    bn254::G1Projective as G1ProjectiveOpt, bn254::G2Affine as G2AffineOpt,
+    bn254::G2Projective as G2ProjectiveOpt,
 };
 
 #[inline]
@@ -38,7 +39,7 @@ pub fn msm_g1_opt(bases: &[G1AffineOpt], scalars: &[<G1AffineOpt as AffineRepr>:
 }
 
 #[inline]
-pub fn msm_g2_opt(bases: &[G2AffineOpt], scalars: &[ScalarFieldFor<G2AffineOpt>]) {
+pub fn msm_g2_opt(bases: &[G2AffineOpt], scalars: &[<G2AffineOpt as AffineRepr>::ScalarField]) {
     let _out = <g2::Config as SWCurveConfig>::msm(bases, scalars);
 }
 

@@ -49,7 +49,7 @@ mod benchmarks {
 
     #[benchmark]
     fn bn254_pairing_opt() {
-        let (a, b) = make_pairing_args::<native::G1Affine, native::G2Affine>();
+        let (a, b) = make_pairing_args::<native::bn254::G1Affine, native::bn254::G2Affine>();
 
         #[extrinsic_call]
         bn254_pairing_opt(RawOrigin::None, a, b);
@@ -57,7 +57,7 @@ mod benchmarks {
 
     #[benchmark]
     fn bn254_msm_g1_opt(x: Linear<MSM_LEN_MIN, MSM_LEN_MAX>) {
-        let (bases, scalars) = make_msm_args::<native::G1Projective>(x);
+        let (bases, scalars) = make_msm_args::<native::bn254::G1Projective>(x);
 
         #[extrinsic_call]
         bn254_msm_g1_opt(RawOrigin::None, bases.encode(), scalars.encode());
@@ -65,7 +65,7 @@ mod benchmarks {
 
     #[benchmark]
     fn bn254_msm_g2_opt(x: Linear<MSM_LEN_MIN, MSM_LEN_MAX>) {
-        let (bases, scalars) = make_msm_args::<native::G2Projective>(x);
+        let (bases, scalars) = make_msm_args::<native::bn254::G2Projective>(x);
 
         #[extrinsic_call]
         bn254_msm_g2_opt(RawOrigin::None, bases.encode(), scalars.encode());
@@ -73,7 +73,7 @@ mod benchmarks {
 
     #[benchmark]
     fn bn254_mul_projective_g1_opt(x: Linear<SCALAR_WORDS_MIN, SCALAR_WORDS_MAX>) {
-        let (base, scalar) = make_scalar_args_projective::<native::G1Projective>(x);
+        let (base, scalar) = make_scalar_args_projective::<native::bn254::G1Projective>(x);
 
         #[extrinsic_call]
         bn254_mul_projective_g1_opt(RawOrigin::None, base.encode(), scalar.encode());
@@ -81,7 +81,7 @@ mod benchmarks {
 
     #[benchmark]
     fn bn254_mul_affine_g1_opt(x: Linear<SCALAR_WORDS_MIN, SCALAR_WORDS_MAX>) {
-        let (base, scalar) = make_scalar_args::<native::G1Affine>(x);
+        let (base, scalar) = make_scalar_args::<native::bn254::G1Affine>(x);
 
         #[extrinsic_call]
         bn254_mul_affine_g1_opt(RawOrigin::None, base.encode(), scalar.encode());
@@ -89,7 +89,7 @@ mod benchmarks {
 
     #[benchmark]
     fn bn254_mul_projective_g2_opt(x: Linear<SCALAR_WORDS_MIN, SCALAR_WORDS_MAX>) {
-        let (base, scalar) = make_scalar_args_projective::<native::G2Projective>(x);
+        let (base, scalar) = make_scalar_args_projective::<native::bn254::G2Projective>(x);
 
         #[extrinsic_call]
         bn254_mul_projective_g2_opt(RawOrigin::None, base.encode(), scalar.encode());
@@ -97,7 +97,7 @@ mod benchmarks {
 
     #[benchmark]
     fn bn254_mul_affine_g2_opt(x: Linear<SCALAR_WORDS_MIN, SCALAR_WORDS_MAX>) {
-        let (base, scalar) = make_scalar_args::<native::G2Affine>(x);
+        let (base, scalar) = make_scalar_args::<native::bn254::G2Affine>(x);
 
         #[extrinsic_call]
         bn254_mul_affine_g2_opt(RawOrigin::None, base.encode(), scalar.encode());

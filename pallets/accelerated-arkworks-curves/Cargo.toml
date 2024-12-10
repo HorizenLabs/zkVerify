@@ -1,5 +1,5 @@
 [package]
-name = "accelerated-bn-crypto"
+name = "accelerated-arkworks-curves"
 version = "0.1.0"
 description = "A pallet showing usage of the native implementation of BN254 primitives backed by Substrate host functions"
 authors.workspace = true
@@ -12,15 +12,14 @@ license = "Apache-2.0"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-ark-bn254 = { version = "0.4.0", default-features = false, features = ["curve"] }
-ark-bn254-ext = { git = "https://github.com/DimitrisPapac/accelerated-bn-cryptography.git", default-features = false }
+ark-bn254-ext = { git = "https://github.com/zkVerify/accelerated-bn-cryptography.git", default-features = false }
 ark-ec = { version = "0.4.0", default-features = false }
 ark-ff = { version = "0.4.0", default-features = false }
 ark-serialize = { version = "0.4.0", default-features = false }
 ark-scale = { features = ["hazmat"], version = "0.0.12", default-features = false }
 ark-std = { version = "0.4.0", default-features = false }
 codec = { workspace = true }
-native = { path = "../../native", default-features = false, features = ["bn254"] }
+native = { path = "../../native", default-features = false }
 frame-benchmarking = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
@@ -30,13 +29,11 @@ sp-runtime = { workspace = true }
 scale-info = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
-pallet-balances = { workspace = true, features = ["std"] }
 sp-io = { workspace = true, features = ["std"] }
 
 [features]
-default = ["std", "bn254"]
+default = ["std"]
 std = [
-    "ark-bn254/std",
     "ark-bn254-ext/std",
     "ark-ec/std",
     "ark-ff/std",
@@ -50,8 +47,6 @@ std = [
     "frame-support/std",
     "frame-system/std",
 ]
-common = []
-bn254 = []
 runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",

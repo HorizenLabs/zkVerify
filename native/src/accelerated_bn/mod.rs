@@ -15,22 +15,6 @@
 
 #![warn(missing_docs)]
 
-use codec::{Decode, Encode};
-use sp_runtime_interface::pass_by::PassByCodec;
-
-#[cfg(feature = "bn254")]
 pub mod bn254;
 
-#[cfg(feature = "bn254")]
 mod utils;
-
-/// Errors that can occur during cryptographic operations.
-#[derive(Debug, PartialEq, PassByCodec, Encode, Decode)]
-pub enum BnCryptoError {
-    /// Decoding failed.
-    DecodeError,
-    /// Unequal length of bases and scalars.
-    BaseScalarLengthMismatch,
-    /// Final Exponentiation failed.
-    FinalExponError,
-}

@@ -15,11 +15,13 @@
 
 //! *BN254* types and host functions.
 
-use super::BnCryptoError;
 use crate::accelerated_bn::utils;
 use ark_bn254_ext::CurveHooks;
 use ark_ec::{pairing::Pairing, CurveConfig};
 use sp_runtime_interface::runtime_interface;
+
+extern crate alloc;
+use alloc::vec::Vec;
 
 /// First pairing group definitions.
 pub mod g1 {
@@ -121,6 +123,7 @@ impl CurveHooks for HostHooks {
 ///
 /// `ArkScale`'s `Usage` generic parameter is expected to be set to "not-validated"
 /// and "not-compressed".
+#[allow(clippy::result_unit_err)]
 #[runtime_interface]
 pub trait HostCalls {
     /// Pairing multi Miller loop for *BN254*.
@@ -129,7 +132,8 @@ pub trait HostCalls {
     ///   - `a`: `ArkScale<Vec<G1Affine>>`.
     ///   - `b`: `ArkScale<Vec<G2Affine>>`.
     /// - Returns encoded:  `ArkScale<Bn254::TargetField>`.
-    fn bn254_multi_miller_loop(a: Vec<u8>, b: Vec<u8>) -> Result<Vec<u8>, BnCryptoError> {
+    #[allow(clippy::result_unit_err)]
+    fn bn254_multi_miller_loop(a: Vec<u8>, b: Vec<u8>) -> Result<Vec<u8>, ()> {
         utils::multi_miller_loop::<ark_bn254::Bn254>(a, b)
     }
 
@@ -137,7 +141,8 @@ pub trait HostCalls {
     ///
     /// - Receives encoded: `ArkScale<Bn254::TargetField>`.
     /// - Returns encoded:  `ArkScale<Bn254::TargetField>`.
-    fn bn254_final_exponentiation(f: Vec<u8>) -> Result<Vec<u8>, BnCryptoError> {
+    #[allow(clippy::result_unit_err)]
+    fn bn254_final_exponentiation(f: Vec<u8>) -> Result<Vec<u8>, ()> {
         utils::final_exponentiation::<ark_bn254::Bn254>(f)
     }
 
@@ -147,7 +152,8 @@ pub trait HostCalls {
     ///   - `bases`: `ArkScale<Vec<G1Affine>>`.
     ///   - `scalars`: `ArkScale<Vec<G1Config::ScalarField>>`.
     /// - Returns encoded: `ArkScaleProjective<G1Projective>`.
-    fn bn254_msm_g1(bases: Vec<u8>, scalars: Vec<u8>) -> Result<Vec<u8>, BnCryptoError> {
+    #[allow(clippy::result_unit_err)]
+    fn bn254_msm_g1(bases: Vec<u8>, scalars: Vec<u8>) -> Result<Vec<u8>, ()> {
         utils::msm_sw::<ark_bn254::g1::Config>(bases, scalars)
     }
 
@@ -157,7 +163,8 @@ pub trait HostCalls {
     ///   - `bases`: `ArkScale<Vec<G2Affine>>`.
     ///   - `scalars`: `ArkScale<Vec<G2Config::ScalarField>>`.
     /// - Returns encoded: `ArkScaleProjective<G2Projective>`.
-    fn bn254_msm_g2(bases: Vec<u8>, scalars: Vec<u8>) -> Result<Vec<u8>, BnCryptoError> {
+    #[allow(clippy::result_unit_err)]
+    fn bn254_msm_g2(bases: Vec<u8>, scalars: Vec<u8>) -> Result<Vec<u8>, ()> {
         utils::msm_sw::<ark_bn254::g2::Config>(bases, scalars)
     }
 
@@ -167,7 +174,8 @@ pub trait HostCalls {
     ///   - `base`: `ArkScaleProjective<G1Projective>`.
     ///   - `scalar`: `ArkScale<Vec<u64>>`.
     /// - Returns encoded: `ArkScaleProjective<G1Projective>`.
-    fn bn254_mul_projective_g1(base: Vec<u8>, scalar: Vec<u8>) -> Result<Vec<u8>, BnCryptoError> {
+    #[allow(clippy::result_unit_err)]
+    fn bn254_mul_projective_g1(base: Vec<u8>, scalar: Vec<u8>) -> Result<Vec<u8>, ()> {
         utils::mul_projective_sw::<ark_bn254::g1::Config>(base, scalar)
     }
 
@@ -177,7 +185,8 @@ pub trait HostCalls {
     ///   - `base`: `ArkScaleProjective<G2Projective>`.
     ///   - `scalar`: `ArkScale<Vec<u64>>`.
     /// - Returns encoded: `ArkScaleProjective<ark_bn254::G2Projective>`.
-    fn bn254_mul_projective_g2(base: Vec<u8>, scalar: Vec<u8>) -> Result<Vec<u8>, BnCryptoError> {
+    #[allow(clippy::result_unit_err)]
+    fn bn254_mul_projective_g2(base: Vec<u8>, scalar: Vec<u8>) -> Result<Vec<u8>, ()> {
         utils::mul_projective_sw::<ark_bn254::g2::Config>(base, scalar)
     }
 }
