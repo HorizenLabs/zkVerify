@@ -87,7 +87,7 @@ jobs:
           fetch-depth: 1
 
       - name: Download zkVerify Docker image artifact
-        uses: crazy-max/download-artifact@test-skip-non-zip
+        uses: actions/download-artifact@v4
         with:
           name: ${{ needs.build.outputs.artifact_name }}
           path: ./
