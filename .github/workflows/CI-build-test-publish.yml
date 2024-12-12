@@ -70,7 +70,8 @@ jobs:
           overwrite: true
   
   execute-e2e-tests:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: zkVerify
     needs: build
     name: Execute E2E Tests
     outputs:
