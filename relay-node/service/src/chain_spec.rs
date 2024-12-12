@@ -201,14 +201,15 @@ pub fn development_config() -> Result<ChainSpec, String> {
             .into_iter()
             .map(|seed| (get_account_id_from_seed::<sr25519::Public>(seed), ENDOWMENT))
             .take(2)
-            .chain(
-                [
-                    // The following is a workaround for pallet_treasury benchmarks which hardcode
-                    // a payment of 100 (lower than EXISTENTIAL_DEPOSIT) to the following address ([0x0])
-                    #[cfg(feature = "runtime-benchmarks")]
-                    (from_ss58check("5C4hrfjw9DjXZTzV3MwzrrAr9P1MJhSrvWGWqi1eSuyUpnhM").unwrap(), ENDOWMENT)
-                ]
-            )
+            .chain([
+                // The following is a workaround for pallet_treasury benchmarks which hardcode
+                // a payment of 100 (lower than EXISTENTIAL_DEPOSIT) to a given address ([0x0])
+                #[cfg(feature = "runtime-benchmarks")]
+                (
+                    from_ss58check("5C4hrfjw9DjXZTzV3MwzrrAr9P1MJhSrvWGWqi1eSuyUpnhM").unwrap(),
+                    ENDOWMENT,
+                ),
+            ])
             .collect::<Vec<_>>(),
         true,
     ))
@@ -407,7 +408,7 @@ fn genesis(
                 .collect::<Vec<_>>(),
         },
         "staking": {
-            "minimumValidatorCount": 2,
+            "minimumValidatorCount": initial_authorities.len(), // must be 1 for pallet-session benchmarks
             "validatorCount": 3,
             "stakers": initial_authorities.iter()
                 .cloned()
