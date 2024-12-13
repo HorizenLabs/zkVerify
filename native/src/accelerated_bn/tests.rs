@@ -26,21 +26,20 @@ use crate::{
     bn254::G2Projective as G2ProjectiveOpt,
 };
 use ark_bn254::{G1Affine, G1Projective, G2Affine, G2Projective};
-use ark_ec::{pairing::Pairing, short_weierstrass::SWCurveConfig, AffineRepr};
-use ark_ec::{CurveGroup, Group};
+use ark_ec::{pairing::Pairing, short_weierstrass::SWCurveConfig, AffineRepr, CurveGroup, Group};
 use ark_ff::{PrimeField, Zero};
 
 #[test]
 pub fn test_pairing_opt() {
-    // Compute e(g_1, g_2) using host function
-    let a = G1ProjectiveOpt::generator();
-    let b = G2ProjectiveOpt::generator();
-    let lhs = Bn254Opt::multi_pairing([a], [b]).0;
+    // Compute e(g, h) using host function
+    let g = G1ProjectiveOpt::generator();
+    let h = G2ProjectiveOpt::generator();
+    let lhs = Bn254Opt::multi_pairing([g], [h]).0;
 
-    // Compute e(g_1, g_2) using Arkworks
-    let a = ark_bn254::G1Projective::generator();
-    let b = ark_bn254::G2Projective::generator();
-    let rhs = ark_bn254::Bn254::multi_pairing([a], [b]).0;
+    // Compute e(g, h) using Arkworks
+    let g = ark_bn254::G1Projective::generator();
+    let h = ark_bn254::G2Projective::generator();
+    let rhs = ark_bn254::Bn254::multi_pairing([g], [h]).0;
 
     assert_eq!(lhs, rhs);
 }
@@ -56,13 +55,7 @@ pub fn msm_g1_opt() {
     let scalars: Vec<FrOpt> = nums.clone().into_iter().map(FrOpt::from).collect();
 
     // Define fixed points in G1
-    let points = vec![
-        G1AffineOpt::generator(),
-        G1AffineOpt::generator(),
-        G1AffineOpt::generator(),
-        G1AffineOpt::generator(),
-        G1AffineOpt::generator(),
-    ];
+    let points = vec![G1AffineOpt::generator(); 5];
 
     let lhs = <g1::Config as SWCurveConfig>::msm(&points, &scalars)
         .map(|result| result.into_affine())
@@ -78,13 +71,7 @@ pub fn msm_g1_opt() {
     let scalars: Vec<ark_bn254::Fr> = nums.into_iter().map(|x| ark_bn254::Fr::from(x)).collect();
 
     // Define fixed points in G1
-    let points = vec![
-        G1Affine::generator(),
-        G1Affine::generator(),
-        G1Affine::generator(),
-        G1Affine::generator(),
-        G1Affine::generator(),
-    ];
+    let points = vec![G1Affine::generator(); 5];
 
     let rhs = <ark_bn254::g1::Config as SWCurveConfig>::msm(&points, &scalars)
         .map(|result| result.into_affine())
@@ -108,13 +95,7 @@ pub fn msm_g2_opt() {
     let scalars: Vec<FrOpt> = nums.clone().into_iter().map(FrOpt::from).collect();
 
     // Define fixed points in G1
-    let points = vec![
-        G2AffineOpt::generator(),
-        G2AffineOpt::generator(),
-        G2AffineOpt::generator(),
-        G2AffineOpt::generator(),
-        G2AffineOpt::generator(),
-    ];
+    let points = vec![G2AffineOpt::generator(); 5];
 
     let lhs = <g2::Config as SWCurveConfig>::msm(&points, &scalars)
         .map(|result| result.into_affine())
@@ -132,13 +113,7 @@ pub fn msm_g2_opt() {
     let scalars: Vec<ark_bn254::Fr> = nums.into_iter().map(|x| ark_bn254::Fr::from(x)).collect();
 
     // Define fixed points in G1
-    let points = vec![
-        G2Affine::generator(),
-        G2Affine::generator(),
-        G2Affine::generator(),
-        G2Affine::generator(),
-        G2Affine::generator(),
-    ];
+    let points = vec![G2Affine::generator(); 5];
 
     let rhs = <ark_bn254::g2::Config as SWCurveConfig>::msm(&points, &scalars)
         .map(|result| result.into_affine())
