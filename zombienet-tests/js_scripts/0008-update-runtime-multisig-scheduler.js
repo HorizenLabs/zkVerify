@@ -38,7 +38,7 @@ async function run(nodeName, networkInfo, args) {
      *****************************************************************************************************/
 
     const newSudoKey = api.tx.sudo.setKey(Ss58MultiAddress);
-    await submitExtrinsic(newSudoKey, alice, BlockUntil.Finalized, undefined);
+    await submitExtrinsic(api, newSudoKey, alice, BlockUntil.Finalized, undefined);
 
     const newSudoKeyOption = await api.query.sudo.key();
     if (newSudoKeyOption.isSome && newSudoKeyOption.unwrap().toString() !== Ss58MultiAddress) {
@@ -81,7 +81,7 @@ async function run(nodeName, networkInfo, args) {
         0
     );
 
-    await submitExtrinsic(proposal, alice, BlockUntil.InBlock, undefined);
+    await submitExtrinsic(api, proposal, alice, BlockUntil.InBlock, undefined);
 
     const info = await api.query.multisig.multisigs(
         multisigAddress,
@@ -96,7 +96,7 @@ async function run(nodeName, networkInfo, args) {
         paymentInfo.weight
     );
 
-    await submitExtrinsic(approval, bob, BlockUntil.InBlock, undefined);
+    await submitExtrinsic(api, approval, bob, BlockUntil.InBlock, undefined);
 
     const { block: currentBlockNumber } = await api.rpc.chain.getBlock();
     const blockNumberEnd = currentBlockNumber.header.number.toNumber();

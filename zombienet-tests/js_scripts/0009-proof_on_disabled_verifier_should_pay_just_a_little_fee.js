@@ -39,7 +39,7 @@ async function run(nodeName, networkInfo, _args) {
     const disableTx = api.tx.settlementFFlonkPallet.disable(true);
     const sudoDisableTx = api.tx.sudo.sudo(disableTx)
 
-    if (!receivedEvents(await submitExtrinsic(sudoDisableTx, alice, BlockUntil.InBlock))) {
+    if (!receivedEvents(await submitExtrinsic(api, sudoDisableTx, alice, BlockUntil.InBlock))) {
         return ReturnCode.ErrCannotDisable;
     };
 
