@@ -18,3 +18,6 @@
 pub mod bn254;
 
 mod utils;
+
+#[cfg(test)]
+mod tests;

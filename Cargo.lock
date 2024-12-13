@@ -6909,6 +6909,7 @@ dependencies = [
  "ark-bn254",
  "ark-bn254-ext",
  "ark-ec",
+ "ark-ff",
  "ark-scale",
  "hp-groth16",
  "hp-verifiers",
