@@ -150,7 +150,7 @@ pub mod currency {
     #[cfg(feature = "runtime-benchmarks")]
     pub const EXISTENTIAL_DEPOSIT: Balance = 100;
     pub const fn deposit(items: u32, bytes: u32) -> Balance {
-        items as Balance * 200 * CENTS + (bytes as Balance) * 100 * MILLICENTS
+        items as Balance * 2 * CENTS + (bytes as Balance) * 1 * MILLICENTS
     }
 }
 
