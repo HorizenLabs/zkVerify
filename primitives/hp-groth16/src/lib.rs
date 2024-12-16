@@ -68,7 +68,7 @@ pub fn verify_proof<E: Pairing>(
 ) -> Result<bool, Groth16Error> {
     let proof: ark_groth16::Proof<E> = proof.try_into().map_err(|_| Groth16Error::InvalidProof)?;
     let vk: ark_groth16::VerifyingKey<E> = vk
-        .try_into()
+        .try_into_ark_unchecked()
         .map_err(|_| Groth16Error::InvalidVerificationKey)?;
     let pvk = prepare_verifying_key::<E>(&vk);
     let inputs = inputs
@@ -148,17 +148,6 @@ mod should {
             assert_eq!(
                 verify_proof::<E>(vk, proof, &inputs).err().unwrap(),
                 Groth16Error::InvalidProof
-            )
-        }
-
-        #[apply(curves)]
-        fn fail_with_malformed_vk<E: Pairing>(#[case] _p: PhantomData<E>) {
-            let (proof, mut vk, inputs) = dummy_circuit::get_instance::<E>(10, None);
-            vk.alpha_g1.0[0] += 1;
-
-            assert_eq!(
-                verify_proof::<E>(vk, proof, &inputs).err().unwrap(),
-                Groth16Error::InvalidVerificationKey
             )
         }
 

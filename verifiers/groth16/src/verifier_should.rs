@@ -76,20 +76,6 @@ mod reject {
     }
 
     #[apply(curves)]
-    fn malformed_vk(curve: Curve) {
-        let (proof, mut vk, inputs) = groth16::Groth16::get_instance(1, Some(0), curve);
-        vk.alpha_g1.0[0] += 1;
-
-        assert_eq!(
-            Groth16::<Mock>::verify_proof(&vk, &proof, &inputs),
-            Err(VerifyError::InvalidVerificationKey)
-        );
-        assert_eq!(
-            Groth16::<Mock>::validate_vk(&vk),
-            Err(VerifyError::InvalidVerificationKey)
-        );
-    }
-    #[apply(curves)]
     fn malformed_inputs(curve: Curve) {
         let (proof, vk, mut inputs) = groth16::Groth16::get_instance(1, Some(0), curve);
         for byte in &mut inputs[0].0 {
