@@ -102,6 +102,16 @@ impl TryInto<substrate_bn::G1> for G1 {
     }
 }
 
+impl G1 {
+    pub fn try_into_substrate_bn_unchecked(self) -> Result<substrate_bn::G1, ConvertError> {
+        let mut g1 =
+            substrate_bn::G1::new(self.0.try_into()?, self.1.try_into()?, self.2.try_into()?);
+        use substrate_bn::Group;
+        g1.normalize();
+        Ok(g1)
+    }
+}
+
 impl TryInto<substrate_bn::G2> for G2 {
     type Error = ConvertError;
 
@@ -112,6 +122,16 @@ impl TryInto<substrate_bn::G2> for G2 {
         check.normalize();
         substrate_bn::AffineG2::new(check.x(), check.y())
             .map_err(|_e| ConvertError::InvalidG2Point)?;
+        Ok(g2)
+    }
+}
+
+impl G2 {
+    pub fn try_into_substrate_bn_unchecked(self) -> Result<substrate_bn::G2, ConvertError> {
+        let mut g2 =
+            substrate_bn::G2::new(self.0.try_into()?, self.1.try_into()?, self.2.try_into()?);
+        use substrate_bn::Group;
+        g2.normalize();
         Ok(g2)
     }
 }
@@ -131,6 +151,25 @@ impl TryInto<fflonk_verifier::VerificationKey> for Vk {
             wr: self.wr.into(),
             x2: self.x2.try_into()?,
             c0: self.c0.try_into()?,
+        })
+    }
+}
+
+impl Vk {
+    pub fn try_into_fflonk_vk_unchecked(
+        self,
+    ) -> Result<fflonk_verifier::VerificationKey, ConvertError> {
+        Ok(fflonk_verifier::VerificationKey {
+            power: self.power,
+            k1: self.k1.into(),
+            k2: self.k2.into(),
+            w: self.w.into(),
+            w3: self.w3.into(),
+            w4: self.w4.into(),
+            w8: self.w8.into(),
+            wr: self.wr.into(),
+            x2: self.x2.try_into_substrate_bn_unchecked()?,
+            c0: self.c0.try_into_substrate_bn_unchecked()?,
         })
     }
 }
