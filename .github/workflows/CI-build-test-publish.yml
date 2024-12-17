@@ -122,9 +122,6 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.git_ref }}
-          fetch-depth: 0
 
       - name: Download zkVerify Docker image artifact
         uses: actions/download-artifact@v4
@@ -138,7 +135,6 @@ jobs:
           MAINTAINERS_KEYS: ${{ vars.MAINTAINERS_KEYS }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
-          GITHUB_TAG: ${{ inputs.git_ref }}
         run: |
           source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
           "${GITHUB_WORKSPACE}/ci/docker.sh" --image-artifact ${{ needs.build.outputs.artifact_name }}

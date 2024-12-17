@@ -8,54 +8,13 @@ export TEST_RELEASE="false"
 export COMMON_FILE_LOCATION='ci/common.sh'
 
 workdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
-github_tag="${GITHUB_REF_NAME:-}"
+github_tag="${GITHUB_TAG:-refs/tags/0.7.0-0.9.0-test2}"
 release_branch="${RELEASE_BRANCH:-release}"
 prod_release_regex='^[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+\.[0-9]+\.[0-9]+$'
 dev_release_regex='^[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+){1}$'
 test_release_regex='^[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+\.[0-9]+\.[0-9]+-[a-zA-Z0-9]+$'
 
-# Requirement
-if ! [ -f "${workdir}/${COMMON_FILE_LOCATION}" ]; then
-  echo -e "\n\033[1;31mERROR: ${COMMON_FILE_LOCATION} file is missing !!! \033[0m\n"
-  return
-else
-  # shellcheck disable=SC1090
-  source "${COMMON_FILE_LOCATION}"
-fi
-
-# Functions
-import_gpg_keys() {
-  # shellcheck disable=SC2207
-  declare -r my_arr=( $(echo "${@}" | tr " " "\n") )
-
-  if [ "${#my_arr[@]}" -eq 0 ]; then
-    log_warn "WARNING: there are ZERO gpg keys to import. Please check if MAINTAINERS_KEYS variable(s) is(are) set correctly. The build is not going to be released ..."
-    export IS_A_RELEASE="false"
-  else
-    # shellcheck disable=SC2145
-    printf "%s\n" "Tagged build, fetching keys:" "${@}" ""
-    for key in "${my_arr[@]}"; do
-      gpg -v --batch --keyserver hkps://keys.openpgp.org --recv-keys "${key}" ||
-      gpg -v --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys "${key}" ||
-      gpg -v --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "${key}" ||
-      gpg -v --batch --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys "${key}" ||
-
-      { log_warn "WARNING: ${key} can not be found on GPG key servers. Please upload it to at least one of the following GPG key servers:\nhttps://keys.openpgp.org/\nhttps://keyserver.ubuntu.com/\nhttps://pgp.mit.edu/"; export IS_A_RELEASE="false"; }
-    done
-  fi
-}
-
-check_signed_tag() {
-  local tag="${1}"
-
-  if git verify-tag -v "${tag}"; then
-    echo "${tag} is a valid signed tag"
-  else
-    log_warn "WARNING: GIT's tag = ${tag} signature is NOT valid. The build is not going to be released ..."
-    export IS_A_RELEASE="false"
-  fi
-}
-
+source ci/common.sh
 
 ####
 # Main
@@ -68,12 +27,12 @@ if git branch -r --contains "${github_tag}" | grep -xqE ". origin\/${release_bra
   IS_A_RELEASE="true"
   derived_from_branch="$(git branch -r --contains "${github_tag}" | grep -xE ". origin\/${release_branch}/${github_tag}")"
 
-  if [ -z "${MAINTAINERS_KEYS:-}" ]; then
-    log_warn "WARNING: MAINTAINERS_KEYS variable is not set. The build is not going to be released ..."
-  fi
+  # if [ -z "${MAINTAINERS_KEYS:-}" ]; then
+  #   log_warn "WARNING: MAINTAINERS_KEYS variable is not set. The build is not going to be released ..."
+  # fi
 
-  import_gpg_keys "${MAINTAINERS_KEYS}"
-  check_signed_tag "${github_tag}"
+  # import_gpg_keys "${MAINTAINERS_KEYS}"
+  # check_signed_tag "${github_tag}"
 
   # Release test
   if [ "${IS_A_RELEASE}" = "true" ]; then

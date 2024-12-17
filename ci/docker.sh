@@ -10,7 +10,7 @@ is_a_release="${IS_A_RELEASE:-false}"
 prod_release="${PROD_RELEASE:-false}"
 dev_release="${DEV_RELEASE:-false}"
 test_release="${TEST_RELEASE:-false}"
-github_ref_name="${GITHUB_TAG:-}"
+github_ref_name="${GITHUB_REF_NAME:-}"
 common_file_location="${COMMON_FILE_LOCATION:-not-set}"
 image_artifact=""
 
