@@ -4,19 +4,6 @@ on:
   push:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+-[0-9]+.[0-9]+.[0-9]+*"
-  workflow_dispatch:
-    inputs:
-      git_ref:
-        type: string
-    secrets:
-      DOCKER_HUB_USERNAME:
-        required: true
-      DOCKER_HUB_TOKEN:
-        required: true
-      GH_TOKEN:
-        required: true
-      QA_SLACK_WEBHOOK_URL:
-        required: true
 
 env:
   RUST_BACKTRACE: 1
@@ -31,7 +18,6 @@ jobs:
     uses: ./.github/workflows/CI-build-test-publish.yml
     with:
       chain: ${{ matrix.chain }}
-      git_ref: ${{ github.event.inputs.git_ref || github.ref }}
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}

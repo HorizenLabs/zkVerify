@@ -60,6 +60,7 @@ check_signed_tag() {
 ####
 # Main
 ####
+log_info "GIT_REF_NAME is ${GIT_REF_NAME}"
 log_info "Release branch(es) is(are): ${release_branch}/*"
 log_info "Github tag is: ${github_tag}"
 
