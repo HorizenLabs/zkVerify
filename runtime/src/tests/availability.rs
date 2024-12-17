@@ -41,6 +41,7 @@ fn pallet_fflonk() {
             dummy_proof.into(),
             dummy_pubs.into(),
             None,
+            None,
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -234,6 +235,7 @@ fn pallet_zksync() {
             dummy_proof.into(),
             dummy_pubs.into(),
             None,
+            None,
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -249,6 +251,7 @@ fn pallet_groth16() {
             VkOrHash::from_hash(H256::zero()),
             pallet_groth16_verifier::Proof::default().into(),
             Box::new(Vec::new()),
+            None,
             None,
         )
         .is_err());
@@ -271,6 +274,7 @@ fn pallet_risc0() {
             dummy_proof.into(),
             dummy_pubs.into(),
             None,
+            None,
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -292,6 +296,7 @@ fn pallet_ultraplonk() {
             dummy_proof.into(),
             dummy_pubs.into(),
             None,
+            None,
         )
         .is_err());
         // just checking code builds, hence the pallet is available to the runtime
@@ -312,6 +317,7 @@ fn pallet_proofofsql_availability() {
             VkOrHash::Vk(Box::new(dummy_vk.into())),
             dummy_proof.into(),
             dummy_pubs.into(),
+            None,
             None,
         )
         .is_err());

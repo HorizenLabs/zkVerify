@@ -345,6 +345,7 @@ mod submit_proof_should {
                 Box::new(42),
                 Box::new(42),
                 Some(666),
+                None
             ));
 
             assert!(System::events().len() >= 1);
@@ -356,6 +357,7 @@ mod submit_proof_should {
     #[rstest]
     fn emit_proof_verified_event(mut def_vk: sp_io::TestExternalities) {
         def_vk.execute_with(|| {
+            let note = b"hello".to_vec();
             // Dispatch a signed extrinsic.
             assert_ok!(FakeVerifierPallet::submit_proof(
                 RuntimeOrigin::root(),
@@ -363,6 +365,7 @@ mod submit_proof_should {
                 Box::new(42),
                 Box::new(42),
                 Some(1),
+                Some(note.clone())
             ));
 
             assert!(System::events().len() >= 1);
@@ -370,6 +373,7 @@ mod submit_proof_should {
             System::assert_has_event(
                 Event::<Test, FakeVerifier>::ProofVerified {
                     statement: VALID_HASH_REGISTERED_VK,
+                    note: Some(note),
                 }
                 .into(),
             );
@@ -388,6 +392,7 @@ mod submit_proof_should {
                 Box::new(42),
                 Box::new(42),
                 Some(1),
+                None
             ));
 
             assert!(System::events().len() >= 1);
@@ -413,6 +418,7 @@ mod submit_proof_should {
             proof: Box::new(42),
             pubs: Box::new(24),
             domain_id: None,
+            note: None,
         }
         .get_dispatch_info();
 
@@ -434,6 +440,7 @@ mod submit_proof_should {
                     Box::new(42),
                     Box::new(42),
                     None,
+                    None
                 )
                 .is_err());
             });
@@ -450,6 +457,7 @@ mod submit_proof_should {
                         Box::new(42),
                         Box::new(24),
                         None,
+                        None
                     ),
                     RError::VerifyError
                 );
@@ -468,6 +476,7 @@ mod submit_proof_should {
                         Box::new(42),
                         Box::new(42),
                         None,
+                        None
                     ),
                     RError::VerificationKeyNotFound
                 );
@@ -484,6 +493,7 @@ mod submit_proof_should {
                         FakeVerifier::malformed_proof(),
                         Box::new(42),
                         None,
+                        None
                     ),
                     RError::InvalidProofData
                 );
@@ -500,6 +510,7 @@ mod submit_proof_should {
                         Box::new(42),
                         Box::new(42),
                         None,
+                        None
                     ),
                     RError::InvalidVerificationKey
                 );
@@ -516,6 +527,7 @@ mod submit_proof_should {
                         Box::new(42),
                         FakeVerifier::malformed_pubs(),
                         None,
+                        None
                     ),
                     RError::InvalidInput
                 );
@@ -557,6 +569,7 @@ mod disable_should {
                     Box::new(42),
                     Box::new(42),
                     None,
+                    None
                 ),
                 RError::DisabledVerifier
             );
@@ -593,6 +606,7 @@ mod disable_should {
                     Box::new(42),
                     Box::new(42),
                     None,
+                    None
                 ),
                 on_disable_error::<Test, FakeVerifier>(),
             );
@@ -622,6 +636,7 @@ mod disable_should {
                 Box::new(42),
                 Box::new(42),
                 None,
+                None
             ));
             assert_ok!(FakeVerifierPallet::register_vk(
                 RuntimeOrigin::signed(USER_1),

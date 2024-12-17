@@ -54,7 +54,14 @@ mod benchmarks {
         let pubs = VALID_PUBS_CYCLE_2_POW_12.to_vec().into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -68,7 +75,14 @@ mod benchmarks {
         let pubs = VALID_PUBS_CYCLE_2_POW_13.to_vec().into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -82,7 +96,14 @@ mod benchmarks {
         let pubs = VALID_PUBS_CYCLE_2_POW_14.to_vec().into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -96,7 +117,14 @@ mod benchmarks {
         let pubs = VALID_PUBS_CYCLE_2_POW_15.to_vec().into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -110,7 +138,14 @@ mod benchmarks {
         let pubs = VALID_PUBS_CYCLE_2_POW_16.to_vec().into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -124,7 +159,14 @@ mod benchmarks {
         let pubs = VALID_PUBS_CYCLE_2_POW_17.to_vec().into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -138,7 +180,14 @@ mod benchmarks {
         let pubs = VALID_PUBS_CYCLE_2_POW_18.to_vec().into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -152,7 +201,14 @@ mod benchmarks {
         let pubs = VALID_PUBS_CYCLE_2_POW_19.to_vec().into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -166,7 +222,14 @@ mod benchmarks {
         let pubs = VALID_PUBS_CYCLE_2_POW_20.to_vec().into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -180,7 +243,14 @@ mod benchmarks {
         let pubs = VALID_PUBS_CYCLE_2_POW_21.to_vec().into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -194,7 +264,14 @@ mod benchmarks {
         let pubs = VALID_PUBS_CYCLE_2_POW_22.to_vec().into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -208,7 +285,14 @@ mod benchmarks {
         let pubs = VALID_PUBS_CYCLE_2_POW_23.to_vec().into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -222,7 +306,14 @@ mod benchmarks {
         let pubs = VALID_PUBS_CYCLE_2_POW_24.to_vec().into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -238,7 +329,14 @@ mod benchmarks {
         Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -254,7 +352,14 @@ mod benchmarks {
         Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -270,7 +375,14 @@ mod benchmarks {
         Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -286,7 +398,14 @@ mod benchmarks {
         Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -302,7 +421,14 @@ mod benchmarks {
         Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -318,7 +444,14 @@ mod benchmarks {
         Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -334,7 +467,14 @@ mod benchmarks {
         Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -350,7 +490,14 @@ mod benchmarks {
         Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -366,7 +513,14 @@ mod benchmarks {
         Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -382,7 +536,14 @@ mod benchmarks {
         Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -398,7 +559,14 @@ mod benchmarks {
         Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -414,7 +582,14 @@ mod benchmarks {
         Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -430,7 +605,14 @@ mod benchmarks {
         Vks::<T, Risc0<T>>::insert(VALID_VK, vk_entry);
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]

@@ -52,7 +52,14 @@ mod benchmarks {
         let pubs = PUBS.into();
 
         #[extrinsic_call]
-        submit_proof(RawOrigin::Signed(caller), vk, proof, pubs, Some(domain_id));
+        submit_proof(
+            RawOrigin::Signed(caller),
+            vk,
+            proof,
+            pubs,
+            Some(domain_id),
+            None,
+        );
     }
 
     #[benchmark]
@@ -74,6 +81,7 @@ mod benchmarks {
             proof,
             pubs,
             Some(domain_id),
+            None,
         );
     }
 

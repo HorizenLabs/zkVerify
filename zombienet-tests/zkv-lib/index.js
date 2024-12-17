@@ -83,7 +83,14 @@ exports.init_api = async (zombie, nodeName, networkInfo) => {
 }
 
 exports.submitProof = async (pallet, signer, ...verifierArgs) => {
-    const validProofSubmission = (verifierArgs.length < 4) ? pallet.submitProof(...verifierArgs, null) : pallet.submitProof(...verifierArgs);
+    let validProofSubmission;
+    if (verifierArgs.length == 3) {
+        validProofSubmission = pallet.submitProof(...verifierArgs, null, null);
+    } else if (verifierArgs.length == 4) {
+        validProofSubmission = pallet.submitProof(...verifierArgs, null);
+    } else {
+        validProofSubmission = pallet.submitProof(...verifierArgs);
+    }
     return await submitExtrinsic(api, validProofSubmission, signer, BlockUntil.InBlock, (event) =>
         (event.section == "poe" && event.method == "NewElement") ||
         (event.section == "aggregate" && event.method == "NewProof") ||
@@ -256,7 +263,7 @@ async function submitExtrinsic(api, extrinsic, signer, blockUntil, filter) {
                     events: records.map((record) => record.event).filter(filter)
                 };
             },
-            async function(error) {
+            async function (error) {
                 if (error !== "retry") {
                     console.log("Not retrying!");
                     return -1;

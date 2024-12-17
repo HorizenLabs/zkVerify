@@ -58,6 +58,7 @@ pub mod benchmarks {
             proof,
             pubs,
             Some(domain_id),
+            None,
         );
     }
 
@@ -77,6 +78,7 @@ pub mod benchmarks {
             proof,
             pubs,
             Some(domain_id),
+            None,
         );
     }
 
@@ -100,6 +102,7 @@ pub mod benchmarks {
             proof,
             pubs.into(),
             Some(domain_id),
+            None,
         );
     }
 
@@ -123,6 +126,7 @@ pub mod benchmarks {
             proof,
             pubs.into(),
             Some(domain_id),
+            None,
         );
     }
 
@@ -146,6 +150,7 @@ pub mod benchmarks {
             proof,
             pubs.into(),
             Some(domain_id),
+            None,
         );
     }
 
@@ -168,6 +173,7 @@ pub mod benchmarks {
             proof,
             pubs.into(),
             Some(domain_id),
+            None,
         );
     }
 
@@ -194,6 +200,7 @@ pub mod benchmarks {
             proof,
             pubs.into(),
             Some(domain_id),
+            None,
         );
     }
 

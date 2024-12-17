@@ -57,6 +57,7 @@ mod benchmarks {
             proof.into(),
             pubs.into(),
             Some(domain_id),
+            None,
         );
     }
 
@@ -78,6 +79,7 @@ mod benchmarks {
             proof.into(),
             pubs.into(),
             Some(domain_id),
+            None,
         );
     }
 

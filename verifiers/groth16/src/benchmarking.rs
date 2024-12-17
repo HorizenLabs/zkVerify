@@ -53,6 +53,7 @@ mod benchmarks {
             proof.into(),
             inputs.into(),
             Some(domain_id),
+            None,
         );
     }
 
@@ -68,6 +69,7 @@ mod benchmarks {
             proof.into(),
             inputs.into(),
             Some(domain_id),
+            None,
         );
     }
 
@@ -86,6 +88,7 @@ mod benchmarks {
             proof.into(),
             inputs.into(),
             Some(domain_id),
+            None,
         );
     }
 
@@ -104,6 +107,7 @@ mod benchmarks {
             proof.into(),
             inputs.into(),
             Some(domain_id),
+            None,
         );
     }
 

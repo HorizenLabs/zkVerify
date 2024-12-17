@@ -96,7 +96,7 @@ pub mod pallet {
     use hp_on_proof_verified::OnProofVerified;
     use sp_core::{hexdisplay::AsBytesRef, H256};
     use sp_io::hashing::keccak_256;
-    use sp_runtime::{traits::BadOrigin, ArithmeticError};
+    use sp_runtime::{traits::BadOrigin, ArithmeticError, Vec};
     use sp_std::boxed::Box;
 
     use hp_verifiers::{Verifier, VerifyError, WeightInfo};
@@ -214,6 +214,8 @@ pub mod pallet {
         ProofVerified {
             /// Proof verified statement
             statement: H256,
+            /// Optional note field
+            note: Option<Vec<u8>>,
         },
     }
 
@@ -291,6 +293,7 @@ pub mod pallet {
             proof: Box<I::Proof>,
             pubs: Box<I::Pubs>,
             domain_id: Option<u32>,
+            note: Option<Vec<u8>>,
         ) -> DispatchResultWithPostInfo
         where
             I: Verifier,
@@ -312,7 +315,7 @@ pub mod pallet {
             let account = ensure_signed(origin).ok();
             let statement = compute_hash::<I>(&pubs, &vk_or_hash);
             I::verify_proof(&vk, &proof, &pubs)
-                .inspect(|_| Self::deposit_event(Event::ProofVerified { statement }))
+                .inspect(|_| Self::deposit_event(Event::ProofVerified { statement, note }))
                 .map(|_x| T::OnProofVerified::on_proof_verified(account, domain_id, statement))
                 .map_err(Error::<T, I>::from)?;
             Ok(().into())
