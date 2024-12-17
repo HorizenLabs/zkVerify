@@ -15,7 +15,7 @@ jobs:
         chain: [solo, relay]
       fail-fast: false
     
-    uses: ./.github/workflows/CI-build-test-publish.yml
+    uses: ./.github/workflows/CI-build-test-publish-copy.yml
     with:
       chain: ${{ matrix.chain }}
     secrets:

@@ -120,6 +120,7 @@ jobs:
     if: always()
 
     steps:
+      - run: echo "github.ref is ${{ github.ref }}"
       - name: Git checkout
         uses: actions/checkout@v4
         with:
