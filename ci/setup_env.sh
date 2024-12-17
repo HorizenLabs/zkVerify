@@ -8,7 +8,7 @@ export TEST_RELEASE="false"
 export COMMON_FILE_LOCATION='ci/common.sh'
 
 workdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
-github_tag="${GITHUB_REF_NAME:-}"
+github_tag="${GITHUB_TAG:-}"
 release_branch="${RELEASE_BRANCH:-release}"
 prod_release_regex='^[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+\.[0-9]+\.[0-9]+$'
 dev_release_regex='^[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+){1}$'
