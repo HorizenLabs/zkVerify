@@ -89,7 +89,7 @@ if [ -n "${docker_tag_full:-}" ]; then
   for publish_tag in "${publish_tags[@]}"; do
     log_info "Publishing docker image: ${docker_image_build_name}:${publish_tag}"
     docker tag "${image_name}" "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
-    docker push "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
+    # docker push "index.docker.io/${docker_hub_org}/${docker_image_build_name}:${publish_tag}"
   done
 
   # Extract runtime artifact
