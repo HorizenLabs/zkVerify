@@ -7,9 +7,6 @@ on:
         description: "Solo or relay"
         required: true
         type: string
-      git_ref:
-        type: string
-        required: true
     secrets:
       DOCKER_HUB_USERNAME:
         required: true
