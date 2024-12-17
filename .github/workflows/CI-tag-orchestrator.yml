@@ -24,7 +24,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
       QA_SLACK_WEBHOOK_URL: ${{ secrets.QA_SLACK_WEBHOOK_URL }}
 
-  rustdoc-job:
-    uses: ./.github/workflows/CI-rustdoc.yml
-    with:
-      CACHING_MODE: "CACHE_RESTORE"
+  # rustdoc-job:
+  #   uses: ./.github/workflows/CI-rustdoc.yml
+  #   with:
+  #     CACHING_MODE: "CACHE_RESTORE"
