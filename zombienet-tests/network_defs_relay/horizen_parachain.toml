@@ -13,7 +13,7 @@ name = "bob"
 validator = true
 
 [[parachains]]
-id = 1000
+id = 2000
 chain_spec_path = "specs/horizen-chainspec.json"
 add_to_genesis = true
 cumulus_based = true
