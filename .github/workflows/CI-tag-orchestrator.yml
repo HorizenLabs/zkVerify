@@ -23,6 +23,7 @@ jobs:
       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
       QA_SLACK_WEBHOOK_URL: ${{ secrets.QA_SLACK_WEBHOOK_URL }}
+      RELEASES_PROD_SLACK_WEBHOOK_URL: ${{ secrets.RELEASES_PROD_SLACK_WEBHOOK_URL }}
 
   rustdoc-job:
     uses: ./.github/workflows/CI-rustdoc.yml

@@ -16,6 +16,8 @@ on:
         required: true
       QA_SLACK_WEBHOOK_URL:
         required: true
+      RELEASES_PROD_SLACK_WEBHOOK_URL:
+        required: true
 
 env:
   DOCKER_HUB_ORG: horizenlabs
@@ -157,7 +159,7 @@ jobs:
                   "type": "header",
                   "text": {
                     "type": "plain_text",
-                    "text": "🎉 ${{ env.DOCKER_IMAGE_BUILD_NAME }} Docker Image v${{ github.ref_name }} Released! 🎉"
+                    "text": "🎉 ${{ env.DOCKER_IMAGE_BUILD_NAME }} Docker Image v${{ github.ref_name }}-${{ inputs.chain }} Released! 🎉"
                   }
                 },
                 {
@@ -165,7 +167,7 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*Docker Image:*  <https://hub.docker.com/r/${{ env.DOCKER_HUB_ORG }}/${{ env.DOCKER_IMAGE_BUILD_NAME }}/tags?page=1&name=${{ github.ref_name }}| v${{ github.ref_name }}>\n"
+                      "text": "*Docker Image:*  <https://hub.docker.com/r/${{ env.DOCKER_HUB_ORG }}/${{ env.DOCKER_IMAGE_BUILD_NAME }}/tags?page=1&name=${{ github.ref_name }}-${{ inputs.chain }}| v${{ github.ref_name }}-${{ inputs.chain }}>\n"
                     },
                     {
                       "type": "mrkdwn",
@@ -177,7 +179,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "```docker pull ${{ env.DOCKER_HUB_ORG }}/${{ env.DOCKER_IMAGE_BUILD_NAME }}:${{ github.ref_name }}```"
+                    "text": "```docker pull ${{ env.DOCKER_HUB_ORG }}/${{ env.DOCKER_IMAGE_BUILD_NAME }}:${{ github.ref_name }}-${{ inputs.chain }}```"
                   }
                 }
               ]
