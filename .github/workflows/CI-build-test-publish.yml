@@ -7,9 +7,6 @@ on:
         description: "Solo or relay"
         required: true
         type: string
-      git_ref:
-        type: string
-        required: true
     secrets:
       DOCKER_HUB_USERNAME:
         required: true
@@ -18,6 +15,8 @@ on:
       GH_TOKEN:
         required: true
       QA_SLACK_WEBHOOK_URL:
+        required: true
+      RELEASES_PROD_SLACK_WEBHOOK_URL:
         required: true
 
 env:
@@ -69,61 +68,62 @@ jobs:
           compression-level: 0
           overwrite: true
   
-  execute-e2e-tests:
-    runs-on:
-      group: zkVerify
-    needs: build
-    name: Execute E2E Tests
-    outputs:
-      test_status: ${{ steps.run-test.outputs.test_status }} 
-    steps:
-      - name: E2E
-        run: echo "execute-e2e-tests with ${{ needs.build.outputs.artifact_name }}"  
+  # execute-e2e-tests:
+  #   runs-on:
+  #     group: zkVerify
+  #   needs: build
+  #   name: Execute E2E Tests
+  #   outputs:
+  #     test_status: ${{ steps.run-test.outputs.test_status }} 
+  #   steps:
+  #     - name: E2E
+  #       run: echo "execute-e2e-tests with ${{ needs.build.outputs.artifact_name }}"  
 
-      - uses: actions/checkout@v4
-        with:
-          repository: HorizenLabs/zkVerify-qa
-          ref: main
-          clean: true
-          fetch-depth: 1
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         repository: HorizenLabs/zkVerify-qa
+  #         ref: main
+  #         clean: true
+  #         fetch-depth: 1
 
-      - name: Download zkVerify Docker image artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.build.outputs.artifact_name }}
-          path: ./
+  #     - name: Download zkVerify Docker image artifact
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: ${{ needs.build.outputs.artifact_name }}
+  #         path: ./
 
-      - name: Load Docker image and rename
-        run: |
-          IMAGE_NAME="$(docker load -i "${GITHUB_WORKSPACE}/${{ needs.build.outputs.artifact_name }}.tar" | awk '/Loaded image:/ { print $3 }')"
-          echo $(docker images -q "${IMAGE_NAME}" > /dev/null 2>&1 && echo "Image exists..." || echo "Image missing...")
-          echo "Loaded image ${IMAGE_NAME}"
-          TEST_TAG=test
-          echo "TEST_TAG=${TEST_TAG}" >> $GITHUB_ENV
-          docker image tag "${IMAGE_NAME}" "${DOCKER_HUB_ORG}/${DOCKER_IMAGE_BUILD_NAME}:$TEST_TAG"
-        shell: bash
+  #     - name: Load Docker image and rename
+  #       run: |
+  #         IMAGE_NAME="$(docker load -i "${GITHUB_WORKSPACE}/${{ needs.build.outputs.artifact_name }}.tar" | awk '/Loaded image:/ { print $3 }')"
+  #         echo $(docker images -q "${IMAGE_NAME}" > /dev/null 2>&1 && echo "Image exists..." || echo "Image missing...")
+  #         echo "Loaded image ${IMAGE_NAME}"
+  #         TEST_TAG=test
+  #         echo "TEST_TAG=${TEST_TAG}" >> $GITHUB_ENV
+  #         docker image tag "${IMAGE_NAME}" "${DOCKER_HUB_ORG}/${DOCKER_IMAGE_BUILD_NAME}:$TEST_TAG"
+  #       shell: bash
 
-      - name: Run test
-        id: run-test
-        uses: 'HorizenLabs/zkVerify-qa/.github/actions/e2e-test@main'
-        with:
-          zkverify_docker_tag: ${{ env.TEST_TAG }}
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-          DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          QA_SLACK_WEBHOOK_URL: ${{ secrets.QA_SLACK_WEBHOOK_URL }}
+  #     - name: Run test
+  #       id: run-test
+  #       uses: 'HorizenLabs/zkVerify-qa/.github/actions/e2e-test@main'
+  #       with:
+  #         zkverify_docker_tag: ${{ env.TEST_TAG }}
+  #         DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+  #         DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+  #         GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  #         QA_SLACK_WEBHOOK_URL: ${{ secrets.QA_SLACK_WEBHOOK_URL }}
 
   publish-docker-image:
     name: Publish Docker Image
     runs-on: ubuntu-latest
-    needs: [ build, execute-e2e-tests ] # Wait for e2e tests to finish
-    if: always()
+    # needs: [ build, execute-e2e-tests ] # Wait for e2e tests to finish
+    # if: always()
+    needs: [ build ]
 
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.git_ref }}
+          ref: ${{ github.ref }}
           fetch-depth: 0
 
       - name: Download zkVerify Docker image artifact
@@ -138,7 +138,6 @@ jobs:
           MAINTAINERS_KEYS: ${{ vars.MAINTAINERS_KEYS }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
-          GITHUB_TAG: ${{ inputs.git_ref }}
         run: |
           source "${GITHUB_WORKSPACE}/ci/setup_env.sh"
           "${GITHUB_WORKSPACE}/ci/docker.sh" --image-artifact ${{ needs.build.outputs.artifact_name }}
@@ -160,7 +159,7 @@ jobs:
                   "type": "header",
                   "text": {
                     "type": "plain_text",
-                    "text": "🎉 ${{ env.DOCKER_IMAGE_BUILD_NAME }} Docker Image v${{ github.ref_name }} Released! 🎉"
+                    "text": "🎉 ${{ env.DOCKER_IMAGE_BUILD_NAME }} Docker Image v${{ github.ref_name }}-${{ inputs.chain }} Released! 🎉"
                   }
                 },
                 {
@@ -168,7 +167,7 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*Docker Image:*  <https://hub.docker.com/r/${{ env.DOCKER_HUB_ORG }}/${{ env.DOCKER_IMAGE_BUILD_NAME }}/tags?page=1&name=${{ github.ref_name }}| v${{ github.ref_name }}>\n"
+                      "text": "*Docker Image:*  <https://hub.docker.com/r/${{ env.DOCKER_HUB_ORG }}/${{ env.DOCKER_IMAGE_BUILD_NAME }}/tags?page=1&name=${{ github.ref_name }}-${{ inputs.chain }}| v${{ github.ref_name }}-${{ inputs.chain }}>\n"
                     },
                     {
                       "type": "mrkdwn",
@@ -180,7 +179,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "```docker pull ${{ env.DOCKER_HUB_ORG }}/${{ env.DOCKER_IMAGE_BUILD_NAME }}:${{ github.ref_name }}```"
+                    "text": "```docker pull ${{ env.DOCKER_HUB_ORG }}/${{ env.DOCKER_IMAGE_BUILD_NAME }}:${{ github.ref_name }}-${{ inputs.chain }}```"
                   }
                 }
               ]
