@@ -52,7 +52,7 @@ impl Verifier for Fflonk {
     ) -> Result<(), VerifyError> {
         let vk: fflonk_verifier::VerificationKey = vk
             .clone()
-            .try_into()
+            .try_into_fflonk_vk_unchecked()
             .map_err(|e| log::debug!("Invalid Vk: {:?}", e))
             .map_err(|_| VerifyError::InvalidVerificationKey)?;
         let pubs: fflonk_verifier::Public = (*raw_pubs).into();

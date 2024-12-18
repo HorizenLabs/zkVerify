@@ -89,6 +89,11 @@ impl G1 {
         R::deserialize_uncompressed(self.0.as_slice())
     }
 
+    /// Try to convert the G1 point to an affine representation, without checking that point is on curve.
+    pub fn try_into_affine_unchecked<R: AffineRepr>(self) -> Result<R, SerializationError> {
+        R::deserialize_uncompressed_unchecked(self.0.as_slice())
+    }
+
     /// Try to convert the affine representation to a G1 point.
     pub fn try_from_affine<R: AffineRepr>(value: R) -> Result<Self, SerializationError> {
         let mut result = Self(vec![0; value.uncompressed_size()]);
@@ -101,6 +106,11 @@ impl G2 {
     /// Try to convert the G2 point to an affine representation.
     pub fn try_into_affine<R: AffineRepr>(self) -> Result<R, SerializationError> {
         R::deserialize_uncompressed(self.0.as_slice())
+    }
+
+    /// Try to convert the G2 point to an affine representation, without checking that point is on curve.
+    pub fn try_into_affine_unchecked<R: AffineRepr>(self) -> Result<R, SerializationError> {
+        R::deserialize_uncompressed_unchecked(self.0.as_slice())
     }
 
     /// Try to convert the affine representation to a G2 point.
@@ -157,6 +167,26 @@ impl<E: Pairing> TryFrom<VerificationKey> for ark_groth16::VerifyingKey<E> {
                 .gamma_abc_g1
                 .into_iter()
                 .map(|v| v.try_into_affine::<E::G1Affine>())
+                .collect::<Result<Vec<_>, _>>()?,
+        })
+    }
+}
+
+impl VerificationKey {
+    /// Convert a `VerificationKey` into a `ark_groth16::VerifyingKey` without checking
+    /// that points are on the curve.
+    pub fn try_into_ark_unchecked<E: Pairing>(
+        self,
+    ) -> Result<ark_groth16::VerifyingKey<E>, SerializationError> {
+        Ok(ark_groth16::VerifyingKey {
+            alpha_g1: self.alpha_g1.try_into_affine_unchecked::<E::G1Affine>()?,
+            beta_g2: self.beta_g2.try_into_affine_unchecked::<E::G2Affine>()?,
+            gamma_g2: self.gamma_g2.try_into_affine_unchecked::<E::G2Affine>()?,
+            delta_g2: self.delta_g2.try_into_affine_unchecked::<E::G2Affine>()?,
+            gamma_abc_g1: self
+                .gamma_abc_g1
+                .into_iter()
+                .map(|v| v.try_into_affine_unchecked::<E::G1Affine>())
                 .collect::<Result<Vec<_>, _>>()?,
         })
     }

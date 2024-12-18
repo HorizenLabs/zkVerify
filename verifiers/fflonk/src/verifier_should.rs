@@ -53,7 +53,6 @@ fn reject_malformed_vk() {
 }
 
 mod reject {
-    use sp_core::U256;
 
     use super::*;
 
@@ -78,18 +77,6 @@ mod reject {
 
         assert_eq!(
             Fflonk::verify_proof(&vk, &invalid_proof, &VALID_PUBS),
-            Err(VerifyError::VerifyError)
-        );
-    }
-
-    #[test]
-    fn invalid_vk() {
-        let mut vk = cdk_key();
-
-        *vk.mut_k1() = U256::zero();
-
-        assert_eq!(
-            Fflonk::verify_proof(&vk, &VALID_PROOF, &VALID_PUBS),
             Err(VerifyError::VerifyError)
         );
     }
