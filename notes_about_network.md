@@ -81,6 +81,15 @@ Open the file with an editor and replace the `Alice` and `Bob` public keys with 
 - sr25519 Alice `5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty` -> sr25519 Validator2 `5G6win2P1ty9X6DYuvfSFkijHGVx8yceVp1uNFntENyu7H4j`
 - ed25519 Alice `5GoNkf6WdbxCFnPdAnYYQyCjAKPJgLNxXwPjwTh6DGg6gN3E` -> ed25519 Validator2 `5CkhLKX285NbSy4FioEBTwF7Q5X69wmr2d8z58tWr1V8sZK4`
 
+Or use `sed`:
+
+```sh
+sed -i 's~5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY~5Hb48vxYpQZQHRbzLMak1AKhtuww6wNK1oMFyigysK8zvHyW~g' staging/plain-chainspec.json
+sed -i 's~5FA9nQDVg267DEd8m1ZypXLBnvN7SFxYwV7ndqSYGiN9TTpu~5CpBzkEqzW5RPjDqMMqJuTSkaNrdbo3WxYC8arVjysd96DCN~g' staging/plain-chainspec.json
+sed -i 's~5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty~5G6win2P1ty9X6DYuvfSFkijHGVx8yceVp1uNFntENyu7H4j~g' staging/plain-chainspec.json
+sed -i 's~5GoNkf6WdbxCFnPdAnYYQyCjAKPJgLNxXwPjwTh6DGg6gN3E~5CkhLKX285NbSy4FioEBTwF7Q5X69wmr2d8z58tWr1V8sZK4~g' staging/plain-chainspec.json
+```
+
 Now we can create the raw spec file:
 
 ```sh

@@ -62,10 +62,10 @@ def local_para_node(name, chain_spec, relay_chain_spec, image):
     node['ports'] = ['8844:9944', '20333:30333']
     return node
     
-def get_compose(image_relay='horizenlabs/zkv-relay:latest', 
-                image_para='paratest:latest', 
-                chain_spec='./resources/raw-chainspec.json',
-                para_chain_spec='./resources/raw-para-chainspec.json'):
+def get_compose(image_relay,
+                image_para,
+                chain_spec,
+                para_chain_spec):
     return OrderedDict([
         ('version', '3'),
         ('services', OrderedDict([
