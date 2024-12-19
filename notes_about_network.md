@@ -11,7 +11,6 @@ composed of
 In order to generate this network we should do the follow steps:
 
 - Generate the relay chain and parachain docker images
-- Generate 4 node keys (one for each validator/collator)
 - Generate validators credentials and secret files
 - Generate relay chain spec and modify it
 - Generate parachain spec files, genesis state and genesis wasm.
@@ -32,21 +31,6 @@ and we created a new empty folder `new_network` with a `staging` subfolder
 
 We will always use the docker image every time we need to run the node to build some
 useful file.
-
-## Generate 4 node keys (one for each validator/collator)
-
-To generate the node key file we can use the `zkv-relay` executable with the arguments `key generate-node-key`:
-to make it explicit that generate just a new private `ed25519` key saved as hexdecimal string.
-
-```sh
-docker run --rm -a STDOUT \
-    --entrypoint "" \
-    horizenlabs/zkv-relay zkv-relay \
-    key generate-node-key \
-    > staging/validator_1_nodekey.dat
-```
-
-Do it also with `validator_2`, `collator_1` and `collator_2`.
 
 ## Generate validators credentials and secret files
 
@@ -74,7 +58,7 @@ docker run --rm -a stdout --entrypoint "" horizenlabs/zkv-relay zkv-relay key in
 
 ## Generate relay chain spec and modify it
 
-Here we should generate the spec file and replace the validator public keys with the one that 
+Here we should generate the spec file and replace the validator public keys with the one that
 we had computed in the previous chapter.
 
 ```sh
@@ -87,7 +71,7 @@ docker run --rm -a STDOUT \
         > staging/plain-chainspec.json
 ```
 
-So `staging/plain-chainspec.json` contains the base chain spec for `local` chain: this chain use. 
+So `staging/plain-chainspec.json` contains the base chain spec for `local` chain: this chain use.
 `Alice` and `Bob` as validators and we want to replace them by `Validator1` and `Validator2`:
 
 Open the file with an editor and replace the `Alice` and `Bob` public keys with the new ones:
@@ -144,7 +128,6 @@ docker run --rm -a STDOUT \
         > staging/para-genesis
 ```
 
-
 ```sh
 docker run --rm -a STDOUT \
     -v "./staging/raw-para-chainspec.json:/raw-chainspec.json" \
@@ -157,7 +140,7 @@ docker run --rm -a STDOUT \
 
 ## Run python script to create compose file and network resources
 
-Now we assume that `create_relay_compose.py` is in your path (otherwise use a complete 
+Now we assume that `create_relay_compose.py` is in your path (otherwise use a complete
 path).
 
 ```sh
@@ -185,7 +168,7 @@ options:
 
 ```
 
-If you used the value from this tutorial just run the script with the default value should 
+If you used the value from this tutorial just run the script with the default value should
 work. If you changed something you should change the flags values accordantly.
 
 ```sh
