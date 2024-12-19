@@ -171,7 +171,7 @@ def generate_secrets(project, keys = {}):
     for name in ['validator_1', 'validator_2', 'collator_1', 'collator_2']:
         key = f"{name}_nodekey.dat"
         with open(os.path.join(secrets, key), 'w') as file:
-            file.write(hex(random.getrandbits(256))[2:])
+            file.write(f"{hex(random.getrandbits(256))[2:]:0>64}")
     for (name, k) in keys.items():
         key = f"{name}.dat"
         with open(os.path.join(secrets, key), 'w') as file:
